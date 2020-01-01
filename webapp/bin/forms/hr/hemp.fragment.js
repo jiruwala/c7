@@ -81,6 +81,10 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 // formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
+                    // var ly = thatForm.helperFunc.getHeaderLayout();
+                    // vbHeader.addItem(ly);
+                },
+                fixedDisplay: function (vbHeader) {
                     var ly = thatForm.helperFunc.getHeaderLayout();
                     vbHeader.addItem(ly);
                 },
@@ -97,14 +101,15 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from c7hr_emp where code=':pac'",
-                        where_clause: " code=':code'",
-                        update_exclude_fields: ["sponsorname", "deptname", "mgr_empname"],
+                        dml: "select *from c7hr_emp where emp_cd=':pac'",
+                        where_clause: " emp_cd=':emp_cd'",
+                        update_exclude_fields: ["sponsorname", "deptname", "mgr_empname", "keyfld"],
                         insert_exclude_fields: ["sponsorname", "deptname", "mgr_empname"],
                         insert_default_values: {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
                             // "TYPE": 3
+                            "KEYFLD": "(select nvl(max(keyfld),0)+1 from c7hr_emp) "
                         },
                         update_default_values: {},
                         table_name: "c7hr_emp",
@@ -120,6 +125,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             }
         }
             ;
+
         this.frm = new FormView(this.mainPage);
         this.frm.view = view;
         this.frm.pg = this.mainPage;
@@ -142,7 +148,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
 
 
         // this.cs = {};
-        // this.cs.code = UtilGen.addControl(fe, "Code", sap.m.Input, "Cs" + this.timeInLong + "_",
+        // this.cs.code = UtilGen.addControl(fe, "emp_cd", sap.m.Input, "Cs" + this.timeInLong + "_",
         //     {
         //         enabled: true,
         //         layoutData: new sap.ui.layout.GridData({span: codSpan}),
@@ -181,12 +187,12 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
 
             return {
                 afterExeSql: function (oSql) {
-                    // thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.code"));
+                    // thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.emp_cd"));
                 },
                 afterLoadQry: function (qry) {
-                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("code"));
+                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("emp_cd"));
                     if (qry.name == "qry1") {
-                        thatForm.helperFunc.qryEmpPic("EMP_PICS", thatForm.frm.getFieldValue("qry1.code"));
+                        thatForm.helperFunc.qryEmpPic("EMP_PICS", thatForm.frm.getFieldValue("qry1.emp_cd"));
                         thatForm.helperFunc.dispInfos();
                         thatForm.helperFunc.calcTotSalary();
                     }
@@ -201,13 +207,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 },
                 beforeSaveQry: function (qry, sqlRow, rowNo) {
                     if (qry.name == "qry1") {
-                        qry.formview.setFieldValue("pac", qry.formview.getFieldValue("code"));
+                        qry.formview.setFieldValue("pac", qry.formview.getFieldValue("emp_cd"));
                         var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7hr_emp");
-                        qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
+                        // qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
+                        thatForm.infoObjs["keyfld"].setText(kfld);
                         thatForm.helperFunc.saveEmpPic();
                     }
                     //     var par = that.frm.getFieldValue("qry1.parentcostcent");
-                    //     var ac = that.frm.getFieldValue("qry1.code");
+                    //     var ac = that.frm.getFieldValue("qry1.emp_cd");
                     //     if (!that.canAcParent(par))
                     //         FormView.err(that.errStr);
                     //     sqlRow["path"] = Util.quoted(that.generateAcPath(par, ac));
@@ -221,15 +228,19 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         thatForm.helperFunc.dispInfos();
                         qry.formview.setFieldValue("qry1.visa_typ", "18", "18", true);
                         qry.formview.setFieldValue("qry1.res_year", "1", "1", true);
-                        qry.formview.setFieldValue("qry1.emp_type", "txtPermanent", "txtPermanent", true);
+                        qry.formview.setFieldValue("qry1.emp_type", "permanent", "permanent", true);
                         qry.formview.setFieldValue("qry1.basic_amt", 0, 0, true);
                         qry.formview.setFieldValue("qry1.hra_amt", 0, 0, true);
                         qry.formview.setFieldValue("qry1.trns_amt", 0, 0, true);
                         qry.formview.setFieldValue("qry1.food_amt", 0, 0, true);
                         qry.formview.setFieldValue("qry1.oth_amt", 0, 0, true);
                         qry.formview.setFieldValue("qry1._totamt", 0, 0, true);
-                        qry.formview.setFieldValue("qry1.pay_mode", "txtBank", "txtBank", true);
-                        qry.formview.setFieldValue("qry1.gender", "txtMale", "txtMale", true);
+                        qry.formview.setFieldValue("qry1.pay_mode", "bank", "bank", true);
+                        qry.formview.setFieldValue("qry1.gender", "male", "male", true);
+                        qry.formview.setFieldValue("qry1.visa_typ", "18", "18", true);
+
+                        var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7hr_emp");
+                        thatForm.infoObjs["keyfld"].setText(kfld);
                     }
                 },
                 afterEditRow(qry, index, ld) {
@@ -240,7 +251,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     // if (qry.name == "qry1" && (qry.status == FormView.RecordStatus.EDIT) ||
                     //     (qry.status == FormView.RecordStatus.VIEW)) {
                     //     var valx = that.frm.getFieldValue("pac");
-                    //     var accno = that.frm.getFieldValue("qry1.code");
+                    //     var accno = that.frm.getFieldValue("qry1.emp_cd");
                     //     if (valx != accno) {
                     //         FormView.err("Account not same as " + accno + " <> " + valx + " , Refresh data !");
                     //     }
@@ -256,7 +267,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 afterDelRow: function (qry, ld, data) {
                     var delAdd = "";
                     if (qry.name == "qry1") {
-                        delAdd += "delete from c7_attach where kind_of='EMP_PICS' and refer=':qry1.code' ;";
+                        delAdd += "delete from c7_attach where kind_of='EMP_PICS' and refer=':qry1.emp_cd' ;";
                         // var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1", "DELETED");
                     }
 
@@ -283,7 +294,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
                     getBtns: undefined,
-                    sqlChange: "select deptno code,title from c7hr_dept where deptno=':CODE' and flag=1",
+                    sqlChange: "select title from c7hr_dept where deptno=':CODE' and flag=1",
                     sqlList: "select deptno code,title from c7hr_dept where flag=1 order by deptno ",
                     sqlListChange: "select deptno code,title from C7HR_DEPT where deptno=:CODE and flag=1",
                 });
@@ -297,7 +308,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
                     getBtns: undefined,
-                    sqlChange: "select spn_no code,comp_name title from c7hr_sponsor where spn_no=':CODE' and flag=1",
+                    sqlChange: "select comp_name title from c7hr_sponsor where spn_no=':CODE' and flag=1",
                     sqlList: "select spn_no code,comp_name title from c7hr_sponsor where flag=1 order by spn_no ",
                     sqlListChange: "select spn_no code,comp_name title from c7hr_sponsor where spn_no=:CODE and flag=1",
                 });
@@ -351,25 +362,28 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     "dept_id", "@", "txtDept", "15%", "redText boldText", "15%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true,
                         display_style: "redText boldText"
                     }, getSettingsDept()),
 
                 deptname: FormView.getFactoryFields.getGeneralField(
-                    "deptname", "@", "", "0px", "", "30%",
+                    "deptname", "@", "", "0px", "", "28%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
+                        keyboardFocus: false,
                     },
                 ),
                 status: FormView.getFactoryFields.getGeneralField(
-                    "status", "@", "", "0px", "redText boldText", "5%",
+                    "status", "@", "", "0px", "redText boldText", "7%",
                     {
                         edit_allowed: false,
                         insert_allowed: false,
-                        display_style: "redText boldText"
+                        display_style: "redText boldText",
+                        keyboardFocus: false,
+
                     }, {
                     change: function () {
                         // thatForm.helperFunc.fetchItem(false);
@@ -875,14 +889,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     list_type: "sql",
                     cols: [
                         {
-                            colname: 'CODE',
+                            colname: 'EMP_CD',
                             return_field: "pac",
                         },
                         {
-                            colname: "TITLE",
+                            colname: "ANAME1",
                         },
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select *from c7hr_emp order by code",
+                    sql: "select emp_cd,aname1 from c7hr_emp order by emp_cd",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -1053,7 +1067,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 return;
             if (qry.status == FormView.RecordStatus.VIEW)
                 return;
-            var refer = thatForm.frm.getFieldValue("qry1.code");
+            var refer = thatForm.frm.getFieldValue("qry1.emp_cd");
             var fileUpload = thatForm.infoObjs["fileupload"];
             Util.doXhrUpdateVouAttach("uploadAttachPdfVou",
                 true, fileUpload, refer, "", "EMP_PICS");
@@ -1079,7 +1093,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             if (qry.status == FormView.RecordStatus.VIEW) {
                 thatForm.infoObjs["fu"].setEnabled(false);
             }
-            thatForm.infoObjs["txtCode"].setText(thatForm.frm.getFieldValue("code"));
+            thatForm.infoObjs["txtCode"].setText(thatForm.frm.getFieldValue("emp_cd"));
             thatForm.infoObjs["txtName1"].setText(thatForm.frm.getFieldValue("name"));
         }
     },

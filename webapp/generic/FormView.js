@@ -198,6 +198,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             this.form.formCtg = Util.nvl(json.form.formCtg, "");
             this.form.titleStyle = Util.nvl(json.form.titleStyle, "");
             this.form.customDisplay = Util.nvl(json.form.customDisplay, undefined);
+            this.form.fixedDisplay = Util.nvl(json.form.fixedDisplay, undefined);
             this.form.toolbarBG = Util.nvl(json.form.toolbarBG, "lightgrey");
             this.form.parameters = [];
             this.form.formSetting = Util.nvl(json.form.formSetting, {});
@@ -594,11 +595,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 this.sc.addContent(scrollObjs1[si]);
             //
             this.vbCustom = new sap.m.VBox().addStyleClass("sapUiSizeCompact");
+            this.vbFixed = new sap.m.VBox().addStyleClass("sapUiSizeCompact");
 
             if (this.form.customDisplay != undefined) {
                 this.form.customDisplay(this.vbCustom);
                 this.sc.addContent(this.vbCustom);
             }
+
             // this.objs["default_canvas"].obj = UtilGen.formCreate("", true, this.dispCanvases["default_canvas"], qr.labelSpan, qr.emptySpan, qr.columnsSpan);
             this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, sap.m.ScrollContainer, this.form.formSetting, undefined, "10px");
             this.objs["default_canvas"].obj.addStyleClass("sapUiSizeCondensed");
@@ -611,7 +614,18 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             // this.objs["default_canvas"].obj.destroyToolbar();
             this.tbHeader = new sap.m.Toolbar();
             this.toolbarPg.setShowSubHeader(true);
-            this.toolbarPg.setSubHeader(this.tbHeader);
+            if (this.form.fixedDisplay != undefined) {
+                // this.toolbarPg.setSubHeader(this.tbHeader);
+                this.form.fixedDisplay(this.vbFixed);
+                this.vbFixed = new sap.m.VBOX({
+                    items: [this.tbHeader, this.vbFixed]
+                })
+                this.toolbarPg.setSubHeader(this.vbFixed);
+                // this.addContent(this.vbFixed);
+            } else
+                this.toolbarPg.setSubHeader(this.tbHeader);
+
+
             for (var c in this.form.commands) {
                 var cmd = this.form.commands[c];
                 cmd.obj = Util.nvl(cmd.obj, this.cmdButtons[cmd.name]);
