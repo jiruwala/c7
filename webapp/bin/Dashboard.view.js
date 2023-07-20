@@ -218,6 +218,7 @@ sap.ui.jsview('bin.Dashboard', {
 
         });
         Util.destroyID("lblLastDay" + this.timeInLong, this);
+        Util.destroyID("lblFiscal" + this.timeInLong, this);
         var tb = new sap.m.Toolbar({
             content: [
                 new sap.m.Button({
@@ -228,7 +229,11 @@ sap.ui.jsview('bin.Dashboard', {
                     }
                 }),
                 this.today_date, new sap.m.Label(this.createId("lblLastDay" + this.timeInLong)),
+                new sap.m.Label(this.createId("lblFiscal" + this.timeInLong)),
                 new sap.m.ToolbarSpacer(), this.txt]
+        });
+        this.byId("lblFiscal" + this.timeInLong).attachBrowserEvent("click", function () {
+            that.listFiscals();
         });
         this.app2 = new sap.m.App({ pages: [this.mainPage], height: "99%", width: "100%" });
         this.pg.setSubHeader(tb);
@@ -244,11 +249,17 @@ sap.ui.jsview('bin.Dashboard', {
             var tb = that.mainPage.getSubHeader();
             // that.show_main_menus();
         }, 10);
-
-
         UtilGen.toolBarBackColor = "#addfad";
         return this.app2;
 
+    },
+    listFiscals: function () {
+        var that = this;
+        var cf = sap.ui.getCore().getModel("fiscalData").getData().fiscal_code;
+        var sq = "select code,title from c7_fiscals where code!='" + cf + "' order by code"
+        Util.showSearchList(sq, "TITLE", "CODE", function (valx, val) {
+            that.changeFiscal(valx);
+        }, "Select Fiscal year");
     },
     showShortcuts: function () {
         var that = this;
@@ -622,6 +633,8 @@ sap.ui.jsview('bin.Dashboard', {
             this.style_credit_numbers = Util.nvl(sett["STYLE_CREDIT_NUMBERS"], "color:red");
 
         }
+        this.getFiscalData();
+
         this.show_main_menus();
         this.loadData_main();
         if (exePara)
@@ -630,6 +643,39 @@ sap.ui.jsview('bin.Dashboard', {
             }, 1000);
     }
     ,
+    changeFiscal: function (fcode) {
+        var that = this;
+        Util.doAjaxGet("exe?command=get-fiscal-change&code=" + fcode, "", false).done(function (data) {
+            if (data != undefined) {
+                var dt = JSON.parse(data);
+                var oModel = new sap.ui.model.json.JSONModel(dt);
+                sap.ui.getCore().setModel(oModel, "fiscalData");
+                //                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);
+                var locUrl = location.href;
+                var ln = sap.ui.getCore().getConfiguration().getLanguage();
+                var newURL = locUrl.split("?")[0] + "?" + "&sap-language=" + ln;
+                window.history.pushState({}, document.title, newURL);
+                window.onbeforeunload = undefined;
+                location.reload();
+                window.onbeforeunload = function () { return " " }
+
+                // that.byId("lblFiscal" + that.timeInLong).setText(sap.ui.getCore().getModel("fiscalData").getData().fiscal_title);
+            }
+        });
+
+    },
+    getFiscalData: function () {
+        var that = this;
+        Util.doAjaxGet("exe?command=get-fiscal-data", "", false).done(function (data) {
+            if (data != undefined) {
+                var dt = JSON.parse(data);
+                var oModel = new sap.ui.model.json.JSONModel(dt);
+                sap.ui.getCore().setModel(oModel, "fiscalData");
+                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);
+                // that.byId("lblFiscal" + that.timeInLong).setText(sap.ui.getCore().getModel("fiscalData").getData().fiscal_title);
+            }
+        });
+    },
     exeParams: function () {
         var url = new URL(window.location.href);
         var cmd = url.searchParams.get("cmd");
@@ -675,17 +721,10 @@ sap.ui.jsview('bin.Dashboard', {
                 var dt = JSON.parse(data);
                 var oModel = new sap.ui.model.json.JSONModel(dt);
                 sap.ui.getCore().setModel(oModel, "profiles");
-            }
-        });
-        Util.doAjaxGet("exe?command=get-fiscal-data", "", false).done(function (data) {
-            if (data != undefined) {
-                var dt = JSON.parse(data);
-                var oModel = new sap.ui.model.json.JSONModel(dt);
-                sap.ui.getCore().setModel(oModel, "fiscalData");
-                console.log(dt);
-            }
-        });
 
+            }
+        });
+        that.getFiscalData();
         //jQuery.sap.require("sap.viz.library");
 
         // this.app = sap.ui.getCore().byId("mainApp");
@@ -726,6 +765,7 @@ sap.ui.jsview('bin.Dashboard', {
         that.today_date.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
         var lstVouDate = Util.getSQLValue("select to_char(max(vou_date),'dd/mm/rrrr') from acvoucher1 ");
         this.byId("lblLastDay" + this.timeInLong).setText(Util.getLangText("lastVouEntry") + " :" + lstVouDate);
+
         if (Util.nvl(that.today_date.getDateValue(), undefined) == undefined) {
             var svdt = Util.getSQLValue("select to_char(sysdate,'mm/dd/rrrr') from dual ");
             that.today_date.setDateValue(new Date(svdt));

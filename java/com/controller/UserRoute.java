@@ -170,6 +170,10 @@ public class UserRoute {
 				ret = getFiscalData(params);
 				return ret;
 			}
+			if (params.get("command").equals("get-fiscal-change")) {
+				ret = changeFiscalData(params);
+				return ret;
+			}
 
 			// ------------if-not-logon
 			if (!instanceInfo.isMlogonSuccessed())
@@ -970,6 +974,19 @@ public class UserRoute {
 		ret += "," + utils.getJSONStr("fiscal_to", instanceInfo.getmFiscalTo(), false);
 
 		return "{" + ret + "}";
+	}
+
+	private String changeFiscalData(Map<String, String> params) {
+		String ret = "";
+		String newcode = params.get("code");
+		if (newcode.isEmpty() || newcode == null)
+			return getFiscalData(params);
+		try {
+			instanceInfo.setCurrentFiscal(newcode, instanceInfo.getmOwner());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return getFiscalData(params);
 	}
 
 	private String getInitFileData(Map<String, String> params) {
