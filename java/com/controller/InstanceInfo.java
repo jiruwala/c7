@@ -259,6 +259,23 @@ public class InstanceInfo {
 		if (cfcode.equals("") || cfcode.isEmpty() || cfcode == null)
 			throw new Exception("No Current year found !");
 
+		setCurrentFiscal(cfcode, owner);
+
+		setmLoginUserPN(vl);
+		setmLoginUser(user);
+		setmLoginPassword(password);
+		setmLoginLanguage(language);
+
+		buildProfiles();
+		setmCurrentProfile("");
+		setMlogonSuccessed(true);
+
+		ret = " \"login_state\":\"success\"";
+		ret = "{" + ret + "," + utils.getJSONMap(getMmapVar()) + "}";
+		return ret;
+	}
+
+	public void setCurrentFiscal(String cfcode, String owner) throws Exception {
 		ResultSet rst = QueryExe.getSqlRS("select *from c7_fiscals where code='" + cfcode + "'",
 				getmDbc().getDbConnection());
 
@@ -281,24 +298,13 @@ public class InstanceInfo {
 			throw new Exception(
 					"Master owner not matched with owner schema -> " + masterOwner + " # " + masterOwnerFromDB);
 
-		setMCurrentSchema(csu);
 		setmFiscalCode(cfcode);
+		setMCurrentSchema(csu);
 		setmFiscalTit(fiscaltit);
 		setmFiscalFrom(fdt);
 		setmFiscalTo(tdt);
 		setmMasterOwner(masterOwner);
-		setmLoginUserPN(vl);
-		setmLoginUser(user);
-		setmLoginPassword(password);
-		setmLoginLanguage(language);
 
-		buildProfiles();
-		setmCurrentProfile("");
-		setMlogonSuccessed(true);
-
-		ret = " \"login_state\":\"success\"";
-		ret = "{" + ret + "," + utils.getJSONMap(getMmapVar()) + "}";
-		return ret;
 	}
 
 	public String getSettings() {

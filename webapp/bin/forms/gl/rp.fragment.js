@@ -195,6 +195,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 UtilGen.setControlValue(that.frm.objs["qry1.salesp"].obj, sls, sls, false);
                                 UtilGen.setControlValue(that.frm.objs["qry1.salesname"].obj, s, s, false);
                             }
+                            UtilGen.Vouchers.attachLoadQry(that2, qry, 'RP', that2.frm.getFieldValue("qry1.code"));
                         }
                     },
                     addSqlAfterInsert: function (qry, rn) {
@@ -245,6 +246,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
 
                     },
                     afterSaveForm: function (frm, nxtStatus) {
+
                     },
                     beforeSaveQry: function (qry, sqlRow, rowNo) {
                         if (qry.name == "qry1") {
@@ -265,14 +267,17 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                         FormView.err("Err ! ,due to change of Parent customer,  this customer have childerens  !");
                                 }
                             }
+
                             sqlRow["path"] = Util.quoted(that.generateCustPath(par, cod));
                             sqlRow["levelno"] = (sqlRow["path"]).match((/\\/g) || []).length - 1;
+                            UtilGen.Vouchers.attachSaveQry(that2, "RP", that2.frm.getFieldValue("qry1.code"));
                         }
 
                         return "";
                     },
                     afterNewRow: function (qry, idx, ld) {
                         if (qry.name == "qry1") {
+                            thatForm.fileUpload = undefined;
                             that.frm.setFieldValue("pac", "", "", true);
                             that.frm.setFieldValue("qry1.crd_limit", 0, 0, true);
                             that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
@@ -308,7 +313,10 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
 
                     },
                     afterDelRow: function (qry, ld, data) {
+                        var delAdd = "";
                         if (qry.name == "qry1") {
+                            delAdd = "delete from c7_attach where kind_of='RP'and refer=:qry1.code ;";
+
                             var pac = that.frm.getFieldValue("qry1.parentcustomer");
                             var s1 = "";
                             if (pac != "") {
@@ -316,7 +324,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 s1 = that.frm.parseString(s1);
                             }
 
-                            return s1 + "delete from cbranch where code=:pac ;";
+                            return s1 + "delete from cbranch where code=:pac ;" + delAdd;
                         }
 
                     },
@@ -340,8 +348,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                         name: "qry1",
                         dml: "select *from c_ycust where code=':pac'",
                         where_clause: " code=':code'",
-                        update_exclude_fields: ["parentcustname", "acname", "salesname", "code", "tit1"],
-                        insert_exclude_fields: ["parentcustname", "acname", "salesname", "tit1"],
+                        update_exclude_fields: ["parentcustname", "acname", "salesname", "code", "tit1", "attachment"],
+                        insert_exclude_fields: ["parentcustname", "acname", "salesname", "tit1", "attachment"],
                         insert_default_values: {
                             "CREATDT": "sysdate",
                             "USERNM": Util.quoted(sett["LOGON_USER"]),
@@ -364,7 +372,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "20%", trueValues: ["Y", "N"] },
+                                other_settings: { width: "10%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -381,7 +389,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "20%", trueValues: ["Y", "N"] },
+                                other_settings: { width: "10%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -398,11 +406,38 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "15%", trueValues: ["Y", "N"] },
+                                other_settings: { width: "10%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
                                 trueValues: ["Y", "N"]
+                            },
+                            attachment: {
+                                colname: "attachment",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"Attachment\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_BEGIN",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    editable: false,
+                                    width: "20%",
+                                    valueHelpRequest: function (e) {
+                                        if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT &&
+                                            that2.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                                            return;
+                                        UtilGen.Vouchers.attachShowUpload(that2);
+                                    }
+                                },
+
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false
                             },
                             code: {
                                 colname: "code",
@@ -894,8 +929,19 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             "default_canvas",
                         list_name:
                             "list1"
-                    }
+                    },
+                    {
+                        name: "cmdAttach",
+                        canvas: "default_canvas",
+                        title: "Attachment",
 
+                        obj: new sap.m.Button({
+                            icon: "sap-icon://pdf-attachment",
+                            press: function () {
+                                UtilGen.Vouchers.attachShowUpload(that2, false);
+                            }
+                        })
+                    },
                     // {
                     //     name: "cmdPrint",
                     //     canvas:

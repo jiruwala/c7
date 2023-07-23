@@ -88,11 +88,12 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 return xhr;
             },
             doXhrUpdateVouAttach: function (path,
-                async, file, kf, descr) {
+                async, file, kf, descr, kindof) {
                 var formData = new FormData();
                 if (file != undefined) {
                     formData.append("data", file);
-                    formData.append("keyfld", kf);
+                    formData.append("refer", kf);
+                    formData.append("kind_of", kindof);
                     formData.append("descr", descr);
                     var xhr = new XMLHttpRequest();
                     xhr.open('POST', path, async);
@@ -109,9 +110,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     return xhr;
                 }
                 else {
-                    Util.execSQL("delete from c7_attach where keyfld=" + kf);
+                    Util.execSQL("delete from c7_attach where kind_of='" + kindof + "' and refer='" + kf + "'");
                 }
-                return ;
+                return;
             },
             doAjaxPost: function (path,
                 content,
@@ -153,6 +154,12 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 // console.log(content);
                 return jQuery.ajax(params);
+            },
+            sleep: function (ms) {
+                {
+                    var e = new Date().getTime() + ( ms);
+                    while (new Date().getTime() <= e) { }
+                }
             },
             getServerValue: function (str) {
                 var ret;

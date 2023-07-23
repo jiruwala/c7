@@ -1489,6 +1489,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     view.loadData();
                     return;
                 }
+                if (txt2.toLowerCase().startsWith("exec_batch")) {
+                    view.execBatch(txt2);
+                    return;
+                }
                 if (txt2.toLowerCase().startsWith("show_list")) {
                     view.show_list_cmd(txt2);
                     return;
@@ -2214,26 +2218,26 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(btf);
                     scrollObjs.push(qrj.showToolbar.toolbar);
                 },
-                attachLoadQry: function (frm, qry) {
+                attachLoadQry: function (frm, qry, kindof, refer) {
                     frm.fileUpload = undefined;
-                    var kf = qry.formview.getFieldValue("keyfld");
-                    var desc = Util.getSQLValue("select descr from c7_attach where keyfld=" + kf)
+                    var desc = Util.getSQLValue("select descr from c7_attach where kind_of='" + kindof + "' and refer='" + refer + "'");
                     qry.formview.setFieldValue("attachment", desc);
-                    Util.doXhr("getAttachVou?keyfld=" + kf, true, function (e) {
+                    Util.doXhr("getAttachVou?kindof=" + kindof + "&refer=" + refer, true, function (e) {
                         if (this.status == 200 && this.response.byteLength > 0)
                             frm.fileUpload = new Blob([this.response], { type: "application/pdf" });
                     });
 
                 },
-                attachSaveQry: function (that2) {
+                attachSaveQry: function (that2, kindof, refer) {
                     // if (that2.fileUpload != undefined) {
-                    var kf = that2.frm.getFieldValue("keyfld");
+                    // var kf = that2.frm.getFieldValue("keyfld");
                     var tx = that2.frm.getFieldValue("attachment");
-                    Util.doXhrUpdateVouAttach("uploadAttachPdfVou", true, that2.fileUpload, kf, tx);
+                    Util.doXhrUpdateVouAttach("uploadAttachPdfVou", true, that2.fileUpload, refer, tx, Util.nvl(kindof, 'VOU'));
                     // }
 
                 },
                 attachShowUpload: function (that2, pChange) {
+                    Util.sleep(1200);
                     var change = Util.nvl(pChange, true);
                     var vb = new sap.m.VBox();
                     // var tx = new sap.m.Input({ placeholder: "Descr" });

@@ -212,12 +212,16 @@ sap.ui.jsview('bin.Dashboard', {
         this.txt = new sap.m.Text().addStyleClass("redMiniText blinking");
         this.today_date = new sap.m.DatePicker({
             width: "150px",
-            change: function () {
+            change: function (e) {
+                var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+                if (!this.isValidValue())
+                    this.setDateValue(new Date(fisc.fiscal_from));
                 that.loadData(false, false);
             }
 
         });
         Util.destroyID("lblLastDay" + this.timeInLong, this);
+        Util.destroyID("lblFiscal" + this.timeInLong, this);
         var tb = new sap.m.Toolbar({
             content: [
                 new sap.m.Button({
@@ -228,7 +232,11 @@ sap.ui.jsview('bin.Dashboard', {
                     }
                 }),
                 this.today_date, new sap.m.Label(this.createId("lblLastDay" + this.timeInLong)),
+                new sap.m.Label(this.createId("lblFiscal" + this.timeInLong)).addStyleClass("darkBlueText htmlLnk"),
                 new sap.m.ToolbarSpacer(), this.txt]
+        });
+        this.byId("lblFiscal" + this.timeInLong).attachBrowserEvent("click", function () {
+            that.listFiscals();
         });
         this.app2 = new sap.m.App({ pages: [this.mainPage], height: "99%", width: "100%" });
         this.pg.setSubHeader(tb);
@@ -244,11 +252,104 @@ sap.ui.jsview('bin.Dashboard', {
             var tb = that.mainPage.getSubHeader();
             // that.show_main_menus();
         }, 10);
-
-
         UtilGen.toolBarBackColor = "#addfad";
         return this.app2;
 
+    },
+    listFiscals: function () {
+        var that = this;
+        var cf = sap.ui.getCore().getModel("fiscalData").getData().fiscal_code;
+        var sq = "select code,title from c7_fiscals order by code"
+        var obs = [];
+        var vb = new sap.m.VBox();
+        var btAp = new sap.m.Button({
+            text: Util.getLangText("applyTxt"),
+            enabled: false,
+            press: function () {
+                var cod = UtilGen.getControlValue(cp);
+                that.changeFiscal(cod);
+            }
+        });
+        var cp = UtilGen.addControl(obs, "", sap.m.ComboBox, "cmdFiscals" + this.timeInLong + "",
+            {
+                enabled: true,
+                customData: [{ key: "" }],
+                items: {
+                    path: "/",
+                    template: new sap.ui.core.ListItem({ text: "{TITLE}", key: "{CODE}" }),
+                    templateShareable: true
+                },
+                selectionChange: function (ev) {
+                    var cod = UtilGen.getControlValue(this);
+                    vb.removeAllItems();
+                    var dt = Util.execSQL("select *from c7_fiscals where code='" + cod + "'");
+                    if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+                        var dtx = JSON.parse("{" + dt.data + "}").data;
+                        var txtTitle = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "74%", editable: false });
+                        var txtFromDate = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "74%", editable: false });
+                        var txtTodate = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "74%", editable: false });
+                        var txtSchemaOwner = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "74%", editable: false });
+
+                        txtTitle.setValue(dtx[0].TITLE);
+                        txtFromDate.setValue(dtx[0].FROM_DATE);
+                        txtTodate.setValue(dtx[0].TO_DATE);
+                        txtSchemaOwner.setValue(dtx[0].SCHEMA_OWNER);
+
+                        var fe = [
+                            Util.getLabelTxt("titleTxt", "25%"), txtTitle,
+                            Util.getLabelTxt("fromDate", "25%"), txtFromDate,
+                            Util.getLabelTxt("toDate", "25%"), txtTodate,
+                            Util.getLabelTxt("toMenuCode", "25%"), txtSchemaOwner,
+                        ];
+
+                        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                            width: "300px",
+                            cssText: [
+                                "padding-left:5px ;" +
+                                "padding-top:20px;" +
+                                "border-style: groove;" +
+                                "margin-left: 10%;" +
+                                "margin-right: 10%;" +
+                                "border-radius:20px;" +
+                                "margin-top: 20px;"
+                            ]
+                        }, "sapUiSizeCompact", "");
+                        cnt.addContent(new sap.m.VBox({ height: "40px" }));
+                        vb.addItem(cnt);
+                        btAp.setEnabled(true);
+                        if (dtx[0].CODE == cf)
+                            btAp.setEnabled(false);
+
+                    }
+
+                },
+                value: ""
+            }, "string", undefined, this, undefined, sq);
+        var toolbar = new sap.m.Toolbar({
+            content: [new sap.m.Text({ text: "Fiscal Year: " }), cp
+            ]
+        });
+        UtilGen.setControlValue(cp, cf, cf, true);
+        // cp.setSelectedItem(cp.getItems()[0]);
+        cp.fireSelectionChange();
+
+        var dlg = new sap.m.Dialog({
+            title: Util.getLangText("changeFiscalYear"),
+            contentWidth: "400px",
+            contentHeight: "300px",
+            content: [toolbar, vb],
+            buttons: [
+                btAp,
+                new sap.m.Button({
+                    text: Util.getLangText("closeTxt"),
+                    press: function () {
+                        dlg.close();
+                    }
+                })
+
+            ]
+        });
+        dlg.open();
     },
     showShortcuts: function () {
         var that = this;
@@ -622,6 +723,8 @@ sap.ui.jsview('bin.Dashboard', {
             this.style_credit_numbers = Util.nvl(sett["STYLE_CREDIT_NUMBERS"], "color:red");
 
         }
+        this.getFiscalData();
+
         this.show_main_menus();
         this.loadData_main();
         if (exePara)
@@ -630,6 +733,39 @@ sap.ui.jsview('bin.Dashboard', {
             }, 1000);
     }
     ,
+    changeFiscal: function (fcode) {
+        var that = this;
+        Util.doAjaxGet("exe?command=get-fiscal-change&code=" + fcode, "", false).done(function (data) {
+            if (data != undefined) {
+                var dt = JSON.parse(data);
+                var oModel = new sap.ui.model.json.JSONModel(dt);
+                sap.ui.getCore().setModel(oModel, "fiscalData");
+                //                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);
+                var locUrl = location.href;
+                var ln = sap.ui.getCore().getConfiguration().getLanguage();
+                var newURL = locUrl.split("?")[0] + "?" + "&sap-language=" + ln;
+                window.history.pushState({}, document.title, newURL);
+                window.onbeforeunload = undefined;
+                location.reload();
+                window.onbeforeunload = function () { return " " }
+
+                // that.byId("lblFiscal" + that.timeInLong).setText(sap.ui.getCore().getModel("fiscalData").getData().fiscal_title);
+            }
+        });
+
+    },
+    getFiscalData: function () {
+        var that = this;
+        Util.doAjaxGet("exe?command=get-fiscal-data", "", false).done(function (data) {
+            if (data != undefined) {
+                var dt = JSON.parse(data);
+                var oModel = new sap.ui.model.json.JSONModel(dt);
+                sap.ui.getCore().setModel(oModel, "fiscalData");
+                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);
+                // that.byId("lblFiscal" + that.timeInLong).setText(sap.ui.getCore().getModel("fiscalData").getData().fiscal_title);
+            }
+        });
+    },
     exeParams: function () {
         var url = new URL(window.location.href);
         var cmd = url.searchParams.get("cmd");
@@ -675,17 +811,10 @@ sap.ui.jsview('bin.Dashboard', {
                 var dt = JSON.parse(data);
                 var oModel = new sap.ui.model.json.JSONModel(dt);
                 sap.ui.getCore().setModel(oModel, "profiles");
-            }
-        });
-        Util.doAjaxGet("exe?command=get-fiscal-data", "", false).done(function (data) {
-            if (data != undefined) {
-                var dt = JSON.parse(data);
-                var oModel = new sap.ui.model.json.JSONModel(dt);
-                sap.ui.getCore().setModel(oModel, "fiscalData");
-                console.log(dt);
-            }
-        });
 
+            }
+        });
+        that.getFiscalData();
         //jQuery.sap.require("sap.viz.library");
 
         // this.app = sap.ui.getCore().byId("mainApp");
@@ -722,13 +851,20 @@ sap.ui.jsview('bin.Dashboard', {
         var that = this;
         Util.Notifications.checkNewNotifications();
         var sett = sap.ui.getCore().getModel("settings").getData();
+        var fisc = sap.ui.getCore().getModel("fiscalData").getData();
         that.today_date.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         that.today_date.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
         var lstVouDate = Util.getSQLValue("select to_char(max(vou_date),'dd/mm/rrrr') from acvoucher1 ");
         this.byId("lblLastDay" + this.timeInLong).setText(Util.getLangText("lastVouEntry") + " :" + lstVouDate);
+
         if (Util.nvl(that.today_date.getDateValue(), undefined) == undefined) {
             var svdt = Util.getSQLValue("select to_char(sysdate,'mm/dd/rrrr') from dual ");
+            var svd = new Date(svdt);
+            if (svd > new Date(fisc.fiscal_to))
+                svdt = new Date(fisc.fiscal_to);
             that.today_date.setDateValue(new Date(svdt));
+            that.today_date.setMaxDate(new Date(fisc.fiscal_to));
+            that.today_date.setMinDate(new Date(fisc.fiscal_from));
         }
         var cmp = sett["MASTER_USER"] + " >  " + sett["LOGON_USER"] + "@" + sett["COMPANY_NAME"];
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
@@ -1508,8 +1644,17 @@ sap.ui.jsview('bin.Dashboard', {
         setTimeout(function () {
             that.lstPgs.fireSelectionChange();
         });
-
-
+    },
+    execBatch: function (txt2) {
+        var sq = Util.getFromWord(txt2, 2);
+        Util.doAjaxGet("runbatch?" + sq, "", false).done(function (data) {
+            var dt = JSON.parse(data);
+            var oModel = new sap.ui.model.json.JSONModel(dt);
+            if (dt.ret != "SUCCESS")
+                FormView.err(dt.message);
+            else
+                sap.m.MessageToast.show(dt.message);
+        });
     },
     show_list_cmd: function (txt2) {
         var sq = Util.getFromWord(txt2, 2);
@@ -1529,127 +1674,4 @@ sap.ui.jsview('bin.Dashboard', {
             }, "100%", "100%", undefined, false, undefined, undefined, undefined, js);
         }
     },
-
-    /*
-    execCmd: function (txt) {
-
-        if (txt == "")
-            return;
-
-        var that = this;
-        var txt2 = txt;
-        var cm = txt2.split(" ")[0].toUpperCase();
-        var pms = txt2.substring(txt2.indexOf(" ") + 1).trim();
-        if (this.cmdData != undefined && this.cmdData.length > 0)
-            for (var i in this.cmdData)
-                if (this.cmdData[i].COMMAND.toUpperCase() == cm)
-                    txt2 = this.cmdData[i].EXEC_LINE + (pms.length > 0 ? " " : "") + pms;
-        if (txt2.toLowerCase().startsWith("main")) {
-            this.app.toDetail(this.pg, "slide");
-            return;
-        }
-        if (!txt2.startsWith("#") && !txt2.startsWith("http")) {
-            that.cmdOpenForm(txt2);
-
-            return;
-        }
-    }
-    ,
-    cmdOpenForm: function (txt) {
-        var that = this;
-        // var formName = "", formType = "popover", formSize = "100%,100%", formModal = "true";
-        var dtx = {formName: "", formType: "popover", formSize: "100%,100%", formModal: "true"};
-        var tokens = txt.split(" ");
-        for (var i in tokens) {
-
-            if (i == 0) {
-                dtx["formName"] = tokens[i];
-                continue;
-            }
-            var tkn = tokens[i].split("=");
-            dtx[tkn[0]] = tkn[1];
-        }
-        // validate the command and setting default values .......
-        // opening form
-        var con = this.pg1;
-        var dlg = undefined;
-
-        if (dtx.formType == "dialog") {
-            var sp = dtx.formSize.split(",");
-            var width = "400px", height = "500px";
-            if (sp.length >= 1) width = sp[0];
-            if (sp.length >= 2) height = sp[1];
-            con = new sap.m.Page({showHeader: false, content: []});
-            dlg = new sap.m.Dialog({
-                title: Util.nvl(dtx.TILE_TITLE_1, ""),
-                content: con,
-                contentHeight: height,
-                contentWidth: width,
-            }).addStyleClass("sapUiSizeCompact");
-        }
-        if (dtx.formType == "popover") {
-            var sp = dtx.formSize.split(",");
-            var width = "400px", height = "500px";
-            if (sp.length >= 1) width = sp[0];
-            if (sp.length >= 2) height = sp[1];
-            con = new sap.m.Page({showHeader: false, content: []});
-            dlg = new sap.m.Popover({
-                title: "",
-                contentHeight: height,
-                contentWidth: width,
-                modal: (dtx.formModal == "true" ? true : false),
-                content: [con],
-                // footer: [hb],
-                placement: sap.m.PlacementType.Auto
-            }).addStyleClass("sapUiSizeCompact");
-        }
-
-        if (dtx.formType == "dialog" || dtx.formType == "page" || dtx.formType == "popover") {
-            var pms = {};
-            for (var i in dtx)
-                if (!(i == "formType" || i == "formName" || i == "formSize" || i == "formModal"))
-                    pms[i] = dtx[i];
-
-            var sp = undefined;
-            try {
-                sp = UtilGen.openForm(dtx.formName, con, pms, this);
-            }
-            catch (err) {
-                // err.message;throw
-            }
-
-
-            if (sp == undefined)
-                try {
-                    sp = UtilGen.openForm("bin.forms." + dtx.formName, con, pms, this);
-                }
-                catch (err) {
-                    sap.m.MessageToast.show("Err ! opening form " + "bin.forms." + dtx.formName);
-                    throw err;
-                    return;
-                }
-
-            if (sp == undefined) {
-                sap.m.MessageToast.show(dtx.formName + " fragment not found !");
-                return;
-            }
-            sp.backFunction = function () {
-                if (dlg != undefined) {
-                    dlg.close();
-                    return;
-                }
-                that.app.toDetail(that.pg, "show");
-                that.loadData();
-            };
-            UtilGen.clearPage(con);
-            con.addContent(sp);
-            if (dtx.formType == "page")
-                this.app.toDetail(con, "slide");
-            else if (dtx.formType == "dialog") dlg.open();
-            else if (dtx.formType == "popover") dlg.openBy(this.txtExeCmd);
-        }
-
-}
-        */
-})
-    ;
+});
