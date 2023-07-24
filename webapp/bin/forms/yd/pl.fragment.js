@@ -170,9 +170,9 @@ sap.ui.jsfragment("bin.forms.yd.pl", {
             for (var xi in dtxSel)
                 strCod = strCod + (strCod.length > 0 ? "," : "") + "'" + dtxSel[xi]["RFR_" + s1.toUpperCase()] + "'";
         }
-        strCod = strCod != "" ? " reference not in (" + strCod + ") and " : "";
-        var sq = "select reference code,descr  from items where " + strCod + " reference like " + Util.quoted(mp[s1] + "%")
-        " and childcounts=0 order by descr2";
+        strCod = strCod != " 1=1 and " ? " reference not in (" + Util.nvl(strCod, "'XXXXX'") + ") and " : "";
+        var sq = "select reference code,descr  from items where " + strCod + //+ " reference like " + Util.quoted(mp[s1] + "%")
+            "  childcounts=0 order by descr2";
         Util.showSearchList(sq, "DESCR", "CODE", function (valx, val) {
             // UtilGen.setControlValue(control, val, valx, true);
             var si = "declare rfr varchar2(100);cnt number;" +
