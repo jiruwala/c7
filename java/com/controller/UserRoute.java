@@ -56,6 +56,7 @@ import com.generic.localTableModel;
 import com.generic.qryColumn;
 import com.generic.utils;
 import com.models.Batches;
+import com.models.ExeBatch;
 import com.models.Batches.UserReports;
 import com.models.RepBatch7;
 import com.tools.queries.QuickRepMetaData;
@@ -323,6 +324,12 @@ public class UserRoute {
 		}
 
 		return ret;
+	}
+
+	@RequestMapping(value = "/exebatch", method = RequestMethod.GET)
+	public String runbatch(@RequestParam Map<String, String> params) {
+		ExeBatch eb=new ExeBatch(params,instanceInfo);
+		return eb.execute();
 	}
 
 	@RequestMapping(value = "/sqldata", method = RequestMethod.POST)
@@ -701,16 +708,18 @@ public class UserRoute {
 
 	@RequestMapping(value = "/getAttachVou", method = RequestMethod.POST, produces = "application/pdf")
 	public ResponseEntity<InputStreamResource> getAttachVou(@RequestParam Map<String, String> params) {
-		String kf = params.get("keyfld");
+		String kf = params.get("kindof");
+		String refer = params.get("refer");
 
 		byte[] pdfFile = null;
 		Connection con = instanceInfo.getmDbc().getDbConnection();
 		try {
-			PreparedStatement ps = con.prepareStatement("select pdf_data from c7_attach where keyfld=" + kf,
+			PreparedStatement ps = con.prepareStatement(
+					"select pdf_data from c7_attach where kind_of='" + kf + "' and refer='" + refer + "'",
 					ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 			ResultSet rst = ps.executeQuery();
 			if (rst.first()) {
-				pdfFile = rst.getBytes(1);
+				pdfFile = rst.getBlob(1).getBytes(1, (int) rst.getBlob(1).length());
 			}
 			rst.close();
 			ps.close();
@@ -729,7 +738,9 @@ public class UserRoute {
 						new InputStreamResource(bt), headers, HttpStatus.OK);
 				return response;
 			}
-		} catch (Exception e) {
+		} catch (
+
+		Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -794,7 +805,8 @@ public class UserRoute {
 
 	@RequestMapping("/uploadAttachPdfVou")
 	public ResponseEntity<?> uploadAttachPdfVou(@RequestParam("data") MultipartFile avatar,
-			@RequestParam("keyfld") double kf, @RequestParam("descr") String descr) {
+			@RequestParam("kind_of") String kindof, @RequestParam("refer") String refer,
+			@RequestParam("descr") String descr) {
 		Connection con = instanceInfo.getmDbc().getDbConnection();
 		try {
 
@@ -802,12 +814,14 @@ public class UserRoute {
 //			String directory = servletContext.getRealPath("/") + "reports/" + fn + ".jpg";
 //			new FileOutputStream(directory).write(bytes);
 
-			String sq = "begin delete from c7_attach where keyfld=?;"
-					+ " INSERT INTO C7_ATTACH(KEYFLD,DESCR,PDF_DATA) VALUES (?,?,? );END;";
+			String sq = "begin delete from c7_attach where kind_of=? and refer=?;"
+					+ " INSERT INTO C7_ATTACH(KEYFLD,kind_of,refer,DESCR,PDF_DATA) VALUES "
+					+ " ((select nvl(max(keyfld),0)+1 from c7_attach),?,?,?,? );END;";
 			if (bytes.length == 0) {
-				sq = "begin delete from c7_attach where keyfld=?;end;";
+				sq = "begin delete from c7_attach where kind_of=? and refer=?;end;";
 				PreparedStatement ps = con.prepareStatement(sq);
-				ps.setDouble(1, kf);
+				ps.setString(1, kindof);
+				ps.setString(2, refer);
 				ps.executeUpdate();
 				ps.close();
 
@@ -815,10 +829,12 @@ public class UserRoute {
 				con.setAutoCommit(false);
 				PreparedStatement ps = con.prepareStatement(sq);
 
-				ps.setDouble(1, kf);
-				ps.setDouble(2, kf);
-				ps.setString(3, descr);
-				ps.setBytes(4, bytes);
+				ps.setString(1, kindof);
+				ps.setString(2, refer);
+				ps.setString(3, kindof);
+				ps.setString(4, refer);
+				ps.setString(5, descr);
+				ps.setBytes(6, bytes);
 				ps.executeUpdate();
 				ps.close();
 			}
@@ -831,13 +847,14 @@ public class UserRoute {
 			// TODO Auto-generated catch block
 			try {
 				con.rollback();
+				e.printStackTrace();
 			} catch (SQLException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			e.printStackTrace();
 		}
-		return null;
+		return new ResponseEntity("Update failed ", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	// ---------------all--helper-functions---
 

@@ -131,7 +131,7 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                                 }
 
                             }
-                            UtilGen.Vouchers.attachLoadQry(that2, qry);
+                            UtilGen.Vouchers.attachLoadQry(that2, qry, "VOU", that2.frm.getFieldValue("qry1.keyfld"));
 
                         }
 
@@ -156,6 +156,9 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                     afterSaveForm: function (frm) {
                         // frm.loadData(undefined, FormView.RecordStatus.NEW);
                         frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
+                        setTimeout(function () {
+                            thatForm.fileUpload = undefined;                            
+                        },400);
                     },
                     beforeSaveQry: function (qry, sqlRow, rowno) {
                         UtilGen.Vouchers.getNewKF(qry, sqlRow, rowno);
@@ -166,7 +169,7 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                             UtilGen.Vouchers.validateTotDrTotCr(qry, sqlRow, rowno);
                             UtilGen.Vouchers.validatePostedVocher(qry, sqlRow, rowno);
                             UtilGen.Vouchers.validateFieldsBeforeSave(qry, sqlRow, rowno);
-                            UtilGen.Vouchers.attachSaveQry(that2);
+                            UtilGen.Vouchers.attachSaveQry(that2, "VOU",that2.frm.getFieldValue("qry1.keyfld"));
 
                         }
 
@@ -186,6 +189,7 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                         }
 
                         if (qry.name == "qry1") {
+                            that2.fileUpload = undefined;            
                             var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from acvoucher1");
                             qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
 
@@ -218,7 +222,7 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                     afterDelRow: function (qry, ld, data) {
                         var delAdd = "";
                         if (qry.name == "qry1")
-                            delAdd += "delete from c7_attach where keyfld=:qry1.keyfld ;";
+                            delAdd += "delete from c7_attach where  kind_of='VOU'and refer=:qry1.keyfld ;";
 
                         if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                             qry.obj.addRow();
@@ -285,8 +289,8 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                         name: "qry1",
                         dml: "select *from acvoucher1 where keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', "codename", "costcentname", "slsmnname","attachment"],
-                        insert_exclude_fields: ["codename", "costcentname", "slsmnname","attachment"],
+                        update_exclude_fields: ['keyfld', "codename", "costcentname", "slsmnname", "attachment"],
+                        insert_exclude_fields: ["codename", "costcentname", "slsmnname", "attachment"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "VOU_CODE": this.vars.vou_code,
@@ -385,7 +389,19 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "20%" },
+                                other_settings: {
+                                    width: "20%",
+                                    maxDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_to),
+                                    minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
+                                    change: function () {
+                                        var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+                                        if (!this.isValidValue()) {
+                                            this.setDateValue(null);
+                                            FormView.err("Invalid date value !");
+                                        }
+
+                                    }
+                                },
                                 list: undefined,
                                 edit_allowed: true,
                                 insert_allowed: true,

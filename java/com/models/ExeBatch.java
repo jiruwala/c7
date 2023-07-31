@@ -1,0 +1,207 @@
+package com.models;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+
+import com.controller.InstanceInfo;
+import com.generic.QueryExe;
+import com.generic.utils;
+@Scope("session")
+public class ExeBatch {
+
+	Map<String, String> params = null;
+	Map<String, Object> mapParas = new HashMap<String, Object>();
+	Map<String, Object> mapCommonVar = new HashMap<String, Object>();
+	Map<String, Object> mapFlds1 = new HashMap<String, Object>();
+	Map<String, Object> mapFlds2 = new HashMap<String, Object>();
+	String kf = "";
+	String before_exec_sql = "";
+	String rep_paraVals = "";
+	String fieldValues = "";
+	String sqlsBeg = "";
+	String sqls = "";
+	String sql = "";
+	double jv_kf = -1;
+	String jv_descr = "";
+	String jv_no = "";
+	String jv_date = "";
+	Connection con = null;
+	SimpleDateFormat sdf;
+	ResultSet rs = null;
+	@Autowired
+	private InstanceInfo instanceInfo;
+
+	public ExeBatch(Map<String, String> params,InstanceInfo ins) {
+		this.params = params;
+		this.instanceInfo=ins;
+		this.con = instanceInfo.getmDbc().getDbConnection();
+		this.sdf = new SimpleDateFormat(instanceInfo.getMmapVar().get("ENGLISH_DATE_FORMAT") + "");
+		kf=params.get("keyfld");
+	}
+
+	private void readParas() throws Exception {
+		// reading parameters from c7_batches_para
+		rs = QueryExe.getSqlRS("select *from C7_BATCHES_PARA where keyfld='" + kf + "'", con);
+		rs.beforeFirst();
+		while (rs.next()) {
+			Object vl = rs.getString("PARA_VALUE");
+			if (rs.getString("PROMPT").equals("N") && rs.getString("SQLVALUE") != null
+					&& rs.getString("SQLVALUE").isEmpty()) {
+				vl = QueryExe.getSqlValue(rs.getString("SQLVALUE"), con, "");
+			}
+			if (vl.toString().startsWith("@"))
+				vl = sdf.parse(vl.toString().substring(1));
+			mapParas.put(rs.getString("PARA_NAME"), vl);
+		}
+		rs.close();
+		// over riding parameters from params
+		for (String key : params.keySet()) {
+			mapParas.put(key.replace("_para_", ""), params.get(key));
+			if (params.get(key).startsWith("@"))
+				mapParas.put(key.replace("_para_", ""), (sdf.parse(params.get(key).substring(1))));
+		}
+	}
+
+	public String execute() {
+		String retStr = "{\"ret\":\"SUCCESS\", \"message\":\" JV Generated \" } ";
+
+		try {
+			// c7_batches: before exec sql and report parameter values
+			rs = QueryExe.getSqlRS("select *from c7_batches where keyfld='" + kf + "'", con);
+			if (rs.first()) {
+				before_exec_sql = rs.getString("BEFORE_EXEC_SQL");
+				rep_paraVals = rs.getString("REPORT_PARAVALUES");
+			}
+			rs.close();
+			readParas();
+
+			// loop c7_batch_1
+			rs = QueryExe.getSqlRS("select *from C7_BATCHES_1 where keyfld='" + kf + "' order by bat_id", con);
+			rs.beforeFirst();
+			while (rs.next()) {
+				fieldValues = rs.getString("FIELDVALUES");
+				String[] fvs = fieldValues.split(" ");
+				mapFlds1.clear();
+				for (int fi = 0; fi < fvs.length; fi++) {
+					String[] fv = fvs[fi].split("=");
+					mapFlds1.put(fv[0], fv[1]);
+					if (fv[1].startsWith("@"))
+						mapFlds1.put(fv[0], utils.getOraDateValue(fv[1].substring(1)));
+				}
+
+				if (rs.getString("TYPE").equals("JV")) {
+					genJv();
+				}
+
+			}
+			rs.close();
+			con.commit();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			if (utils.nvl(e.getMessage(), "").length()>50)
+			retStr = "{\"ret\":\"FAILED\", \"message\":\""
+					+ utils.decodeEscape(utils.nvl(e.getMessage(), "")).substring(0, 50) + "\" } ";
+			else
+				retStr = "{\"ret\":\"FAILED\", \"message\":\""
+						+ utils.decodeEscape(utils.nvl(e.getMessage(), "")) + "\" } ";
+			e.printStackTrace();
+			try {
+				con.rollback();
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+
+		return retStr;
+	}
+
+	private void genJv() throws Exception {
+
+		sqlsBeg = "declare amt number:=0; amt_dr number:=0; amt_cr number:=0; nm varchar2(500); "
+				+ "totdeb number:=0; totcrd number:=0; kfld number;jvno number; begin ";
+
+		sql = " SELECT NVL(MAX(KEYFLD),0)+1 INTO KFLD FROM ACVOUCHER1; "
+				+ "SELECT NVL(MAX(NO),0)+1 INTO JVNO FROM ACVOUCHER1 WHERE VOU_CODE=1 AND TYPE=1;"
+				+ "INSERT INTO acvoucher1 " + "(periodcode, keyfld, NO, vou_code, vou_date, flag, debamt,"
+				+ "crdamt, descr, usernm, creatdt, YEAR, TYPE " + ")  VALUES ("
+				+ ":periodcode, :keyfld, :no, :vou_code, :vou_date, :flag, :debamt,"
+				+ ":crdamt, :descr, :usernm, :creatdt, :year, :type ); ";
+		sql = sql.replaceAll(":periodcode", "repair.getcurperiodcode()");
+		sql = sql.replaceAll(":keyfld", "KFLD");
+		sql = sql.replaceAll(":no", "jvno");
+		sql = sql.replaceAll(":vou_code", "1");
+		sql = sql.replaceAll(":vou_date", utils.nvl(mapFlds1.get("vou_date"), "trunc(sysdate)"));
+		sql = sql.replaceAll(":flag", "'" + (rs.getString("DO_POST").equals("Y") ? "2" : "1") + "'");
+		sql = sql.replaceAll(":debamt", "0");
+		sql = sql.replaceAll(":crdamt", "0");
+		sql = sql.replaceAll(":descr", "'" + utils.nvl(mapFlds1.get("descr"), "Batch # " + kf) + "'");
+		sql = sql.replaceAll(":usernm", "'" + instanceInfo.getmLoginUser() + "'");
+		sql = sql.replaceAll(":creatdt", "sysdate");
+		sql = sql.replaceAll(":year", "'2003'");
+		sql = sql.replaceAll(":type", "1");
+
+		ResultSet rs2 = QueryExe.getSqlRS("select *from C7_BATCHES_2 where keyfld='" + kf + "' and bat_id="
+				+ rs.getString("bat_id") + " order by pos", con);
+		rs2.beforeFirst();
+		String sql2 = "";
+		String sqls2 = "";
+		int cnt = 0;
+		while (rs2.next()) {
+
+			cnt++;
+			sql2 = " select name into nm from acaccount where accno='" + rs2.getString("fld_accno")
+					+ "' AND ACTYPE=0 AND CHILDCOUNT=0 AND FLAG=1; " + " amt:=:amount; amt_dr:=0;amt_cr:=0;"
+					+ "if (amt>0) then amt_dr:=:amount; else amt_cr:=abs(:amount); end if;" + "if amt!=0 then "
+					+ "INSERT INTO ACVOUCHER2(periodcode,keyfld,no,vou_code,vou_date,"
+					+ "flag,debit,credit,accno,descr,descr2,creatdt,usernm,"
+					+ "pos,year,type,costcent,fcdebit,fccredit) VALUES ("
+					+ "repair.getcurperiodcode(),kfld,jvno,1,:vou_date,"
+					+ ":flag,:debit,:credit,:accno,':descr',:descr2,sysdate,:usernm,"
+					+ ":pos,'2003',1,:costcent,:fcdebit,:fccredit);" + " totdeb:=totdeb + amt_dr ; "
+					+ "totcrd:=totcrd + amt_cr ;" + "end if; "; // if amt!=0
+
+			sql2 = sql2.replaceAll(":vou_date", utils.nvl(mapFlds1.get("vou_date"), "trunc(sysdate)"));
+			sql2 = sql2.replaceAll(":flag", "'" + (rs.getString("DO_POST").equals("Y") ? "2" : "1") + "'");
+			sql2 = sql2.replaceAll(":debit", "amt_dr");
+			sql2 = sql2.replaceAll(":credit", "amt_cr");
+			sql2 = sql2.replaceAll(":accno", "'" + rs2.getString("fld_accno") + "'");
+			sql2 = sql2.replaceAll(":descr2", "nm");
+			sql2 = sql2.replaceAll(":descr", utils.nvl(rs2.getString("fld_descr"), mapFlds1.get("descr")));
+			sql2 = sql2.replaceAll(":usernm", "'" + instanceInfo.getmLoginUser() + "'");
+			sql2 = sql2.replaceAll(":pos", (cnt + 1) + "");
+			sql2 = sql2.replaceAll(":costcent", utils.nvl(rs2.getString("FLD_COSTCENT"), "null"));
+			sql2 = sql2.replaceAll(":fcdebit", "amt_dr");
+			sql2 = sql2.replaceAll(":fccredit", "amt_cr");
+			sql2 = sql2.replaceAll(":amount", rs2.getString("AMOUNT"));
+
+			sqls2 += sql2;
+
+		}
+		rs2.close();
+		if (cnt > 0) {
+
+			sqls = sqlsBeg + sql + sqls2;
+			sqls += " if (totdeb<>totcrd) then raise value_error; end if; update acvoucher1 set debamt=totdeb,crdamt=totcrd where keyfld=kfld; end;";
+			// parsing parameters
+			for (String key : mapParas.keySet()) {
+				String vl = mapParas.get(key) + "";
+				if (mapParas.get(key) instanceof Date)
+					vl = utils.getOraDateValue((Date) mapParas.get(key));
+				sqls = sqls.replaceAll(":" + key, vl);
+			}
+//			QueryExe.execute(sqls, con);
+			System.out.println(sqls);
+			QueryExe.execute(sqls, con);
+		}
+
+	}
+}

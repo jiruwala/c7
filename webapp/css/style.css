@@ -745,7 +745,7 @@ th {
 }
 
 .darkBlueText {
-    color: #0854a0
+    color: #0854a0!important;
 }
 
 .paddingTinyBot {

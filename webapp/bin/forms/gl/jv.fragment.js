@@ -105,7 +105,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                     qry.formview.setFieldValue("createdOn", dtx[0].CREATDT, dtx[0].CREATDT, true);
                                 }
                             }
-                            UtilGen.Vouchers.attachLoadQry(that2, qry);
+                            UtilGen.Vouchers.attachLoadQry(that2, qry, "VOU", that2.frm.getFieldValue("qry1.keyfld"));
 
                         }
 
@@ -129,8 +129,11 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                     },
                     afterSaveForm: function (frm, nxtStatus) {
                         // frm.loadData(undefined, FormView.RecordStatus.NEW);
-
                         frm.setQueryStatus(undefined, Util.nvl(nxtStatus, FormView.RecordStatus.NEW));
+                        setTimeout(function () {
+                            thatForm.fileUpload = undefined;
+                        }, 400);
+
                     },
                     beforeSaveQry: function (qry, sqlRow, rowno) {
 
@@ -140,7 +143,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         if (qry.name == "qry1") {
                             UtilGen.Vouchers.validateTotDrTotCr(qry, sqlRow, rowno);
                             UtilGen.Vouchers.validatePostedVocher(qry, sqlRow, rowno);
-                            UtilGen.Vouchers.attachSaveQry(that2);
+                            UtilGen.Vouchers.attachSaveQry(that2, "VOU", that2.frm.getFieldValue("qry1.keyfld"));
 
                         }
                         return "";
@@ -204,7 +207,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                     afterDelRow: function (qry, ld, data) {
                         var delAdd = "";
                         if (qry.name == "qry1")
-                            delAdd += "delete from c7_attach where keyfld=:qry1.keyfld ;";
+                            delAdd += "delete from c7_attach where kind_of='VOU'and refer=:qry1.keyfld ;";
 
                         if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                             qry.obj.addRow();
@@ -337,7 +340,19 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "20%" },
+                                other_settings: {
+                                    width: "20%",
+                                    maxDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_to),
+                                    minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
+                                    change: function () {
+                                        var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+                                        if (!this.isValidValue()) {
+                                            this.setDateValue(null);
+                                            FormView.err("Invalid date value !");
+                                        }
+
+                                    }
+                                },
                                 list: undefined,
                                 edit_allowed: true,
                                 insert_allowed: true,
