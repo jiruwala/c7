@@ -1489,7 +1489,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     view.loadData();
                     return;
                 }
-                if (txt2.toLowerCase().startsWith("exec_batch")) {
+                if (txt2.toLowerCase().startsWith("execbatch")) {
                     view.execBatch(txt2);
                     return;
                 }

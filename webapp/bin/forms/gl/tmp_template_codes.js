@@ -1,11 +1,29 @@
 
 // general codes
-
+var dt = Util.execSQL("select..");
 if (dt.ret == "SUCCESS" && dt.data.length > 0) {
     var dtxM = JSON.parse("{" + dt.data + "}").data;
     txt.setValue(dtxM[0].SS_TITLE_1);
 }
 
+//dlg dialog creation
+
+var dlg = new sap.m.Dialog({
+    title: Util.getLangText("parameters"),
+    contentWidth: "400px",
+    contentHeight: "300px",
+    content: [vb],
+    buttons: [
+        new sap.m.Button({
+            text: Util.getLangText("closeTxt"),
+            press: function () {
+                dlg.close();
+            }
+        })
+
+    ]
+});
+dlg.open();
 
 //creating queryview for editing
 
@@ -25,12 +43,12 @@ qr.deletable = false;
 //for fetching data and parse it to table
 
 var dt = Util.execSQL("select..");
-if (data.ret == "SUCCESS") {
+if (dt.ret == "SUCCESS") {
     qr.setJsonStrMetaData("{" + dt.data + "}");
     var c = qv.mLctb.getColPos("DEBIT");
     qv.mLctb.cols[c].getMUIHelper().display_format = "MONEY_FORMAT";
     qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].mHideCol = true;
-    qv.mLctb.parse("{" + data.data + "}", true);
+    qv.mLctb.parse("{" + dt.data + "}", true);
     qv.loadData();
 }
 

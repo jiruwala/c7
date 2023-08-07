@@ -761,7 +761,7 @@ sap.ui.jsview('bin.Dashboard', {
                 var dt = JSON.parse(data);
                 var oModel = new sap.ui.model.json.JSONModel(dt);
                 sap.ui.getCore().setModel(oModel, "fiscalData");
-                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);
+                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);                
                 // that.byId("lblFiscal" + that.timeInLong).setText(sap.ui.getCore().getModel("fiscalData").getData().fiscal_title);
             }
         });
@@ -1646,15 +1646,168 @@ sap.ui.jsview('bin.Dashboard', {
         });
     },
     execBatch: function (txt2) {
-        var sq = Util.getFromWord(txt2, 2);
-        Util.doAjaxGet("runbatch?" + sq, "", false).done(function (data) {
-            var dt = JSON.parse(data);
-            var oModel = new sap.ui.model.json.JSONModel(dt);
-            if (dt.ret != "SUCCESS")
-                FormView.err(dt.message);
-            else
-                sap.m.MessageToast.show(dt.message);
+        this.showBatchPara(txt2, function (sq) {
+            var dt;
+            Util.doAjaxGet("exebatch?" + sq, "", false).done(function (data) {
+                dt = JSON.parse(data);
+                if (dt.ret != "SUCCESS")
+                    FormView.err(dt.message);
+                else
+                    sap.m.MessageToast.show(dt.message);
+            });
+
+            return dt;
         });
+    },
+    showBatchPara: function (txt2, fnExeBatch) {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var sq = Util.getFromWord(txt2, 2);
+        var params = {};
+        var prs = sq.split(" ");
+        var vb = new sap.m.VBox({});
+        for (p in prs)
+            params[prs[p].split("=")[0]] = prs[p].split("=")[1];
+        if (params["keyfld"] == undefined)
+            FormView.err("keyfld not defined !");
+        var titBatch = Util.getSQLValue("select descr from c7_batches where keyfld=" + params["keyfld"]);
+        vb.addItem(new sap.m.Text({ text: titBatch })).addStyleClass("sapUiSmallMargin");
+        var formWidth = Util.nvl(params["formWidth"], "600px");
+        var dialogWidth = Util.nvl(params["dialogSize"], "90%,90%").split(",")[0];
+        var dialogHeight = Util.nvl(params["dialogSize"], "90%,90%").split(",")[1];
+        var dt = Util.execSQL("select *from C7_BATCHES_PARA where keyfld=" + params["keyfld"] + " order by pos");
+        if (dt.ret == "SUCCESS") {
+            var dtx = JSON.parse("{" + dt.data + "}").data;
+            var fe = [];
+            var parAr = []; // to get all parameter name in array
+            for (di in dtx)
+                parAr.push(dtx[di].PARA_NAME);
+            var titleTxt = "";
+            for (d in dtx) {
+                if (Util.nvl(dtx[d].TITLE_TXT1, "") != titleTxt) {
+                    titleTxt = Util.nvl(dtx[d].TITLE_TXT1, "");
+                    fe.push(Util.getLabelTxt(titleTxt, Util.nvl(dtx[d].LBL_WIDTH, "25%"), "", "qrGroup"));
+                }
+                fe.push(Util.getLabelTxt(dtx[d].TITLE, Util.nvl(dtx[d].LBL_WIDTH, "25%"), Util.nvl(dtx[d].LINE_DLM, "")));
+                var obj = UtilGen.addControl(fe, "@", (dtx[d].DATA_TYPE == "date" ? sap.m.DatePicker : sap.m.Input), "para_" + dtx[d].PARA_NAME + "__" + that.timeInLong + "",
+                    {
+                        customData: [/*0*/{ key: "" }, /*1*/{ key: dtx[d].PARA_NAME },/*2*/ { key: dtx[d].VALIDATION }, /*3*/{ key: dtx[d].LIST_SQL },/*4*/{ key: dtx[d].LIST_RET_FIELD },/*5*/{ key: dtx[d].ONCALC }],
+                        width: Util.nvl(dtx[d].OBJ_WIDTH, "75%"),
+                        showValueHelp: (Util.nvl(dtx[d].LIST_SQL, "") != "") ? true : false,
+                        editable: (Util.nvl(dtx[d].EDITABLE, "Y") == "Y") ? true : false,
+                        valueHelpRequest: function (e) {
+                            var sq = Util.nvl(this.getCustomData()[3].getKey(), "");
+                            var rf = Util.nvl(this.getCustomData()[4].getKey(), "");
+                            var fldCode = that.byId("para_" + this.getCustomData()[1].getKey() + "__" + that.timeInLong);
+                            var fldTit = that.byId("para_" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                            Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
+                                UtilGen.setControlValue(fldCode, data.CODE, data.CODE, true);
+                                if (fldTit != undefined)
+                                    UtilGen.setControlValue(fldTit, data.TITLE, data.TITLE, true);
+                                return true;
+                            }, "100%", "100%", undefined, false);
+
+                        },
+                        change: function (e) {
+                            var sq = Util.nvl(this.getCustomData()[2].getKey(), "");
+                            sq = sq.replaceAll(":CODE", this.getValue());
+                            var onCalc = this.getCustomData()[5].getKey();
+                            if (onCalc != "") {
+                                for (var pi in parAr) {
+                                    var vl = UtilGen.getControlValue(that.byId("para_" + parAr[pi] + "__" + that.timeInLong));
+                                    if (vl != null && vl instanceof Date)
+                                        vl = Util.toOraDateString(vl);
+
+                                    onCalc = onCalc.replaceAll(":" + parAr[pi], Util.nvl(vl, "null"));
+                                }
+                                try {
+                                    eval(onCalc);
+                                }
+                                catch (err) { sap.m.MessageToast.show(err); console.log(err); }
+                            }
+                            if (Util.nvl(sq, "") == "") return;
+                            var vl = Util.getSQLValue(sq);
+                            var fldTit = that.byId("para_" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                            if (vl != undefined && fldTit != undefined)
+                                UtilGen.setControlValue(fldTit, vl, vl, true);
+                        }
+                    }, dtx[d].DATA_TYPE, Util.nvl(sett[dtx[d].FORMAT_FLD], dtx[d].FORMAT_FLD), that);
+
+                if (dtx[d].PARA_VALUE != undefined) {
+                    var value = dtx[d].PARA_VALUE;
+                    if (obj instanceof sap.m.DatePicker && dtx[d].PARA_VALUE.startsWith("@"))
+                        if (params[dtx[d].PARA_NAME] != undefined)
+                            value = UtilGen.parseDefaultValue(params[dtx[d].PARA_NAME].substring(1));//new Date(params[dtx[d].PARA_NAME].substring(1));
+                        else {
+                            value = UtilGen.parseDefaultValue(dtx[d].PARA_VALUE.substring(1));//new Date(dtx[d].PARA_VALUE.substring(1));
+
+                        }
+                    else
+                        if (params[dtx[d].PARA_NAME] != undefined)
+                            value = params[dtx[d].PARA_NAME];
+                        else
+                            value = dtx[d].PARA_VALUE;
+
+
+                    UtilGen.setControlValue(obj, value, value, true);
+
+
+                }
+            }
+            Util.navEnter(fe);
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: formWidth,
+                cssText: [
+                    "padding-left:0px ;" +
+                    "padding-top:5px;" +
+                    "border-style: groove;" +
+                    "margin-left: 0;" +
+                    "margin-right: 0;" +
+                    "border-radius:20px;" +
+                    "margin-top: 10px;"
+                ]
+            }, "sapUiSizeCompact", "");
+            cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            vb.addItem(cnt);
+        }
+        var dlg = new sap.m.Dialog({
+            title: Util.getLangText("parameters"),
+            contentWidth: dialogWidth,
+            contentHeight: dialogHeight,
+            content: [vb],
+            buttons: [
+                new sap.m.Button({
+                    text: Util.getLangText("executeTxt"),
+                    press: function () {
+                        var str = "";
+                        for (var f in fe) {
+                            var val;
+                            if (typeof fe[f] == "string")
+                                continue;
+                            if (fe[f] instanceof sap.m.InputBase)
+                                val = UtilGen.getControlValue(fe[f]);
+                            if (val instanceof Date)
+                                val = "@" + val.getDate() + "\/" + (val.getMonth() + 1) + "\/" + val.getFullYear();
+                            val = val.startsWith("@") ? val : encodeURIComponent(val);
+                            str += (str.length > 0 ? " " : "") + fe[f].getCustomData()[1].getKey() + "=" + val;
+                        }
+                        str = ("keyfld=" + params["keyfld"] + " " + str).replaceAll(" ", "&");
+                        var dt = fnExeBatch(str);
+                        if (dt.ret == "SUCCESS")
+                            dlg.close();
+
+                    }
+                }),
+                new sap.m.Button({
+                    text: Util.getLangText("closeTxt"),
+                    press: function () {
+                        dlg.close();
+                    }
+                })
+
+            ]
+        });
+        dlg.open();
     },
     show_list_cmd: function (txt2) {
         var sq = Util.getFromWord(txt2, 2);

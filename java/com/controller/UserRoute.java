@@ -56,6 +56,7 @@ import com.generic.localTableModel;
 import com.generic.qryColumn;
 import com.generic.utils;
 import com.models.Batches;
+import com.models.ExeBatch;
 import com.models.Batches.UserReports;
 import com.models.RepBatch7;
 import com.tools.queries.QuickRepMetaData;
@@ -325,12 +326,10 @@ public class UserRoute {
 		return ret;
 	}
 
-	@RequestMapping(value = "/runbatch", method = RequestMethod.GET)
+	@RequestMapping(value = "/exebatch", method = RequestMethod.GET)
 	public String runbatch(@RequestParam Map<String, String> params) {
-		String retStr = "{\"ret\":\"SUCCESS\", \"message\":\" JV Generated \" } ";
-		Map<String, Object> mapParas = new HashMap<String, Object>();
-		
-		return retStr;
+		ExeBatch eb = new ExeBatch(params, instanceInfo);
+		return eb.execute();
 	}
 
 	@RequestMapping(value = "/sqldata", method = RequestMethod.POST)
