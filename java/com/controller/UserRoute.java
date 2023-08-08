@@ -328,7 +328,7 @@ public class UserRoute {
 
 	@RequestMapping(value = "/exebatch", method = RequestMethod.GET)
 	public String runbatch(@RequestParam Map<String, String> params) {
-		ExeBatch eb=new ExeBatch(params,instanceInfo);
+		ExeBatch eb = new ExeBatch(params, instanceInfo);
 		return eb.execute();
 	}
 

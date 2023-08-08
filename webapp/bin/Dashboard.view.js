@@ -761,7 +761,7 @@ sap.ui.jsview('bin.Dashboard', {
                 var dt = JSON.parse(data);
                 var oModel = new sap.ui.model.json.JSONModel(dt);
                 sap.ui.getCore().setModel(oModel, "fiscalData");
-                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);
+                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);                
                 // that.byId("lblFiscal" + that.timeInLong).setText(sap.ui.getCore().getModel("fiscalData").getData().fiscal_title);
             }
         });

@@ -114,6 +114,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return;
             },
+
             doAjaxPost: function (path,
                 content,
                 async) {
@@ -157,7 +158,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             },
             sleep: function (ms) {
                 {
-                    var e = new Date().getTime() + ( ms);
+                    var e = new Date().getTime() + (ms);
                     while (new Date().getTime() <= e) { }
                 }
             },
@@ -1153,11 +1154,12 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             execSQLWithData: function (sql, errMsg) {
                 var dt = this.execSQL(sql);
                 var dtx = undefined;
-                if (dt.ret == "SUCCESS" && dt.data.length > 0) {
-                    var dtx = JSON.parse("{" + dt.data + "}").data;
-                } else {
-                    sap.m.MessageToast.show(errMsg);
-                }
+                if (dt.ret == "SUCCESS" && dt.data.length > 0)
+                    dtx = JSON.parse("{" + dt.data + "}").data;
+                else
+                    if (Util.nvl(errMsg, "") != "")
+                        this.err(errMsg);
+
                 return dtx;
             }
             ,
