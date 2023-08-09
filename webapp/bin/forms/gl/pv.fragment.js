@@ -817,7 +817,7 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                                     }));
                                     var bts = [];
                                     if (that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
-                                        var dt = Util.execSQL("select keyfld||'-'||bat_id code , descr from c7_batches_1 where type='PVB' order by keyfld ");
+                                        var dt = Util.execSQL("select keyfld||'-'||bat_id code , descr from c7_batches_1 where bat_type='PVB' order by keyfld ");
                                         if (dt.ret == "SUCCESS" && dt.data.length > 0) {
                                             var dtxM = JSON.parse("{" + dt.data + "}").data;
                                             for (var di in dtxM) {
@@ -834,6 +834,7 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                                     }
                                     if (bts.length > 0) {
                                         mnus.push(new sap.m.MenuItem({
+                                            icon:"sap-icon://indent",
                                             text: "Quick Entries",
                                             items: bts
                                         }));

@@ -105,20 +105,20 @@ public class ExeBatch {
 							mapFlds1.put(fv[0], utils.getOraDateValue(fv[1].substring(1)));
 					}
 
-					if (rs.getString("TYPE").equals("JV")) {
+					if (rs.getString("BAT_TYPE").equals("JV")) {
 						genJv();
 					}
-					if (rs.getString("TYPE").equals("PVB")) {
+					if (rs.getString("BAT_TYPE").equals("PVB")) {
 						genPv(1);
 					}
-					if (rs.getString("TYPE").equals("RVB")) {
+					if (rs.getString("BAT_TYPE").equals("RVB")) {
 						genRv(1);
 					}
 
-					if (rs.getString("TYPE").equals("PV")) {
+					if (rs.getString("BAT_TYPE").equals("PVC")) {
 						genPv(2);
 					}
-					if (rs.getString("TYPE").equals("RV")) {
+					if (rs.getString("BAT_TYPE").equals("RVC")) {
 						genRv(2);
 					}
 
@@ -167,7 +167,7 @@ public class ExeBatch {
 		sqlsBeg = "declare amt number:=0; amt_dr number:=0; amt_cr number:=0; nm varchar2(500); "
 				+ "totdeb number:=0; totcrd number:=0; kfld number;jvno number; begin "
 				+ " SELECT NVL(MAX(KEYFLD),0)+1 INTO KFLD FROM ACVOUCHER1; "
-				+ "SELECT NVL(MAX(NO),0)+1 INTO JVNO FROM ACVOUCHER1 WHERE VOU_CODE=2 AND TYPE=" + bnkcash + ";";
+				+ "SELECT NVL(MAX(NO),0)+1 INTO JVNO FROM ACVOUCHER1 WHERE VOU_CODE=2 AND BAT_TYPE=" + bnkcash + ";";
 
 		ResultSet rs2 = QueryExe.getSqlRS("select *from C7_BATCHES_2 where keyfld='" + kf + "' and bat_id="
 				+ rs.getString("bat_id") + " order by pos", con);

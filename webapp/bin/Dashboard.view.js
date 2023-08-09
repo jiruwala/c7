@@ -1699,7 +1699,7 @@ sap.ui.jsview('bin.Dashboard', {
                             var sq = Util.nvl(this.getCustomData()[3].getKey(), "");
                             var rf = Util.nvl(this.getCustomData()[4].getKey(), "");
                             var fldCode = that.byId("para_" + this.getCustomData()[1].getKey() + "__" + that.timeInLong);
-                            var fldTit = that.byId("para_" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                            var fldTit = that.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
                             Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
                                 UtilGen.setControlValue(fldCode, data.CODE, data.CODE, true);
                                 if (fldTit != undefined)
@@ -1727,7 +1727,7 @@ sap.ui.jsview('bin.Dashboard', {
                             }
                             if (Util.nvl(sq, "") == "") return;
                             var vl = Util.getSQLValue(sq);
-                            var fldTit = that.byId("para_" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                            var fldTit = that.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
                             if (vl != undefined && fldTit != undefined)
                                 UtilGen.setControlValue(fldTit, vl, vl, true);
                         }

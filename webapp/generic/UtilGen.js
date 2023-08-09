@@ -2599,8 +2599,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }
                         var parseVal = function (vl) {
                             var vlx = vl;
+
                             for (var pi in paras)
                                 vlx = vlx.replaceAll(":" + pi, paras[pi]);
+
+
                             if (typeof vlx == "string")
                                 vlx = vlx.replaceAll("%20", " ");
                             if (vlx.startsWith("@") && !vlx.startsWith("@$"))
@@ -2645,12 +2648,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var p = 0;
                         for (var mi in mapFlds2) {
                             var flds = mapFlds2[mi];
-                            hideDr = ld.getColByName("FCDEBIT").mHideCol;
-                            hideCr = ld.getColByName("FCCREDIT").mHideCol;                            
-                            
-                            if (flds.amt > 0) {
+                            var amt = (isContentFormula(flds.amt + "") ? eval(flds.amt) : flds.amt);
+                            if (amt != 0) {
                                 ld.addRow();
-                                var amt = (isContentFormula(flds.amt + "") ? eval(flds.amt) : flds.amt);
+                                if (that.vars.vou_code == 2 && amt > 0)
+                                    amt = amt * -1;
                                 var acn = flds.accno;
                                 var des = Util.nvl(flds.descr, Util.nvl(mapFlds1["descr"], ""));
                                 var nm = Util.getSQLValue("select name from acaccount where accno='" + acn + "'");
@@ -2664,10 +2666,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                                 ld.setFieldValue(p, "CUST_CODE", flds.rp_code);
                                 ld.setFieldValue(p, "COSTCENT", flds.costcent);
-                                ld.setFieldValue(p, "CREDIT", 0);
-                                ld.setFieldValue(p, "FCCREDIT", 0);
-                                ld.setFieldValue(p, "DEBIT", amt);
-                                ld.setFieldValue(p, "FCDEBIT", amt);
+                                ld.setFieldValue(p, "CREDIT", (amt < 0 ? Math.abs(amt) : 0));
+                                ld.setFieldValue(p, "FCCREDIT", (amt < 0 ? Math.abs(amt) : 0));
+                                ld.setFieldValue(p, "DEBIT", (amt > 0 ? amt : 0));
+                                ld.setFieldValue(p, "FCDEBIT", (amt > 0 ? amt : 0));
                                 ld.setFieldValue(p, "ACNAME", nm);
                                 ld.setFieldValue(p, "CSNAME", csname);
                                 ld.setFieldValue(p, "DESCR", des);
@@ -2676,7 +2678,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             }
                         }
                         that.frm.objs["qry2"].obj.updateDataToControl();
-                        that.frm.objs["qry2"].obj.eventCalc(that.frm.objs["qry2"].obj, undefined, -1, true);
+                        that.frm.objs["qry2"].obj.loadData();
+                        // that.frm.objs["qry2"].obj.eventCalc(that.frm.objs["qry2"].obj, undefined, -1, true);
 
                         return true;
 
@@ -2709,7 +2712,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                         var sq = Util.nvl(this.getCustomData()[3].getKey(), "");
                                         var rf = Util.nvl(this.getCustomData()[4].getKey(), "");
                                         var fldCode = that.view.byId("para_" + this.getCustomData()[1].getKey() + "__" + that.timeInLong);
-                                        var fldTit = that.view.byId("para_" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                                        var fldTit = that.view.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
                                         Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
                                             UtilGen.setControlValue(fldCode, data.CODE, data.CODE, true);
                                             if (fldTit != undefined)
@@ -2736,7 +2739,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                         }
                                         if (Util.nvl(sq, "") == "") return;
                                         var vl = Util.getSQLValue(sq);
-                                        var fldTit = that.view.byId("para_" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                                        var fldTit = that.view.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
                                         if (vl != undefined && fldTit != undefined)
                                             UtilGen.setControlValue(fldTit, vl, vl, true);
                                     }
