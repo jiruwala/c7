@@ -1,5 +1,11 @@
 
+
+
 // general codes
+
+
+var dtx = Util.execSQLWithData("select...", "No data found ..");
+
 var dt = Util.execSQL("select..");
 if (dt.ret == "SUCCESS" && dt.data.length > 0) {
     var dtxM = JSON.parse("{" + dt.data + "}").data;

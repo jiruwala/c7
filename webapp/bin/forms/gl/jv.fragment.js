@@ -591,14 +591,49 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         title: "Print",
                     },
                     {
-                        name: "cmdAttach",
+                        name: "cmdOther",
                         canvas: "default_canvas",
-                        title: "Attachment",
+                        title: "Action",
 
                         obj: new sap.m.Button({
-                            icon: "sap-icon://pdf-attachment",
+                            icon: "sap-icon://action",
                             press: function () {
-                                UtilGen.Vouchers.attachShowUpload(that2, false);
+                                var mnus = [];
+                                mnus.push(new sap.m.MenuItem({
+                                    icon: "sap-icon://pdf-attachment",
+                                    text: "Attachment",
+                                    press: function () {
+                                        UtilGen.Vouchers.attachShowUpload(that2, false);
+                                    }
+                                }));
+                                var bts = [];
+                                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                    var dt = Util.execSQL("select keyfld||'-'||bat_id code , descr from c7_batches_1 where bat_type='JV' order by keyfld ");
+                                    if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+                                        var dtxM = JSON.parse("{" + dt.data + "}").data;
+                                        for (var di in dtxM) {
+                                            bts.push(new sap.m.MenuItem({
+                                                text: dtxM[di].DESCR,
+                                                customData: [{ key: dtxM[di].CODE }],
+                                                press: function (e) {
+                                                    var k = this.getCustomData()[0].getKey();
+                                                    UtilGen.Vouchers.showQuickBatch(k, that2);
+                                                }
+                                            }));
+                                        }
+                                    }
+                                }
+                                if (bts.length > 0) {
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon: "sap-icon://indent",
+                                        text: Util.getLangText("quickEntries"),
+                                        items: bts
+                                    }));
+                                }
+                                var mnu = new sap.m.Menu({
+                                    items: mnus
+                                });
+                                mnu.openBy(this);
                             }
                         })
                     },

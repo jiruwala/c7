@@ -760,14 +760,66 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         title: "Print",
                     },
                     {
-                        name: "cmdAttach",
+                        name: "cmdOtherMenus",
                         canvas: "default_canvas",
-                        title: "Attachment",
-
+                        title: "Action..",
                         obj: new sap.m.Button({
-                            icon: "sap-icon://pdf-attachment",
+                            icon: "sap-icon://drop-down-list",
                             press: function () {
-                                UtilGen.Vouchers.attachShowUpload(that2, false);
+                                var mnus = [];
+                                var status = that2.frm.objs["qry1"].status;
+                                mnus.push(new sap.m.MenuItem({
+                                    text: "Attachment",
+                                    icon: "sap-icon://pdf-attachment",
+                                    press: function () {
+                                        UtilGen.Vouchers.attachShowUpload(that2, false);
+                                    }
+                                }));
+                                mnus.push(new sap.m.MenuItem({
+                                    text: "Receipt By Invoices",
+                                    icon: "sap-icon://my-sales-order",
+                                    enabled: (status == FormView.RecordStatus.NEW ? true : false),
+                                    press: function () {
+                                        UtilGen.Vouchers.showRVByInvs(that2);
+                                    }
+                                }));
+                                mnus.push(new sap.m.MenuItem({
+                                    text: "Print templates",
+                                    icon: "sap-icon://print",
+                                    press: function () {
+
+                                    }
+                                }));
+                                var bts=[];
+                                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                    var dt = Util.execSQL("select keyfld||'-'||bat_id code , descr from c7_batches_1 where bat_type='RVC' order by keyfld ");
+                                    if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+                                        var dtxM = JSON.parse("{" + dt.data + "}").data;
+                                        for (var di in dtxM) {
+                                            bts.push(new sap.m.MenuItem({
+                                                text: dtxM[di].DESCR,
+                                                customData: [{ key: dtxM[di].CODE }],
+                                                press: function (e) {
+                                                    var k = this.getCustomData()[0].getKey();
+                                                    UtilGen.Vouchers.showQuickBatch(k, that2);
+                                                }
+                                            }));
+                                        }
+                                    }
+                                }
+                                if (bts.length > 0) {
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon:"sap-icon://indent",
+                                        text: "Quick Entries",
+                                        items: bts
+                                    }));
+                                }
+                                var mnu = new sap.m.Menu({
+                                    title: "Reports",
+                                    items: mnus
+                                });
+                                mnu.openBy(this);
+
                             }
                         })
                     },

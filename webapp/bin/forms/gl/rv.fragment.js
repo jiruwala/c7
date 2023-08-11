@@ -151,8 +151,8 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                         // frm.loadData(undefined, FormView.RecordStatus.NEW);
                         frm.setQueryStatus(undefined, Util.nvl(nxtStatus, FormView.RecordStatus.NEW));
                         setTimeout(function () {
-                            thatForm.fileUpload = undefined;                            
-                        },400);
+                            thatForm.fileUpload = undefined;
+                        }, 400);
 
                     },
                     addSqlAfterUpdate: function (qry) {
@@ -172,7 +172,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                             UtilGen.Vouchers.validateTotDrTotCr(qry, sqlRow, rowno);
                             UtilGen.Vouchers.validatePostedVocher(qry, sqlRow, rowno);
                             UtilGen.Vouchers.validateFieldsBeforeSave(qry, sqlRow, rowno);
-                            UtilGen.Vouchers.attachSaveQry(that2,"VOU",that2.frm.getFieldValue("qry1.keyfld"));
+                            UtilGen.Vouchers.attachSaveQry(that2, "VOU", that2.frm.getFieldValue("qry1.keyfld"));
                         }
 
 
@@ -192,7 +192,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                         }
 
                         if (qry.name == "qry1") {
-                            that2.fileUpload = undefined;            
+                            that2.fileUpload = undefined;
                             var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from acvoucher1");
                             qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
 
@@ -802,7 +802,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                     {
                         name: "cmdOtherMenus",
                         canvas: "default_canvas",
-                        title: "Others..",
+                        title: "Action..",
                         obj: new sap.m.Button({
                             icon: "sap-icon://drop-down-list",
                             press: function () {
@@ -830,6 +830,30 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
 
                                     }
                                 }));
+                                var bts = [];
+                                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                    var dt = Util.execSQL("select keyfld||'-'||bat_id code , descr from c7_batches_1 where bat_type='RVB' order by keyfld");
+                                    if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+                                        var dtxM = JSON.parse("{" + dt.data + "}").data;
+                                        for (var di in dtxM) {
+                                            bts.push(new sap.m.MenuItem({
+                                                text: dtxM[di].DESCR,
+                                                customData: [{ key: dtxM[di].CODE }],
+                                                press: function (e) {
+                                                    var k = this.getCustomData()[0].getKey();
+                                                    UtilGen.Vouchers.showQuickBatch(k, that2);
+                                                }
+                                            }));
+                                        }
+                                    }
+                                }
+                                if (bts.length > 0) {
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon: "sap-icon://indent",
+                                        text: "Quick Entries",
+                                        items: bts
+                                    }));
+                                }
                                 var mnu = new sap.m.Menu({
                                     title: "Reports",
                                     items: mnus

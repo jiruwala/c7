@@ -392,6 +392,7 @@ sap.ui.jsview('bin.Dashboard', {
             }
         });
         var fe = [];
+        var fe2 = [];
         var cmdList = UtilGen.addControl(fe, "Setup Type", sap.m.ComboBox, "cmdList" + this.timeInLong + "_",
             {
                 enabled: true,
@@ -761,7 +762,7 @@ sap.ui.jsview('bin.Dashboard', {
                 var dt = JSON.parse(data);
                 var oModel = new sap.ui.model.json.JSONModel(dt);
                 sap.ui.getCore().setModel(oModel, "fiscalData");
-                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);                
+                that.byId("lblFiscal" + that.timeInLong).setText(dt.fiscal_title);
                 // that.byId("lblFiscal" + that.timeInLong).setText(sap.ui.getCore().getModel("fiscalData").getData().fiscal_title);
             }
         });
@@ -1134,6 +1135,12 @@ sap.ui.jsview('bin.Dashboard', {
                     }
                 }));
                 mnu.addItem(new sap.m.MenuItem({
+                    text: "Edit..",
+                    press: function () {
+                        that.showMenuForm(mc);
+                    }
+                }));
+                mnu.addItem(new sap.m.MenuItem({
                     text: "Copy menus..",
                     press: function () {
                         that.copyMenus(mc);
@@ -1384,10 +1391,34 @@ sap.ui.jsview('bin.Dashboard', {
         var mc = Util.nvl(pmc, "");
         var that = this;
         // creating form.
+        var formCss = {
+            width: "450px",
+            cssText: [
+                "padding-left:2px ;" +
+                "padding-right:2px ;" +
+                "padding-top:5px;" +
+                "border-style: groove;" +
+                "margin-left: 1px;" +
+                "margin-right: 1px;" +
+                "border-radius:20px;" +
+                "margin-top: 10px;"
+            ]
+        };
+        var lblWidth = "25%";
         var txtCode = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: false });
         var txtName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "49%", editable: false });
         var txtName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "49%", editable: false });
         var txtParentName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "49%", editable: false });
+        var chkTypeMenu = new sap.m.CheckBox({
+            width: "85%", height: "50px", editable: false,
+            select: function (e) {
+                if (this.getSelected())
+                    cnt2.setVisible(false);
+                else
+                    cnt2.setVisible(true);
+                hvShortCut.fireSelect();
+            }
+        });
         var txtJS = new sap.m.TextArea({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%", height: "50px", editable: false });
 
         var txtParent = new sap.m.Input({
@@ -1417,19 +1448,53 @@ sap.ui.jsview('bin.Dashboard', {
                 UtilGen.setControlValue(control, vl, vl, false);
             }
         });
+
+        var hvShortCut = new sap.m.CheckBox({
+            width: "85%", height: "50px", editable: false,
+            select: function (e) {
+                if (!this.getSelected())
+                    cnt3.setVisible(false);
+                else
+                    cnt3.setVisible(true);
+            }
+        });
+        var txtShortIcon = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false });
+        var txtShortTitle1 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false });
+        var txtShortTitle2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false });
+
         var fe = [
             Util.getLabelTxt("codeTxt", "15%"), txtCode,
             Util.getLabelTxt("nameTxt", "15%", "@"), txtName,
             Util.getLabelTxt("nameTxt2", "50%", ""), txtName2,
             Util.getLabelTxt("parentMenu", "15%", ""), txtParent,
             Util.getLabelTxt("", "1%", "@"), txtParentName,
-            Util.getLabelTxt("JS Cmd", "15%", ""), txtJS,
+            Util.getLabelTxt("isParent", "15%", ""), chkTypeMenu,
         ];
-        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, { width: "450px" }, "sapUiSizeCompact", "");
-        cnt.addContent(new sap.m.VBox({ height: "40px" }));
+        var fe2 = [
+            Util.getLabelTxt("JS Cmd", "15%", ""), txtJS,
+            Util.getLabelTxt("Shortcuts", "15%", "", "qrGroup"),
+            Util.getLabelTxt("showTxt", "15%", ""), hvShortCut,
+
+        ];
+
+        var fe3 = [
+            Util.getLabelTxt("shortIcon", "15%", ""), txtShortIcon,
+            Util.getLabelTxt("shortTit1", "15%", ""), txtShortTitle1,
+            Util.getLabelTxt("shortTit2", "15%", ""), txtShortTitle2,
+        ];
+
+        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");
+        var cnt2 = UtilGen.formCreate2("", true, fe2, undefined, sap.m.ScrollContainer, { "width": formCss.width }, "sapUiSizeCompact", "");
+        var cnt3 = UtilGen.formCreate2("", true, fe3, undefined, sap.m.ScrollContainer, { "width": formCss.width }, "sapUiSizeCompact", "");
+
+
+        cnt.addContent(cnt2);
+        cnt2.addContent(cnt3);
+        cnt2.addContent(new sap.m.VBox({ height: "40px" }));
+        Util.navEnter([...fe, ...fe2, ...fe3]);
         var dlg = new sap.m.Dialog({
             title: Util.getLangText((mc == "" ? "newMenu" : "editMenu")),
-            contentWidth: "500px",
+            contentWidth: "550px",
             content: cnt,
             buttons: [
                 new sap.m.Button({
@@ -1468,11 +1533,12 @@ sap.ui.jsview('bin.Dashboard', {
         var saveData = function () {
             var sq = "UPDATE C7_MENUS " +
                 " SET  MENU_TITLE=':MENU_TITLE', MENU_TITLEA=':MENU_TITLEA', " +
-                " PARENT_MENUCODE=':PARENT_MENUCODE', MENU_PATH=':MENU_PATH', JS_COMMAND=':JS_COMMAND' " +
+                " PARENT_MENUCODE=':PARENT_MENUCODE', MENU_PATH=':MENU_PATH', JS_COMMAND=':JS_COMMAND', " +
+                " SHORTCUT=':SHORTCUT' ,SHORTCUT_ICON=':SHORTCUT_ICON',SHORT_TITLE=':SHORT_TITLE',SHORT_TITLEA=':SHORT_TITLEA' " +
                 " WHERE MENU_CODE=':MENU_CODE' AND GROUP_CODE=':GROUP_CODE'";
             if (mc == "") {
-                sq = "insert into c7_menus(GROUP_CODE, MENU_CODE, MENU_TITLE, MENU_TITLEA, PARENT_MENUCODE, MENU_PATH, JS_COMMAND ) " +
-                    " values (':GROUP_CODE', ':MENU_CODE', ':MENU_TITLE', ':MENU_TITLEA', ':PARENT_MENUCODE', ':MENU_PATH', ':JS_COMMAND')";
+                sq = "insert into c7_menus(GROUP_CODE, MENU_CODE, MENU_TITLE, MENU_TITLEA, PARENT_MENUCODE, MENU_PATH, JS_COMMAND, TYPE_OF_EXEC,SHORTCUT,SHORTCUT_ICON,SHORT_TITLE,SHORT_TITLEA ) " +
+                    " values (':GROUP_CODE', ':MENU_CODE', ':MENU_TITLE', ':MENU_TITLEA', ':PARENT_MENUCODE', ':MENU_PATH', ':JS_COMMAND', ':TYPE_OF_EXEC',':SHORTCUT',':SHORTCUT_ICON',':SHORT_TITLE',':SHORT_TITLEA' )";
             }
             sq = sq.replaceAll(":MENU_CODE", txtCode.getValue());
             sq = sq.replaceAll(":GROUP_CODE", that.current_profile);
@@ -1481,14 +1547,22 @@ sap.ui.jsview('bin.Dashboard', {
             sq = sq.replaceAll(":PARENT_MENUCODE", txtParent.getValue());
             sq = sq.replaceAll(":MENU_PATH", genPath(txtParent.getValue(), txtCode.getValue()));
             sq = sq.replaceAll(":JS_COMMAND", txtJS.getValue());
+            sq = sq.replaceAll(":TYPE_OF_EXEC", chkTypeMenu.getSelected() ? "PARENT" : "QUERY");
+            sq = sq.replaceAll(":SHORTCUT_ICON", txtShortIcon.getValue());
+            sq = sq.replaceAll(":SHORTCUT", hvShortCut.getSelected() ? "Y" : "N");            
+            sq = sq.replaceAll(":SHORT_TITLE", txtShortTitle1.getValue());
+            sq = sq.replaceAll(":SHORT_TITLEA", txtShortTitle2.getValue());
             // sq=sq.replaceAll(":",);
             var dt = Util.execSQL(sq);
             return dt.ret;
         }
         var setEditable = function (tf) {
-            for (ky in fe) {
-                if (fe[ky] instanceof sap.m.InputBase)
-                    fe[ky].setEditable(tf);
+            var fex = [...fe, ...fe2, ...fe3];
+            for (ky in fex) {
+                if (fex[ky] instanceof sap.m.InputBase)
+                    fex[ky].setEditable(tf);
+                if (fex[ky] instanceof sap.m.CheckBox)
+                    fex[ky].setEditable(tf);
             }
         }
         var getData = function () {
@@ -1501,6 +1575,13 @@ sap.ui.jsview('bin.Dashboard', {
                 txtParent.setValue(dtx[0].PARENT_MENUCODE);
                 txtParentName.setValue(Util.getSQLValue("select menu_title from c7_menus where menu_code=" + Util.quoted(dtx[0].PARENT_MENUCODE) + " and group_code=" + Util.quoted(that.current_profile)));
                 txtJS.setValue(dtx[0].JS_COMMAND);
+                chkTypeMenu.setSelected(dtx[0].TYPE_OF_EXEC == "PARENT");
+                hvShortCut.setSelected(dtx[0].SHORTCUT == "Y");
+                txtShortIcon.setValue(dtx[0].SHORTCUT_ICON);
+                txtShortTitle1.setValue(dtx[0].SHORT_TITLE);
+                txtShortTitle2.setValue(dtx[0].SHORT_TITLEA);
+                hvShortCut.fireSelect();
+                chkTypeMenu.fireSelect();
             }
         };
         //---------
@@ -1508,6 +1589,7 @@ sap.ui.jsview('bin.Dashboard', {
         if (mc != "") {
             setEditable(true);
             txtCode.setEditable(false);
+            chkTypeMenu.setEditable(false);
             getData();
         } else {
             setEditable(true);
@@ -1699,7 +1781,7 @@ sap.ui.jsview('bin.Dashboard', {
                             var sq = Util.nvl(this.getCustomData()[3].getKey(), "");
                             var rf = Util.nvl(this.getCustomData()[4].getKey(), "");
                             var fldCode = that.byId("para_" + this.getCustomData()[1].getKey() + "__" + that.timeInLong);
-                            var fldTit = that.byId("para_" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                            var fldTit = that.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
                             Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
                                 UtilGen.setControlValue(fldCode, data.CODE, data.CODE, true);
                                 if (fldTit != undefined)
@@ -1727,7 +1809,7 @@ sap.ui.jsview('bin.Dashboard', {
                             }
                             if (Util.nvl(sq, "") == "") return;
                             var vl = Util.getSQLValue(sq);
-                            var fldTit = that.byId("para_" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                            var fldTit = that.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
                             if (vl != undefined && fldTit != undefined)
                                 UtilGen.setControlValue(fldTit, vl, vl, true);
                         }
