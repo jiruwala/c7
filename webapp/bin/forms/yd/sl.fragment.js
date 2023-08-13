@@ -55,6 +55,29 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
         // UtilGen.setFormTitle(this.oController.getForm(), "Journal Voucher", this.mainPage);
         return this.joApp;
     },
+    stopThisSub: function () {
+        var that = this;
+        var qry = that.frm.objs["qry1"];
+        if (qry.status == FormView.RecordStatus.NEW)
+            return;
+        if (sap.m.MessageBox == undefined)
+            jQuery.sap.require("sap.m.MessageBox");
+
+        sap.m.MessageBox.confirm("Are you sure to STOP this Subscription : ?  ", {
+            title: "Confirm",                                    // default
+            onClose: function (oAction) {
+                if (oAction == sap.m.MessageBox.Action.OK) {
+                    var dt = Util.execSQL("update order1 set ord_flag=2,ORD_TXT_IID='' where  ord_code=1011 and ord_no=" + that.frm.getFieldValue("pac"));
+                    if (dt.ret == "SUCCESS")
+                        that.frm.loadData(undefined, "view");
+                    // that2.joApp.backFunction();
+                    // that.frm.loadData(undefined, "view");
+
+                }
+            }
+        });
+
+    },
     show_link: function () {
         var that = this;
         var qry = that.frm.objs["qry1"];
@@ -173,6 +196,9 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("cmdStop" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("cmdSub" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("cmdSub2" + thatForm.timeInLong, thatForm.view);
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "0.000" }));
                     var bt = new sap.m.Button(thatForm.view.createId("cmdSub" + thatForm.timeInLong), {
@@ -198,6 +224,15 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
                             });
                         }
                     });
+
+                    var btStp = new sap.m.Button(thatForm.view.createId("cmdStop" + thatForm.timeInLong), {
+                        text: "Stop",
+                        icon: "sap-icon://stop",
+                        press: function (e) {
+                            that.stopThisSub();
+                        }
+                    });
+
                     var bt2 = new sap.m.Button(thatForm.view.createId("cmdSub2" + thatForm.timeInLong), {
                         text: "رابط المشاركة",
                         icon: "sap-icon://share-2",
@@ -206,7 +241,7 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
                         }
                     });
                     var hb = new sap.m.Toolbar({
-                        content: [bt, txt, new sap.m.ToolbarSpacer(), bt2, txtMsg]
+                        content: [bt, btStp, txt, new sap.m.ToolbarSpacer(), bt2, txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
@@ -232,7 +267,17 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
                                 that.frm.cmdButtons.cmdEdit.setEnabled(true);
                                 that.frm.cmdButtons.cmdDel.setEnabled(true);
                             }
-
+                            var flg = Util.getSQLValue("select ord_flag from order1 where ord_no = " + that.frm.getFieldValue("pac"));
+                            if (flg == 2 || flg == "2") {
+                                that.view.byId("cmdStop" + that.timeInLong).setEnabled(false);
+                                // that.view.byId("cmdSub" + that.timeInLong).setEnabled(false);
+                                that.view.byId("cmdSub2" + that.timeInLong).setEnabled(false);
+                            }
+                            else {
+                                that.view.byId("cmdStop" + that.timeInLong).setEnabled(true);
+                                // that.view.byId("cmdSub" + that.timeInLong).setEnabled(true);
+                                that.view.byId("cmdSub2" + that.timeInLong).setEnabled(true);
+                            }
                         }
                     },
                     beforeLoadQry: function (qry, sql) {

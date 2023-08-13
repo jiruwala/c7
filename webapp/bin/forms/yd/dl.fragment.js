@@ -133,7 +133,7 @@ sap.ui.jsfragment("bin.forms.yd.dl", {
 
         var sq = "select keyfld,ord_no,ord_refnm,delivery_date,week_no,day_no,sub_address,sub_mobileno,DES_BREAKFAST, DES_LUNCH, DES_DINNER, DES_SALAD, DES_SNACK, DES_SOUP " +
             " from sub_cust_plan2 " +
-            " where delivery_date=" + Util.toOraDateString(fr)
+            " where ord_flag=1 and delivery_date=" + Util.toOraDateString(fr)
         " order by ord_no ";
 
         this.qv.getControl().setEditable(false);
