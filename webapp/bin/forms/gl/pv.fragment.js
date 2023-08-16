@@ -810,7 +810,7 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                                     var mnus = [];
                                     mnus.push(new sap.m.MenuItem({
                                         icon: "sap-icon://pdf-attachment",
-                                        text: "Attachment",
+                                        text: Util.getLangText("attachmentTxt"),
                                         press: function () {
                                             UtilGen.Vouchers.attachShowUpload(that2, false);
                                         }

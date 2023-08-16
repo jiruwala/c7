@@ -136,7 +136,8 @@ public class QueryExe {
 			return;
 		}
 		if (parse) {
-			ps_exe = con.prepareStatement(utils.replaceParameters(sqlStr.replaceAll("\n", " ").replaceAll("\r", " ")),
+			String sqx2=utils.replaceParameters(sqlStr.replaceAll("\n", " ").replaceAll("\r", " "));
+			ps_exe = con.prepareStatement(sqx2,
 					ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		}
 		utils.setParams(sqlStr, ps_exe, mapParameters);
