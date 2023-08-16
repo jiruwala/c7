@@ -1084,6 +1084,7 @@ sap.ui.jsview('bin.Dashboard', {
         mv.mLctb.getColByName("JS_COMMAND").mHideCol = true;
         mv.mLctb.getColByName("JS_PARAMS").mHideCol = true;
         mv.mLctb.getColByName("SHORTCUT_ICON").mHideCol = true;
+        mv.mLctb.getColByName("TYPE_OF_EXEC").mHideCol = true;
 
         mv.switchType("tree");
         // var sc = new sap.m.ScrollContainer({ content: [mv.getControl()] });

@@ -979,21 +979,27 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             }
             ,
             parseDefaultValue: function (vl) {
+                var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+
                 var retVal = Util.nvl(vl, "");
                 if (retVal.startsWith("#DATE_"))
                     retVal = new Date(vl.replace("#DATE_", ""));
                 if (typeof retVal == "string" && retVal.startsWith("#NUMBER_"))
                     retVal = parseFloat(vl.replace("#NUMBER_", ""));
-                if (typeof retVal == "string" && retVal == "$TODAY")
+                if (typeof retVal == "string" && retVal == "$TODAY") {
                     retVal = Util.nvl(UtilGen.DBView.today_date.getDateValue(), new Date());
+                    if (retVal > fisc.fiscal_to)
+                        retVal = fisc.fiscal_to;
+                }
                 if (typeof retVal == "string" && retVal == "$FIRSTDATEOFMONTH") {
                     retVal = new Date();
                     retVal.setDate(1);
                 }
                 if (typeof retVal == "string" && retVal == "$FIRSTDATEOFYEAR") {
-                    retVal = new Date();
-                    retVal.setDate(1);
-                    retVal.setMonth(1);
+                    retVal = fisc.fiscal_from//new Date();
+                    // retVal.setDate(1);
+                    // retVal.setMonth(1);
+
                 }
 
 

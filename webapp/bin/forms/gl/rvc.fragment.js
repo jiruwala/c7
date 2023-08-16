@@ -769,7 +769,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 var mnus = [];
                                 var status = that2.frm.objs["qry1"].status;
                                 mnus.push(new sap.m.MenuItem({
-                                    text: "Attachment",
+                                    text: Util.getLangText("attachmentTxt"),
                                     icon: "sap-icon://pdf-attachment",
                                     press: function () {
                                         UtilGen.Vouchers.attachShowUpload(that2, false);
