@@ -199,6 +199,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     qr.code = Util.nvl(qrys[i].code, "");
                     qr.title = Util.nvl(qrys[i].title, "");
                     qr.levelCol = Util.nvl(qrys[i].levelCol, "");
+                    qr.childCntCol = Util.nvl(qrys[i].childCntCol, "");
                     qr.fixedCols = Util.nvl(qrys[i].fixedCols, 0);
                     qr.type = qrys[i].type;
                     qr.dml = Util.nvl(qrys[i].dml, "");
@@ -1328,6 +1329,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                     qr.obj.mColName = qr.title;
                                     qr.obj.mColParent = qr.parent;
                                     qr.obj.mColLevel = qr.levelCol;
+                                    qr.obj.mColChild = qr.childCntCol;
                                     qr.obj.switchType("tree");
                                 }
                                 if (qr.fixedCols > 0)

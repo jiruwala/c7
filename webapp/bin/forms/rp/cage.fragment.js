@@ -6,7 +6,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         this.qryStr = "";
         // this.joApp = new sap.m.SplitApp({mode: sap.m.SplitAppMode.HideMode,});
         // this.joApp2 = new sap.m.App();
-                
+
         this.timeInLong = (new Date()).getTime();
 
         this.bk = new sap.m.Button({
@@ -198,22 +198,23 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
 
                                 },
                                 beforeLoadQry: function (sql) {
-                                    var sq =
-                                        "BEGIN " +
-                                        "c6_age_pr.hide_zero := 'FALSE'; " +
-                                        "c6_age_pr.hide_negative := 'FALSE'; " +
-                                        "c6_age_pr.todate := :parameter.todate; " +
-                                        "c6_age_pr.fromcust := ':parameter.from_cust'; " +
-                                        "c6_age_pr.tocust := ':parameter.to_cust'; " +
-                                        "c6_age_pr.store_data; " +
-                                        "END;";
-                                    sq = thatForm.frm.parseString(sq);
-                                    Util.doAjaxJson("sqlmetadata?", {
-                                        sql: sq,
-                                        ret: "NONE",
-                                        data: null
-                                    }, false).done(function (data) {
-                                    });
+                                    // var sq =
+                                    //     "BEGIN " +
+                                    //     "c6_age_pr.hide_zero := 'FALSE'; " +
+                                    //     "c6_age_pr.hide_negative := 'FALSE'; " +
+                                    //     "c6_age_pr.todate := :parameter.todate; " +
+                                    //     "c6_age_pr.fromcust := ':parameter.from_cust'; " +
+                                    //     "c6_age_pr.tocust := ':parameter.to_cust'; " +
+                                    //     "c6_age_pr.store_data; " +
+                                    //     "END;";
+                                    // sq = thatForm.frm.parseString(sq);
+                                    // Util.doAjaxJson("sqlmetadata?", {
+                                    //     sql: sq,
+                                    //     ret: "NONE",
+                                    //     data: null
+                                    // }, false).done(function (data) {
+                                    // });
+                                    thatForm.save_cage();
                                     return "select *from C6_VAGE where usernm=c6_session.get_user_session order by code ";
                                 },
                                 fields: {
@@ -389,6 +390,103 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         this.frm = new ReportView(this.mainPage);
         this.frm.parasAsLabels = true;
         return this.frm.createViewMain(this, js);
+
+    },
+    save_cage: function () {
+        var thatForm = this;
+        var todt = thatForm.frm.getFieldValue("parameter.todate");
+        var fromdt = Util.addDaysFromDate(todt, -151);
+        var bk = UtilGen.getBackYears(fromdt, todt);
+
+        // _CURSOR_A2   --- order by path
+        var sqx1 = "SELECT   ACVOUCHER2.cust_code," +
+            "PATH, SUM (DEBIT) TOTDEB,SUM (CREDIT) TOTCRD" +
+            " FROM   :ACVOUCHER2, c_ycust " +
+            " WHERE VOU_DATE <= TODATE and  " +
+            "  acvoucher2.cust_code=code " +
+            " AND (cust_code>= fromcust and cust_code<=tocust) " +
+            " and c_ycust.childcount=0 and c_ycust.iscust='Y' :KEYFLD_CONDITION " +
+            " GROUP BY   ACVOUCHER2.cust_code, PATH ";
+        // _CURSOR_A3  order by VOU_DATE,PATH
+        var sqx2 = "SELECT   ACVOUCHER2.cust_code,  PATH," +
+            " SUM (DEBIT) TOTDEB, SUM (CREDIT) TOTCRD," +
+            " VOU_DATE       FROM   :ACVOUCHER2, c_ycust " +
+            " WHERE  VOU_DATE <= TODATE " +
+            " AND ACVOUCHER2.cust_code = c_ycust.code and iscust='Y' " +
+            " AND (cust_code>= fromcust and cust_code<=tocust) :KEYFLD_CONDITION  " +
+            " GROUP BY   ACVOUCHER2.cust_code, PATH, VOU_DATE ";
+        // :_CURSOR_PA2  order by path
+        var sqx3 = "SELECT code, PATH, SUM (DEBIT) TOTDEB," +
+            "SUM (CREDIT) TOTCRD FROM  :ACVOUCHER2, c_ycust WHERE VOU_DATE <= TODATE " +
+            " and issupp = 'Y' AND ACVOUCHER2.cust_code = code AND(code >= fromcust  and code <= tocust) " +
+            " :KEYFLD_CONDITION GROUP BY   code, PATH ";
+        // :_CURSOR_PA3  order by VOU_DATE,PATH;
+        var sqx4 = "SELECT   code,PATH, SUM (DEBIT) TOTDEB, " +
+            " SUM (CREDIT) TOTCRD, VOU_DATE FROM  :ACVOUCHER2, c_ycust" +
+            " WHERE VOU_DATE <= TODATE AND ACVOUCHER2.cust_code = c_ycust.code " +
+            " and issupp='Y' AND (code>= fromcust and code<=tocust) :KEYFLD_CONDITION " +
+            " GROUP BY   code, PATH, VOU_DATE ";
+
+        var sqs = [sqx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
+        var sqs1 = [sqx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
+        var sqs2 = [sqx3.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
+        var sqs3 = [sqx4.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
+
+
+        for (var bi in bk) {
+            sqs.push(sqx1.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and ACVOUCHER2.keyfld>0 ")));
+            sqs1.push(sqx2.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and ACVOUCHER2.keyfld>0 ")));
+            sqs2.push(sqx3.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and ACVOUCHER2.keyfld>0 ")));
+            sqs3.push(sqx4.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and ACVOUCHER2.keyfld>0 ")));
+
+        }
+
+        var sqls = "";
+        var sqls1 = "", sqls2 = "", sqls3 = "";
+        for (var si in sqs)
+            sqls += (sqls.length > 0 ? " union all " : "") + sqs[si];
+        for (var si in sqs1)
+            sqls1 += (sqls1.length > 0 ? " union all " : "") + sqs1[si];
+        for (var si in sqs2)
+            sqls2 += (sqls2.length > 0 ? " union all " : "") + sqs2[si];
+        for (var si in sqs3)
+            sqls3 += (sqls3.length > 0 ? " union all " : "") + sqs3[si];
+
+        sqls += "  order by PATH ";
+        sqls1 += "  order by VOU_DATE,PATH ";
+        sqls2 += "  order by PATH ";
+        sqls3 += "  order by VOU_DATE,PATH ";
+
+        var paras = "todate date := :parameter.todate;";
+        paras += "fromcust varchar2(100) := ':parameter.from_cust';";
+        paras += " tocust varchar2(100) := ':parameter.to_cust'; ";
+        paras += " get_unpostbal varchar2(100) := 'FALSE'; ";
+        paras += " salesp number ; ";
+        paras += " hide_zero varchar2(100) := 'FALSE'; ";
+        paras += " hide_negative varchar2(100) := 'FALSE'; ";
+        var plsql = "declare " + paras;
+        var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99995");
+        plsql = plsql + str;
+        plsql = plsql.replaceAll(":_CURSOR_A2", sqls);
+        plsql = plsql.replaceAll(":_CURSOR_A3", sqls1);
+        plsql = plsql.replaceAll(":_CURSOR_PA2", sqls2);
+        plsql = plsql.replaceAll(":_CURSOR_PA3", sqls3);
+
+
+        plsql = thatForm.frm.parseString(plsql);
+        console.log(plsql);
+        var dt = Util.execSQL(plsql);
+        if (dt.ret != "SUCCESS")
+            FormView.err("Err. executing sql for multiple years !");
+
 
     }
     ,

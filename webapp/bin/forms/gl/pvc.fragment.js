@@ -587,6 +587,7 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                         name: "qry2",
                         showType: FormView.QueryShowType.QUERYVIEW,
                         applyCol: "C7.PV1",
+                        dispRecords: { "S": 5, "M": 7, "L": 13, "XL": 20, "XXL": 25 },
                         addRowOnEmpty: true,
                         dml: dmlSq,
                         edit_allowed: true,

@@ -807,6 +807,23 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            incrp: {
+                                colname: "incrp",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"inclRP\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: { width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                             unposted: {
                                 colname: "unposted",
                                 data_type: FormView.DataType.String,
@@ -884,6 +901,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                                         "  cp_acc.plevelno:=:parameter.levelno;" +
                                         "  cp_acc.pfromdt:=:parameter.fromdate;" +
                                         "  cp_acc.ptodt:=:parameter.todate; " +
+                                        "  cp_acc.prnp:=':parameter.incrp'; " +
                                         "  cp_acc.pcc:=':parameter.costcent'; " +
                                         "  cp_acc.pfromacc:=':parameter.accno'; " +
                                         "  cp_acc.punposted:=':parameter.unposted'; " +

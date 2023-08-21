@@ -586,6 +586,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         name: "qry2",
                         showType: FormView.QueryShowType.QUERYVIEW,
                         applyCol: "C7.RV1",
+                        dispRecords: { "S": 5, "M": 7, "L": 13, "XL": 20, "XXL": 25 },
                         addRowOnEmpty: true,
                         dml: dmlSq,
                         edit_allowed: true,
@@ -630,7 +631,6 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
 
                             var des = Util.nvl(oModel.getProperty(currentRowoIndexContext.sPath + '/DESCR'), "");
                             if (cx.mColName == "ACCNO" && des == "") {
-
                                 oModel.setProperty(currentRowoIndexContext.sPath + "/DESCR", that.frm.getFieldValue("qry1.descr"));
                             }
 
@@ -647,7 +647,6 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         eventCalc: function (qv, cx, rowno, reAmt) {
                             var sett = sap.ui.getCore().getModel("settings").getData();
                             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-
                             if (reAmt)
                                 qv.updateDataToTable();
 
