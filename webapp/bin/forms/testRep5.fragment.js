@@ -1409,125 +1409,184 @@ sap.ui.jsfragment("bin.forms.testRep5", {
     save_soa_acc: function () {
         var thatForm = this;
 
-        var bk = this.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
-        if (bk.length > 0) {
-            var plsql = "declare ";
-            var sqx = " SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
-                " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
-                " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
-                " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
-            var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
-            for (var bi in bk)
-                sqs.push(sqx.
-                    replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
-                    replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+        var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
+        // if (bk.length > 0) {
+        var plsql = "declare ";
+        //cursor su is ----in getaccbal function to replace
+        var sqxAB = "SELECT nvl(sum(deb-crd),0) bal FROM :V_STATMENT_1 v " +
+            " WHERE v.PATH LIKE ACNo AND VOU_DATE<DT AND " +
+            " (cost_PATH  LIKE CC||'%' or cc is null) " +
+            " and (cust_path like cd||'%' or cd is null) :KEYFLD_CONDITION ";
+        //cursor acx1 is  --- GETPATHDEBIT 
+        var sqxAx1 = "select SUM(DEBIT) DRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
+            " A.ACCNO=V.ACCNO AND V.VOU_DATE>=FROMDATE AND " +
+            " V.VOU_DATE<=TODATE :KEYFLD_CONDITION";
+        //cursor acx2 is  --- GETPATHCREDIT
+        var sqxAx2 = "select SUM(DEBIT) CRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
+            " A.ACCNO=V.ACCNO AND  " +
+            " V.VOU_DATE<=TODATE :KEYFLD_CONDITION ";
 
-            var sqls = "";
-            for (var si in sqs)
-                sqls += (sqls.length > 0 ? " union all " : "") + sqs[si];
-            var paras = "fromdt date := :parameter.fromdate;";
-            paras += "todt date := :parameter.todate;";
-            paras += "fromacc varchar2(100) := ':parameter.fromacc';";
-            paras += "toacc varchar2(100) := ':parameter.toacc'; ";
-            sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2) IS " + sqls + " ORDER BY vou_date;";
-            var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99991");
-            sqls = sqls + str;
-            sqls = thatForm.frm.parseString(sqls);
-            console.log(sqls);
-            var dt = Util.execSQL(sqls);
-            if (dt.ret != "SUCCESS")
-                FormView.err("Err. executing sql for multiple years !");
+        var sqx = " SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
+            " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
+            " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
+            " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
+
+        var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        var sqs1 = [sqxAB.replaceAll(":V_STATMENT_1", "V_STATMENT_1").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        var sqs2 = [sqxAx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        var sqs3 = [sqxAx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+
+        for (var bi in bk) {
+            sqs.push(sqx.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+            sqs1.push(sqxAB.
+                replaceAll(":V_STATMENT_1", bk[bi].fiscal_schema + ".V_STATMENT_1").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+            sqs2.push(sqxAx1.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+            sqs3.push(sqxAx2.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
         }
-        else {
-            var sq =
-                "BEGIN C7_STATMENT_ACCS(:parameter.fromdate,:parameter.todate,':parameter.fromacc',':parameter.toacc'); COMMIT; END;";
-            sq = thatForm.frm.parseString(sq);
-            Util.doAjaxJson("sqlmetadata?", {
-                sql: sq,
-                ret: "NONE",
-                data: null
-            }, false).done(function (data) {
-            });
-        }
+        var sqls = "";
+        var sqls1 = "", sqls2 = "", sqls3 = "";
+        for (var si in sqs)
+            sqls += (sqls.length > 0 ? " union all " : "") + sqs[si];
+        for (var si in sqs1)
+            sqls1 += (sqls1.length > 0 ? " union all " : "") + sqs1[si];
+        for (var si in sqs2)
+            sqls2 += (sqls2.length > 0 ? " union all " : "") + sqs2[si];
+        for (var si in sqs3)
+            sqls3 += (sqls3.length > 0 ? " union all " : "") + sqs3[si];
+
+        var paras = "fromdt date := :parameter.fromdate;";
+        paras += "todt date := :parameter.todate;";
+        paras += "fromacc varchar2(100) := ':parameter.fromacc';";
+        paras += "toacc varchar2(100) := ':parameter.toacc'; ";
+        sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2) IS " + sqls + " ORDER BY vou_date;";
+        var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99991");
+        sqls = sqls + str;
+        sqls = sqls.replaceAll(":_CURSOR_SU_ACCBAL", sqls1);
+        sqls = sqls.replaceAll(":_CURSOR_ACX1", sqls2);
+        sqls = sqls.replaceAll(":_CURSOR_ACX2", sqls3);
+
+        sqls = thatForm.frm.parseString(sqls);
+        console.log(sqls);
+        var dt = Util.execSQL(sqls);
+        if (dt.ret != "SUCCESS")
+            FormView.err("Err. executing sql for multiple years !");
+        // }
+        // else {
+        //     var sq =
+        //         "BEGIN C7_STATMENT_ACCS(:parameter.fromdate,:parameter.todate,':parameter.fromacc',':parameter.toacc'); COMMIT; END;";
+        //     sq = thatForm.frm.parseString(sq);
+        //     Util.doAjaxJson("sqlmetadata?", {
+        //         sql: sq,
+        //         ret: "NONE",
+        //         data: null
+        //     }, false).done(function (data) {
+        //     });
+        // }
 
     }
     ,
     save_soa: function () {
         var thatForm = this;
-        var bk = this.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
-        if (bk.length > 0) {
-            var plsql = "declare ";
-            var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
-                " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT "+
-            " AND V.ACCNO=A.ACCNO AND (V.COSTCENT=CC or cc is null) "+
-            " AND (CUST_CODE=PCUST OR PCUST IS NULL)  :KEYFLD_CONDITION "+
+        var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
+        // if (bk.length > 0) {
+        var plsql = "declare ";
+        //cursor su is ----in getaccbal function to replace
+        var sqxAB = "SELECT nvl(sum(deb-crd),0) bal FROM :V_STATMENT_1 v " +
+            " WHERE v.PATH LIKE ACNo AND VOU_DATE<DT AND " +
+            " (cost_PATH  LIKE CC||'%' or cc is null) " +
+            " and (cust_path like cd||'%' or cd is null) :KEYFLD_CONDITION ";
+        //cursor acx1 is  --- GETPATHDEBIT 
+        var sqxAx1 = "select SUM(DEBIT) DRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
+            " A.ACCNO=V.ACCNO AND V.VOU_DATE>=FROMDATE AND " +
+            " V.VOU_DATE<=TODATE :KEYFLD_CONDITION";
+        //cursor acx2 is  --- GETPATHCREDIT
+        var sqxAx2 = "select SUM(DEBIT) CRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
+            " A.ACCNO=V.ACCNO AND  " +
+            " V.VOU_DATE<=TODATE :KEYFLD_CONDITION ";
+        var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
+            " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT " +
+            " AND V.ACCNO=A.ACCNO AND (V.COSTCENT=CC or cc is null) " +
+            " AND (CUST_CODE=PCUST OR PCUST IS NULL)  :KEYFLD_CONDITION " +
             " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code ";
-            // var sqx = " SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
-            //     " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
-            //     " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
-            //     " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
-            var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
-            for (var bi in bk)
-                sqs.push(sqx.
-                    replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
-                    replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+        // var sqx = " SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
+        //     " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
+        //     " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
+        //     " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
+        var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        var sqs1 = [sqxAB.replaceAll(":V_STATMENT_1", "V_STATMENT_1").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        var sqs2 = [sqxAx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        var sqs3 = [sqxAx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
 
-            var sqls = "";
-            for (var si in sqs)
-                sqls += (sqls.length > 0 ? " union all " : "") + sqs[si];
-            var paras = "fromdt date := :parameter.fromdate;";
-            paras += "todt date := :parameter.todate;";
-            paras += "toacc varchar2(100) := ':parameter.paccno'; ";
-            paras += "cstcent varchar2(100) := ':parameter.pcc';";
-            paras += "pcust varchar2(100) := ':parameter.pref';";
-            paras += "PAGEING varchar2(100) := ':parameter.pageing';";
-            paras += "TYPEX varchar2(100) := 'ALL';";
-            paras += "DEL_OLD_DATA boolean := true;";
+        for (var bi in bk) {
+            sqs.push(sqx.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+            sqs1.push(sqxAB.
+                replaceAll(":V_STATMENT_1", bk[bi].fiscal_schema + ".V_STATMENT_1").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+            sqs2.push(sqxAx1.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+            sqs3.push(sqxAx2.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
 
-            sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2,CC VARCHAR2) IS " + sqls + " ORDER BY vou_date;";
-            var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992");
-            sqls = sqls + str;
-            sqls = thatForm.frm.parseString(sqls);
-            console.log(sqls);
-            var dt = Util.execSQL(sqls);
-            if (dt.ret != "SUCCESS")
-                FormView.err("Err. executing sql for multiple years !");
         }
-        else {
-            var sq =
-                "BEGIN C6_STATMENT(:parameter.fromdate,:parameter.todate,':parameter.paccno',':parameter.pcc',':parameter.pref','ALL',TRUE,':parameter.pageing'); COMMIT; END;";
-            sq = thatForm.frm.parseString(sq);
-            Util.doAjaxJson("sqlmetadata?", {
-                sql: sq,
-                ret: "NONE",
-                data: null
-            }, false).done(function (data) {
-            });
-        }
+        var sqls = "";
+        var sqls1 = "", sqls2 = "", sqls3 = "";
+        for (var si in sqs)
+            sqls += (sqls.length > 0 ? " union all " : "") + sqs[si];
+        for (var si in sqs1)
+            sqls1 += (sqls1.length > 0 ? " union all " : "") + sqs1[si];
+        for (var si in sqs2)
+            sqls2 += (sqls2.length > 0 ? " union all " : "") + sqs2[si];
+        for (var si in sqs3)
+            sqls3 += (sqls3.length > 0 ? " union all " : "") + sqs3[si];
+
+
+        var paras = "fromdt date := :parameter.fromdate;";
+        paras += "todt date := :parameter.todate;";
+        paras += "toacc varchar2(100) := ':parameter.paccno'; ";
+        paras += "cstcent varchar2(100) := ':parameter.pcc';";
+        paras += "pcust varchar2(100) := ':parameter.pref';";
+        paras += "PAGEING varchar2(100) := ':parameter.pageing';";
+        paras += "TYPEX varchar2(100) := 'ALL';";
+        paras += "DEL_OLD_DATA boolean := true;";
+
+        sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2,CC VARCHAR2) IS " + sqls + " ORDER BY vou_date;";
+        var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992");
+        sqls = sqls + str;
+        sqls = sqls.replaceAll(":_CURSOR_SU_ACCBAL", sqls1);
+        sqls = sqls.replaceAll(":_CURSOR_ACX1", sqls2);
+        sqls = sqls.replaceAll(":_CURSOR_ACX2", sqls3);
+
+        sqls = thatForm.frm.parseString(sqls);
+        console.log(sqls);
+        var dt = Util.execSQL(sqls);
+        if (dt.ret != "SUCCESS")
+            FormView.err("Err. executing sql for multiple years !");
+        // }
+        // else {
+        //     var sq =
+        //         "BEGIN C6_STATMENT(:parameter.fromdate,:parameter.todate,':parameter.paccno',':parameter.pcc',':parameter.pref','ALL',TRUE,':parameter.pageing'); COMMIT; END;";
+        //     sq = thatForm.frm.parseString(sq);
+        //     Util.doAjaxJson("sqlmetadata?", {
+        //         sql: sq,
+        //         ret: "NONE",
+        //         data: null
+        //     }, false).done(function (data) {
+        //     });
+        // }
 
     },
-    getBackYears: function (pFromdate, pTodate) {
-        var thatForm = this;
-        var view = thatForm.view;
-        var backYears = [];
-        var fisc = sap.ui.getCore().getModel("fiscalData").getData();
-        var dtBackYears = Util.execSQLWithData("select * from c7_fiscals where code=(select max(back_fiscal_code) from c7_fiscals where code=" + Util.quoted(fisc["fiscal_code"]) + ")");
-        var sqladd = 0;
-        while (dtBackYears.length > 0) {
-            //Check date range in between date of period
-            if ((new Date(dtBackYears[0].FROM_DATE.replaceAll(".", ":")) >= pFromdate && new Date(dtBackYears[0].TO_DATE.replaceAll(".", ":")) <= pTodate))
-                backYears.push({
-                    fiscal_code: dtBackYears[0].CODE,
-                    fiscal_title: dtBackYears[0].TITLE,
-                    fiscal_from: dtBackYears[0].FROM_DATE,
-                    fiscal_to: dtBackYears[0].TO_DATE,
-                    fiscal_schema: dtBackYears[0].SCHEMA_OWNER,
-                });
-            sqladd++
-            dtBackYears = Util.execSQLWithData("select * from c7_fiscals where code=(select max(back_fiscal_code) from c7_fiscals where code=" + Util.quoted(dtBackYears[0].CODE) + ")");
-        }
-        return backYears;
-    },
+
     loadData: function () {
         // var that = this;
         // var sq = "select accno,name,debit,credit from acc_balance_1 order by path";

@@ -96,7 +96,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     contentHeight: "60%"
                 });
                 var flx = new sap.m.FlexBox();
-                dlg.addContent()
+                dlg.addContent();
                 dlg.open();
             },
             initProdListModel: function (view) {
@@ -979,21 +979,27 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             }
             ,
             parseDefaultValue: function (vl) {
+                var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+
                 var retVal = Util.nvl(vl, "");
                 if (retVal.startsWith("#DATE_"))
                     retVal = new Date(vl.replace("#DATE_", ""));
                 if (typeof retVal == "string" && retVal.startsWith("#NUMBER_"))
                     retVal = parseFloat(vl.replace("#NUMBER_", ""));
-                if (typeof retVal == "string" && retVal == "$TODAY")
+                if (typeof retVal == "string" && retVal == "$TODAY") {
                     retVal = Util.nvl(UtilGen.DBView.today_date.getDateValue(), new Date());
+                    if (retVal > fisc.fiscal_to)
+                        retVal = fisc.fiscal_to;
+                }
                 if (typeof retVal == "string" && retVal == "$FIRSTDATEOFMONTH") {
                     retVal = new Date();
                     retVal.setDate(1);
                 }
                 if (typeof retVal == "string" && retVal == "$FIRSTDATEOFYEAR") {
-                    retVal = new Date();
-                    retVal.setDate(1);
-                    retVal.setMonth(1);
+                    retVal = fisc.fiscal_from//new Date();
+                    // retVal.setDate(1);
+                    // retVal.setMonth(1);
+
                 }
 
 
@@ -1846,7 +1852,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         newr = "XXL";
                     console.log("DEVICE " + newr + " -height=" + sap.ui.Device.resize.height + " records=" + dispRecs[newr]);
                     return dispRecs[newr];
-                }
+                } else return dispRecs;                
+
             },
             Search: {
                 do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect) {
@@ -2659,7 +2666,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 var csname = "";
                                 if (flds.rp_code != "") {
                                     nm = Util.getSQLValue("select name from c_ycust where code='" + flds.rp_code + "'");
-                                    acn = Util.getSQLValue("select ac_no from c_ycust where code=" + Util.quoted(fldds.rp_code));
+                                    acn = Util.getSQLValue("select ac_no from c_ycust where code=" + Util.quoted(flds.rp_code));
                                 }
                                 if (flds.costcent != "")
                                     csname = Util.getSQLValue("select title from accostcent1 where code='" + flds.costcent + "'");
@@ -2870,6 +2877,28 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     return tot;
                 }
                 return 0;
+            },
+            getBackYears: function (pFromdate, pTodate) {
+                var thatForm = this;
+                var view = thatForm.view;
+                var backYears = [];
+                var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+                var dtBackYears = Util.execSQLWithData("select * from c7_fiscals where code=(select max(back_fiscal_code) from c7_fiscals where code=" + Util.quoted(fisc["fiscal_code"]) + ")");
+                var sqladd = 0;
+                while (dtBackYears.length > 0) {
+                    //Check date range in between date of period
+                    if (pFromdate <= new Date(dtBackYears[0].TO_DATE.replaceAll(".", ":")))
+                        backYears.push({
+                            fiscal_code: dtBackYears[0].CODE,
+                            fiscal_title: dtBackYears[0].TITLE,
+                            fiscal_from: dtBackYears[0].FROM_DATE,
+                            fiscal_to: dtBackYears[0].TO_DATE,
+                            fiscal_schema: dtBackYears[0].SCHEMA_OWNER,
+                        });
+                    sqladd++
+                    dtBackYears = Util.execSQLWithData("select * from c7_fiscals where code=(select max(back_fiscal_code) from c7_fiscals where code=" + Util.quoted(dtBackYears[0].CODE) + ")");
+                }
+                return backYears;
             },
         };
 

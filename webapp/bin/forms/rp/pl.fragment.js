@@ -49,13 +49,13 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
 
             var mnu = new sap.m.Menu();
             mnu.removeAllItems();
-            
+
             mnu.addItem(new sap.m.MenuItem({
                 text: "SOA A/c -" + ac,
                 customData: { key: ac },
                 press: function () {
                     var sett = sap.ui.getCore().getModel("settings").getData();
-                    var sdf = new simpleDateFormat("MM/dd/yyyy");        
+                    var sdf = new simpleDateFormat("MM/dd/yyyy");
                     var accno = this.getCustomData()[0].getKey();
                     var todate = sdf.format(frm.getFieldValue("parameter.todate"));
                     var fromdate = frm.getFieldValue("parameter.fromdate" == undefined) ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate"));
@@ -343,6 +343,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                 dml: "select '01' accno , 'do it' descr from dual",
                                 parent: "PARENTACC",
                                 levelCol: "LEVELNO",
+                                childCntCol: "CHILDCOUNT",
                                 code: "ACCNO",
                                 title: "NAME",
                                 isMaster: false,
@@ -352,8 +353,10 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
+                                    var tbl = qv.getControl();
                                     var ac = oModel.getProperty("ACCNO", currentRowContext);
                                     var flg = oModel.getProperty("FLG", currentRowContext)
+                                    var chld = oModel.getProperty("CHILDCOUNT", currentRowContext);
                                     if (ac == "-")
                                         for (var i = startCell; i < endCell; i++) {
                                             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("background-color", "#ffffe0");
@@ -369,6 +372,22 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", "#e6e6fa");
                                             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().css("background-color", "#e6e6fa");
                                         }
+                                    if (chld > 0)
+                                        for (var i = startCell; i < endCell; i++) {
+                                            tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CCRD")].$().css("color", "lightgrey");
+                                            tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().css("color", "lightgrey");
+                                            // qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "grey");
+                                        }
+
+                                    // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().parent().parent().removeAttr("color");
+                                    // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().parent().parent().removeAttr("color");
+                                    // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CCRD")].$().parent().removeAttr("color");
+                                    // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().parent().removeAttr("color");
+
+                                    // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().parent().parent().css("color", "lightgrey");
+                                    // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().parent().parent().css("color", "lightgrey");
+                                    // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CCRD")].$().parent().css("color", "lightgrey");
+                                    // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().parent().css("color", "lightgrey");
 
 
                                 },
@@ -396,7 +415,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                         " to_number(field5) bdeb,to_number(field6) bcrd," +
                                         " to_number(field7) tdeb, to_number(field8) tcrd, " +
                                         " to_number(field13) cdeb, to_number(field14) ccrd, " +
-                                        " to_number(FIELD16) levelno,field20 flg" +
+                                        " to_number(FIELD16) levelno,field20 flg,to_number(FIELD18) childcount " +
                                         " from temporary " +
                                         " where idno=66602 " +
                                         (ez == "Y" ? " and (to_number(field13)+to_number(field14)!=0  or field1='-' ) " : "") +

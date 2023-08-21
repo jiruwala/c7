@@ -164,7 +164,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                 if (qrys[i].type != "query")
                     this.err("Err !  query # " + qrys[i].name);
-                qr.formview = this;                
+                qr.formview = this;
                 qr.objType = FormView.ObjTypes.QUERY;
                 qr.showType = Util.nvl(qrys[i].showType, FormView.QueryShowType.FORM);
                 qr.applyCol = Util.nvl(qrys[i].applyCol, "");
@@ -179,7 +179,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 qr.labelSpan = Util.nvl(qrys[i].labelSpan, undefined);
                 qr.emptySpan = Util.nvl(qrys[i].emptySpan, undefined);
                 qr.columnsSpan = Util.nvl(qrys[i].columnsSpan, [1, 1, 1]);
-
                 qr.update_exclude_fields = Util.nvl(qrys[i].update_exclude_fields, []);
                 qr.insert_exclude_fields = Util.nvl(qrys[i].insert_exclude_fields, []);
                 qr.insert_default_values = Util.nvl(qrys[i].insert_default_values, {});
@@ -191,8 +190,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 qr.edit_allowed = Util.nvl(qrys[i].edit_allowed, true);
                 qr.insert_allowed = Util.nvl(qrys[i].insert_allowed, true);
                 qr.delete_allowed = Util.nvl(qrys[i].delete_allowed, true);
+                qr.dispRecords = UtilGen.dispTblRecsByDevice(Util.nvl(qrys[i].dispRecords, 7));
                 qr.fields = {};
                 qr.summary = {};
+
                 qr.obj = undefined;
                 //ADDING FIELDS
                 if (qrys[i].fields == undefined && qr.dml != "") {
@@ -440,8 +441,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     qr.obj.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                     qr.obj.getControl().setFixedBottomRowCount(0);
                     qr.obj.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-                    qr.obj.getControl().setVisibleRowCount(7);
-                    qr.obj.getControl().setVisibleRowCount(7);
+                    qr.obj.getControl().setVisibleRowCount(qr.dispRecords);
                     qr.obj.insertable = qr.insert_allowed;
                     qr.obj.deletable = qr.delete_allowed;
                     thatForm.loadQueryView(qr, true);

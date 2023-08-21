@@ -384,6 +384,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         applyCol: "C7.JV",
                         addRowOnEmpty: true,
                         dml: dmlSq,
+                        dispRecords: { "S": 7, "M": 9, "L": 13, "XL": 20, "XXL": 25 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,

@@ -152,6 +152,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             neQr.switchType(this.queryType);
             neQr.mColParent = this.mColParent;
             neQr.mColCode = this.mColCode;
+            neQr.mColChild = this.mColChild;
             neQr.mColLevel = this.mColLevel;
             neQr.mColTitle = this.mColTitle;
 
@@ -1540,6 +1541,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
         QueryView.prototype.buildJsonDataTree = function () {
 
+            return this.buildJSONTreeWithTotal();
             if (this.mLctb.cols.length == 0)
                 return null;
 
@@ -1666,6 +1668,146 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             return this.mapNodes[id];
         };
 
+        QueryView.prototype.buildJSONTreeWithTotal = function () {
+            if (this.mLctb.cols.length == 0)
+                return null;
+
+            this.applySettings();
+            var items = this.mLctb.getData(true);
+            if (items == null)
+                return;
+            this.mapNodes = [];
+
+            var itemsByID = [];
+            var columns = [];
+            var lastParent = "";
+            var lastParentNode = null;
+            var rootNode = null;
+            var footer = {};
+
+            var footerCodes = {};
+
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+            var dfq = new DecimalFormat(sett["FORMAT_QTY_1"]);
+            var sf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+            this.minLevel = (this.mColLevel.length > 0 && this.mLctb.rows.length) > 1 ? parseInt(this.mLctb.getFieldValue(0, this.mColLevel)) : 0;
+
+            // looping mctb..
+            //resetting footers to null..
+            for (var k = 0; k < this.mLctb.cols.length; k++) {
+                var cn = this.mLctb.cols[k].mColName;
+                footer[cn] = null;
+            }
+
+            for (var i = 0; i < this.mLctb.rows.length; i++) {
+                var current_parent = "";
+                var current_code = this.mLctb.getFieldValue(i, this.mColCode) + "";
+                var current_title = this.mLctb.getFieldValue(i, this.mColTitle) + "";
+                current_parent = this.mLctb.getFieldValue(i, this.mColParent) + "";
+
+                if (current_parent.length > 0) {
+                    if (lastParent == current_parent)
+                        rootNode = lastParentNode;
+                    else {
+                        rootNode = this.findNodebyVal(current_parent);
+                        lastParent = current_parent;
+                        lastParentNode = rootNode;
+                    }
+                }
+                else
+                    rootNode = null;
+                var oNode1 = null;
+                var v = "";
+                var chlds = (this.mColChild.length > 0 ? this.mLctb.getFieldValue(i, this.mColChild) : 0);
+                if (chlds > 0) {
+                    footerCodes[current_code] = {};
+                    var footerg = footerCodes[current_code];
+                }
+                //defining node
+                for (var k = 0; k < this.mLctb.cols.length; k++) {
+                    var vl = this.mLctb.getFieldValue(i, this.mLctb.cols[k].mColName);
+                    var lvl = -1;
+                    if (this.mColLevel.length > 0)
+                        lvl = this.mLctb.getFieldValue(i, this.mColLevel);
+
+                    vl = (Util.nvl(vl, "") + "").replace(/\"/g, "'").replace(/\n/, "\\r").replace(/\r/, "\\r").replace(/\\/g, "\\\\").trim();
+
+                    if (this.mLctb.cols[k].mSummary == "SUM" && chlds > 0) {
+                        var cn = this.mLctb.cols[k].mColName;
+                        footerg[cn] = (Util.nvl(footerg[cn], 0) == 0 ? 0 : Util.nvl(footerg[cn], 0)) + parseFloat(Util.nvl(vl, '0'));
+                    }
+
+                    if (this.mLctb.cols[k].mSummary == "SUM" && lvl == this.minLevel) {
+                        var cn = this.mLctb.cols[k].mColName;
+                        footer[cn] = (Util.nvl(footer[cn], 0) == 0 ? 0 : Util.nvl(footer[cn], 0)) + parseFloat(Util.nvl(vl, '0'));
+
+                    }
+                    if (this.mLctb.cols[k].getMUIHelper().data_type == "NUMBER" &&
+                        this.mLctb.cols[k].getMUIHelper().display_format == "MONEY_FORMAT") {
+                        vl = (vl.length == 0 ? "" : df.format(parseFloat(vl)));
+                    }
+
+                    if (this.mLctb.cols[k].getMUIHelper().data_type == "NUMBER" &&
+                        this.mLctb.cols[k].getMUIHelper().display_format == "QTY_FORMAT") {
+                        vl = (vl.length == 0 ? "" : dfq.format(parseFloat(vl)));
+                    }
+                    if (this.mLctb.cols[k].getMUIHelper().data_type == "NUMBER" &&
+                        this.mLctb.cols[k].valOnZero != undefined && parseFloat(vl) == 0) {
+                        vl = this.mLctb.cols[k].valOnZero;
+                    }
+
+
+                    if (this.mLctb.cols[k].getMUIHelper().data_type == "DATE" &&
+                        this.mLctb.cols[k].getMUIHelper().display_format == "SHORT_DATE_FORMAT") {
+                        var dt = new Date(Util.nvl(vl, "").replaceAll(".", ":"));
+                        vl = dt;// sf.format(dt);
+                    }
+                    if (this.mLctb.cols[k].getMUIHelper().data_type != "DATE" &&
+                        this.mLctb.cols[k].getMUIHelper().display_format == "SHORT_DATE_FORMAT") {
+                        var dt = new Date(Util.nvl(vl, "").replaceAll(".", ":"));
+                        vl = sf.format(dt);
+                    }
+
+
+                    v += (v.length == 0 ? "" : ",") + '"' +
+                        this.mLctb.cols[k].mColName + '":"' +
+                        vl + '"';
+                    if (k == this.mLctb.cols.length - 1)
+                        v += (v.length == 0 ? "" : ",") + "\"_rowid\":" + i;
+
+                }
+
+                //v = v.replace(/\\/g, "\\\\");
+                oNode1 = JSON.parse("{" + Util.nvl(v, "") + "}");
+
+
+                if (rootNode == null || rootNode == undefined) {
+                    itemsByID.push(oNode1);
+                }
+                else {
+                    rootNode["childeren_" + i] = oNode1;
+                }
+                this.mapNodes[current_code] = oNode1;
+            }
+            //this.mTree.setFixedBottomRowCount(-1);
+            for (var fg in footerCodes)
+                this.mapNodes[fg]["childenfooter"] = footerCodes[fg]
+
+            if (footer != {}) {
+                for (var f in footer) {
+                    if (this.mLctb.getColByName(f).getMUIHelper().display_format == "MONEY_FORMAT")
+                        footer[f] = df.format(footer[f]);
+                    if (this.mLctb.getColByName(f).getMUIHelper().display_format == "QTY_FORMAT")
+                        footer[f] = dfq.format(footer[f]);
+                }
+
+                itemsByID.push(footer);
+                this.mTree.setFixedBottomRowCount(1);
+            }
+            return itemsByID;
+
+        }
 
         QueryView.prototype.colorRows = function () {
             var that = this;
@@ -1721,7 +1863,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         if (oModel.getData()[rowStart + i] != undefined) {
                             // var rd = oModel.getData()[rowStart + i]._rowid;
                             this.b4_cf_val1[j - cellAdd] = this.getControl().getRows()[i].getCells()[j - cellAdd].$().parent().parent().attr("style");
-                            this.b4_cf_val[j - cellAdd] = this.getControl().getRows()[i].getCells()[j - cellAdd].$().attr("style");                           
+                            this.b4_cf_val[j - cellAdd] = this.getControl().getRows()[i].getCells()[j - cellAdd].$().attr("style");
                         }
                     }
 
