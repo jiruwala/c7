@@ -1,5 +1,12 @@
-
-
+//FOR LOCALTABLE PARSING DATA
+var dt = Util.execSQL("select..");
+if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+    var ld = new LocalTableData();
+    ld.parseCol("{" + dt.data + "}");
+    ld.getColByName("PATH").mHideCol = true;
+    ld.getColByName("PARENTACC").mHideCol = true;
+    ld.parse("{" + dt.data + "}", true);
+}
 
 // general codes
 
