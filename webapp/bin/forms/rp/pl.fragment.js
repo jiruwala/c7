@@ -372,12 +372,12 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", "#e6e6fa");
                                             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().css("background-color", "#e6e6fa");
                                         }
-                                    if (chld > 0)
-                                        for (var i = startCell; i < endCell; i++) {
-                                            tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CCRD")].$().css("color", "lightgrey");
-                                            tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().css("color", "lightgrey");
-                                            // qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "grey");
-                                        }
+                                    // if (chld > 0)
+                                    //     for (var i = startCell; i < endCell; i++) {
+                                    //         tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CCRD")].$().css("color", "lightgrey");
+                                    //         tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().css("color", "lightgrey");
+                                    //         // qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "grey");
+                                    //     }
 
                                     // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().parent().parent().removeAttr("color");
                                     // tbl.getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "CDEB")].$().parent().parent().removeAttr("color");
@@ -996,6 +996,406 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                                     }
 
                                                     thatForm.qr.loadData();
+                                                }
+                                            });
+                                        }
+                                    },
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    code: "PL003",
+                    name: Util.getLangText("monthPL"),
+                    descr: Util.getLangText("monthPL3"),
+                    paraColSpan: undefined,
+                    hideAllPara: false,
+                    paraLabels: undefined,
+                    showSQLWhereClause: true,
+                    showFilterCols: true,
+                    showDispCols: true,
+                    onSubTitHTML: function () {
+                        var up = thatForm.frm.getFieldValue("parameter.unposted");
+                        var tbstr = Util.getLangText("profitAndLoss");
+                        var ua = Util.getLangText("unAudited");
+                        var cs = thatForm.frm.getFieldValue("parameter.costcent");
+                        var csnm = thatForm.frm.getFieldValue("parameter.csname");
+                        var ht = "<div class='reportTitle'>" + tbstr + (up == "Y" ? " (" + ua + ") " : "") + "</div > ";
+                        if (cs != "")
+                            ht += "<div class='reportTitle2'>" + Util.getLangText("costCent") + " : " + cs + "-" + csnm + "</div > ";
+                        return ht;
+
+                    },
+                    showCustomPara: function (vbPara, rep) {
+
+                    },
+                    mainParaContainerSetting: {
+                        width: "600px",
+                        cssText: [
+                            "padding-left:50px;" +
+                            "padding-top:20px;" +
+                            "border-style: inset;" +
+                            "margin: 10px;" +
+                            "border-radius:25px;" +
+                            "background-color:#dcdcdc;"
+                        ]
+                    },
+                    rep: {
+                        parameters: {
+                            fromdate: {
+                                colname: "fromdate",
+                                data_type: FormView.DataType.Date,
+                                class_name: FormView.ClassTypes.DATEFIELD,
+                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "$FIRSTDATEOFYEAR",
+                                other_settings: { width: "35%" },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            todate: {
+                                colname: "todate",
+                                data_type: FormView.DataType.Date,
+                                class_name: FormView.ClassTypes.DATEFIELD,
+                                title: '@{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "$TODAY",
+                                other_settings: { width: "35%" },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            accno: {
+                                colname: "accno",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue("PL003@parameter.accno", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select name from acaccount where actype=1 and accno =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue("PL003@parameter.acname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        Util.showSearchList("select accno,name from acaccount where actype=1 order by path", "NAME", "ACCNO", function (valx, val) {
+                                            thatForm.frm.setFieldValue("PL003@parameter.accno", valx, valx, true);
+                                            thatForm.frm.setFieldValue("PL003@parameter.acname", val, val, true);
+                                        });
+
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            acname: {
+                                colname: "acname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            costcent: {
+                                colname: "costcent",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"costCent\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                showInPreview: false,
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue("PL003@parameter.costcent", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select title from accostcent1 where CODE =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue("PL003@parameter.csname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
+                                            thatForm.frm.setFieldValue("PL003@parameter.costcent", valx, valx, true);
+                                            thatForm.frm.setFieldValue("PL003@parameter.csname", val, val, true);
+                                        });
+
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            csname: {
+                                colname: "csname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                showInPreview: false,
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            levelno: {
+                                colname: "levelno",
+                                data_type: FormView.DataType.Number,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"levelNo\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "0",
+                                other_settings: { width: "35%" },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            unposted: {
+                                colname: "unposted",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"unAudited\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                showInPreview: false,
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
+                            exclzero: {
+                                colname: "exclzero",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '@{\"text\":\"exclZero\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
+                        },
+                        print_templates: [
+                            {
+                                title: "PL Report",
+                                reportFile: "trans_1",
+                            }
+                        ],
+                        canvas: [],
+                        db: [
+                            {
+                                type: "query",
+                                name: "qry2",
+                                showType: FormView.QueryShowType.FORM,
+                                disp_class: "",
+                                dispRecords: -1,
+                                execOnShow: false,
+                                dml: "",
+                                parent: "",
+                                levelCol: "",
+                                code: "",
+                                title: "",
+                                isMaster: false,
+                                isCrossTb: "N",
+                                showToolbar: false,
+                                masterToolbarInMain: false,
+                                filterCols: [],
+                                canvasType: ReportView.CanvasType.VBOX,
+
+                                bat7CustomAddQry: function (qryObj, ps) {
+
+                                },
+                                fields: {
+                                    accno: {
+                                        colname: "accno",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.VBOX,
+                                        title: '',
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        onPrintField: function () {
+                                            return thatForm.qr.getHTMLTable(that.view, "para", false);
+                                        },
+                                        afterAddOBject: function () {
+                                            thatForm.qr = new sap.ui.core.HTML({ width: "100%", height: "500px" });
+                                            this.obj.addItem(thatForm.qr);
+                                        },
+                                        bat7OnSetFieldAddQry: function (qryObj, ps) {
+                                            var ret = true;
+                                            var ag = thatForm.frm.getFieldValue("PL003@parameter.accno");
+                                            if (ag == "NONE") {
+                                                this.obj.setVisible(false);
+                                                return;
+                                            }
+                                            var sq =
+                                                "begin " +
+                                                "  cp_acc_pl.plevelno:=:parameter.levelno;" +
+                                                "  cp_acc_pl.pfromdt:=:parameter.fromdate;" +
+                                                "  cp_acc_pl.ptodt:=:parameter.todate; " +
+                                                "  cp_acc_pl.pfromacc:=':parameter.accno'; " +
+                                                "  cp_acc_pl.punposted:=':parameter.unposted'; " +
+                                                "  cp_acc_pl.pcc:=':parameter.costcent'; " +
+                                                "  cp_acc_pl.build_gl('01'); " +
+                                                "  commit; " +
+                                                "end;";
+                                            sq = thatForm.frm.parseString(sq);
+                                            Util.doAjaxJson("sqlmetadata?", {
+                                                sql: sq,
+                                                ret: "NONE",
+                                                data: null
+                                            }, false).done(function (data) {
+                                            });
+                                            var ez = thatForm.frm.getFieldValue("parameter.exclzero");
+                                            sq = "select field1 accno,field2 name,field19 parentacc,field17 path," +
+                                                " to_number(field5) bdeb,to_number(field6) bcrd," +
+                                                " to_number(field7) tdeb, to_number(field8) tcrd, " +
+                                                " to_number(field13) cdeb, to_number(field14) ccrd, " +
+                                                " to_number(FIELD16) levelno,field20 flg,to_number(FIELD18) childcount " +
+                                                " from temporary " +
+                                                " where idno=66602 " +
+                                                (ez == "Y" ? " and (to_number(field13)+to_number(field14)!=0  or field1='-' ) " : "") +
+                                                " and usernm='01' and (:parameter.levelno=0 or to_number(FIELD16)<=:parameter.levelno )  order by field17 ";
+                                            sq = thatForm.frm.parseString(sq);
+                                            var pars = Util.nvl(qryObj.rep.rep.parameters, []);
+
+                                            Util.doAjaxJson("bat7addQry?" + ps, {
+                                                sql: sq,
+                                                ret: "",
+                                                data: "",
+                                                repCode: qryObj.rep.code,
+                                                repNo: qryObj.repNo,
+                                                command: "",
+                                                scheduledAt: "",
+                                                p1: "",
+                                                p2: "",
+                                                qrNo: 1001,
+                                            }, false).done(function (data) {
+                                                if (!data.ret == "SUCCESS") {
+                                                    ret = false;
+                                                }
+                                            });
+                                            return ret;
+                                        },
+                                        bat7OnSetFieldGetData: function (qryObj) {
+                                            var thatObj = this;
+                                            Util.doAjaxJson("bat7getData", {
+                                                sql: "",
+                                                ret: "",
+                                                data: "",
+                                                repCode: qryObj.rep.code,
+                                                repNo: qryObj.repNo,
+                                                command: "",
+                                                scheduledAt: "",
+                                                p1: "",
+                                                p2: "",
+                                                qrNo: 1001,
+                                            }, false).done(function (dt) {
+                                                if (dt.ret == "SUCCESS" && thatForm.qr != undefined) {
+                                                    // var dtx = JSON.parse("{" + dt.data + "}").data;  
+                                                    var paras = {
+                                                        mColParent: "PARENTACC",
+                                                        mColCode: "ACCNO",
+                                                        mColName: "NAME",
+                                                        mColLevel: "LEVELNO",
+                                                        mColChild: "CHILDCOUNT"
+                                                    };
+                                                    var ld = new LocalTableData();
+                                                    ld.parseCol("{" + dt.data + "}");
+                                                    ld.getColByName("PATH").mHideCol = true;
+                                                    ld.getColByName("PARENTACC").mHideCol = true;
+                                                    ld.getColByName("BDEB").mHideCol = true;
+                                                    ld.getColByName("BCRD").mHideCol = true;
+                                                    ld.getColByName("TDEB").mHideCol = true;
+                                                    ld.getColByName("TCRD").mHideCol = true;
+                                                    ld.getColByName("LEVELNO").mHideCol = true;
+                                                    ld.getColByName("FLG").mHideCol = true;
+                                                    ld.getColByName("CHILDCOUNT").mHideCol = true;
+                                                    ld.getColByName("CDEB").mUIHelper.display_width = "100";
+                                                    ld.getColByName("CCRD").mUIHelper.display_width = "100";
+                                                    ld.getColByName("CDEB").mUIHelper.display_format = "MONEY_FORMAT";
+                                                    ld.getColByName("CCRD").mUIHelper.display_format = "MONEY_FORMAT";
+                                                    // ld.getColByName(""). =;
+                                                    // ld.getColByName(""). =;
+                                                    ld.parse("{" + dt.data + "}", true);
+                                                    var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
+                                                    thatForm.qr.setContent(str);
                                                 }
                                             });
                                         }
