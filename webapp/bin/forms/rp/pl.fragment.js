@@ -81,7 +81,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("profitAndLoss"),
+            title: Util.getLangText("finStat"),
             title2: "",
             show_para_pop: false,
             reports: [
@@ -1007,8 +1007,8 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                 },
                 {
                     code: "PL003",
-                    name: Util.getLangText("monthPL"),
-                    descr: Util.getLangText("monthPL3"),
+                    name: Util.getLangText("finStat1"),
+                    descr: Util.getLangText("finStat1Descr"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -1017,7 +1017,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                     showDispCols: true,
                     onSubTitHTML: function () {
                         var up = thatForm.frm.getFieldValue("parameter.unposted");
-                        var tbstr = Util.getLangText("profitAndLoss");
+                        var tbstr = Util.getLangText("finStat1") + ": " + thatForm.frm.getFieldValue("parameter.acname");
                         var ua = Util.getLangText("unAudited");
                         var cs = thatForm.frm.getFieldValue("parameter.costcent");
                         var csnm = thatForm.frm.getFieldValue("parameter.csname");
@@ -1294,7 +1294,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                             return thatForm.qr.getHTMLTable(that.view, "para", false);
                                         },
                                         afterAddOBject: function () {
-                                            thatForm.qr = new sap.ui.core.HTML({ width: "100%", height: "500px" });
+                                            thatForm.qr = new sap.ui.core.HTML({ width: "100%", height: "500px" }).addStyleClass("sapUiSmallMargin");
                                             this.obj.addItem(thatForm.qr);
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
@@ -1327,6 +1327,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                                 " to_number(field5) bdeb,to_number(field6) bcrd," +
                                                 " to_number(field7) tdeb, to_number(field8) tcrd, " +
                                                 " to_number(field13) cdeb, to_number(field14) ccrd, " +
+                                                " to_number(field13) -to_number(field14) balance, " +
                                                 " to_number(FIELD16) levelno,field20 flg,to_number(FIELD18) childcount " +
                                                 " from temporary " +
                                                 " where idno=66602 " +
@@ -1384,19 +1385,55 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                                     ld.getColByName("BCRD").mHideCol = true;
                                                     ld.getColByName("TDEB").mHideCol = true;
                                                     ld.getColByName("TCRD").mHideCol = true;
+                                                    ld.getColByName("CDEB").mHideCol = true;
+                                                    ld.getColByName("CCRD").mHideCol = true;
+
                                                     ld.getColByName("LEVELNO").mHideCol = true;
                                                     ld.getColByName("FLG").mHideCol = true;
                                                     ld.getColByName("CHILDCOUNT").mHideCol = true;
-                                                    ld.getColByName("CDEB").mUIHelper.display_width = "100";
-                                                    ld.getColByName("CCRD").mUIHelper.display_width = "100";
-                                                    ld.getColByName("CDEB").mUIHelper.data_type = "NUMBER";
-                                                    ld.getColByName("CDEB").mUIHelper.display_format = "MONEY_FORMAT";
-                                                    ld.getColByName("CCRD").mUIHelper.display_format = "MONEY_FORMAT";
-                                                    ld.getColByName("CDEB").mSummary = "SUM";
-                                                    ld.getColByName("CCRD").mSummary = "SUM";
+                                                    ld.getColByName("NAME").mUIHelper.display_width = "450";
+                                                    ld.getColByName("ACCNO").mTitle = Util.getLangText("accNo");
+                                                    ld.getColByName("NAME").mTitle = Util.getLangText("titleTxt");
+
+                                                    ld.getColByName("BALANCE").mUIHelper.display_width = "150";
+                                                    ld.getColByName("BALANCE").mUIHelper.data_type = "NUMBER";
+                                                    ld.getColByName("BALANCE").mUIHelper.display_format = "QTY_FORMAT";
+                                                    ld.getColByName("BALANCE").mTitle = Util.getLangText("balanceTxt");
+                                                    ld.getColByName("BALANCE").mSummary = "SUM";
+
+                                                    // ld.getColByName("CDEB").mUIHelper.display_width = "100";
+                                                    // ld.getColByName("CCRD").mUIHelper.display_width = "100";
+                                                    // ld.getColByName("CDEB").mUIHelper.data_type = "NUMBER";
+                                                    // ld.getColByName("CCRD").mUIHelper.display_format = "MONEY_FORMAT";                                                    
+                                                    // ld.getColByName("CDEB").mUIHelper.display_format = "MONEY_FORMAT";
+                                                    // ld.getColByName("CDEB").mTitle = "Debit";
+                                                    // ld.getColByName("CCRD").mTitle = "Credit";
+                                                    // ld.getColByName("CDEB").mSummary = "SUM";
+                                                    // ld.getColByName("CCRD").mSummary = "SUM";
 
                                                     // ld.getColByName(""). =;
                                                     // ld.getColByName(""). =;
+                                                    var fntsize = Util.getLangDescrAR("12px", "16px");
+                                                    paras["tableClass"] = "class=\"tbl1\"";
+                                                    paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
+                                                    paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
+                                                    paras["fnOnCellAddStyle"] = function (oData, rowno, col) {
+                                                        if (rowno == -1)
+                                                            return "border:groove;";
+                                                        var st = "padding-left:5px;padding-right:5px;";
+                                                        if (oData[rowno]["CHILDCOUNT"] > 0 && col == "NAME")
+                                                            st += "color:maroon;";
+                                                        if (oData[rowno]["ACCNO"] == null && col == "BALANCE")
+                                                            st += "height:40px;vertical-align:top;";
+                                                        if (oData[rowno]["ACCNO"] == null && col == "NAME")
+                                                            st += "height:40px;vertical-align:top;";
+                                                        if (oData[rowno]["ACCNO"] == "-" && col == "NAME")
+                                                            st += "height:40px;vertical-align:top;color:maroon;";
+                                                        if (oData[rowno]["ACCNO"] == "-" && col == "BALANCE")
+                                                            st += "height:40px;vertical-align:top;color:maroon;font-weight:bold;font-size:14px;";
+
+                                                        return st;
+                                                    }
                                                     ld.parse("{" + dt.data + "}", true);
                                                     var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
                                                     thatForm.qr.setContent(str);

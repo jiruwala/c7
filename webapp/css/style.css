@@ -460,7 +460,7 @@ body {
     border-bottom-width: 1px;
 }
 
-.graphTable {
+/* .graphTable {
     font-family: arial, sans-serif;
     background-color: white;
     font-size: 12px;
@@ -469,14 +469,14 @@ body {
     display: block;
     padding-left: 50px;
     padding-bottom: 50px;
-}
+} */
 
-.graphTable td,
+/* .graphTable td,
 th {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
-}
+} */
 
 .simplePage {
     vertical-align: middle;
@@ -745,7 +745,7 @@ th {
 }
 
 .darkBlueText {
-    color: #0854a0!important;
+    color: #0854a0 !important;
 }
 
 .paddingTinyBot {
@@ -909,21 +909,20 @@ th {
 
 .monTable .sapUiTableHeaderRow {
     background-color: rgb(230, 214, 243) !important;
-    font-size: "25px"!important;
+    font-size: "25px" !important;
 }
 
 .monTable .sapUiTv {
-    font-family: "72","72full",Arial,Helvetica,sans-serif;
+    font-family: "72", "72full", Arial, Helvetica, sans-serif;
     font-size: 18px;
     font-weight: bold;
 }
+
 .monTable .sapUiTableRowSel {
-    background-color:#aaf0d1  !important;
+    background-color: #aaf0d1 !important;
 }
 
-.monTable .sapUiTableRowFirstFixedBottom {
-    
-}
+.monTable .sapUiTableRowFirstFixedBottom {}
 
 .monTable .sapUiTableSelectAllCheckBox::after,
 .sapUiTableRowSelectionCell::after {
@@ -955,7 +954,7 @@ th {
 }
 
 .lstRepTable2 .sapUiTableRowSel {
-background-color:#aaf0d1  !important;
+    background-color: #aaf0d1 !important;
 }
 
 .lstRepTable2 .sapUiTableRowFirstFixedBottom {
@@ -1204,3 +1203,7 @@ background-color:#aaf0d1  !important;
 
 
 .formVoucher {}
+
+table {
+    border-collapse: collapse;
+}
