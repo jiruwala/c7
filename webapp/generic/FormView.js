@@ -75,7 +75,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             "LABEL": "sap.m.Text",
             "LINK": "sap.m.Link",
             "ICON": "sap.ui.core.Icon",
-            "VBOX": "sap.m.VBox"
+            "VBOX": "sap.m.VBox",
+            "SCROLLCONTAINER": "sap.m.ScrollContainer",
+            "PANEL": "sap.m.Panel",
         };
         FormView.ObjTypes = {
             PARAMETER: "parameter",

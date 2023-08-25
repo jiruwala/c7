@@ -49,6 +49,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
         ReportView.CanvasType = {
             VBOX: "VBOX",
             HBOX: "HBOX",
+            SCROLLCONTAINER: "SCROLLCONTAINER",
             FORMCREATE2: "FORMCREATE2",
             FORMCREATE: "FORMCREATE",
         };
@@ -121,6 +122,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 rep.descr = Util.getLangCaption(Util.nvl(rps[r].descr, rps[r].name));
                 rep.descrAR = Util.nvl(rps[r].descrAR, rps[r].descr);
                 rep.code = rps[r].code;
+                rep.printCSS = Util.nvl(rps[r].printCSS, "print.css");
                 rep.isCrossTb = Util.nvl(rps[r].isCrossTb, "N");
                 rep.rptNo = r;
                 rep.showSQLWhereClause = Util.nvl(rps[r].showSQLWhereClause, false);
@@ -1439,6 +1441,13 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                         thatRV.objs[ci].obj.addItem(rep.dispCanvases[ci][di]);
                                 this.scrollObjs.push(thatRV.objs[ci].obj);
                             }
+                            if (thatRV.objs[ci].canvasType == ReportView.CanvasType.SCROLLCONTAINER) {
+                                thatRV.objs[ci].obj = new sap.m.ScrollContainer({});
+                                for (var di in rep.dispCanvases[ci])
+                                    if (rep.dispCanvases[ci][di] instanceof sap.ui.core.Control)
+                                        thatRV.objs[ci].obj.addContent(rep.dispCanvases[ci][di]);
+                                this.scrollObjs.push(thatRV.objs[ci].obj);
+                            }
                             if (thatRV.objs[ci].canvasType == ReportView.CanvasType.FORMCREATE2) {
                                 thatRV.objs[ci].obj = UtilGen.formCreate2("", true, rep.dispCanvases[ci], {}, sap.m.ScrollContainer, thatRV.objs[ci].canvasSett, "reportForm");
                                 this.scrollObjs.push(thatRV.objs[ci].obj);
@@ -2545,7 +2554,16 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                     }
                 }));
+            this.mnusExp.push(
+                new sap.m.MenuItem({
+                    text: "PDF",
+                    icon: "sap-icon://attachment-html",
+                    customData: { key: i + "" },
+                    press: function () {
 
+
+                    }
+                }));
 
             this.btRep = new sap.m.Button({
                 icon: "sap-icon://megamenu",
@@ -3436,7 +3454,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 var dir = UtilGen.DBView.sLangu == "AR" ? " style=\" direction:rtl;\"" : "";
                 ht = "<html" + dir + ">" + ht + "</html>";
                 newWin.document.write(ht);
-                $("<link>", { rel: "stylesheet", href: "css/print.css" }).appendTo(newWin.document.head);
+                $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);
                 setTimeout(function () {
                     newWin.print();
                 }, 1000);

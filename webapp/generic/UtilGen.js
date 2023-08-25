@@ -3055,27 +3055,34 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                         if (cc.getMUIHelper().display_format == "QTY_FORMAT" ||
                             cc.getMUIHelper().display_format == "MONEY_FORMAT") {
-                            a = "text-align:end ";
+                            a = "text-align:" + Util.getLangDescrAR("end", "start") + ";width:" + wdth + " ";
                             if (cellValue == null || cellValue == "0" || cellValue == 0)
                                 cellValue = "";
                             else
                                 cellValue = dfq.format(Util.extractNumber(cellValue));
-                            if (that.mColCode.length > 0 && Util.nvl(oData[i][that.mColCode], "") == "")
-                                styleadd += "color:maroon;font-weight:bold;border-top:groove;";
                         }
+                        if (that.mColCode.length > 0 && Util.nvl(oData[i][that.mColCode], "") == "")
+                            styleadd += "color:maroon;font-weight:bold;border-top:groove;border-bottom:groove;";
+
                         if (that.mColCode.length > 0 && Util.nvl(oData[i][that.mColCode], "") == "" && cc.mColName == that.mColName) {
-                            a = "text-align:end ";
+                            a = "text-align:start ;width:" + wdth + " ";
                             styleadd += "color:maroon;";
                         }
-                        styleadd += a;
+                        if ((cc.getMUIHelper().display_format == "QTY_FORMAT" ||
+                            cc.getMUIHelper().display_format == "MONEY_FORMAT") &&
+                            that.hideTotals && parseInt(oData[i][that.mColChild]) > 0)
+                            cellValue = "";
 
+                        styleadd += a;
                         styleadd = (styleadd.length > 0 ? ' style="' : "") + styleadd + (styleadd.length > 0 ? '"' : "");
+                        classadd += (that.fnOnCellAddClass != undefined ? Util.nvl(that.fnOnCellAddClass(oData, i, v), "") : "");
                         classadd = (classadd.length > 0 ? ' class="' : "") + classadd + (classadd.length > 0 ? '"' : "");
+                        var onclickcell = " onclick=\"" + (that.fnOnCellClick != undefined ? Util.nvl(that.fnOnCellClick(oData, i, v), "") : "") + "\"";
                         tmpv2 = (tmpv2.length > 0 ? ' colspan="' : "") + tmpv2 + (tmpv2.length > 0 ? '"' : "");
-                        rs += "<td" + tmpv2 + classadd + styleadd + " > " + Util.nvl(Util.htmlEntities(spcAdd + cellValue), "") + "</td>";
+                        rs += "<td" + tmpv2 + classadd + styleadd + onclickcell + " > " + Util.nvl(Util.htmlEntities(spcAdd + cellValue), "") + "</td>";
                     }
 
-                    rs = "<tr>" + rs + "</tr>";//+strch ;
+                    rs = "<tr class='html_table_row1'>" + rs + "</tr>";//+strch ;
 
                     var child = [];
                     for (var v in oData[i]) {
