@@ -2901,7 +2901,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 return backYears;
             },
 
-            buildJSONTreeWithTotal: function (lctb,that) {
+            buildJSONTreeWithTotal: function (lctb, that) {
                 if (lctb.cols.length == 0)
                     return null;
                 // var that = this;
@@ -2909,6 +2909,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 var items = lctb.getData(true);
                 if (items == null)
                     return;
+                var tblDetailStyle = that["styleTableDetails"];
+                var tblHeadStyle = that["styleTableHeader"];
                 var mapNodes = [];
                 var recalcCHildCount = true;
                 var itemsByID = [];
@@ -2934,12 +2936,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }
                 }
 
-                var getHTMLText = function () {
+                var getHTMLText = function (oData) {
                     if (lctb.cols.length <= 0) return;
                     var sett = sap.ui.getCore().getModel("settings").getData();
                     // if (that.getControl().getModel() == undefined) return;
                     // var oData = that.getControl().getModel().getData();
-                    var oData = lctb.getData(false);
+                    // var oData = lctb.getData(false);
                     var h = "", dt = "", rs = "";           // table header data
 
                     var hCol = "";
@@ -2956,9 +2958,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (ld.cols[c].mHideCol) continue;
                         cs[c] = "";
                         tmpv1 = ld.cols[c].mTitle;
-                        tmpv2 = "\"text-align:Center\"";
-                        cs[c] = "<th style=\"text-align: center;\" colspan=\"" + hs + "\">" + tmpv1 + "</th>";
-                        h += "<th " + tmpv2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
+                        tmpv2 = "";//"\"text-align:Center\"";
+                        var st = "style=\"text-align: center;" + (that.fnOnCellAddStyle != undefined ? Util.nvl(that.fnOnCellAddStyle(oData, -1, ld.cols[c].mColName), "") : "") + "\"" + " colspan=\"" + hs + "\"";
+                        cs[c] = "<th " + st + ">" + tmpv1 + "</th>";
+                        h += "<th " + tmpv2 + st + ">" + Util.htmlEntities(tmpv1) + "</th>";
                     }
 
                     for (var x in cs)
@@ -2966,15 +2969,16 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
 
                     hCol = "<tr>" + hCol + "</tr>";
-                    h = "<thead>" + (hasSpan ? hCol : "") +
+                    h = "<thead " + tblHeadStyle + ">" + (hasSpan ? hCol : "") +
                         "<tr>" + h + "</tr></thead>";
 
                     for (var i = 0; i < oData.length; i++) {
                         rs = _getRowData2(i, oData);
                         dt += rs;
                     }
-                    dt = "<tbody>" + dt + "</tbody>";
-                    h = "<table>" + h + dt + "</table>";
+                    dt = "<tbody " + tblDetailStyle + ">" + dt + "</tbody>";
+                    var tblClass = Util.nvl(that.tableClass, "");
+                    h = "<table " + tblClass + ">" + h + dt + "</table>";
                     return h;
                 }
                 var _getRowData2 = function (i, oData) {
@@ -2982,7 +2986,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // var that = this;
                     var sett = sap.ui.getCore().getModel("settings").getData();
                     var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-                    var dfq = new DecimalFormat(sett["FORMAT_QTY_1"]);
+                    var dfq = new DecimalFormat("#,##0");
                     var rs = "";
                     var cnt = 0;
                     var grouped = lctb.cols[0].mGrouped;
@@ -3023,9 +3027,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (cnt - 1 == 0) {
                             t = v;
                         }   // get 1st array key.. to find this row is summary/group
-                        if (cnt - 1 === 0 && grouped) {
-                            continue;
-                        }
+                        // if (cnt - 1 === 0 && grouped) {
+                        //     continue;
+                        // }
                         if (cnt - 1 === lctb.cols.length) break;
                         cellValue = Util.nvl(oData[i][v], "");
                         var spcAdd = "";
@@ -3034,36 +3038,51 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                         if (rowid > -1 && cf.length > 0)
                             styleadd += cf;
+                        styleadd += (that.fnOnCellAddStyle != undefined ? Util.nvl(that.fnOnCellAddStyle(oData, i, v), "") : "");
                         if ((that.mColChild.length > 0 && parseInt(oData[i][that.mColChild]) > 0) &&
                             (cc.getMUIHelper().display_format == "MONEY_FORMAT" ||
-                                cc.getMUIHelper().display_format == "QTY_FORMAT"))
+                                cc.getMUIHelper().display_format == "QTY_FORMAT")) {
                             styleadd += "color:silver;";
+                            cellValue = dfq.format(Util.extractNumber(cellValue));
+                        }
+                        var wdth = Util.nvl(cc.getMUIHelper().display_width, "100") + "";
+                        if (wdth.charAt(wdth.length - 1).match("[0-9]"))
+                            wdth = wdth + "px";
+                        var a = "text-align:" + Util.nvl(cc.getMUIHelper().display_align, "start") +
+                            ";width:" + wdth + " ";
 
-                        var a = "text-align:" + cc.getMUIHelper().display_align + " ";
+
 
                         if (cc.getMUIHelper().display_format == "QTY_FORMAT" ||
                             cc.getMUIHelper().display_format == "MONEY_FORMAT") {
-                            a = "text-align:end ";
+                            a = "text-align:end;width:" + wdth + " ";
                             if (cellValue == null || cellValue == "0" || cellValue == 0)
                                 cellValue = "";
                             else
                                 cellValue = dfq.format(Util.extractNumber(cellValue));
-                            if (that.mColCode.length > 0 && Util.nvl(oData[i][that.mColCode], "") == "")
-                                styleadd = "color:maroon;font-weight:bold;border-top:groove;";
                         }
-                        if (that.mColCode.length > 0 && Util.nvl(oData[i][that.mColCode], "") == "" && cc.mColName == that.mColName) {
-                            a = "text-align:end ";
-                            styleadd = "color:maroon;font-weight:bold;";
-                        }
-                        styleadd += a;
+                        if (that.mColCode.length > 0 && Util.nvl(oData[i][that.mColCode], "") == "")
+                            styleadd += "color:maroon;font-weight:bold;border-top:groove;";
 
+                        if (that.mColCode.length > 0 && Util.nvl(oData[i][that.mColCode], "") == "" && cc.mColName == that.mColName) {
+                            a = "text-align:start ;width:" + wdth + " ";
+                            styleadd += "color:maroon;";
+                        }
+                        if ((cc.getMUIHelper().display_format == "QTY_FORMAT" ||
+                            cc.getMUIHelper().display_format == "MONEY_FORMAT") &&
+                            that.hideTotals && parseInt(oData[i][that.mColChild]) > 0)
+                            cellValue = "";
+
+                        styleadd += a;
                         styleadd = (styleadd.length > 0 ? ' style="' : "") + styleadd + (styleadd.length > 0 ? '"' : "");
+                        classadd += (that.fnOnCellAddClass != undefined ? Util.nvl(that.fnOnCellAddClass(oData, i, v), "") : "");
                         classadd = (classadd.length > 0 ? ' class="' : "") + classadd + (classadd.length > 0 ? '"' : "");
+                        var onclickcell = " onclick=\"" + (that.fnOnCellClick != undefined ? Util.nvl(that.fnOnCellClick(oData, i, v), "") : "") + "\"";
                         tmpv2 = (tmpv2.length > 0 ? ' colspan="' : "") + tmpv2 + (tmpv2.length > 0 ? '"' : "");
-                        rs += "<td" + tmpv2 + classadd + styleadd + " > " + Util.nvl(Util.htmlEntities(spcAdd + cellValue), "") + "</td>";
+                        rs += "<td" + tmpv2 + classadd + styleadd + onclickcell + " > " + Util.nvl(Util.htmlEntities(spcAdd + cellValue), "") + "</td>";
                     }
 
-                    rs = "<tr>" + rs + "</tr>";//+strch ;
+                    rs = "<tr class='html_table_row1'>" + rs + "</tr>";//+strch ;
 
                     var child = [];
                     for (var v in oData[i]) {
@@ -3189,7 +3208,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 for (var fg in footerCodes) {
                     mapNodes[fg]["childeren_-999"] = footerCodes[fg]
                     if (that.mColName.length > 0)
-                        footerCodes[fg][that.mColName] = "Total " + findNodebyVal(fg)[that.mColName];
+                        footerCodes[fg][that.mColName] = Util.getLangText("totalTxt") + " " + findNodebyVal(fg)[that.mColName];
 
                 }
 
@@ -3206,7 +3225,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // this.mTree.setFixedBottomRowCount(1);
                 }
 
-                var str = getHTMLText();
+                var str = getHTMLText(itemsByID);
                 return str;
                 // return itemsByID;
             }

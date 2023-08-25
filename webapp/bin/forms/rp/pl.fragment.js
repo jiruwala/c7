@@ -81,7 +81,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("profitAndLoss"),
+            title: Util.getLangText("finStat"),
             title2: "",
             show_para_pop: false,
             reports: [
@@ -542,6 +542,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    printCSS: "print2.css",
                     onSubTitHTML: function () {
                         var up = thatForm.frm.getFieldValue("parameter.unposted");
                         var tbstr = Util.getLangText("profitAndLoss");
@@ -795,7 +796,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                 showToolbar: false,
                                 masterToolbarInMain: false,
                                 filterCols: [],
-                                canvasType: ReportView.CanvasType.VBOX,
+                                canvasType: ReportView.CanvasType.SCROLLCONTAINER,
                                 // onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                 //     var oModel = this.getControl().getModel();
                                 //     var cl = qv.getControl().getColumns();
@@ -828,7 +829,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                     accno: {
                                         colname: "accno",
                                         data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.VBOX,
+                                        class_name: FormView.ClassTypes.SCROLLCONTAINER,
                                         title: '',
                                         title2: "",
                                         parentTitle: "",
@@ -838,52 +839,60 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                         display_style: "",
                                         display_format: "",
                                         default_value: "",
-                                        other_settings: {},
+                                        other_settings: {
+                                            width: "100%",
+                                            height: UtilGen.dispTblRecsByDevice({ "S": 350, "M": 425, "L": 575, "XL": 650 }) + "px",
+                                            horizontal: true,
+                                            vertical: true
+                                        },
                                         onPrintField: function () {
-                                            return thatForm.qr.getHTMLTable(that.view, "para", false);
+                                            return thatForm.qr.getContent();
                                         },
                                         afterAddOBject: function () {
-                                            thatForm.qr = new QueryView("qry" + thatForm.timeInLong);
-                                            thatForm.qr.showToolbar.showExpand = thatForm.qr.showToolbar.showCollapse = true;
-                                            thatForm.qr.createToolbar("reportTable2", ["ACCNO", "NAME"], function (prsn, qv) { }, function (qv) { });
+                                            // thatForm.qr = new QueryView("qry" + thatForm.timeInLong);
+                                            // thatForm.qr.showToolbar.showExpand = thatForm.qr.showToolbar.showCollapse = true;
+                                            // thatForm.qr.createToolbar("reportTable2", ["ACCNO", "NAME"], function (prsn, qv) { }, function (qv) { });
 
-                                            thatForm.qr.isCrossTb = "Y";
-                                            thatForm.qr.mColParent = "PARENTACC";
-                                            thatForm.qr.mColCode = "ACCNO";
-                                            thatForm.qr.mColName = "NAME";
-                                            thatForm.qr.mColLevel = "LEVELNO";
-                                            thatForm.qr.switchType("tree");
+                                            // thatForm.qr.isCrossTb = "Y";
+                                            // thatForm.qr.mColParent = "PARENTACC";
+                                            // thatForm.qr.mColCode = "ACCNO";
+                                            // thatForm.qr.mColName = "NAME";
+                                            // thatForm.qr.mColLevel = "LEVELNO";
+                                            // thatForm.qr.switchType("tree");
 
-                                            this.obj.addItem(thatForm.qr.showToolbar.toolbar);
-                                            this.obj.addItem(thatForm.qr.getControl());
-                                            thatForm.qr.getControl().view = thatForm.view;
+                                            // this.obj.addItem(thatForm.qr.showToolbar.toolbar);
+                                            // this.obj.addItem(thatForm.qr.getControl());
+                                            // thatForm.qr.getControl().view = thatForm.view;
 
-                                            thatForm.qr.getControl().addStyleClass("sapUiSizeCondensed reportTable2");
-                                            thatForm.qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
-                                            thatForm.qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
-                                            thatForm.qr.getControl().setAlternateRowColors(false);
-                                            thatForm.qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-                                            thatForm.qr.getControl().setFixedBottomRowCount(1);
-                                            thatForm.qr.getControl().setFixedColumnCount(2);
+                                            // thatForm.qr.getControl().addStyleClass("sapUiSizeCondensed reportTable2");
+                                            // thatForm.qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
+                                            // thatForm.qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+                                            // thatForm.qr.getControl().setAlternateRowColors(false);
+                                            // thatForm.qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
+                                            // thatForm.qr.getControl().setFixedBottomRowCount(1);
+                                            // thatForm.qr.getControl().setFixedColumnCount(2);
 
-                                            var dispRecs = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 14, "L": 18 });
-                                            thatForm.qr.getControl().setVisibleRowCount(dispRecs);
-                                            thatForm.qr.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
-                                                var vlx = 0;
-                                                for (var i = startCell + 2; i < endCell; i++) {
-                                                    var vl = parseFloat(Util.nvl(qv.getControl().getRows()[dispRow].getCells()[i - startCell].getText()), 0);
-                                                    if (vl > 0)
-                                                        qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "green");
-                                                    if (vl < 0)
-                                                        qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "red");
-                                                    if (vl == 0)
-                                                        qv.getControl().getRows()[dispRow].getCells()[i - startCell].setText("");
-                                                    // qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("font-weight", "bold");
-                                                    // qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("font-weight", "bold");
-                                                }
+                                            // var dispRecs = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 14, "L": 18 });
+                                            // thatForm.qr.getControl().setVisibleRowCount(dispRecs);
+                                            // thatForm.qr.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
+                                            //     var vlx = 0;
+                                            //     for (var i = startCell + 2; i < endCell; i++) {
+                                            //         var vl = parseFloat(Util.nvl(qv.getControl().getRows()[dispRow].getCells()[i - startCell].getText()), 0);
+                                            //         if (vl > 0)
+                                            //             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "green");
+                                            //         if (vl < 0)
+                                            //             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "red");
+                                            //         if (vl == 0)
+                                            //             qv.getControl().getRows()[dispRow].getCells()[i - startCell].setText("");
+                                            //         // qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("font-weight", "bold");
+                                            //         // qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("font-weight", "bold");
+                                            //     }
 
 
-                                            };
+                                            // };
+                                            thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
+                                            var vb = new sap.m.VBox({ width: "1000px", items: [thatForm.qr] });
+                                            this.obj.addContent(vb);
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
@@ -912,12 +921,12 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                             }, false).done(function (data) {
                                             });
                                             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-                                            sq = "SELECT ACCNO,NAME,PARENTACC,LEVELNO,MNTH||'__BALANCE' MNTH_BAL, TDEB-TCRD BALANCE FROM " +
+                                            sq = "SELECT ACCNO,NAME,PARENTACC,LEVELNO,MNTH||'__BALANCE' MNTH_BAL, TDEB-TCRD BALANCE,childcount FROM " +
                                                 " (select REPLACE(FIELD30,'/','_') MNTH,field1 accno,field2 name,field19 parentacc,field17 path, " +
                                                 "to_number(field5) bdeb,to_number(field6) bcrd, " +
                                                 "to_number(field7) tdeb, to_number(field8) tcrd," +
                                                 "to_number(field13) cdeb, to_number(field14) ccrd," +
-                                                "to_number(FIELD16) levelno,field20 flg " +
+                                                "to_number(FIELD16) levelno,field20 flg ,0 childcount " +
                                                 " from temporary " +
                                                 " where idno=66602 " +
                                                 (ez == "Y" ? " and to_number(field7)-to_number(field8)!=0 " : "") +
@@ -959,43 +968,86 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                             }, false).done(function (dt) {
                                                 if (dt.ret == "SUCCESS" && thatForm.qr != undefined) {
                                                     // var dtx = JSON.parse("{" + dt.data + "}").data;
+                                                    var paras = {
+                                                        mColParent: "PARENTACC",
+                                                        mColCode: "ACCNO",
+                                                        mColName: "NAME",
+                                                        mColLevel: "LEVELNO",
+                                                        mColChild: "CHILDCOUNT"
+                                                    };
+                                                    var ld = new LocalTableData();
+                                                    ld.parseCol("{" + dt.data + "}");
 
-                                                    thatForm.qr.setJsonStrMetaData("{" + dt.data + "}");
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("ACCNO")].mUIHelper.display_width = "180";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("NAME")].mUIHelper.display_width = "300";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("ACCNO")].ct_row = "Y";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("ACCNO")].mTitle = "accNo";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("NAME")].ct_row = "Y";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("NAME")].mTitle = "titleTxt";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("PARENTACC")].ct_row = "Y";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("LEVELNO")].ct_row = "Y";
+                                                    ld.cols[ld.getColPos("ACCNO")].mUIHelper.display_width = "180";
+                                                    ld.cols[ld.getColPos("NAME")].mUIHelper.display_width = "400";
+                                                    ld.cols[ld.getColPos("ACCNO")].ct_row = "Y";
+                                                    ld.cols[ld.getColPos("ACCNO")].mTitle = Util.getLangText("accNo");
+                                                    ld.cols[ld.getColPos("NAME")].ct_row = "Y";
+                                                    ld.cols[ld.getColPos("NAME")].mUIHelper.display_width = "400";
+                                                    ld.cols[ld.getColPos("ACCNO")].mHideCol = true;
+                                                    ld.cols[ld.getColPos("NAME")].mTitle = Util.getLangText("titleTxt");
+                                                    ld.cols[ld.getColPos("PARENTACC")].ct_row = "Y";
+                                                    ld.cols[ld.getColPos("LEVELNO")].ct_row = "Y";
+                                                    ld.cols[ld.getColPos("CHILDCOUNT")].ct_row = "Y";
 
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("MNTH_BAL")].ct_col = "Y";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("MNTH_BAL")].ct_col = "Y";
+                                                    ld.cols[ld.getColPos("MNTH_BAL")].ct_col = "Y";
+                                                    ld.cols[ld.getColPos("MNTH_BAL")].ct_col = "Y";
 
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("BALANCE")].ct_val = "Y";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("BALANCE")].data_type = "number";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("BALANCE")].mUIHelper.display_format = "MONEY_FORMAT";
-                                                    // thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("BALANCE")].mSummary = "SUM";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("BALANCE")].mUIHelper.display_style = "";
+                                                    ld.cols[ld.getColPos("BALANCE")].ct_val = "Y";
+                                                    ld.cols[ld.getColPos("BALANCE")].mSummary = "SUM";
+                                                    ld.cols[ld.getColPos("BALANCE")].data_type = "number";
+                                                    ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_format = "MONEY_FORMAT";
+                                                    ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_width = "120";
+                                                    // ld.cols[ld.getColPos("BALANCE")].mSummary = "SUM";
+                                                    ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_style = "";
 
-                                                    thatForm.qr.mLctb.parse("{" + dt.data + "}", true);
-                                                    thatForm.qr.mLctb.do_cross_tab();
+                                                    ld.parse("{" + dt.data + "}", true);
+                                                    ld.do_cross_tab();
                                                     var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-                                                    thatForm.qr.switchType("tree");
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("PARENTACC")].mHideCol = true;
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("LEVELNO")].mHideCol = true;
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("tot__BALANCE")].mUIHelper.display_style = "background-color:lightgrey;";
-                                                    thatForm.qr.mLctb.cols[thatForm.qr.mLctb.getColPos("tot__BALANCE")].mTitle = "balanceTxt";
-                                                    var lc = thatForm.qr.mLctb;
+
+                                                    ld.cols[ld.getColPos("PARENTACC")].mHideCol = true;
+                                                    ld.cols[ld.getColPos("LEVELNO")].mHideCol = true;
+                                                    ld.cols[ld.getColPos("CHILDCOUNT")].mHideCol = true;
+                                                    ld.cols[ld.getColPos("tot__BALANCE")].mUIHelper.display_style = "background-color:lightgrey;";
+                                                    ld.cols[ld.getColPos("tot__BALANCE")].mTitle = "balanceTxt";
+
+                                                    var lc = ld;
                                                     for (var li = 0; li < lc.cols.length; li++) {
                                                         if (Util.nvl(lc.cols[li].ct_val, "N") == "Y") {
                                                             var tit = parseInt(lc.cols[li].mTitle.split("_")[1]);
                                                             lc.cols[li].mTitle = (UtilGen.DBView.sLangu == "AR" ? thatForm.monthsAr[tit] : thatForm.monthsEn[tit]) + "-" + lc.cols[li].mTitle.split("_")[0];
                                                         }
                                                     }
+                                                    //ld.parse("{" + dt.data + "}", true);
+                                                    var fntsize = Util.getLangDescrAR("12px", "16px");
+                                                    paras["tableClass"] = "class=\"tbl1\"";
+                                                    paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
+                                                    paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
+                                                    paras["fnOnCellAddClass"] = function (oData, rowno, col) {
+                                                        var st = "";
+                                                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
+                                                            st = "linkLabel";
+                                                        return st;
+                                                    }
+                                                    paras["fnOnCellClick"] = function (oData, rowno, col) {
+                                                        var st = "";
+                                                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
+                                                            st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                                                        return st;
+                                                    }
 
-                                                    thatForm.qr.loadData();
+                                                    paras["fnOnCellAddStyle"] = function (oData, rowno, col) {
+                                                        if (rowno == -1)
+                                                            return "border:groove;";
+                                                        paras["hideTotals"] = true; //(thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
+                                                        var st = "padding-left:5px;padding-right:5px;";
+                                                        return st;
+                                                    }
+                                                    // ld.parse("{" + dt.data + "}", true);
+                                                    // ld.do_cross_tab();
+                                                    var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
+                                                    thatForm.qr.setContent(str);
+
                                                 }
                                             });
                                         }
@@ -1007,17 +1059,18 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                 },
                 {
                     code: "PL003",
-                    name: Util.getLangText("monthPL"),
-                    descr: Util.getLangText("monthPL3"),
+                    name: Util.getLangText("finStat1"),
+                    descr: Util.getLangText("finStat1Descr"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    printCSS: "print2.css",
                     onSubTitHTML: function () {
                         var up = thatForm.frm.getFieldValue("parameter.unposted");
-                        var tbstr = Util.getLangText("profitAndLoss");
+                        var tbstr = Util.getLangText("finStat1") + ": " + thatForm.frm.getFieldValue("parameter.acname");
                         var ua = Util.getLangText("unAudited");
                         var cs = thatForm.frm.getFieldValue("parameter.costcent");
                         var csnm = thatForm.frm.getFieldValue("parameter.csname");
@@ -1244,6 +1297,24 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
+                            hideTotals: {
+                                colname: "hideTotals",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"hideTotals\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                             {
@@ -1270,7 +1341,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                 showToolbar: false,
                                 masterToolbarInMain: false,
                                 filterCols: [],
-                                canvasType: ReportView.CanvasType.VBOX,
+                                canvasType: ReportView.CanvasType.SCROLLCONTAINER,
 
                                 bat7CustomAddQry: function (qryObj, ps) {
 
@@ -1279,7 +1350,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                     accno: {
                                         colname: "accno",
                                         data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.VBOX,
+                                        class_name: FormView.ClassTypes.SCROLLCONTAINER,
                                         title: '',
                                         title2: "",
                                         parentTitle: "",
@@ -1291,11 +1362,15 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                         default_value: "",
                                         other_settings: {},
                                         onPrintField: function () {
-                                            return thatForm.qr.getHTMLTable(that.view, "para", false);
+                                            return thatForm.qr.getContent();
                                         },
                                         afterAddOBject: function () {
-                                            thatForm.qr = new sap.ui.core.HTML({ width: "100%", height: "500px" });
-                                            this.obj.addItem(thatForm.qr);
+                                            // thatForm.qr = new sap.ui.core.HTML({ width: "100%", height: "500px" }).addStyleClass("sapUiSmallMargin");
+                                            // this.obj.addItem(thatForm.qr);
+                                            thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
+                                            var vb = new sap.m.VBox({ width: "100%", items: [thatForm.qr] }).addStyleClass("bottom_border");
+                                            this.obj.addContent(vb);
+
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
                                             var ret = true;
@@ -1327,10 +1402,13 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                                 " to_number(field5) bdeb,to_number(field6) bcrd," +
                                                 " to_number(field7) tdeb, to_number(field8) tcrd, " +
                                                 " to_number(field13) cdeb, to_number(field14) ccrd, " +
-                                                " to_number(FIELD16) levelno,field20 flg,to_number(FIELD18) childcount " +
+                                                " to_number(field13) -to_number(field14) balance, " +
+                                                " to_number(FIELD16) levelno,field20 flg,to_number(FIELD18) childcount, " +
+                                                " (to_number(field5)+to_number(field7))-(to_number(field6)+to_number(field8)) ytd_balance " +
                                                 " from temporary " +
                                                 " where idno=66602 " +
-                                                (ez == "Y" ? " and (to_number(field13)+to_number(field14)!=0  or field1='-' ) " : "") +
+                                                (ez == "Y" ? " and (to_number(field13)+to_number(field14) " +
+                                                    "+(to_number(field5)+to_number(field7))-(to_number(field6)+to_number(field8))!=0  or field1='-' ) " : "") +
                                                 " and usernm='01' and (:parameter.levelno=0 or to_number(FIELD16)<=:parameter.levelno )  order by field17 ";
                                             sq = thatForm.frm.parseString(sq);
                                             var pars = Util.nvl(qryObj.rep.rep.parameters, []);
@@ -1384,15 +1462,76 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                                     ld.getColByName("BCRD").mHideCol = true;
                                                     ld.getColByName("TDEB").mHideCol = true;
                                                     ld.getColByName("TCRD").mHideCol = true;
+                                                    ld.getColByName("CDEB").mHideCol = true;
+                                                    ld.getColByName("CCRD").mHideCol = true;
+                                                    ld.getColByName("ACCNO").mHideCol = true;
+
                                                     ld.getColByName("LEVELNO").mHideCol = true;
                                                     ld.getColByName("FLG").mHideCol = true;
                                                     ld.getColByName("CHILDCOUNT").mHideCol = true;
-                                                    ld.getColByName("CDEB").mUIHelper.display_width = "100";
-                                                    ld.getColByName("CCRD").mUIHelper.display_width = "100";
-                                                    ld.getColByName("CDEB").mUIHelper.display_format = "MONEY_FORMAT";
-                                                    ld.getColByName("CCRD").mUIHelper.display_format = "MONEY_FORMAT";
+                                                    ld.getColByName("NAME").mUIHelper.display_width = "450";
+                                                    ld.getColByName("ACCNO").mTitle = Util.getLangText("accNo");
+                                                    ld.getColByName("NAME").mTitle = Util.getLangText("titleTxt");
+
+                                                    ld.getColByName("BALANCE").mUIHelper.display_width = "120";
+                                                    ld.getColByName("BALANCE").mUIHelper.data_type = "NUMBER";
+                                                    ld.getColByName("BALANCE").mUIHelper.display_format = "QTY_FORMAT";
+                                                    ld.getColByName("BALANCE").mTitle = Util.getLangText("periodicBalanceTxt");
+                                                    ld.getColByName("BALANCE").mSummary = "SUM";
+
+                                                    ld.getColByName("YTD_BALANCE").mUIHelper.display_width = "120";
+                                                    ld.getColByName("YTD_BALANCE").mUIHelper.data_type = "NUMBER";
+                                                    ld.getColByName("YTD_BALANCE").mUIHelper.display_format = "QTY_FORMAT";
+                                                    ld.getColByName("YTD_BALANCE").mTitle = Util.getLangText("ytdBalanceTxt");
+                                                    ld.getColByName("YTD_BALANCE").mSummary = "SUM";
+
+                                                    // ld.getColByName("CDEB").mUIHelper.display_width = "100";
+                                                    // ld.getColByName("CCRD").mUIHelper.display_width = "100";
+                                                    // ld.getColByName("CDEB").mUIHelper.data_type = "NUMBER";
+                                                    // ld.getColByName("CCRD").mUIHelper.display_format = "MONEY_FORMAT";                                                    
+                                                    // ld.getColByName("CDEB").mUIHelper.display_format = "MONEY_FORMAT";
+                                                    // ld.getColByName("CDEB").mTitle = "Debit";
+                                                    // ld.getColByName("CCRD").mTitle = "Credit";
+                                                    // ld.getColByName("CDEB").mSummary = "SUM";
+                                                    // ld.getColByName("CCRD").mSummary = "SUM";
+
                                                     // ld.getColByName(""). =;
                                                     // ld.getColByName(""). =;
+                                                    var fntsize = Util.getLangDescrAR("12px", "16px");
+                                                    paras["tableClass"] = "class=\"tbl1\"";
+                                                    paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
+                                                    paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
+                                                    paras["fnOnCellAddClass"] = function (oData, rowno, col) {
+                                                        var st = "";
+                                                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
+                                                            st = "linkLabel";
+                                                        return st;
+                                                    }
+                                                    paras["fnOnCellClick"] = function (oData, rowno, col) {
+                                                        var st = "";
+                                                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
+                                                            st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                                                        return st;
+                                                    }
+
+                                                    paras["fnOnCellAddStyle"] = function (oData, rowno, col) {
+                                                        if (rowno == -1)
+                                                            return "border:groove;";
+                                                        paras["hideTotals"] = (thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
+                                                        var st = "padding-left:5px;padding-right:5px;";
+                                                        if (oData[rowno]["CHILDCOUNT"] > 0 && col == "NAME")
+                                                            st += "color:maroon;";
+                                                        if (oData[rowno]["ACCNO"] == null && col.endsWith("BALANCE"))
+                                                            st += "vertical-align:top;";
+                                                        if (oData[rowno]["ACCNO"] == null && col == "NAME")
+                                                            st += "vertical-align:top;";
+                                                        if (oData[rowno]["ACCNO"] == "-" && col == "NAME")
+                                                            st += "vertical-align:top;color:maroon;";
+                                                        if (oData[rowno]["ACCNO"] == "-" && col.endsWith("BALANCE"))
+                                                            st += "vertical-align:top;color:maroon;font-weight:bold;font-size:14px;";
+
+                                                        return st;
+                                                    }
                                                     ld.parse("{" + dt.data + "}", true);
                                                     var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
                                                     thatForm.qr.setContent(str);
