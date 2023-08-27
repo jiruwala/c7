@@ -2,6 +2,21 @@ sap.ui.define("sap/ui/ce/generic/ReportUtils", [],
     function () {
         "use strict";
         var ReportUtils = {
+            Report: {
+                getMainParaContainerSettings: function (colorCode, width) {
+                    return {
+                        width: Util.nvl(width, "600px"),
+                        cssText: [
+                            "padding-left:50px;" +
+                            "padding-top:20px;" +
+                            "border-style: inset;" +
+                            "margin: 10px;" +
+                            "border-radius:25px;" +
+                            "background-color:" + Util.nvl(colorCode, "#dcdcdc") + ";",
+                        ]
+                    };
+                }
+            },
             Parameters: {
                 colSpan: "XL2 L2 M2 S12",
                 getTodate: function () {
