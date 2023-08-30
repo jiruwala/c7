@@ -3061,7 +3061,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 cellValue = "";
                             else {
                                 cellValue = dfq.format(Util.extractNumber(cellValue));
-                                if (cellValue.startsWith("-"))
+                                if ((cellValue + "").startsWith("-"))
                                     cellValue = "(" + cellValue.substring(1) + ")";
                             }
                         }
