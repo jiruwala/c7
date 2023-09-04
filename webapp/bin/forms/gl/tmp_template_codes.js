@@ -1,3 +1,7 @@
+var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+
+
+
 //FOR LOCALTABLE PARSING DATA
 var dt = Util.execSQL("select..");
 if (dt.ret == "SUCCESS" && dt.data.length > 0) {
