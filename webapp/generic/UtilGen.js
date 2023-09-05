@@ -2986,7 +2986,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // var that = this;
                     var sett = sap.ui.getCore().getModel("settings").getData();
                     var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-                    var dfq = new DecimalFormat("#,##0");
+                    var dfq1 = new DecimalFormat("#,##0");
                     var rs = "";
                     var cnt = 0;
                     var grouped = lctb.cols[0].mGrouped;
@@ -3033,7 +3033,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         cellValue = Util.nvl(oData[i][v], "");
                         var spcAdd = "";
                         if (cc.mColName == that.mColName && that.mColLevel.length > 0 && Util.nvl(oData[i][that.mColLevel], "") != "")
-                            spcAdd = ""; //Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel]));
+                            spcAdd = Util.nvl(that.showSpaces, false) ? Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel])) : ""; //Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel]));
 
 
                         if (rowid > -1 && cf.length > 0)
@@ -3042,7 +3042,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if ((that.mColChild.length > 0 && parseInt(oData[i][that.mColChild]) > 0) &&
                             (cc.getMUIHelper().display_format == "MONEY_FORMAT" ||
                                 cc.getMUIHelper().display_format == "QTY_FORMAT")) {
+
                             // styleadd += "color:silver;";
+                            var dfq = (that.formatNumber != undefined ? Util.nvl(that.formatNumber(oData, i, v), dfq1) : dfq1);
                             cellValue = (Util.nvl(that.reFormatNumber, true) ? dfq.format(Util.extractNumber(cellValue)) : Util.extractNumber(cellValue) + "");//dfq.format(Util.extractNumber(cellValue));
                         }
                         var wdth = Util.nvl(cc.getMUIHelper().display_width, "100") + "";
@@ -3059,6 +3061,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             if (cellValue == null || cellValue == "0" || cellValue == 0)
                                 cellValue = "";
                             else {
+                                var dfq = (that.formatNumber != undefined ? Util.nvl(that.formatNumber(oData, i, v), dfq1) : dfq1);
                                 cellValue = (Util.nvl(that.reFormatNumber, true) ? dfq.format(Util.extractNumber(cellValue)) : Util.extractNumber(cellValue) + "");
                                 if ((cellValue + "").startsWith("-"))
                                     cellValue = "(" + cellValue.substring(1) + ")";

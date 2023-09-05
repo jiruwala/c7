@@ -161,7 +161,11 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                                                 width: "1500px", //(showmonth == "Y" ? "1500px" : "-1px"),
                                                 items: [thatForm.qr]
                                             }).addStyleClass("sapUiSmallMargin");
+                                            // this.toolbar = that.getToolbar();
                                             this.obj.addContent(vb);
+                                            thatForm.qr.attachBrowserEvent("click", function (ev) {
+                                                console.log(ev);
+                                            });
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
@@ -327,6 +331,19 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     );
 
                 }
+                if (cod.code == "totsales") {
+                    cod["balance"] = Util.getSQLValue("select NVL(SUM(((PRICE+add_amt_gross)/PACK)*ALLQTY),0) from pur2  where invoice_code=21 and " +
+                        " dat>=" + Util.toOraDateString(fromdt) +
+                        " and dat<=" + Util.toOraDateString(todt)
+
+                    );
+                }
+                if (cod.code == "discount") {
+                    cod["balance"] = Util.getSQLValue("select NVL(SUM(DISC_AMT_GROSS*ALLQTY),0) from pur2  where invoice_code=21 and " +
+                        " dat>=" + Util.toOraDateString(fromdt) +
+                        " and dat<=" + Util.toOraDateString(todt)
+                    );
+                }
                 if (cod.code == "expenses_1" ||
                     cod.code == "expenses_2" || cod.code == "totsales" ||
                     cod.code == "totdisc")
@@ -393,6 +410,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
         },
         getQryPL3: function (qryObj) {
             var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
             Util.doAjaxJson("bat7getData", {
                 sql: "",
                 ret: "",
@@ -425,7 +443,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
 
                     ld.cols[ld.getColPos("BALANCE")].data_type = "number";
                     ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_format = "MONEY_FORMAT";
-                    ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_width = "120";
+                    ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_width = "200";
                     ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_style = "";
                     ld.cols[ld.getColPos("BALANCE")].mTitle = Util.getLangText("txtValue");
 
@@ -450,9 +468,11 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     }
                     paras["fnOnCellClick"] = function (oData, rowno, col) {
                         var st = "";
-                        if ((col == "CODE" || col == "DESCR") && oData[rowno]["CODE"] != null)
-                            // st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["CODE"] + " toacc=" + oData[rowno]["CODE"] + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
-                            return st;
+                        if ((col == "CODE" || col == "DESCR") && oData[rowno]["CODE"] != null) {
+                            // var sq1="";
+                            // st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        }
+                        return st;
                     }
 
                     paras["fnOnCellAddStyle"] = function (oData, rowno, col) {
@@ -492,7 +512,12 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                             vl = oData[rowno]["POST_VAL"] + " " + cellValue + ""
                         return vl;
                     };
-                    paras["reFormatNumber"] = false;
+                    paras["formatNumber"] = function (oData, rowno, col) {
+                        if (col == "BALANCE")
+                            return new DecimalFormat(sett['FORMAT_MONEY_1']);
+                        return undefined;
+                    }
+                    paras["reFormatNumber"] = true;
                     paras["hideSubTotals"] = true;
                     paras["hideTotals"] = false; //(thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
                     paras["fnOnAddTotalRow"] = function (footerNode_fg, mapNode_fg) {
@@ -585,11 +610,21 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                         cod["balance"] = Util.getSQLValue("select nvl(sum(inv_amt-disc_amt),0) from pur1  where invoice_code=11 and " +
                             " to_char(invoice_date,'rrrr/mm')=" + Util.quoted(mnth)
                         );
+                    }
+                    if (cod.code == "totsales") {
+                        cod["balance"] = Util.getSQLValue("select NVL(SUM(((PRICE+add_amt_gross)/PACK)*ALLQTY),0) from pur2  where invoice_code=21 and " +
+                            " to_char(dat,'rrrr/mm')=" + Util.quoted(mnth)
+                        );
+                    }
+                    if (cod.code == "discount") {
+                        cod["balance"] = Util.getSQLValue("select NVL(SUM(DISC_AMT_GROSS*ALLQTY),0) from pur2  where invoice_code=21 and " +
+                            " to_char(dat,'rrrr/mm')=" + Util.quoted(mnth)
+                        );
 
                     }
+
                     if (cod.code == "expenses_1" ||
-                        cod.code == "expenses_2" || cod.code == "totsales" ||
-                        cod.code == "totdisc")
+                        cod.code == "expenses_2")
                         cod["balance"] = getBalance(cod.code, mnth);
                     if (cod.code == "com_1")
                         cod["balance"] = (totqty == 0 ? 0 :
@@ -630,7 +665,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
             var dt = Util.execSQL("declare begin " + delStr + sqls + " end;");
             if (dt.ret != "SUCCESS")
                 FormView.err("Error in executing sqls");
-            var sq = "SELECT CODE,DESCR,PARENTACC,LEVELNO,MNTH||'__BALANCE' MNTH_BAL, BALANCE,childcount from " +
+            var sq = "SELECT CODE,DESCR,PARENTACC,LEVELNO,MNTH||'__BALANCE' MNTH_BAL, BALANCE,childcount,POST_VAL from " +
                 " (select REPLACE(FIELD9,'/','_') MNTH , TO_NUMBER(field1) pos,field2 code,field3 descr," +
                 " to_number(field4) levelno,field5 parentacc,to_number(field6) balance,field7 post_val,field8 disp_val,0 CHILDCOUNT,field9 mnthX " +
                 " from temporary where idno=66105 and usernm='01') order by pos ";
@@ -658,6 +693,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
         },
         getQryPL3_1: function (qryObj) {
             var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
             Util.doAjaxJson("bat7getData", {
                 sql: "",
                 ret: "",
@@ -691,6 +727,8 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     ld.cols[ld.getColPos("PARENTACC")].ct_row = "Y";
                     ld.cols[ld.getColPos("LEVELNO")].ct_row = "Y";
                     ld.cols[ld.getColPos("CHILDCOUNT")].ct_row = "Y";
+                    ld.cols[ld.getColPos("POST_VAL")].ct_row = "Y";
+                    ld.cols[ld.getColPos("POST_VAL")].mHideCol = true;
 
                     ld.cols[ld.getColPos("MNTH_BAL")].ct_col = "Y";
                     ld.cols[ld.getColPos("MNTH_BAL")].ct_col = "Y";
@@ -699,7 +737,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     ld.cols[ld.getColPos("BALANCE")].mSummary = "SUM";
                     ld.cols[ld.getColPos("BALANCE")].data_type = "number";
                     ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_format = "MONEY_FORMAT";
-                    ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_width = "120";
+                    ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_width = "200";
                     // ld.cols[ld.getColPos("BALANCE")].mSummary = "SUM";
                     ld.cols[ld.getColPos("BALANCE")].mUIHelper.display_style = "";
 
@@ -730,7 +768,12 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                                     (srcRowno2 >= 0 ? ld.getFieldValue(srcRowno2, "tot__BALANCE") : 0) +
                                     (srcRowno3 >= 0 ? ld.getFieldValue(srcRowno3, "tot__BALANCE") : 0)) -
                                     (srcRowno4 >= 0 ? ld.getFieldValue(srcRowno4, "tot__BALANCE") : 0);
-                                var avg = (totAmt / totqty);
+                                var avg = 0;
+                                if (srcRowno1 >= 0 && srcRowno2 == -1 && srcRowno3 == -1 &&
+                                    srcRowno4 >= 0 && srcRowno5 == -1)
+                                    avg = totAmt;
+                                else
+                                    avg = (totAmt / totqty);
                                 if (srcRowno5 >= 0)
                                     avg = (srcRowno5 >= 0 && ld.getFieldValue(srcRowno5, "tot__BALANCE") != 0 ?
                                         (totAmt / ld.getFieldValue(srcRowno5, "tot__BALANCE")) * 100 : 0);
@@ -744,9 +787,9 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                         ld.getFieldValue(rowno, "CODE") == "com_2" ? setAvgAmt(rowno, "expenses_1") : "";
                         ld.getFieldValue(rowno, "CODE") == "com_3" ? setAvgAmt(rowno, "expenses_2") : "";
                         ld.getFieldValue(rowno, "CODE") == "com_4" ? setAvgAmt(rowno, "expenses_1", "expenses_2") : "";
-                        ld.getFieldValue(rowno, "CODE") == "netcostm3" ? setAvgAmt(rowno, "expenses_1", "purchase", "expenses_1") : "";
+                        ld.getFieldValue(rowno, "CODE") == "netcostm3" ? setAvgAmt(rowno, "expenses_1", "purchase", "expenses_2") : "";
                         ld.getFieldValue(rowno, "CODE") == "avgsales" ? setAvgAmt(rowno, "netsales") : "";
-                        ld.getFieldValue(rowno, "CODE") == "netmargin" ? setAvgAmt(rowno, "netsales", "", "", "netcostm3") : "";
+                        ld.getFieldValue(rowno, "CODE") == "netmargin" ? setAvgAmt(rowno, "avgsales", "", "", "netcostm3") : "";
                         ld.getFieldValue(rowno, "CODE") == "netmarginp" ? setAvgAmt(rowno, "netmargin", "", "", "", "netcostm3") : "";
 
 
@@ -820,11 +863,17 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                         var sett = sap.ui.getCore().getModel("settings").getData();
                         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
                         var vl = cellValue;
-                        if (col == "BALANCE" && cellValue != "")
+                        if (col.indexOf("BALANCE") >= 0 && cellValue != "")
                             vl = oData[rowno]["POST_VAL"] + " " + df.format(cellValue) + ""
                         return vl;
                     };
-                    paras["reFormatNumber"] = false;
+                    paras["formatNumber"] = function (oData, rowno, col) {
+                        if (col.indexOf("BALANCE") >= 0)
+                            return new DecimalFormat(sett['FORMAT_MONEY_1']);
+                        return undefined;
+                    }
+
+                    paras["reFormatNumber"] = true;
                     paras["hideSubTotals"] = true;
                     paras["hideTotals"] = false; //(thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
                     paras["fnOnAddTotalRow"] = function (footerNode_fg, mapNode_fg) {
