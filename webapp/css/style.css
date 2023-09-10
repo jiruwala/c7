@@ -1219,6 +1219,14 @@ table {
 
 }
 
+.tbl2 {
+    border-right: groove;
+    border-left: groove;
+    border-bottom: groove;
+    border-top: groove;
+    border-radius: 25px;    
+}
+
 .html_table_row1:hover {
     /* font-weight:bolder; */
     color: darkviolet;

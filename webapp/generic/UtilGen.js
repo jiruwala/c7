@@ -1613,7 +1613,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var pms = {};
                     for (var i in dtx)
                         if (!(i == "formType" || i == "formName" || i == "formSize" || i == "formModal"))
-                            pms[i] = dtx[i];
+                            pms[i] = dtx[i].replaceAll("%20", " ");
 
 
                     var sp = undefined;
@@ -2986,7 +2986,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // var that = this;
                     var sett = sap.ui.getCore().getModel("settings").getData();
                     var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-                    var dfq = new DecimalFormat("#,##0");
+                    var dfq1 = new DecimalFormat("#,##0");
                     var rs = "";
                     var cnt = 0;
                     var grouped = lctb.cols[0].mGrouped;
@@ -2996,7 +2996,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var cf = "";  // conditional format css (if condition true and false)
                     var rowid = Number(Util.nvl(oData[i]["_rowid"], -1));
                     var child;
-
 
                     // purpose  :  looping all columns to get conditional format css
                     for (var v in oData[i]) {
@@ -3034,7 +3033,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         cellValue = Util.nvl(oData[i][v], "");
                         var spcAdd = "";
                         if (cc.mColName == that.mColName && that.mColLevel.length > 0 && Util.nvl(oData[i][that.mColLevel], "") != "")
-                            spcAdd = ""; //Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel]));
+                            spcAdd = Util.nvl(that.showSpaces, false) ? Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel])) : ""; //Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel]));
 
 
                         if (rowid > -1 && cf.length > 0)
@@ -3043,8 +3042,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if ((that.mColChild.length > 0 && parseInt(oData[i][that.mColChild]) > 0) &&
                             (cc.getMUIHelper().display_format == "MONEY_FORMAT" ||
                                 cc.getMUIHelper().display_format == "QTY_FORMAT")) {
-                            styleadd += "color:silver;";
-                            cellValue = dfq.format(Util.extractNumber(cellValue));
+
+                            // styleadd += "color:silver;";
+                            var dfq = (that.formatNumber != undefined ? Util.nvl(that.formatNumber(oData, i, v), dfq1) : dfq1);
+                            cellValue = (Util.nvl(that.reFormatNumber, true) ? dfq.format(Util.extractNumber(cellValue)) : Util.extractNumber(cellValue) + "");//dfq.format(Util.extractNumber(cellValue));
                         }
                         var wdth = Util.nvl(cc.getMUIHelper().display_width, "100") + "";
                         if (wdth.charAt(wdth.length - 1).match("[0-9]"))
@@ -3060,7 +3061,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             if (cellValue == null || cellValue == "0" || cellValue == 0)
                                 cellValue = "";
                             else {
-                                cellValue = dfq.format(Util.extractNumber(cellValue));
+                                var dfq = (that.formatNumber != undefined ? Util.nvl(that.formatNumber(oData, i, v), dfq1) : dfq1);
+                                cellValue = (Util.nvl(that.reFormatNumber, true) ? dfq.format(Util.extractNumber(cellValue)) : Util.extractNumber(cellValue) + "");
                                 if ((cellValue + "").startsWith("-"))
                                     cellValue = "(" + cellValue.substring(1) + ")";
                             }
@@ -3083,13 +3085,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             that.hideTotals && parseInt(oData[i][that.mColChild]) > 0)
                             cellValue = "";
 
-
                         styleadd += a;
                         styleadd = (styleadd.length > 0 ? ' style="' : "") + styleadd + (styleadd.length > 0 ? '"' : "");
                         classadd += (that.fnOnCellAddClass != undefined ? Util.nvl(that.fnOnCellAddClass(oData, i, v), "") : "");
                         classadd = (classadd.length > 0 ? ' class="' : "") + classadd + (classadd.length > 0 ? '"' : "");
                         var onclickcell = " onclick=\"" + (that.fnOnCellClick != undefined ? Util.nvl(that.fnOnCellClick(oData, i, v), "") : "") + "\"";
                         tmpv2 = (tmpv2.length > 0 ? ' colspan="' : "") + tmpv2 + (tmpv2.length > 0 ? '"' : "");
+                        if (that.fnOnCellValue != undefined)
+                            cellValue = Util.nvl(that.fnOnCellValue(oData, i, v, cellValue), cellValue);
                         rs += "<td" + tmpv2 + classadd + styleadd + onclickcell + " > " + Util.nvl(Util.htmlEntities(spcAdd + cellValue), "") + "</td>";
                     }
 
@@ -3216,15 +3219,16 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     mapNodes[current_code] = oNode1;
                 }
                 //that.mTree.setFixedBottomRowCount(-1);
-                for (var fg in footerCodes) {
-                    mapNodes[fg]["childeren_-999"] = footerCodes[fg]
-                    if (that.mColName.length > 0) {
-                        footerCodes[fg][that.mColName] = Util.getLangText("totalTxt") + " " + findNodebyVal(fg)[that.mColName];
-                        if (that.fnOnAddTotalRow != undefined)
-                            that.fnOnAddTotalRow(footerCodes[fg], findNodebyVal(fg)); // parameter: total row and mapNodes[fg]
-                    }
+                if (!Util.nvl(that.hideSubTotals, false))
+                    for (var fg in footerCodes) {
+                        mapNodes[fg]["childeren_-999"] = footerCodes[fg]
+                        if (that.mColName.length > 0) {
+                            footerCodes[fg][that.mColName] = Util.getLangText("totalTxt") + " " + findNodebyVal(fg)[that.mColName];
+                            if (that.fnOnAddTotalRow != undefined)
+                                that.fnOnAddTotalRow(footerCodes[fg], findNodebyVal(fg)); // parameter: total row and mapNodes[fg]
+                        }
 
-                }
+                    }
 
                 if (Util.nvl(that.showFooter, false))
                     if (footer != {}) {
@@ -3234,7 +3238,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             if (lctb.getColByName(f).getMUIHelper().display_format == "QTY_FORMAT")
                                 footer[f] = dfq.format(footer[f]);
                         }
-
+                        if (that.mColName.length > 0)
+                            footer[that.mColName] = Util.getLangText("totalTxt");
                         itemsByID.push(footer);
 
                         // this.mTree.setFixedBottomRowCount(1);

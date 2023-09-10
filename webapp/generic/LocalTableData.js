@@ -287,7 +287,7 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
         //          2. Adding all data to mapRows by refering unique row string from row columns.
         //          3. copying mapRows to new LocalTableData object and slice it to (this) object.
         //     NOTE: value columns are queried in format of i.e. "JAN__BALANCE", where "BALANCE" is value column, "JAN" is header column
-        LocalTableData.prototype.do_cross_tab = function () {
+        LocalTableData.prototype.do_cross_tab = function (fnAfterRowInsert) {
             var nData = new LocalTableData();
             var lstCols = []; // array for all columns
             var mapCols = {}; // array for all columns
@@ -379,7 +379,8 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                 for (var ci in lstCols) {
                     nData.setFieldValue(nr, lstCols[ci].mColName, Util.nvl(mapRows[i][lstCols[ci].mColName], 0));
                 }
-
+                if (fnAfterRowInsert != undefined)
+                    fnAfterRowInsert(nData, nr);
             }
 
             // FINAL: reset current data and copy nData object columns and rows to this object.
@@ -387,6 +388,8 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
             this.cols = nData.cols.slice(0);
             this.rows = nData.rows.slice(0);
             this.masterRows = this.rows.slice(0);
+            this.dataJson.metadata = lstCols;
+
         };
 
         LocalTableData.prototype.addRow = function () {

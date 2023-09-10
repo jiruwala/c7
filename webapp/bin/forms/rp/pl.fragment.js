@@ -1092,7 +1092,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                     for (var li = 0; li < lc.cols.length; li++) {
                         if (Util.nvl(lc.cols[li].ct_val, "N") == "Y") {
                             var tit = parseInt(lc.cols[li].mTitle.split("_")[1]);
-                            lc.cols[li].mTitle = (UtilGen.DBView.sLangu == "AR" ? thatForm.monthsAr[tit] : thatForm.monthsEn[tit]) + "-" + lc.cols[li].mTitle.split("_")[0];
+                            lc.cols[li].mTitle = (UtilGen.DBView.sLangu == "AR" ? thatForm.monthsAr[tit - 1] : thatForm.monthsEn[tit - 1]) + "-" + lc.cols[li].mTitle.split("_")[0];
                         }
                     }
                     //ld.parse("{" + dt.data + "}", true);

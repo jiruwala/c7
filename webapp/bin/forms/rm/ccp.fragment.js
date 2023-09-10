@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rm.template", {
+sap.ui.jsfragment("bin.forms.rm.ccp", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -77,9 +77,9 @@ sap.ui.jsfragment("bin.forms.rm.template", {
             show_para_pop: false,
             reports: [
                 {
-                    code: "",
-                    name: Util.getLangText(""),
-                    descr: Util.getLangText(""),
+                    code: "CCP01",
+                    name: Util.getLangText("Consumption1"),
+                    descr: Util.getLangText("Consumption1Descr"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -103,7 +103,7 @@ sap.ui.jsfragment("bin.forms.rm.template", {
                     },
                     mainParaContainerSetting: ReportUtils.Report.getMainParaContainerSettings(),
                     rep: {
-                        parameters: thatForm.helperFunc.getParas("RMPL01"),
+                        parameters: thatForm.helperFunc.getParas("CCP01"),
                         print_templates: [
                             {
                                 title: "PL Report",
@@ -161,13 +161,10 @@ sap.ui.jsfragment("bin.forms.rm.template", {
                                             }).addStyleClass("sapUiSmallMargin");
                                             // this.toolbar = that.getToolbar();
                                             this.obj.addContent(vb);
-                                            thatForm.qr.attachBrowserEvent("click", function (ev) {
-                                                console.log(ev);
-                                            });
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
-                                            return thatForm.helperFunc.addQryPL3(qryObj, ps, "RMPL01");
+                                            return thatForm.helperFunc.addQryPL3(qryObj, ps, "CCP01");
 
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
@@ -236,7 +233,33 @@ sap.ui.jsfragment("bin.forms.rm.template", {
                     insert_allowed: true,
                     require: true,
                     dispInPara: true,
-                }
+                },
+                reptype: {
+                    colname: "reptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"reportType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "qty",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "qty",
+                    },
+                    list: "@qty/Quantity,cost/Cost",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
             };
 
             return para;
@@ -248,11 +271,35 @@ sap.ui.jsfragment("bin.forms.rm.template", {
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
             var bk = UtilGen.getBackYears(fromdt, todt);
-            this.codes = this.assignCodes();
-            var delStr = "delete from temporary where usernm='01' and idno=66105;";
-            var insx = "";
-
-            var sq = "select";
+            var insx = "declare " +
+                " cursor cst is select I.packd,I.unitd,I.pack,p.refer,i.descr,nvl(iss.iss_ucost,i.pkaver) ucost,ISS.ISSUED_QTY," +
+                "     (i.pkaver/i.pack)*I.pack sprice ,SUM(p.allqty *C.TQTY) ALLQTY  ,0 ,SUM(p.allqty *C.TQTY) QTY   from masterasm p,items i ,C_ORDER1 C," +
+                "     (SELECT REFER ISS_REFER,SUM(ALLQTY) ISSUED_QTY, (sum((pkcost*allqty))/sum(allqty)) iss_ucost FROM INVOICE2 WHERE INVOICE_CODE=25 AND TYPE=25 GROUP BY REFER) ISS" +
+                "    where p.BASEITEM=C.ORD_SHIP and refer=reference AND REFER=ISS_REFER(+) and " +
+                " ord_date>=" + Util.toOraDateString(fromdt) +
+                " and ord_date<=" + Util.toOraDateString(todt) +
+                "    AND C.ORD_DATE<=(SELECT MAX(DAT) FROM INVOICE2 WHERE INVOICE_CODE=25 AND TYPE=25 " +
+                " and dat>=" + Util.toOraDateString(fromdt) +
+                " and dat<=" + Util.toOraDateString(todt) + " )" +
+                "    GROUP BY I.packd,I.unitd,I.pack,P.refer,i.descr,i.pkaver/i.pack,i.prd_dt,i.exp_dt,ISSUED_QTY,iss.iss_ucost,i.pkaver" +
+                "    ORDER BY P.REFER;" +
+                " begin" +
+                " delete from temporary where idno=12001 and usernm='01';" +
+                " for x in cst loop" +
+                "  insert into temporary(usernm,idno,field1,field2,field3,field4,field5,field6,field7,field8,field9,field10,field11) values " +
+                "   ('01',12001, x.refer, x.descr, x.packd, x.pack, x.ucost, x.qty, " +
+                "   x.issued_qty,x.ucost*x.ISSUED_QTY , x.ucost*x.qty, (x.ucost*x.issued_qty)-(x.ucost*x.qty), (x.ISSUED_QTY-x.qty) );" +
+                " end loop;" +
+                " end;";
+            var dt = Util.execSQL(insx);
+            if (dt.ret != "SUCCESS")
+                FormView.err("Error in executing sqls");
+            var sq = "select field1 refer,field2 descr,field3 packd, to_number(field4) pack, " +
+                "to_number(field5) PKCOST,to_number(field6) PH_QTY,to_number(field7) ISS_QTY," +
+                "to_number(field8) ISS_COST,to_number(field9) ph_cost ,to_number(field10) varCost ,to_number(field11) varQty,'' varRate, " +
+                "0 childcount, 1 levelno , '' parentacc from temporary where idno=12001  " +
+                " order by field1 ";
+            ;
             Util.doAjaxJson("bat7addQry?" + ps, {
                 sql: sq,
                 ret: "",
@@ -289,20 +336,91 @@ sap.ui.jsfragment("bin.forms.rm.template", {
                 if (dt.ret == "SUCCESS" && thatForm.qr != undefined) {
                     var paras = {
                         mColParent: "PARENTACC",
-                        mColCode: "CODE",
+                        mColCode: "REFER",
                         mColName: "DESCR",
                         mColLevel: "LEVELNO",
                         mColChild: "CHILDCOUNT"
                     };
+                    var rt = thatForm.frm.getFieldValue("parameter.reptype");
                     var ld = new LocalTableData();
+                    var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
+                    var todt = thatForm.frm.getFieldValue("parameter.todate");
+
                     ld.parseCol("{" + dt.data + "}");
 
-                    // ld.cols[ld.getColPos("CODE")].mUIHelper.display_width = "180";
+                    ld.cols[ld.getColPos("REFER")].mUIHelper.display_width = "180";
+
+                    ld.cols[ld.getColPos("DESCR")].mUIHelper.display_width = "400";
+                    ld.cols[ld.getColPos("PACKD")].mUIHelper.display_width = "120";
+                    ld.cols[ld.getColPos("PACK")].mUIHelper.display_width = "120";
+
+                    ld.cols[ld.getColPos("VARRATE")].mUIHelper.display_align = "center"
+
+                    ld.cols[ld.getColPos("PH_QTY")].mUIHelper.display_format = "QTY_FORMAT";
+                    ld.cols[ld.getColPos("ISS_QTY")].mUIHelper.display_format = "QTY_FORMAT";
+                    ld.cols[ld.getColPos("VARQTY")].mUIHelper.display_format = "QTY_FORMAT";
+
+                    ld.cols[ld.getColPos("VARCOST")].mUIHelper.display_format = "MONEY_FORMAT";
+                    ld.cols[ld.getColPos("ISS_COST")].mUIHelper.display_format = "MONEY_FORMAT";
+                    ld.cols[ld.getColPos("PH_COST")].mUIHelper.display_format = "MONEY_FORMAT";
+
+                    ld.cols[ld.getColPos("PH_QTY")].mTitle = Util.getLangText("rptCcpPhQty");
+                    ld.cols[ld.getColPos("ISS_QTY")].mTitle = Util.getLangText("rptCcpIssQty");
+                    ld.cols[ld.getColPos("VARQTY")].mTitle = Util.getLangText("rptCcpVarQty");
+                    ld.cols[ld.getColPos("VARRATE")].mTitle = Util.getLangText("rptCcpVarRate");
+
+                    ld.cols[ld.getColPos("REFER")].mHideCol = true;
+                    ld.cols[ld.getColPos("PARENTACC")].mHideCol = true;
+                    ld.cols[ld.getColPos("CHILDCOUNT")].mHideCol = true;
+                    ld.cols[ld.getColPos("LEVELNO")].mHideCol = true;
+                    ld.cols[ld.getColPos("PKCOST")].mHideCol = true;
+                    ld.cols[ld.getColPos("PACK")].mHideCol = true;
+
+                    if (rt == "qty") {
+                        ld.cols[ld.getColPos("ISS_COST")].mHideCol = true;
+                        ld.cols[ld.getColPos("VARCOST")].mHideCol = true;
+                        ld.cols[ld.getColPos("PH_COST")].mHideCol = true;
+                    } else {
+                        ld.cols[ld.getColPos("ISS_QTY")].mHideCol = true;
+                        ld.cols[ld.getColPos("VARQTY")].mHideCol = true;
+                        ld.cols[ld.getColPos("PH_QTY")].mHideCol = true;
+
+                    }
+                    ld.cols[ld.getColPos("PACKD")].mHideCol = true;
+
+                    // ld.cols[ld.getColPos("")].mHideCol = true;
+                    // ld.cols[ld.getColPos("")].mHideCol = true;
+
+
 
                     ld.parse("{" + dt.data + "}", true);
 
-                    var fntsize = Util.getLangDescrAR("16px", "16px");
-                    paras["tableClass"] = "class=\"tbl2\"";
+                    for (var li = 0; li < ld.rows.length; li++) {
+                        var vr = 0;
+                        var phqty = ld.getFieldValue(li, "PH_QTY");
+                        var issqty = ld.getFieldValue(li, "ISS_QTY");
+                        if (rt != "qty") {
+                            phqty = ld.getFieldValue(li, "PH_COST");
+                            issqty = ld.getFieldValue(li, "ISS_COST");
+
+                        }
+                        if (issqty == 0)
+                            vr = 0;
+                        else
+                            vr = Math.round(100 - ((phqty / issqty) * 100));
+                        if (vr == 0)
+                            vr = "";
+                        else
+                            if (vr < 0)
+                                vr = "(" + Math.abs(vr) + ") %";
+                            else
+                                vr = vr + " %";
+                        ld.setFieldValue(li, "VARRATE", vr);
+
+                    }
+
+                    var fntsize = Util.getLangDescrAR("14px", "16px");
+                    paras["tableClass"] = "class=\"tbl1 bottom_border\"";
                     paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
                     paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
                     paras["fnOnCellAddClass"] = function (oData, rowno, col) {
@@ -311,17 +429,26 @@ sap.ui.jsfragment("bin.forms.rm.template", {
                     }
                     paras["fnOnCellClick"] = function (oData, rowno, col) {
                         var st = "";
-                        // if ((col == "CODE" || col == "DESCR") && oData[rowno]["CODE"] != null) {
-                        //     var sq1="";
-                        //     st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
-                        // }
+                        var df = new simpleDateFormat(sett["SHORT_DATE_FORMAT"]);
+                        if ((col == "REFER" || col == "DESCR") && oData[rowno]["REFER"] != null) {
+                            // var showList = "show_list select ";
+                            // st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                            st = "var mn = new sap.m.Menu({" +
+                                "items: [new sap.m.MenuItem({ text: 'Stock card..',press:function(){" +
+                                " UtilGen.execCmd('rp.in.st formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=:item fromdate=@:fromdate', UtilGen.DBView, this, UtilGen.DBView.newPage);" +
+                                "} })]" +
+                                "}); mn.openBy(this);"
+                            st = st.replaceAll(":item", oData[rowno]["REFER"]
+                                .replaceAll(" ", "%20"))
+                                .replaceAll(":fromdate", df.format(fromdt));
+                        }
                         return st;
                     }
 
                     paras["fnOnCellAddStyle"] = function (oData, rowno, col) {
                         if (rowno == -1)
                             return "border:groove;";
-                        var st = "padding-left:10px;padding-right:10px;";
+                        var st = "padding-left:10px;padding-right:10px;height:24px;";
                         if (oData[rowno]["CODE"] == "prodqty")
                             st += "font-weight:bold;color:blue;";
 
@@ -332,13 +459,17 @@ sap.ui.jsfragment("bin.forms.rm.template", {
                     }
                     paras["fnOnCellValue"] = function (oData, rowno, col, cellValue) {
                         var vl = cellValue;
-                        // if (col == "BALANCE" && cellValue != "")
-                        //     vl = oData[rowno]["POST_VAL"] + " " + cellValue + ""
+                        if ((col == "ISS_QTY" || col == "VARQTY" || col == "PH_QTY")
+                            && cellValue != "")
+                            vl = cellValue + " " + oData[rowno]["PACKD"].toLowerCase();
+                        if ((col == "ISS_COST" || col == "VARCOST" || col == "PH_COST")
+                            && cellValue != "")
+                            vl = cellValue + " " + sett["DEFAULT_CURRENCY"];
                         return vl;
                     };
                     paras["formatNumber"] = function (oData, rowno, col) {
-                        // if (col == "BALANCE")
-                        //     return new DecimalFormat(sett['FORMAT_MONEY_1']);
+                        if (col.indexOf("cost") >= 0)
+                            return new DecimalFormat(sett['FORMAT_MONEY_1']);
                         return undefined;
                     }
                     paras["reFormatNumber"] = true;

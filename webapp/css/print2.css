@@ -2,12 +2,20 @@
     border-bottom: groove;
 }
 
-.tbl1 td { 
+.tbl1 td {
     border-right: groove;
     border-left: groove;
 
 }
- 
+
+.tbl2 {
+    border-right: groove;
+    border-left: groove;
+    border-bottom: groove;
+    border-top: groove;
+    border-radius: 25px;
+}
+
 table {
     border-collapse: collapse;
 }
