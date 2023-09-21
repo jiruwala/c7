@@ -3450,14 +3450,27 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             }
 
             if (ht != "") {
-                var newWin = window.open("");
+                // var newWin = window.open("");
                 var dir = UtilGen.DBView.sLangu == "AR" ? " style=\" direction:rtl;\"" : "";
-                ht = "<html" + dir + ">" + ht + "</html>";
-                newWin.document.write(ht);
-                $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);
-                setTimeout(function () {
-                    newWin.print();
-                }, 1000);
+                // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/" + rep.printCSS + "\">";
+                // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"print2.css\">";
+                var hd = "";
+                $.ajax({
+                    url: "css/" + rep.printCSS,
+                    dataType: "text",
+                    async: false,
+                    success: function (cssText) {
+                        hd = cssText;
+                        hd = "<style>" + hd + "</style>";
+                        ht = "<html" + dir + ">" + "<head>" + hd + "</head><body>" + ht + "</body></html>";
+                        // newWin.document.write(ht);
+                        // $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);
+                        // setTimeout(function () {
+                        //     newWin.print();
+                        // }, 1000);
+                        printJS({ printable: ht, type: "raw-html" });
+                    }
+                });
             }
 
         };

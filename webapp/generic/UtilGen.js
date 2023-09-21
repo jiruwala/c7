@@ -3033,7 +3033,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         cellValue = Util.nvl(oData[i][v], "");
                         var spcAdd = "";
                         if (cc.mColName == that.mColName && that.mColLevel.length > 0 && Util.nvl(oData[i][that.mColLevel], "") != "")
-                            spcAdd = Util.nvl(that.showSpaces, false) ? Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel])) : ""; //Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel]));
+                            spcAdd = Util.nvl(that.showSpaces, true) ? Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel])) : ""; //Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel]));
 
 
                         if (rowid > -1 && cf.length > 0)
@@ -3078,7 +3078,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (that.mColCode.length > 0 && Util.nvl(oData[i][that.mColCode], "") == "" && cc.mColName == that.mColName) {
                             a = "text-align:start ;width:" + wdth + " ";
                             styleadd += "font-weight:bold;";
-                            spcAdd = "";//Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel]));
+                            spcAdd = Util.nvl(that.showSpaces, true) ? Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel])) : "";//"";//Util.charCount("\xa0\xa0", parseInt(oData[i][that.mColLevel]));
                         }
                         if ((cc.getMUIHelper().display_format == "QTY_FORMAT" ||
                             cc.getMUIHelper().display_format == "MONEY_FORMAT") &&
@@ -3240,6 +3240,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }
                         if (that.mColName.length > 0)
                             footer[that.mColName] = Util.getLangText("totalTxt");
+                        if (that.fnOnFooter != undefined)
+                            that.fnOnFooter(footer); // parameter: total row and mapNodes[fg]
                         itemsByID.push(footer);
 
                         // this.mTree.setFixedBottomRowCount(1);
@@ -3248,9 +3250,75 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 var str = getHTMLText(itemsByID);
                 return str;
                 // return itemsByID;
+            },
+            getMonthTitleCrossTable: function (lc) {
+                //for month lable..
+                var monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                var monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+                for (var li = 0; li < lc.cols.length; li++) {
+                    if (Util.nvl(lc.cols[li].ct_val, "N") == "Y") {
+                        var tit = parseInt(lc.cols[li].mTitle.split("_")[1]);
+                        if (lc.cols[li].mColName.startsWith("tot__"))
+                            lc.cols[li].mTitle = Util.getLangText("totalTxt");
+                        else
+                            lc.cols[li].mTitle = (UtilGen.DBView.sLangu == "AR" ? monthsAr[tit - 1] : monthsEn[tit - 1]) + "-" + lc.cols[li].mTitle.split("_")[0];
+                    }
+                }
+            },
+            setGrowthAvgRate: function (lc, fld, agrFld, calcBal, fmt) {
+                var dfq1 = new DecimalFormat(Util.nvl(fmt, "#,##0"));
+                for (var ri = 0; ri < lc.rows.length; ri++) {
+                    var bl = [], grs = [];
+                    for (var li = 0; li < lc.cols.length; li++) {
+                        if (bl.length == 0 && lc.cols[li].mColName.endsWith("__" + fld) && lc.cols[li].mColName != "tot__" + fld) {
+                            bl.push(lc.getFieldValue(ri, lc.cols[li].mColName));
+                            grs.push(0);
+                            continue;
+                        }
+                        if (bl.length > 0 && lc.cols[li].mColName.endsWith("__" + fld) && lc.cols[li].mColName != "tot__" + fld)
+                            if (bl[bl.length - 1] != 0) {
+                                var tbl = lc.getFieldValue(ri, lc.cols[li].mColName);
+                                if (Util.nvl(calcBal, false))
+                                    tbl += bl[bl.length - 1];
+                                grs.push(((tbl / bl[bl.length - 1]) - 1) * 100);
+                                bl.push(tbl);
+                            }
+                    }
+                    if (grs.length > 1) {
+                        var agr = 0; var tot = 0;
+                        grs.forEach(ky => {
+                            tot += ky;
+                        });
+                        agr = Math.round(tot / (grs.length - 1));
+                        lc.setFieldValue(ri, Util.nvl(agrFld, "AGR"), (agr == 0) ? "" :
+                            (agr < 0 ? "(" + dfq1.format(Math.abs(agr)) + "%)" : dfq1.format(agr) + "%"));
+                    } else
+                        lc.setFieldValue(ri, Util.nvl(agrFld, "AGR"), "");
+
+                }
+            },
+            setAvg: function (lc, fld, agrFld, fmt) {
+                //for growth average rate                
+                var dfq1 = new DecimalFormat(Util.nvl(fmt, "#,##0"));
+                for (var ri = 0; ri < lc.rows.length; ri++) {
+                    var grs = [];
+                    for (var li = 0; li < lc.cols.length; li++) {
+                        if (lc.cols[li].mColName.endsWith("__" + fld) && lc.cols[li].mColName != "tot__" + fld)
+                            grs.push(lc.getFieldValue(ri, lc.cols[li].mColName));
+                    }
+                    if (grs.length > 1) {
+                        var agr = 0; var tot = 0;
+                        grs.forEach(ky => {
+                            tot += ky;
+                        });
+                        agr = Math.round(tot / (grs.length));
+                        lc.setFieldValue(ri, Util.nvl(agrFld, "AGR"), (agr == 0) ? "" :
+                            (agr < 0 ? "(" + dfq1.format(Math.abs(agr)) + ")" : dfq1.format(agr) + ""));
+                    } else
+                        lc.setFieldValue(ri, Util.nvl(agrFld, "AGR"), "");
+
+                }
             }
-
-
         };
 
         return UtilGen;

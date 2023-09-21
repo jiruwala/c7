@@ -41,9 +41,11 @@
     <script src="generic/SelectTextRenderer.js"></script>
     <script src="generic/SelectText.js"></script>
 
+    <script src="js/print.min.js"></script>
 
 
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="js/print.min.js">
 
 
     <script>
@@ -59,7 +61,8 @@
         var SearchText;
         var SelectText;
         var ReportUtils;
-
+        var printJS;
+        
         sap.ui.getCore().attachInit(function () {
             // pdfjsLib = window['pdfjs-dist/build/pdf'];
             // pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
