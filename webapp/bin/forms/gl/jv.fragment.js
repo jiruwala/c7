@@ -159,7 +159,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 ld.setFieldValue(0, "FCDEBIT", 0);
                                 ld.setFieldValue(0, "FCCREDIT", 0);
                                 ld.setFieldValue(0, "DEBIT", 0);
-                                ld.setFieldValue(0, "CREDIT", 0);
+                                ld.setFieldValue(0, "CREDIT", 0);                                
                                 ld.setFieldValue(0, "DESCR", qry.formview.getFieldValue("qry1.descr"));
                             } else {
                                 var td = Util.extractNumber(thatForm.frm.getFieldValue('totDiff'));
@@ -216,10 +216,11 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
                         if (qry.status == "edit" && qry.name == "qry2" && colno == 4) {
                             var oModel = qry.obj.getControl().getModel();
-                            var cellVal = oModel.getProperty("CUST_CODE", currentRowContext)
-                            qry.obj.getControl().getRows()[rowno].getCells()[4].setEnabled(true);
+                            var cellVal = oModel.getProperty("CUST_CODE", currentRowContext);
+                            var colno = UtilGen.getTableColNo(qry.obj.getControl(), "ACCNO");
+                            qry.obj.getControl().getRows()[rowno].getCells()[colno].setEnabled(true);
                             if (cellVal != "" && cellVal != undefined)
-                                qry.obj.getControl().getRows()[rowno].getCells()[4].setEnabled(false);
+                                qry.obj.getControl().getRows()[rowno].getCells()[colno].setEnabled(false);
 
                         }
                     },

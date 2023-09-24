@@ -621,6 +621,24 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                 },
             };
             if (repCode == "PL001") {
+                para["onlyYTD"] = {
+                    colname: "onlyYTD",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"onlyYtd\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "Y",
+                    other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                };
                 para["rvn_accno"] = {
                     colname: "rvn_accno",
                     data_type: FormView.DataType.String,
@@ -752,7 +770,8 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
             }, false).done(function (data) {
             });
             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-            sq = "select field1 accno,field2 name,field19 parentacc,field17 path," +
+            var fld = Util.getLangDescrAR("field2", "nvl(field25,field2)");
+            sq = "select field1 accno, " + fld + " name,field19 parentacc,field17 path," +
                 " to_number(field5) bdeb,to_number(field6) bcrd," +
                 " to_number(field7) tdeb, to_number(field8) tcrd, " +
                 " to_number(field13) cdeb, to_number(field14) ccrd, " +
@@ -860,12 +879,24 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                         ld.getColByName("RVN_YRATE").mHideCol = false;
                         ld.getColByName("YTD_RATE").mHideCol = true;
                     }
+
                     if (new Date(fisc.fiscal_from).setHours(0, 0, 0) == thatForm.frm.getFieldValue("parameter.fromdate").setHours(0, 0, 0)) {
                         ld.getColByName("YTD_BALANCE").mHideCol = true;
                         ld.getColByName("YTD_RATE").mHideCol = true;
                         ld.getColByName("RVN_YRATE").mHideCol = true;
                     }
+                    var onlyYtd = Util.nvl(thatForm.frm.getFieldValue("parameter.onlyYTD"), "N");
 
+                    if (onlyYtd == "Y") {
+                        ld.getColByName("YTD_BALANCE").mHideCol = false;
+                        ld.getColByName("YTD_RATE").mHideCol = true;
+                        ld.getColByName("BALANCE").mHideCol = true;
+                        ld.getColByName("RVN_PRATE").mHideCol = true;
+                        var racn = Util.nvl(thatForm.frm.getFieldValue("parameter.rvn_accno"), "");
+                        if (racn != "")
+                            ld.getColByName("RVN_YRATE").mHideCol = false;
+
+                    }
 
                     var fntsize = Util.getLangDescrAR("12px", "16px");
                     paras["tableClass"] = "class=\"tbl1\"";
@@ -929,7 +960,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                 ld.setFieldValue(li, "YTD_RATE", rt);
                             }
                         }
-                    if (!ld.getColByName("RVN_PRATE").mHideCol) {
+                    if (!ld.getColByName("RVN_PRATE").mHideCol || !ld.getColByName("RVN_YRATE").mHideCol) {
                         var rvn_balance = 0;
                         var rvn_ybalance = 0;
 
@@ -998,8 +1029,9 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
             }, false).done(function (data) {
             });
             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
+            var fld = Util.getLangDescrAR("field2", "nvl(field25,field2)");
             sq = "SELECT ACCNO,NAME,PARENTACC,LEVELNO,MNTH||'__BALANCE' MNTH_BAL, TDEB-TCRD BALANCE,childcount FROM " +
-                " (select REPLACE(FIELD30,'/','_') MNTH,field1 accno,field2 name,field19 parentacc,field17 path, " +
+                " (select REPLACE(FIELD30,'/','_') MNTH,field1 accno," + fld + " name,field19 parentacc,field17 path, " +
                 "to_number(field5) bdeb,to_number(field6) bcrd, " +
                 "to_number(field7) tdeb, to_number(field8) tcrd," +
                 "to_number(field13) cdeb, to_number(field14) ccrd," +

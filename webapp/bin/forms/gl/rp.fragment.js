@@ -36,6 +36,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         this.joApp.displayBack = function () {
             that.frm.refreshDisplay();
         };
+                        
         this.mainPage.attachBrowserEvent("keydown", function (oEvent) {
             if (that.frm.isFormEditable() && oEvent.key == 'F4') {
                 that.get_new_cust();

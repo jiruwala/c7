@@ -1151,10 +1151,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 var lk = Util.nvl(cx.mLookUpCols, "").split(",");
                                 var rt = Util.nvl(cx.mRetValues, "").split(",");
 
+                                var oModel = tbl.getModel();
+                                var rowStart = tbl.getFirstVisibleRow();
+                                var currentRowoIndexContext = tbl.getContextByIndex(rowStart + tbl.indexOfRow(row));
+
                                 if (cx.beforeSearchEvent != undefined) {
-                                    var oModel = tbl.getModel();
-                                    var rowStart = tbl.getFirstVisibleRow();
-                                    var currentRowoIndexContext = tbl.getContextByIndex(rowStart + tbl.indexOfRow(row));
+                                    // var oModel = tbl.getModel();
+                                    // var rowStart = tbl.getFirstVisibleRow();
+                                    // var currentRowoIndexContext = tbl.getContextByIndex(rowStart + tbl.indexOfRow(row));
                                     oModel.setProperty(currentRowoIndexContext.sPath + "/" + cx.mColName, evtx.getSource().getValue(), undefined, true);
                                     sq = cx.beforeSearchEvent(sq, currentRowoIndexContext, oModel);
                                 }
@@ -1163,6 +1167,13 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     code: cx.mSearchColCode,
                                     title: cx.mSearchColTitle,
                                 };
+                                var bv = Util.extractBindVariables(sq);
+                                for (var bi in bv) {
+                                    var vl = Util.getCellColValue(tbl, rowStart + tbl.indexOfRow(row), bv[bi], true,tbl.indexOfRow(row));
+                                    // if (vl.indexOf("%") < 0)
+                                    //     vl = "%" + vl + "%";
+                                    sq = sq.replaceAll(":" + bv[bi], Util.nvl(vl, ""));
+                                }
                                 Util.show_list(sq, lk, rt, function (data) {
                                     // console.log(data);
 

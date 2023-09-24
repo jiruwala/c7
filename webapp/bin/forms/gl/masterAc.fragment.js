@@ -13,7 +13,6 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
             vou_code: 1,
             type: 1
         };
-
         // this.pgDetail = new sap.m.Page({showHeader: false});
 
         this.bk = new sap.m.Button({
@@ -27,6 +26,7 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
             showHeader: false,
             content: []
         }).addStyleClass("sapUiSizeCompact");
+
         this.createView();
         this.loadData();
         this.joApp.addDetailPage(this.mainPage);
@@ -37,7 +37,7 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
             that.frm.refreshDisplay();
         };
         this.mainPage.attachBrowserEvent("keydown", function (oEvent) {
-            if (that.frm.isFormEditable() && oEvent.key == 'F4') {
+            if (that.frm.isFormEditable() && oEvent.key == 'F2') {
                 that.get_new_ac();
             }
             if (that.frm.isFormEditable() && oEvent.key == 'F10') {
@@ -348,8 +348,8 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
                         name: "qry1",
                         dml: "select *from acaccount where accno=':pac'",
                         where_clause: " accno=':accno'",
-                        update_exclude_fields: ['accno', "tit1", "parentaccname", "closeaccname"],
-                        insert_exclude_fields: ["tit1", "parentaccname", "closeaccname"],
+                        update_exclude_fields: ['accno', "tit1", "parentaccname", "closeaccname", "txtHelp"],
+                        insert_exclude_fields: ["tit1", "parentaccname", "closeaccname", "txtHelp"],
                         insert_default_values: {
                             "CREATDT": "sysdate",
                             "USERNM": Util.quoted(sett["LOGON_USER"]),
@@ -361,6 +361,22 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
                         insert_allowed: true,
                         delete_allowed: false,
                         fields: {
+                            txtHelp: {
+                                colname: "txtHelp",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.LABEL,
+                                title: '{\"text\":\"masterAccHelp\",\"width\":\"99%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: { width: "1%" },
+                                edit_allowed: false,
+                                insert_allowed: true,
+                                require: false
+                            },
                             accno: {
                                 colname: "accno",
                                 data_type: FormView.DataType.String,
@@ -699,7 +715,8 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
 
                             function (e) {
                                 var ac = that.frm.getFieldValue("pac");
-                                UtilGen.execCmd("testRep5 formType=dialog repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + ac + " toacc=" + ac + " fromdate=@01/01/2020", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                                if (Util.nvl(ac, "") != "")
+                                    UtilGen.execCmd("testRep5 formType=dialog repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + ac + " toacc=" + ac + " fromdate=@01/01/2020", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
                                 return true;
                             }
                     }

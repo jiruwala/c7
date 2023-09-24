@@ -1,38 +1,15 @@
-DROP PACKAGE CP_ACC;
-
-CREATE OR REPLACE PACKAGE    CP_ACC
-AS
-pfromdt date:=to_date('01/01/2000','dd/mm/rrrr');
-ptodt date:=sysdate;
-pfromacc varchar2(100);
-ptoacc varchar2(100);
-pfromcust varchar2(100);
-ptocust varchar2(100);
-pacpath varchar2(4000);
-punposted VARCHAR2(100):='N';
-plevelno integer:=0;
-pisAll varchar2(10):='Y';
-plastuid varchar2(300);
-prnp varchar2(10):='N';
-pcc varchar2(100):=''; -- costcent
-procedure build_gl(uid varchar2);
-
-end;
-/
-
-
 DROP PACKAGE CP_ACCBAL_GL_TRANS;
 
 CREATE OR REPLACE PACKAGE    CP_ACCBAL_GL_TRANS IS
-CNTS 		FLOAT:=0;
-CNTS_t 		FLOAT:=0;
-PFROMDT		DATE;
-PTODT		DATE;
+CNTS         FLOAT:=0;
+CNTS_t         FLOAT:=0;
+PFROMDT        DATE;
+PTODT        DATE;
 PUNPOSTED   VARCHAR2(100):='N';
 pcc varchar2(100):=null;
 
-cursor 		atrans is
-			SELECT ALL acaccount.accno, acaccount.NAME, acaccount.namea,
+cursor         atrans is
+            SELECT ALL acaccount.accno, acaccount.NAME, acaccount.namea,
               acaccount.PATH, NVL (SUM (acvoucher2.debit), 0) debit,
               NVL (SUM (acvoucher2.credit), 0) credit, levelno, childcount,
               acaccount.iscust, acaccount.start_date, acaccount.LIMIT,
@@ -54,8 +31,8 @@ cursor 		atrans is
               acaccount.flag,
               acaccount.TYPE;
 
-cursor 						abeg is
-							SELECT ALL acaccount.accno, acaccount.NAME, acaccount.namea,
+cursor                         abeg is
+                            SELECT ALL acaccount.accno, acaccount.NAME, acaccount.namea,
               acaccount.PATH, NVL (SUM (acvoucher2.debit), 0) debit,
               NVL (SUM (acvoucher2.credit), 0) credit, levelno, childcount,
               acaccount.iscust, acaccount.start_date, acaccount.LIMIT,
@@ -79,23 +56,23 @@ cursor 						abeg is
 
 
 TYPE tag_accs is record  (
-  accno 					varchar2(100),
-  path 						varchar2(2000),
-  debit						float,
-	credit					float
+  accno                     varchar2(100),
+  path                         varchar2(2000),
+  debit                        float,
+    credit                    float
   );
 
-type 							acc_array is table of
-									tag_accs index by binary_integer;
-actb 							acc_array ;
-actb_t 						acc_array ;
+type                             acc_array is table of
+                                    tag_accs index by binary_integer;
+actb                             acc_array ;
+actb_t                         acc_array ;
 
 
-procedure					build_accs;
-function					get_debit_sum_bf(pth varchar2) return float;
-function					get_credit_sum_bf(pth varchar2) return float;
-function					get_debit_sum_t(pth varchar2) return float;
-function					get_credit_sum_t(pth varchar2) return float;
+procedure                    build_accs;
+function                    get_debit_sum_bf(pth varchar2) return float;
+function                    get_credit_sum_bf(pth varchar2) return float;
+function                    get_debit_sum_t(pth varchar2) return float;
+function                    get_credit_sum_t(pth varchar2) return float;
 
 END;
 /
@@ -104,15 +81,15 @@ END;
 DROP PACKAGE CP_ACCBAL_GL_TRANS_MONTHLY;
 
 CREATE OR REPLACE PACKAGE    CP_ACCBAL_GL_TRANS_MONTHLY IS
-CNTS 		FLOAT:=0;
-CNTS_t 		FLOAT:=0;
-PFROMDT		DATE;
-PTODT		DATE;
+CNTS         FLOAT:=0;
+CNTS_t         FLOAT:=0;
+PFROMDT        DATE;
+PTODT        DATE;
 PUNPOSTED   VARCHAR2(100):='N';
 pcc varchar2(100):=null;
 
-cursor 		atrans is
-			SELECT ALL acaccount.accno, acaccount.NAME, acaccount.namea,
+cursor         atrans is
+            SELECT ALL acaccount.accno, acaccount.NAME, acaccount.namea,
               acaccount.PATH, NVL (SUM (acvoucher2.debit), 0) debit,
               NVL (SUM (acvoucher2.credit), 0) credit, levelno, childcount,
               acaccount.iscust, acaccount.start_date, acaccount.LIMIT,
@@ -137,8 +114,8 @@ cursor 		atrans is
       ORDER BY ACACCOUNT.ACCNO,
                 TO_CHAR(VOU_DATE,'RRRR/MM');
 
-cursor 						abeg is
-							SELECT ALL acaccount.accno, acaccount.NAME, acaccount.namea,
+cursor                         abeg is
+                            SELECT ALL acaccount.accno, acaccount.NAME, acaccount.namea,
               acaccount.PATH, NVL (SUM (acvoucher2.debit), 0) debit,
               NVL (SUM (acvoucher2.credit), 0) credit, levelno, childcount,
               acaccount.iscust, acaccount.start_date, acaccount.LIMIT,
@@ -162,23 +139,23 @@ cursor 						abeg is
 
 
 TYPE tag_accs is record  (
-  accno 					varchar2(100),
-  path 						varchar2(2000),
+  accno                     varchar2(100),
+  path                         varchar2(2000),
   mnth                      varchar2(100),
-  debit						float,
-	credit					float
+  debit                        float,
+    credit                    float
   );
 
-type 							acc_array is table of
-									tag_accs index by binary_integer;
-actb 							acc_array ;
-actb_t 						acc_array ;
+type                             acc_array is table of
+                                    tag_accs index by binary_integer;
+actb                             acc_array ;
+actb_t                         acc_array ;
 
 
-procedure					build_accs;
-function					get_debit_sum_bf(pth varchar2) return float;
-function					get_credit_sum_bf(pth varchar2) return float;
-function					get_debit_sum_t(pth varchar2,pmnth varchar2) return float;
+procedure                    build_accs;
+function                    get_debit_sum_bf(pth varchar2) return float;
+function                    get_credit_sum_bf(pth varchar2) return float;
+function                    get_debit_sum_t(pth varchar2,pmnth varchar2) return float;
    FUNCTION get_credit_sum_t (pth VARCHAR2,pmnth varchar2)  RETURN FLOAT;
 
 END;
@@ -231,179 +208,6 @@ procedure build_gl(uid varchar2);
 end;
 /
 
-
-
-DROP PACKAGE BODY CP_ACC;
-
-CREATE OR REPLACE PACKAGE BODY    CP_ACC AS
-
-PROCEDURE BUILD_GL(uid varchar2) is
-/*  field1  = accno
-	field2  = name
-	field3  = bdr
-	field4  = bcr
-	field5  = bdr_bal
-	field6  = bcr_bal
-	field7  = tdr
-	field8  = tcr
-	field9  = tdr_bal
-	field10  = tcr_bal
-	field11 = edr
-	field12  = ecr
-	field13  = edr_bal
-	field14 = ecr_bal
-	field15 - pos
-	field16 = levelno
-	field17 = path
-		field18 =childcount
-*/
-cursor acs is select accno,path,levelno,name,childcount,parentacc from acaccount where
-  (levelno<=plevelno or plevelno=0) and actype=0 and path like pacpath||'%' order by path;
-  bdr number:=0;
-  bcr number:=0;
-  tdr number:=0;
-  tcr number:=0;
-  bdr_bal number:=0;
-  bcr_bal number:=0;
-  tdr_bal number:=0;
-  tcr_bal number:=0;
-  edr number:=0;
-  ecr number:=0;
-  edr_bal number:=0;
-  ecr_bal number:=0;
-  posx integer:=0;
-  cursor rpac is select distinct ac_no from c_ycust;
-  type array_S is table of varchar2(255);
-  acns dbms_sql.varchar2_table;
-  cnt_acns number:=0;
-  tmpfnd boolean:=false;
-  cursor rps(pa varchar2) is select code,name,namea,path,ac_no,parentcustomer,childcount,levelno from c_ycust where ac_no=pa and childcount=0 order by path; 
-begin
-if (pfromacc is not null) then
-  select path into pacpath from acaccount where accno=pfromacc;
-  else
-  pacpath:='';
-end if;
-  for rx in rpac loop
-   cnt_acns:=cnt_acns+1;
-   acns(cnt_acns):=rx.ac_no;     
-  end loop;
-  CP_ACCBAL_GL_TRANS.PFROMDT:=pfromdt;
-  CP_ACCBAL_GL_TRANS.PTODT:=ptodt;
-  CP_ACCBAL_GL_TRANS.PUNPOSTED:=PUNPOSTED;
-  CP_ACCBAL_GL_TRANS.pcc:=pcc;
-  CP_ACCBAL_GL_TRANS.build_accs;
-  
-  if prnp='Y' then
-    CP_CUST_TRANS.PFROMDT:=pfromdt;
-    CP_CUST_TRANS.PTODT:=ptodt;
-    CP_CUST_TRANS.PUNPOSTED:=PUNPOSTED;
-    CP_CUST_TRANS.pcc:=pcc;
-    CP_CUST_TRANS.build_accs;
-  end if;    
-
-  plastuid:=uid;
-  delete from temporary where idno=66601 AND USERNM=UID;
-
-  for x in acs
-  loop
-
-    bdr :=CP_ACCBAL_GL_TRANS.get_debit_sum_bf(x.path||'%');
-	bcr :=CP_ACCBAL_GL_TRANS.get_credit_sum_bf(x.path||'%');
-  	tdr :=CP_ACCBAL_GL_TRANS.get_debit_sum_t(x.path||'%');
-  	tcr :=CP_ACCBAL_GL_TRANS.get_credit_sum_t(x.path||'%');
-  	edr :=bdr+tdr;
-  	ecr :=bcr+tcr;
-	bdr_bal:=0; bcr_bal:=0;
-	edr_bal:=0; ecr_bal:=0;
-	tdr_bal:=0; tcr_bal:=0;
-  	if (bdr-bcr)>=0 then
-  	 bdr_bal :=(bdr-bcr);
-   	else
-   	 bcr_bal:=abs(bdr-bcr);
-	end if;
-
-  	if (tdr-tcr)>=0 then
-  	 tdr_bal :=(tdr-tcr);
-   	else
-   	 tcr_bal:=abs(tdr-tcr);
-	end if;
-
-  	if (edr-ecr)>=0 then
-  	 edr_bal :=(edr-ecr);
-   	else
-   	 ecr_bal:=abs(edr-ecr);
-	end if;
-
-	posx:=posx+1;
-  	insert into temporary(idno,usernm,field1,field2,field3,field4,field5,field6,
-		   				field7,field8,field9,field10,field11,
-						field12,field13,field14,field15,field16,field17,field18,FIELD19)
-						values
-						(66601,uid,
-						x.accno,
-						x.name,
-						bdr,bcr,bdr_bal,bcr_bal,
-						tdr,tcr,tdr_bal,tcr_bal,
-						edr,ecr,edr_bal,ecr_bal,posx,
-						x.levelno,x.path,x.childcount,x.parentacc);
-  if prnp='Y' then
-  tmpfnd:=false;
-  for rx in 1..cnt_acns loop
-    if acns(rx)=x.accno then
-     tmpfnd:=true;
-     end if;
-  end loop;
-    if tmpfnd then
-    for rx in rps(x.accno)
-    loop
-      bdr :=CP_CUST_TRANS.get_debit_sum_bf(rx.path||'%') ;
-      bcr :=CP_CUST_TRANS.get_credit_sum_bf(rx.path||'%');
-      tdr :=CP_CUST_TRANS.get_debit_sum_t(rx.path||'%');
-      tcr :=CP_CUST_TRANS.get_credit_sum_t(rx.path||'%');
-      edr :=bdr+tdr;
-      ecr :=bcr+tcr;
-      bdr_bal:=0; bcr_bal:=0;
-      edr_bal:=0; ecr_bal:=0;
-      tdr_bal:=0; tcr_bal:=0;
-      if (bdr-bcr)>=0 then
-       bdr_bal :=(bdr-bcr);
-       else
-        bcr_bal:=abs(bdr-bcr);
-    end if;
-
-      if (tdr-tcr)>=0 then
-       tdr_bal :=(tdr-tcr);
-       else
-        tcr_bal:=abs(tdr-tcr);
-    end if;
-
-      if (edr-ecr)>=0 then
-       edr_bal :=(edr-ecr);
-       else
-        ecr_bal:=abs(edr-ecr);
-    end if;
-
-    posx:=posx+1;
-      insert into temporary(idno,usernm,field1,field2,field3,field4,field5,field6,
-                           field7,field8,field9,field10,field11,
-                        field12,field13,field14,field15,field16,field17,field18,FIELD19)
-                        values
-                        (66601,uid,
-                        rx.code,
-                        rx.name,
-                        bdr,bcr,bdr_bal,bcr_bal,
-                        tdr,tcr,tdr_bal,tcr_bal,
-                        edr,ecr,edr_bal,ecr_bal,posx,
-                        rx.levelno,x.path||'\'||rx.code,rx.childcount,x.accno);
-    end loop;          
-   end if;                                                       
-  end if;
-  end loop;
-end;
-
-END;
-/
 
 
 DROP PACKAGE BODY CP_ACCBAL_GL_TRANS;
@@ -635,7 +439,7 @@ END;
 
 DROP PACKAGE BODY CP_ACC_PL;
 
-CREATE OR REPLACE PACKAGE BODY    CP_ACC_PL AS
+CREATE OR REPLACE PACKAGE BODY      CP_ACC_PL AS
 PROCEDURE BUILD_GL(uid varchar2) is 
 /*  field1  = accno 
     field2  = name 
@@ -656,9 +460,9 @@ PROCEDURE BUILD_GL(uid varchar2) is
     field17 = path 
         field18 =childcount 
 */ 
-cursor acs is select accno,path,levelno,name,childcount,parentacc from acaccount where 
+cursor acs is select accno,path,levelno,name,namea,childcount,parentacc from acaccount where 
   (levelno<=plevelno or plevelno=0) and closeacc=pfromacc and actype=0 ORDER BY PATH; 
-cursor acspl(pth1 varchar2) is select accno,path,levelno,name,childcount,parentacc from 
+cursor acspl(pth1 varchar2) is select accno,path,levelno,name,namea,childcount,parentacc from 
 acaccount where 
    path like pth1||'%' and path!=pth1 and actype=1 ORDER BY PATH;
    
@@ -747,7 +551,7 @@ end if;
     posx:=posx+1; 
       insert into temporary(idno,usernm,field1,field2,field3,field4,field5,field6, 
                            field7,field8,field9,field10,field11, 
-                        field12,field13,field14,field15,field16,field17,field18,FIELD19) 
+                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field25) 
                         values 
                         (66602,uid, 
                         x.accno, 
@@ -755,7 +559,7 @@ end if;
                         bbdr,bbcr,bdr_bal,bcr_bal, 
                         tdr,tcr,tdr_bal,tcr_bal, 
                         edr,ecr,edr_bal,ecr_bal,posx, 
-                        x.levelno,x.path,x.childcount,x.parentacc); 
+                        x.levelno,x.path,x.childcount,x.parentacc,x.namea); 
     if (x.levelno=1) then 
     totdr:=totdr+edr_bal; 
     totcr:=totcr+abs(ecr_bal);
@@ -808,7 +612,7 @@ end if;
     posx:=posx+1; 
       insert into temporary(idno,usernm,field1,field2,field3,field4,field5,field6, 
                            field7,field8,field9,field10,field11, 
-                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field20) 
+                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field20,field25) 
                         values 
                         (66602,uid, 
                         x.accno, 
@@ -816,7 +620,7 @@ end if;
                         bbdr,0,bdr_bal,bcr_bal, 
                         tdr,tcr,0,0, 
                         0,0,tdr_bal,tcr_bal,posx, 
-                        -1,x.path,x.childcount,x.parentacc,1); 
+                        -1,x.path,x.childcount,x.parentacc,1,x.namea||' '||plstr); 
     --if (x.levelno=1) then 
     totdr:=totdr+tdr_bal; 
     totcr:=totcr+abs(tcr_bal); 
@@ -849,7 +653,7 @@ end if;
     end if;
       insert into temporary(idno,usernm,field1,field2,field3,field4,field5,field6, 
                            field7,field8,field9,field10,field11, 
-                        field12,field13,field14,field15,field16,field17,field18,FIELD19) 
+                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field25) 
                         values 
                         (66602,uid, 
                         '-', 
@@ -857,7 +661,7 @@ end if;
                         totbdr,totbcrd,vtotbcr,vtotbdr, 
                         totcr,totdr,0,0, 
                         0,0,vtotcr,vtotdr,posx+1, 
-                        -1,'',0,''); 
+                        -1,'',0,'','Un-posted: '||plstr ); 
 end if;   
 end;
 
@@ -867,7 +671,7 @@ END;
 
 DROP PACKAGE BODY CP_ACC_PL_MONTHLY;
 
-CREATE OR REPLACE PACKAGE BODY    CP_ACC_PL_MONTHLY AS
+CREATE OR REPLACE PACKAGE BODY      CP_ACC_PL_MONTHLY AS
 PROCEDURE BUILD_GL(uid varchar2) is 
 /*  field1  = accno 
     field2  = name 
@@ -888,9 +692,9 @@ PROCEDURE BUILD_GL(uid varchar2) is
     field17 = path 
         field18 =childcount 
 */ 
-cursor acs is select accno,path,levelno,name,childcount,parentacc from acaccount where 
+cursor acs is select accno,path,levelno,name,childcount,parentacc,namea from acaccount where 
   (levelno<=plevelno or plevelno=0) and closeacc=pfromacc and actype=0 ORDER BY PATH; 
-cursor acspl(pth1 varchar2) is select accno,path,levelno,name,childcount,parentacc from 
+cursor acspl(pth1 varchar2) is select accno,path,levelno,name,namea,childcount,parentacc from 
 acaccount where 
    path like pth1||'%' and path!=pth1 and actype=1 ORDER BY PATH;
    
@@ -969,7 +773,7 @@ totcr:=0;
     posx:=posx+1; 
       insert into temporary(idno,usernm,field1,field2,field3,field4,field5,field6, 
                            field7,field8,field9,field10,field11, 
-                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field30) 
+                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field30,field25) 
                         values 
                         (66602,uid, 
                         x.accno, 
@@ -977,7 +781,7 @@ totcr:=0;
                         bdr,bcr,bdr_bal,bcr_bal, 
                         tdr,tcr,tdr_bal,tcr_bal, 
                         edr,ecr,edr_bal,ecr_bal,posx, 
-                        x.levelno,x.path,x.childcount,x.parentacc,mx.mnth); 
+                        x.levelno,x.path,x.childcount,x.parentacc,mx.mnth,x.namea); 
     if (x.levelno=1) then 
     totdr:=totdr+edr_bal; 
     totcr:=totcr+abs(ecr_bal); 
@@ -1007,7 +811,7 @@ SELECT NVL(SUM(DEBIT),0), nvl(sum(CREDIT),0) INTO tdr,tcr FROM ACACCOUNT A,ACVOU
     posx:=posx+1; 
       insert into temporary(idno,usernm,field1,field2,field3,field4,field5,field6, 
                            field7,field8,field9,field10,field11, 
-                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field20,field30) 
+                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field20,field30,field25) 
                         values 
                         (66602,uid, 
                         x.accno, 
@@ -1015,7 +819,7 @@ SELECT NVL(SUM(DEBIT),0), nvl(sum(CREDIT),0) INTO tdr,tcr FROM ACACCOUNT A,ACVOU
                         0,0,0,0, 
                         tdr,tcr,0,0, 
                         0,0,tdr_bal,tcr_bal,posx, 
-                        1,x.path,x.childcount,x.parentacc,1,mx.mnth); 
+                        1,x.path,x.childcount,x.parentacc,1,mx.mnth,x.namea); 
 ---    if (x.levelno=1) then 
     totdr:=totdr+tdr_bal; 
     totcr:=totcr+tcr_bal; 
@@ -1031,7 +835,7 @@ SELECT NVL(SUM(DEBIT),0), nvl(sum(CREDIT),0) INTO tdr,tcr FROM ACACCOUNT A,ACVOU
     end if;   
       insert into temporary(idno,usernm,field1,field2,field3,field4,field5,field6, 
                            field7,field8,field9,field10,field11, 
-                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field30) 
+                        field12,field13,field14,field15,field16,field17,field18,FIELD19,field30,field25) 
                         values 
                         (66602,uid, 
                         '-', 
@@ -1039,7 +843,7 @@ SELECT NVL(SUM(DEBIT),0), nvl(sum(CREDIT),0) INTO tdr,tcr FROM ACACCOUNT A,ACVOU
                         0,0,0,0, 
                         totdr,totcr,0,0, 
                         0,0,vtotcr,vtotdr,posx+1, 
-                        1,'',0,'',mx.mnth); 
+                        1,'',0,'',mx.mnth,'Red=profit , green=loss' ); 
 end if;                            
 
 end loop; 
@@ -1054,5 +858,4 @@ end;
 
 END;
 /
-
 

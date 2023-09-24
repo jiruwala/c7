@@ -14,7 +14,7 @@ sap.ui.jsfragment("bin.searchList", {
         });
 
         var oDlg = new sap.m.SelectDialog({
-            title: oController.title,
+            title: oModel.getData().length + " Total Recs, " + oController.title,
             // type: "Active",
             liveChange: [oController.frag_liveChange, oController],
             confirm: [oController.frag_confirm, oController]
