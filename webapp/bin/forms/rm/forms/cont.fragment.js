@@ -1,5 +1,4 @@
-sap.ui.jsfragment("bin.forms.rm.forms.con", {
-
+sap.ui.jsfragment("bin.forms.rm.forms.cont", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -251,13 +250,13 @@ sap.ui.jsfragment("bin.forms.rm.forms.con", {
                                     change: function (e) {
 
                                         var exist = Util.getSQLValue("select max(keyfld) from c7_rmcont where keyfld!=" +
-                                            qry.formview.getFieldValue("keyfld") + " and location_code=" +
-                                            qry.formview.getFieldValue("location_code") + " and ref_code=" +
-                                            qry.formview.getFieldValue("ref_code"));
-                                        if (Util.nvl(exist, "") != "")
-                                            FormView.err(qry.formview.getFieldValue("location_code") +
-                                                " ,  supplier # " + qry.formview.getFieldValue("ref_code") + " Existed in KEYFLD # " + exist);
+                                            thatForm.frm.getFieldValue("keyfld") + " and location_code=" +
+                                            thatForm.frm.getFieldValue("location_code") + " and ref_code=" +
+                                            thatForm.frm.getFieldValue("ref_code"));
 
+                                        if (Util.nvl(exist, "") != "")
+                                            FormView.err(thatForm.frm.getFieldValue("location_code") +
+                                                " ,  supplier # " + thatForm.frm.getFieldValue("ref_code") + " Existed in KEYFLD # " + exist);
 
                                         UtilGen.Search.getLOVSearchField("select name from c_ycust where childcount=0 and code = ':CODE'", that.frm.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
 

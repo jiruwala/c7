@@ -780,7 +780,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 var f = cc.getMUIHelper().display_format;
 
                 if (cc.getMUIHelper().display_format == "MONEY_FORMAT") {
-                    a = "end";
+                    a = UtilGen.DBView.sLangu == "AR" ? "begin" : "end";
                     f = sett["FORMAT_MONEY_1"];
                 }
                 if (cc.getMUIHelper().display_format == "QTY_FORMAT") {
@@ -799,25 +799,28 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     f = "";
 
                 if (UtilGen.DBView.sLangu == "AR" && a != "center")
-                    a = "begin";
+                    a = "right";
 
                 var colClass = eval(UtilGen.nvl(cc.mColClass, "sap.ui.commons.Label"));
                 var ssql = Util.nvl(cc.mSearchSQL, "");
                 var o;
                 // if (colClass != sap.m.ComboBox) {
-                if (colClass != SelectText)
+                if (colClass != SelectText) {
                     o = UtilGen.createControl(colClass, this.view, "", {
                         // technical   : replacing global "___" with colname for cross tab.
                         "text": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
                         "value": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
                         "dateValue": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
                         textAlign: Util.getAlignTable(a),
+                        textDirection: UtilGen.DBView.sLangu == "AR" ? sap.ui.core.TextDirection.RTL : sap.ui.core.TextDirection.LTR,
                         width: "100%",
                         src: "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
                         enabled: this.mLctb.cols[i].mEnabled,
                         showValueHelp: (ssql != "" ? true : false),
                         maxLines: 1,
                     }, Util.nvl(cc.getMUIHelper().data_type, "").toLowerCase(), f);
+                    o.setTextAlign(Util.getAlignTable(a));
+                }
                 else
                     o = new colClass({
                         // "value": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",

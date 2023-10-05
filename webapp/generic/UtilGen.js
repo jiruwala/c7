@@ -1169,7 +1169,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 };
                                 var bv = Util.extractBindVariables(sq);
                                 for (var bi in bv) {
-                                    var vl = Util.getCellColValue(tbl, rowStart + tbl.indexOfRow(row), bv[bi], true,tbl.indexOfRow(row));
+                                    var vl = Util.getCellColValue(tbl, rowStart + tbl.indexOfRow(row), bv[bi], true, tbl.indexOfRow(row));
                                     // if (vl.indexOf("%") < 0)
                                     //     vl = "%" + vl + "%";
                                     sq = sq.replaceAll(":" + bv[bi], Util.nvl(vl, ""));

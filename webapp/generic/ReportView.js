@@ -133,6 +133,8 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 rep.showFilterCols = Util.nvl(rps[r].showFilterCols, false);
                 rep.showCustomPara = Util.nvl(rps[r].showCustomPara, undefined);
                 rep.onSubTitHTML = Util.nvl(rps[r].onSubTitHTML, undefined);
+                rep.showHTMLMenu = Util.nvl(rps[r].showHTMLMenu, true);
+                rep.showXLSMenu = Util.nvl(rps[r].showXLSMenu, true);
                 rep.parameters = [];
                 var pms = Util.nvl(rps[r].rep.parameters, []);
                 for (var i in pms) {
@@ -210,6 +212,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     qr.eventCalc = Util.nvl(qrys[i].eventCalc, undefined);
                     qr.eventAfterQV = Util.nvl(qrys[i].eventAfterQV, undefined);
                     qr.dispRecords = Util.nvl(qrys[i].dispRecords, 10);
+                    qr.rowHeight = Util.nvl(qrys[i].rowHeight, 12);
                     qr.onRowRender = Util.nvl(qrys[i].onRowRender, undefined);
                     qr.dispRecords = UtilGen.dispTblRecsByDevice(qr.dispRecords);
                     qr.fields = {};
@@ -695,6 +698,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         this.lstRepTbl.getControl().setVisibleRowCount(3);
 
 
+
                         var md = [
                             {
                                 colname: "CODE",
@@ -738,6 +742,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
 
                         });
+
 
                         ff.push(this.lstRepTbl);
 
@@ -797,7 +802,8 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         this.pg.addContent(tb);
                         this.pg.addContent(new sap.m.Title({ text: Util.getLangText("reportCaption1") + " " + Util.getLangDescrAR(thatRV.title, thatRV.title2) }).addStyleClass("sapUiMediumMarginTop sapUiLargeMarginBegin"));
                         this.pg.addContent(this.lstRep);
-                        this.pg.addContent(this.lstRepTbl.getControl());
+                        if (this.lstRepTbl.mLctb.rows.length > 1)
+                            this.pg.addContent(this.lstRepTbl.getControl());
                         this.pg.addContent(new sap.m.Title({ text: "Parameters:" }).addStyleClass("sapUiLargeMarginBegin"));
                         this.pg.addContent(this.vbPara);
                         var rptNo = Util.nvl(pRptNo, UtilGen.getControlValue(thatRV.lstRep));
@@ -1109,7 +1115,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 new sap.m.Title({ text: Util.nvl(thatRV.title2, thatRV.title) })
                             ],
                             contentRight: [
-                                thatRV.bt_Reports,
+                                // thatRV.bt_Reports,
                                 bt2,
                                 thatRV.bt_paraform,
                                 thatRV.bt_close
@@ -1344,7 +1350,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 qr.obj.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
                                 qr.obj.getControl().setAlternateRowColors(false);
                                 qr.obj.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-
+                                qr.obj.getControl().setRowHeight(qr.rowHeight);
                                 if (qr.onRowRender != undefined)
                                     qr.obj.onRowRender = qr.onRowRender;
 
@@ -2509,62 +2515,72 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 });
                 thatRV.mnus.push(mnu);
             }
+            var rptNo = Util.nvl(undefined, UtilGen.getControlValue(this.lstRep));
+            var rep = this.reports[rptNo];
             this.mnusExp = [];
             this.mnusReports = [];
+            this.reportMenus = thatRV.reportVars.hideTemplates ? [] : [...rep.print_templates];
+            var ms = thatRV.reportMenus;
+            if (Util.nvl(thatRV.reportMenus, []).length > 0)
+                for (var i in ms)
+                    this.mnusExp.push(
+                        new sap.m.MenuItem({
+                            text: ms[i].title,
+                            icon: "sap-icon://attachment-html",
+                            customData: { key: ms[i].reportFile },
+                            press: function () {
+                                var cd = this.getCustomData()[0].getKey();
+                                var pms = "";
+                                var sett = sap.ui.getCore().getModel("settings").getData();
+                                thatRV.helperFunctions.reports.saveReport();
+                                thatRV.printReport(cd, undefined);
+                            }
+                        })
+                    );
 
-            this.mnusExp.push(
-                new sap.m.MenuItem({
-                    text: "Html",
-                    icon: "sap-icon://attachment-html",
-                    customData: { key: i + "" },
-                    press: function () {
+            if (rep.showHTMLMenu)
+                this.mnusExp.push(
+                    new sap.m.MenuItem({
+                        text: "PDF",
+                        icon: "sap-icon://attachment-html",
+                        customData: { key: i + "" },
+                        press: function () {
+                            thatRV.showHTML();
+                        }
+                    }));
+            if (rep.showXLSMenu)
+                this.mnusExp.push(
+                    new sap.m.MenuItem({
+                        text: "Excel",
+                        icon: "sap-icon://excel-attachment",
+                        customData: { key: i + "" },
+                        press: function () {
 
-                        thatRV.showHTML();
-                    }
-                }));
-            this.mnusExp.push(
-                new sap.m.MenuItem({
-                    text: "Excel",
-                    icon: "sap-icon://excel-attachment",
-                    customData: { key: i + "" },
-                    press: function () {
+                            thatRV.showXLS();
 
-                        thatRV.showXLS();
+                            // var rptNo = Util.nvl('', UtilGen.getControlValue(thatRV.lstRep));
+                            // var rep = thatRV.reports[rptNo];
 
-                        // var rptNo = Util.nvl('', UtilGen.getControlValue(thatRV.lstRep));
-                        // var rep = thatRV.reports[rptNo];
+                            // Util.doAjaxJson("bat7SaveToTemp", {
+                            //     sql: "",
+                            //     ret: "",
+                            //     data: "",
+                            //     repCode: rep.code,
+                            //     repNo: rptNo,
+                            //     command: "",
+                            //     scheduledAt: "",
+                            //     p1: "",
+                            //     p2: "",
+                            //
+                            // }, false).done(function (data) {
+                            //     if (data.ret == "SUCCESS") {
+                            //         sap.m.MessageToast.show("saved report on server !");
+                            //     }
+                            // });
+                            //
 
-                        // Util.doAjaxJson("bat7SaveToTemp", {
-                        //     sql: "",
-                        //     ret: "",
-                        //     data: "",
-                        //     repCode: rep.code,
-                        //     repNo: rptNo,
-                        //     command: "",
-                        //     scheduledAt: "",
-                        //     p1: "",
-                        //     p2: "",
-                        //
-                        // }, false).done(function (data) {
-                        //     if (data.ret == "SUCCESS") {
-                        //         sap.m.MessageToast.show("saved report on server !");
-                        //     }
-                        // });
-                        //
-
-                    }
-                }));
-            this.mnusExp.push(
-                new sap.m.MenuItem({
-                    text: "PDF",
-                    icon: "sap-icon://attachment-html",
-                    customData: { key: i + "" },
-                    press: function () {
-
-
-                    }
-                }));
-
+                        }
+                    }));
             this.btRep = new sap.m.Button({
                 icon: "sap-icon://megamenu",
                 text: this.lstRep.getValue(),
@@ -3476,6 +3492,22 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
         };
         ReportView.prototype.showXLS = function (pRptno) {
             var that = this;
+            var saveData = (function () {
+                var a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                return function (data, fileName) {
+                    var json = data,// JSON.stringify(data),
+                        blob = new Blob([json], { type: "application/vnd.ms-excel" }),
+                        url = window.URL.createObjectURL(blob);
+                    a.href = url;
+                    a.download = fileName;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                };
+            }());
+
+
             var rptNo = Util.nvl(pRptno, UtilGen.getControlValue(this.lstRep));
             var sett = sap.ui.getCore().getModel("settings").getData();
             var rep = this.reports[rptNo];
@@ -3502,8 +3534,32 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 }
             }
 
-            if (ht != "")
-                var sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(ht));
+            var dir = UtilGen.DBView.sLangu == "AR" ? " style=\" direction:rtl;\"" : "";
+            // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/" + rep.printCSS + "\">";
+            // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"print2.css\">";
+            var hd = "";
+            $.ajax({
+                url: "css/" + rep.printCSS,
+                dataType: "text",
+                async: false,
+                success: function (cssText) {
+                    hd = cssText;
+                    hd = "<style>" + hd + "</style>";
+                    ht = "<html" + dir + ">" + "<head>" + hd + "</head><body>" + ht + "</body></html>";
+                    // newWin.document.write(ht);
+                    // $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);
+                    // setTimeout(function () {
+                    //     newWin.print();
+                    // }, 1000);
+
+                    saveData(ht, "save.xls");
+
+                }
+            });
+
+
+            // if (ht != "")
+            //     var sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(ht));
         };
 
 

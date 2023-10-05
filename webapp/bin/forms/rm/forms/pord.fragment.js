@@ -40,7 +40,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
             if (that.frm.isFormEditable() && oEvent.key == 'F10') {
                 that.frm.cmdButtons.cmdSave.firePress();
             }
-
+            // 
         });
 
 
@@ -97,9 +97,18 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                         // thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.code"));
                     },
                     afterLoadQry: function (qry) {
+
                         if (qry.name == "qry1") {
                             qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                             UtilGen.Search.getLOVSearchField("select name from c_ycust where code = :CODE ", qry.formview.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
+                            UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.driver_no"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
+                            var kfld = Util.getSQLValue("select pur_keyfld from c7_rmpord where keyfld=" + qry.formview.getFieldValue("keyfld"));
+                            if (Util.nvl(kfld, "") != "") {
+                                qry.formview.setFormReadOnly();
+                                var pn = Util.getSQLValue("select invoice_no from pur1 where keyfld=" + kfld);
+                                that.view.byId("txtMsg" + thatForm.timeInLong).setText('Purchase # ' + pn);
+
+                            }
                         }
                     },
                     beforeLoadQry: function (qry, sql) {
@@ -113,27 +122,21 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                     },
                     beforeSaveQry: function (qry, sqlRow, rowNo) {
                         qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
-                        var exist = Util.getSQLValue("select max(keyfld) from c7_rmcont where keyfld!=" +
-                            qry.formview.getFieldValue("keyfld") + " and location_code=" +
-                            qry.formview.getFieldValue("location_code") + " and ref_code=" +
-                            qry.formview.getFieldValue("ref_code"));
-                        if (Util.nvl(exist, "") != "")
-                            FormView.err(qry.formview.getFieldValue("location_code") +
-                                " ,  supplier # " + qry.formview.getFieldValue("ref_code") + " Existed in KEYFLD # " + exist);
-
                         return "";
                     },
                     afterNewRow: function (qry, idx, ld) {
                         if (qry.name == "qry1") {
-                            var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_rmcont");
+                            var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_rmpord");
                             qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
+                            qry.formview.setFieldValue("qry1.location_code", sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
+                            qry.formview.setFieldValue("qry1.packqty", 0, 0, true);
 
                             that.frm.setFieldValue("pac", "", "", true);
                             that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                             that.view.byId("numtxt" + thatForm.timeInLong).setText("");
 
                             var dt = thatForm.view.today_date.getDateValue();
-                            qry.formview.setFieldValue("qry1.cont_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
+                            qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
 
                         }
                     },
@@ -178,17 +181,18 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from c7_rmcont  where keyfld=':pac'",
+                        dml: "select *from c7_rmpord  where keyfld=':pac'",
                         where_clause: " keyfld=':keyfld'",
-                        update_exclude_fields: ["ref_name"],
-                        insert_exclude_fields: ["ref_name"],
+                        update_exclude_fields: ["ref_name", "drivername", "refername"],
+                        insert_exclude_fields: ["ref_name", "drivername", "refername"],
                         insert_default_values: {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
                             // "TYPE": 3
+                            "FLAG": 1,
                         },
                         update_default_values: {},
-                        table_name: "c7_rmcont",
+                        table_name: "c7_rmpord",
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: false,
@@ -220,6 +224,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
+                                default_value: sett["DEFAULT_LOCATION"],
                                 list: "select code,name from locations order by code",
                                 other_settings: {
                                     width: "35%",
@@ -234,11 +239,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 insert_allowed: true,
                                 require: true
                             },
-                            cont_date: {
-                                colname: "cont_date",
+                            ord_date: {
+                                colname: "ord_date",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"txtDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"ordDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -263,8 +268,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 display_style: "",
                                 display_format: "",
                                 other_settings: { width: "35%" },
-                                edit_allowed: false,
-                                insert_allowed: false,
+                                edit_allowed: true,
+                                insert_allowed: true,
                                 require: true
                             },
                             driver_no: {
@@ -283,26 +288,17 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                     showValueHelp: true,
                                     change: function (e) {
 
-                                        var exist = Util.getSQLValue("select max(keyfld) from c7_rmcont where keyfld!=" +
-                                            qry.formview.getFieldValue("keyfld") + " and location_code=" +
-                                            qry.formview.getFieldValue("location_code") + " and ref_code=" +
-                                            qry.formview.getFieldValue("ref_code"));
-                                        if (Util.nvl(exist, "") != "")
-                                            FormView.err(qry.formview.getFieldValue("location_code") +
-                                                " ,  supplier # " + qry.formview.getFieldValue("ref_code") + " Existed in KEYFLD # " + exist);
-
-
-                                        UtilGen.Search.getLOVSearchField("select name from c_ycust where childcount=0 and code = ':CODE'", that.frm.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
+                                        UtilGen.Search.getLOVSearchField("select name from salesp where type='D' and no = ':CODE'", that.frm.objs["qry1.driver_no"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
 
                                     },
                                     valueHelpRequest: function (e) {
                                         UtilGen.Search.do_quick_search(e, this,
-                                            "select code,Name title from c_ycust where issupp='Y' and childcount=0  order by path ",
-                                            "select code,name title from c_ycust where code=:CODE", that.frm.objs["qry1.ref_name"].obj);
+                                            "select no code,Name title from salesp where type='D' order by no ",
+                                            "select no code,name title from salesp where type='D' and no=:CODE", that.frm.objs["qry1.drivername"].obj);
 
                                     },
                                 },
-                                edit_allowed: false,
+                                edit_allowed: true,
                                 insert_allowed: true,
                                 require: true
                             },
@@ -334,8 +330,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 display_style: "",
                                 display_format: "",
                                 other_settings: { width: "25%" },
-                                edit_allowed: false,
-                                insert_allowed: false,
+                                edit_allowed: true,
+                                insert_allowed: true,
                                 require: true
                             },
                             ref_code: {
@@ -354,15 +350,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                     showValueHelp: true,
                                     change: function (e) {
 
-                                        var exist = Util.getSQLValue("select max(keyfld) from c7_rmcont where keyfld!=" +
-                                            qry.formview.getFieldValue("keyfld") + " and location_code=" +
-                                            qry.formview.getFieldValue("location_code") + " and ref_code=" +
-                                            qry.formview.getFieldValue("ref_code"));
-                                        if (Util.nvl(exist, "") != "")
-                                            FormView.err(qry.formview.getFieldValue("location_code") +
-                                                " ,  supplier # " + qry.formview.getFieldValue("ref_code") + " Existed in KEYFLD # " + exist);
-
-
                                         UtilGen.Search.getLOVSearchField("select name from c_ycust where childcount=0 and code = ':CODE'", that.frm.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
 
                                     },
@@ -373,7 +360,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
 
                                     },
                                 },
-                                edit_allowed: false,
+                                edit_allowed: true,
                                 insert_allowed: true,
                                 require: true
                             },
@@ -408,27 +395,34 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                     width: "25%",
                                     showValueHelp: true,
                                     change: function (e) {
-
-                                        var exist = Util.getSQLValue("select max(keyfld) from c7_rmcont where keyfld!=" +
-                                            qry.formview.getFieldValue("keyfld") + " and location_code=" +
-                                            qry.formview.getFieldValue("location_code") + " and ref_code=" +
-                                            qry.formview.getFieldValue("ref_code"));
-                                        if (Util.nvl(exist, "") != "")
-                                            FormView.err(qry.formview.getFieldValue("location_code") +
-                                                " ,  supplier # " + qry.formview.getFieldValue("ref_code") + " Existed in KEYFLD # " + exist);
-
-
-                                        UtilGen.Search.getLOVSearchField("select name from c_ycust where childcount=0 and code = ':CODE'", that.frm.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
-
+                                        // UtilGen.Search.getLOVSearchField("select descr name from items where childcount=0 and reference = ':CODE'", that.frm.objs["qry1.refer"].obj, undefined, that.frm.objs["qry1.refername"].obj);
+                                        var txtDescr = thatForm.frm.objs['qry1.refername'].obj;
+                                        var txtPackd = thatForm.frm.objs['qry1.packd'].obj;
+                                        var txtUnitd = thatForm.frm.objs['qry1.unitd'].obj;
+                                        var txtPack = thatForm.frm.objs['qry1.pack'].obj;
+                                        var dtx = Util.execSQLWithData("select descr,packd,pack,unitd from items where flag=1 and childcounts=0 and reference = ':CODE'".replaceAll(":CODE", this.getValue()));
+                                        if (dtx != undefined && dtx.length > 0) {
+                                            UtilGen.setControlValue(txtDescr, dtx[0].DESCR, dtx[0].DESCR, true);
+                                            UtilGen.setControlValue(txtPackd, dtx[0].PACKD, dtx[0].PACKD, true);
+                                            UtilGen.setControlValue(txtUnitd, dtx[0].UNITD, dtx[0].UNITD, true);
+                                            UtilGen.setControlValue(txtPack, dtx[0].PACK, dtx[0].PACK, true);
+                                            // txtDescr.setValue(dtx[0].DESCR);
+                                            // txtPackd.setValue(dtx[0].PACKD);
+                                            // txtUnitd.setValue(dtx[0].UNITD);
+                                            // txtPack.setValue(dtx[0].PACK);
+                                        } else FormView.err("Not found item !");
                                     },
                                     valueHelpRequest: function (e) {
                                         UtilGen.Search.do_quick_search(e, this,
-                                            "select code,Name title from c_ycust where issupp='Y' and childcount=0  order by path ",
-                                            "select code,name title from c_ycust where code=:CODE", that.frm.objs["qry1.ref_name"].obj);
+                                            "select refer code,itemdescr  title from C7_VRMCONT" +
+                                            " where ref_code=':ref_code' and location_code=':loc' order by descr2 "
+                                                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ref_code"))
+                                                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.location_code")),
+                                            "select reference code,descr title from items where reference=:CODE", that.frm.objs["qry1.refername"].obj);
 
                                     },
                                 },
-                                edit_allowed: false,
+                                edit_allowed: true,
                                 insert_allowed: true,
                                 require: true
                             },
@@ -446,6 +440,23 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 other_settings: { width: "59%" },
                                 edit_allowed: false,
                                 insert_allowed: false,
+                                require: false
+                            },
+                            packqty: {
+                                colname: "packqty",
+                                data_type: FormView.DataType.Number,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"packQty\",\"width\":\"75%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_END",
+                                display_style: "",
+                                display_value: "0",
+                                display_format: "",
+                                other_settings: { width: "25%" },
+                                edit_allowed: true,
+                                insert_allowed: true,
                                 require: true
                             },
                             packd: {
@@ -463,7 +474,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 edit_allowed: false,
                                 insert_allowed: false,
                                 require: true
-                            },                            
+                            },
                             unitd: {
                                 colname: "unitd",
                                 data_type: FormView.DataType.String,
@@ -479,7 +490,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 edit_allowed: false,
                                 insert_allowed: false,
                                 require: true
-                            },      
+                            },
                             pack: {
                                 colname: "pack",
                                 data_type: FormView.DataType.Number,
@@ -495,7 +506,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 edit_allowed: false,
                                 insert_allowed: false,
                                 require: true
-                            },      
+                            },
                         },
                     }
 
@@ -555,24 +566,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                         list_type: "sql",
                         cols: [
                             {
-                                colname: "NAME"
-                            },
-                            {
-                                colname: "LOCATION_NAME"
-                            },
-                            {
-                                colname: "CONT_DATE"
-                            },
-                            {
                                 colname: 'KEYFLD',
                                 return_field: "pac",
                             },
-                            {
-                                colname: "DESCR",
-                            },
                         ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                        sql: "SELECT L.NAME LOCATION_NAME,C.LOCATION_CODE,C.REF_CODE,Y.NAME,C.CONT_DATE,C.DESCR,C.KEYFLD  FROM " +
-                            " C7_RMCONT C,C_YCUST Y ,LOCATIONS L WHERE C.LOCATION_CODE=L.CODE AND Y.CODE=C.REF_CODE ORDER BY C.KEYFLD DESC",
+                        sql: "SELECT p.keyfld,p.ord_date,p.DLV_NO,p.REF_CODE, c.name from C7_RMPORD p,c_ycust c where c.code=p.ref_code order by p.keyfld desc ",
                         afterSelect: function (data) {
                             that2.frm.loadData(undefined, "view");
                             return true;

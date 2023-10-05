@@ -235,12 +235,13 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
 
                     },
                     onCellRender(qry, rowno, colno, currentRowContext) {
-                        if (qry.status == "edit" && qry.name == "qry2" && colno == 3) {
+                        var clno = UtilGen.getTableColNo(qry.obj.getControl(), "ACCNO");
+                        if (qry.status == "edit" && qry.name == "qry2" && colno == clno) {
                             var oModel = qry.obj.getControl().getModel();
                             var cellVal = oModel.getProperty("CUST_CODE", currentRowContext)
-                            qry.obj.getControl().getRows()[rowno].getCells()[3].setEnabled(true);
+                            qry.obj.getControl().getRows()[rowno].getCells()[colno].setEnabled(true);
                             if (cellVal != "" && cellVal != undefined)
-                                qry.obj.getControl().getRows()[rowno].getCells()[3].setEnabled(false);
+                                qry.obj.getControl().getRows()[rowno].getCells()[colno].setEnabled(false);
                         }
                     },
 
