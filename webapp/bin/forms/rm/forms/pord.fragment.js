@@ -65,7 +65,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
         this.frm;
         var js = {
             form: {
-                title: Util.getLangText("supplierContract"),
+                title: Util.getLangText("purchaseReceipt"),
                 toolbarBG: "#fff0f5",
                 formSetting: {
                     width: { "S": 400, "M": 650, "L": 800 },
@@ -102,6 +102,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                             qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                             UtilGen.Search.getLOVSearchField("select name from c_ycust where code = :CODE ", qry.formview.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
                             UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.driver_no"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
+                            UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.driver_no"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
+                            
                             var kfld = Util.getSQLValue("select pur_keyfld from c7_rmpord where keyfld=" + qry.formview.getFieldValue("keyfld"));
                             if (Util.nvl(kfld, "") != "") {
                                 qry.formview.setFormReadOnly();
@@ -183,8 +185,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                         name: "qry1",
                         dml: "select *from c7_rmpord  where keyfld=':pac'",
                         where_clause: " keyfld=':keyfld'",
-                        update_exclude_fields: ["ref_name", "drivername", "refername"],
-                        insert_exclude_fields: ["ref_name", "drivername", "refername"],
+                        update_exclude_fields: ["ref_name", "drivername", "refername", "branchname"],
+                        insert_exclude_fields: ["ref_name", "drivername", "refername", "branchname"],
                         insert_default_values: {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
@@ -260,7 +262,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 colname: "dlv_no",
                                 data_type: FormView.DataType.Number,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"ordNo\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"rcptNo\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -380,11 +382,54 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 insert_allowed: false,
                                 require: true
                             },
+                            branch_no: {
+                                colname: "branch_no",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"txtBranch\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: {
+                                    width: "25%",
+                                    showValueHelp: true,
+                                    change: function (e) {
+                                        UtilGen.Search.getLOVSearchField("select b_name from cbranch where code='" + that.frm.objs["qry1.ref_code"].obj.getValue() + "'  and  BRNO = ':CODE'", that.frm.objs["qry1.branch_no"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
+                                    },
+                                    valueHelpRequest: function (e) {
+                                        UtilGen.Search.do_quick_search(e, this,
+                                            "select brno code,b_name TITLE from CBRANCH where code='" + that.frm.objs["qry1.ref_code"].obj.getValue() + "'  order by BRNO ",
+                                            "select brno code,b_name title from cbranch where code=:CODE", that.frm.objs["qry1.branchname"].obj);
+                                    },
+                                },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true
+                            },
+                            branchname: {
+                                colname: "branchname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: { width: "59%" },
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: true
+                            },
                             refer: {
                                 colname: "refer",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"itemCode\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"txtProd\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -414,10 +459,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                     },
                                     valueHelpRequest: function (e) {
                                         UtilGen.Search.do_quick_search(e, this,
-                                            "select refer code,itemdescr  title from C7_VRMCONT" +
-                                            " where ref_code=':ref_code' and location_code=':loc' order by descr2 "
+                                            "select distinct refer code,descr title from c_contract_items" +
+                                            " where cust_code=':ref_code' and branch_no=':loc' order by refer "
                                                 .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ref_code"))
-                                                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.location_code")),
+                                                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.branch_no")),
                                             "select reference code,descr title from items where reference=:CODE", that.frm.objs["qry1.refername"].obj);
 
                                     },
@@ -446,7 +491,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 colname: "packqty",
                                 data_type: FormView.DataType.Number,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"packQty\",\"width\":\"75%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"itemPackQty\",\"width\":\"75%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -463,7 +508,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 colname: "packd",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"txtPackd\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"itemPackD\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -479,7 +524,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 colname: "unitd",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"txtUnit\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"itemUnit\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -495,7 +540,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 colname: "pack",
                                 data_type: FormView.DataType.Number,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"txtPack\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"itemPack\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,

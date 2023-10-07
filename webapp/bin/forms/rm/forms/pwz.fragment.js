@@ -123,6 +123,23 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             width: "49%", editable: false
         });
 
+        this.txtBranch = new sap.m.Input({
+            width: "30%", showValueHelp: true,
+            valueHelpRequest: function (e) {
+                Util.showSearchList("select brno code,b_name name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " order by brno", "NAME", "CODE", function (valx, val) {
+                    that.txtBranch.setValue(valx);
+                    that.txtBranchName.setValue(val);
+                });
+            },
+            change: function (e) {
+                var vl = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " and brno=" + Util.quoted(that.txtBranch.getValue()));
+                that.txtBranchName.setValue(vl);
+            }
+        });
+        this.txtBranchName = new sap.m.Input({
+            width: "49%", editable: false
+        });
+
         this.txtFromDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtFromDate.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtToDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
@@ -137,6 +154,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             Util.getLabelTxt("toDate", "50%"), this.txtToDate,
             Util.getLabelTxt("refName", "20%"), this.txtRef,
             Util.getLabelTxt("", "1%", "@"), this.txtRefName,
+            Util.getLabelTxt("txtBranch", "20%"), this.txtBranch,
+            Util.getLabelTxt("", "1%", "@"), this.txtBranchName,
+
         ]
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");
         this.mainPage.setFooter(new sap.m.Toolbar({
@@ -186,15 +206,30 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
 
         var setPriceData = function () {
             var ld = that.qv.mLctb;
-            var itmP = {};
-            var dtx = Util.execSQLWithData("select refer,price from C7_VRMCONT where ref_code='" + that.txtRef.getValue() + "' ");
-            for (var di in dtx)
-                itmP[dtx[di].REFER] = dtx[di].PRICE;
 
+            var itmP = {};
+            // var dtx = Util.execSQLWithData("select refer,price from c_contract_items " +
+            //     " where cust_code='" + that.txtRef.getValue() + "' and " +
+            //     " branch_no=" + that.txtBranch.getValue() + " order by startdate");
+            // for (var di in dtx)
+            //     itmP[dtx[di].REFER] = dtx[di].PRICE;
+
+            var getPrice = function (rfr, dtx) {
+                var dt = new Date(dt.replaceAll(".", ":"));
+                var pr = Util.getSQLValue("select nvl(max(price),0) from c_contract_items " +
+                    " where cust_code='" + that.txtRef.getValue() + "' and " +
+                    " branch_no=" + that.txtBranch.getValue() + " and " +
+                    " refer='" + rfr + "' and " +
+                    Util.toOraDateString(dt) + " >=startdate and " +
+                    Util.toOraDateString(dt) + " <=enddate "
+                );
+                return pr;
+            }
             if (dt.data.length <= 0) return;
             for (var li = 0; li < ld.rows.length; li++) {
-                var pr = itmP[ld.getFieldValue(li, "REFER")];
+                //var pr = itmP[ld.getFieldValue(li, "REFER")];
                 var qt = ld.getFieldValue(li, "PACKQTY");
+                var pr = getPrice(ld.getFieldValue(li, "REFER"), ld.getFieldValue(li, "ORD_DATE"));
                 ld.setFieldValue(li, "PRICE", pr);
                 ld.setFieldValue(li, "AMOUNT", pr * qt);
             }
@@ -472,6 +507,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             " ptype number:=:txtType;" +
             " pstr number:=:txtStr;" +
             " pref varchar2(255):= :txtRef;" +
+            " pBrNo number:=:txtBranch; " +
             " " +
             " prd_date date;" +
             " exp_date date;" +
@@ -486,7 +522,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             " begin" +
             " select nvl(max(keyfld),0)+1 into kfld from pur1;" +
             " for x in ds loop" +
-            "     select nvl(max(price),0) into pr from c7_vrmcont where ref_code=x.ref_code and location_code=x.location_code;" +
+            "     select nvl(max(price),0) into pr from c_contract_items where cust_code=x.ref_code and refer=x.refer and branch_no=x.branch_no and x.ord_date>=startdate and x.ord_date<=enddate ;" +
             "     select prd_dt,exp_dt into prd_date, exp_date from items where reference=x.refer;    " +
             " " +
             "     " +
@@ -516,14 +552,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             "                  MEMO, INV_REF, INV_REFNM, INV_AMT, DISC_AMT, INV_COST," +
             "                  FLAG, CREATDT, LPNO, BKNO, KEYFLD, USERNAME, SUPINVNO, SHIPCO," +
             "                 INS_CO, BANK, LCNO, INS_NO, RATE, CURRENCY, KDCOST, CHG_KDAMT," +
-            "                 ORDERNO, C_CUS_NO,YEAR,NO_OF_RECIEVED,costcent) VALUES" +
+            "                 ORDERNO, C_CUS_NO,YEAR,NO_OF_RECIEVED,costcent,C_BRANCH_NO) VALUES" +
             "                 (pcode, ploc, pinvno," +
             "                  11, ptype, pdate, pstr, null," +
             "                  '', (select ac_no from c_ycust where code=pref ), refnm," +
             "                   totamt, 0, 0," +
             "                  2, sysdate, '', '', kfld,user, '', ''," +
             "                 '', '', '', '', 1,'KWD', 1 , 0," +
-            "                 null, pref,'2003',0,null);" +
+            "                 null, pref,'2003',0,null,pBrNo);" +
             " x_post_purchase(kfld);" +
             " " +
             " end if;" +
@@ -545,7 +581,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             .replaceAll(":txtType", UtilGen.getControlValue(that.txtInfoInvType))
             .replaceAll(":txtStr", "1")
             .replaceAll(":txtRef", Util.quoted(that.txtRef.getValue()))
-            .replaceAll(":txtKflds", kfldStr);
+            .replaceAll(":txtKflds", kfldStr)
+            .replaceAll(":txtBranch", that.txtBranch.getValue());
 
         var dt = Util.execSQL(sq);
         if (dt.ret != "SUCCESS") {

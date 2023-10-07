@@ -113,8 +113,7 @@ public class ExeBatch {
 					}
 					if (rs.getString("BAT_TYPE").equals("RVB")) {
 						genRv(1);
-					}
-
+					}					
 					if (rs.getString("BAT_TYPE").equals("PVC")) {
 						genPv(2);
 					}
@@ -167,7 +166,7 @@ public class ExeBatch {
 		sqlsBeg = "declare amt number:=0; amt_dr number:=0; amt_cr number:=0; nm varchar2(500); "
 				+ "totdeb number:=0; totcrd number:=0; kfld number;jvno number; begin "
 				+ " SELECT NVL(MAX(KEYFLD),0)+1 INTO KFLD FROM ACVOUCHER1; "
-				+ "SELECT NVL(MAX(NO),0)+1 INTO JVNO FROM ACVOUCHER1 WHERE VOU_CODE=2 AND BAT_TYPE=" + bnkcash + ";";
+				+ "SELECT NVL(MAX(NO),0)+1 INTO JVNO FROM ACVOUCHER1 WHERE VOU_CODE=2 AND TYPE=" + bnkcash + ";";
 
 		ResultSet rs2 = QueryExe.getSqlRS("select *from C7_BATCHES_2 where keyfld='" + kf + "' and bat_id="
 				+ rs.getString("bat_id") + " order by pos", con);
@@ -217,7 +216,7 @@ public class ExeBatch {
 		if (cnt > 0) {
 			cnt++;
 			sql2 = " select name into nm from acaccount where accno='" + mapFlds1.get("codeacc")
-					+ "' AND ACTYPE=0 AND CHILDCOUNT=0 AND FLAG=1; " + " if totdeb>=0 then "
+					+ "' AND ACTYPE=0 AND CHILDCOUNT=0 AND FLAG=1; " + " if totdeb>0 then "
 					+ "INSERT INTO ACVOUCHER2(periodcode,keyfld,no,vou_code,vou_date,"
 					+ "flag,debit,credit,accno,descr,descr2,creatdt,usernm,"
 					+ "pos,year,type,costcent,fcdebit,fccredit ) VALUES ("
@@ -339,7 +338,7 @@ public class ExeBatch {
 		if (cnt > 0) {
 			cnt++;
 			sql2 = " select name into nm from acaccount where accno='" + mapFlds1.get("codeacc")
-					+ "' AND ACTYPE=0 AND CHILDCOUNT=0 AND FLAG=1; " + " if totdeb>=0 then "
+					+ "' AND ACTYPE=0 AND CHILDCOUNT=0 AND FLAG=1; " + " if totdeb>0 then "
 					+ "INSERT INTO ACVOUCHER2(periodcode,keyfld,no,vou_code,vou_date,"
 					+ "flag,debit,credit,accno,descr,descr2,creatdt,usernm,"
 					+ "pos,year,type,costcent,fcdebit,fccredit ) VALUES ("
