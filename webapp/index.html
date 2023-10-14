@@ -24,7 +24,6 @@
 			}'>
             </script>
 
-
     <script src="generic/UtilGen.js"></script>
     <script src="generic/Util.js"></script>
     <script src="generic/ReportUtils.js"></script>
@@ -62,65 +61,65 @@
         var SelectText;
         var ReportUtils;
         var printJS;
-        
-        sap.ui.getCore().attachInit(function () {
-            // pdfjsLib = window['pdfjs-dist/build/pdf'];
-            // pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
+        setTimeout(function () {
+            sap.ui.getCore().attachInit(function () {
+                // pdfjsLib = window['pdfjs-dist/build/pdf'];
+                // pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
 
-            Util = sap.ui.require("sap/ui/ce/generic/Util");
-            jQuery.sap.require("sap.m.library");
-            jQuery.sap.require("sap.uxap.library");
+                Util = sap.ui.require("sap/ui/ce/generic/Util");
+                jQuery.sap.require("sap.m.library");
+                jQuery.sap.require("sap.uxap.library");
 
-            UtilGen = sap.ui.require("sap/ui/ce/generic/UtilGen");
-            ReportUtils = sap.ui.require("sap/ui/ce/generic/ReportUtils");
-            SearchText = sap.ui.require("sap/ui/ce/generic/SearchText");
-            SelectText = sap.ui.require("sap/ui/ce/generic/SelectText");
+                UtilGen = sap.ui.require("sap/ui/ce/generic/UtilGen");
+                ReportUtils = sap.ui.require("sap/ui/ce/generic/ReportUtils");
+                SearchText = sap.ui.require("sap/ui/ce/generic/SearchText");
+                SelectText = sap.ui.require("sap/ui/ce/generic/SelectText");
 
-            LocalTableData = sap.ui.require("sap/ui/ce/generic/LocalTableData");
-            Gauge = sap.ui.require("sap/ui/ce/generic/Gauge");
-            QueryView = sap.ui.require("sap/ui/ce/generic/QueryView");
-            FormView = sap.ui.require("sap/ui/ce/generic/FormView");
-            ReportView = sap.ui.require("sap/ui/ce/generic/ReportView");
-            GridView = sap.ui.require("sap/ui/ce/generic/GridView");
+                LocalTableData = sap.ui.require("sap/ui/ce/generic/LocalTableData");
+                Gauge = sap.ui.require("sap/ui/ce/generic/Gauge");
+                QueryView = sap.ui.require("sap/ui/ce/generic/QueryView");
+                FormView = sap.ui.require("sap/ui/ce/generic/FormView");
+                ReportView = sap.ui.require("sap/ui/ce/generic/ReportView");
+                GridView = sap.ui.require("sap/ui/ce/generic/GridView");
 
 
-            var oCompContainer = new sap.ui.core.ComponentContainer({
-                height: "100%",
-                settings: {
-                    id: "sap.ui.ce"
+                var oCompContainer = new sap.ui.core.ComponentContainer({
+                    height: "100%",
+                    settings: {
+                        id: "sap.ui.ce"
+                    }
                 }
-            }
-            );
+                );
 
-            new sap.m.Shell({
-                app: oCompContainer,
-                showLogout: false
-            }).placeAt("content");
+                new sap.m.Shell({
+                    app: oCompContainer,
+                    showLogout: false
+                }).placeAt("content");
 
-            var oComponent = sap.ui.component({
-                name: "sap.ui.ce.bin",
-                manifestFirst: true,
-                async: true
-            }).then(function (oComponent) {
-                oCompContainer.setComponent(oComponent);
+                var oComponent = sap.ui.component({
+                    name: "sap.ui.ce.bin",
+                    manifestFirst: true,
+                    async: true
+                }).then(function (oComponent) {
+                    oCompContainer.setComponent(oComponent);
+                });
+                $('<div class=loadingDiv>Loading libraries</div>').prependTo(document.body);
+                $("#load").text("");
+
+                //            Util.stopSpin();
+
             });
-            $('<div class=loadingDiv>Loading libraries</div>').prependTo(document.body);
-            $("#load").text("");
-
-            //            Util.stopSpin();
-
-        });
+        },100);
         window.onbeforeunload = function (e) {
             return 'Are you sure you want to leave? ';
         };
+
     </script>
 
 </head>
 
-<body>
+<body class='sapUiBody' id="content">
     <div id="load">Loading libraries First Time..</div>
-    <div id="content">
-    </div>
 </body>
 
 </html>

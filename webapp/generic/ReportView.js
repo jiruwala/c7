@@ -3545,6 +3545,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 success: function (cssText) {
                     hd = cssText;
                     hd = "<style>" + hd + "</style>";
+                    hd = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>" + hd;
                     ht = "<html" + dir + ">" + "<head>" + hd + "</head><body>" + ht + "</body></html>";
                     // newWin.document.write(ht);
                     // $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);

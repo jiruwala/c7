@@ -51,7 +51,6 @@ sap.ui.jsview('bin.Dashboard', {
             showMenuButton: true,
             notificationsNumber: "0",
             homeIconPressed: function () {
-
                 var md = (that.app.getMode() == sap.m.SplitAppMode.HideMode ? sap.m.SplitAppMode.StretchCompressMode : sap.m.SplitAppMode.HideMode);
                 md = (that.standAlonMode ? sap.m.SplitAppMode.HideMode : md);
                 that.app.setMode(md);
@@ -59,8 +58,15 @@ sap.ui.jsview('bin.Dashboard', {
             copilotPressed: function () {
                 // var md = (that.app.getMode() == sap.m.SplitAppMode.HideMode ? sap.m.SplitAppMode.StretchCompressMode : sap.m.SplitAppMode.HideMode);
                 // that.app.setMode(md);
-                UtilGen.setControlValue(that.lstPgs, "main");
+                // UtilGen.setControlValue(that.lstPgs, "main");
+                // that.lstPgs.fireSelectionChange();
+                var cn = that.lstPgs.getItems().indexOf(that.lstPgs.getSelectedItem());
+                cn++;
+                if (cn > that.lstPgs.getItems().length - 1)
+                    cn = 0;
+                that.lstPgs.setSelectedItem(that.lstPgs.getItems()[cn]);
                 that.lstPgs.fireSelectionChange();
+
             },
             notificationsPressed: function (event) {
                 Util.Notifications.showList(event, event.getParameter("button"));
@@ -1582,7 +1588,7 @@ sap.ui.jsview('bin.Dashboard', {
         var getData = function () {
             var dt = Util.execSQL("select *from c7_menus where menu_code=" + Util.quoted(mc) + " and group_code=" + Util.quoted(that.current_profile));
             if (dt.ret == "SUCCESS" && dt.data.length > 0) {
-                var dtx = JSON.parse("{" + dt.data + "}").data;
+                var dtx = JSON.parse("{" + dt.data + "}").data; 
                 txtCode.setValue(dtx[0].MENU_CODE);
                 txtName.setValue(dtx[0].MENU_TITLE);
                 txtName2.setValue(dtx[0].MENU_TITLEA);

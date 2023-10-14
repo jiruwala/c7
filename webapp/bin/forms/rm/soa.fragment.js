@@ -226,7 +226,7 @@ sap.ui.jsfragment("bin.forms.rm.soa", {
                                 // disp_class: "paddingLR5P",
                                 disp_class: "reportTable2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
-                                dispRecords: { "S": 8, "M": 12, "L": 16, "XL": 22, "XXL": 35 },                                
+                                dispRecords: { "S": 8, "M": 12, "L": 16, "XL": 22, "XXL": 35 },
                                 execOnShow: false,
                                 canvas: "qry2Canvas",
                                 canvasType: ReportView.CanvasType.VBOX,
@@ -668,160 +668,65 @@ sap.ui.jsfragment("bin.forms.rm.soa", {
                     require: true,
                     dispInPara: true,
                 },
-                paccno: {
-                    colname: "paccno",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.SEARCHFIELD,
-                    title: '{\"text\":\"A/c No \",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "para_canvas",
-                    display_width: fullSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {
-                        width: "85%",
-                        customData: [{ key: "" }],
-                        search: function (event) {
-                            if (event != undefined
-                                && (event.getParameters().clearButtonPressed
-                                    || event.getParameters().refreshButtonPressed)) {
-                                // UtilGen.setControlValue(event.oSource, "", "", true);
-                                thatForm.frm.setFieldValue("RMSOA1@parameter.paccno", "", "", true);
-                                return;
-                            }
-                            Util.showSearchList("select accno,name from acaccount order by path", "NAME", "ACCNO", function (valx, val) {
-                                thatForm.frm.setFieldValue("RMSOA1@parameter.paccno", valx, val, true);
-                                sap.m.MessageToast.show(thatForm.frm.getFieldValue("RMSOA1@parameter.paccno"));
-                            });
-                        },
-                        change: function (event) {
-                            var vl = event.oSource.getValue();
-                            thatForm.frm.setFieldValue("RMSOA1@parameter.paccno", vl, vl, true);
-                        }
-
-
-                    },
-                    list: "select accno,name from acaccount order by path",
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: false,
-                    dispInPara: true,
-                },
-                pcc: {
-                    colname: "pcc",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.SEARCHFIELD,
-                    title: '{\"text\":\"Cost Center\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "para_canvas",
-                    display_width: fullSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {
-                        width: "85%",
-                        customData: [{ key: "" }],
-                        search: function (event) {
-                            if (event != undefined
-                                && (event.getParameters().clearButtonPressed
-                                    || event.getParameters().refreshButtonPressed)) {
-                                thatForm.frm.setFieldValue("RMSOA1@parameter.pcc", "", "", true);
-                                return;
-                            }
-                            Util.showSearchList("select code,title name from accostcent1 order by path", "NAME", "CODE", function (valx, val) {
-                                // UtilGen.setControlValue(obj, val, valx, true);
-                                thatForm.frm.setFieldValue("RMSOA1@parameter.pcc", valx, val, true);
-                                sap.m.MessageToast.show(thatForm.frm.getFieldValue("RMSOA1@parameter.pcc"));
-                            });
-
-                        },
-                        change: function (event) {
-                            var vl = event.oSource.getValue();
-                            thatForm.frm.setFieldValue("RMSOA1@parameter.pcc", vl, vl, true);
-                        }
-
-
-                    },
-                    list: "",
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: false,
-                    dispInPara: true,
-                },
                 pref: {
                     colname: "pref",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.SEARCHFIELD,
-                    title: '{\"text\":\"Reference\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtCust\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
-                    canvas: "para_canvas",
-                    display_width: fullSpan,
+                    display_width: colSpan,
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
                     default_value: "",
                     other_settings: {
-                        width: "85%",
-                        customData: [{ key: "" }],
-                        search: function (event) {
-                            if (event != undefined
-                                && (event.getParameters().clearButtonPressed
-                                    || event.getParameters().refreshButtonPressed)) {
-                                thatForm.frm.setFieldValue("RMSOA1@parameter.pref", "", "", true);
-                                return;
-                            }
-                            Util.showSearchList("select code,name from c_ycust order by path", "NAME", "CODE", function (valx, val) {
-                                thatForm.frm.setFieldValue("RMSOA1@parameter.pref", valx, val, true);
-                                sap.m.MessageToast.show(thatForm.frm.getFieldValue("RMSOA1@parameter.pref"));
+                        showValueHelp: true,
+                        change: function (e) {
+
+                            var vl = e.oSource.getValue();
+                            thatForm.frm.setFieldValue(repCode + "@parameter.pref", vl, vl, false);
+                            var vlnm = Util.getSQLValue("select name from c_ycust where code=" + Util.quoted(vl));
+                            thatForm.frm.setFieldValue(repCode + "@parameter.prefname", vlnm, vlnm, false);
+
+                        },
+                        valueHelpRequest: function (event) {
+                            Util.showSearchList("select code,name from c_ycust where iscust='Y' order by path", "NAME", "CODE", function (valx, val) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.pref", valx, valx, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.prefname", val, val, true);
                             });
 
                         },
-                        change: function (event) {
-                            var vl = event.oSource.getValue();
-                            thatForm.frm.setFieldValue("RMSOA1@parameter.pref", vl, vl, true);
-                        }
+                        width: "35%"
                     },
-                    list: "",
+                    list: undefined,
                     edit_allowed: true,
                     insert_allowed: true,
-                    require: false,
+                    require: true,
                     dispInPara: true,
                 },
-                pageing: {
-                    colname: "pageing",
+                prefname: {
+                    colname: "prefname",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '{\"text\":\"Ageing\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
                     title2: "",
-                    canvas: "para_canvas",
-                    display_width: fullSpan,
+                    display_width: colSpan,
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
                     default_value: "",
-                    other_settings: {
-                        width: "85%",
-                        items: {
-                            path: "/",
-                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                            templateShareable: true
-                        },
-                        selectedKey: "NONE",
-                    },
-                    list: "@NONE/NONE,DEBIT/DEBIT,CREDIT/CREDIT",
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: false,
+                    other_settings: { width: "49%", editable: false },
+                    list: undefined,
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true,
                     dispInPara: true,
                 },
             };
             return para;
         },
         addQryPL3: function (qryObj, ps, repCode) {
-    
+
         },
         getQryPL3: function (qryObj) {
         }
