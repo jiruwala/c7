@@ -46,7 +46,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
         FormView.aligns = {
             "ALIGN_LEFT": "left",
             "ALIGN_RIGHT": "right",
-            "ALIGN_CENTER": "center"
+            "ALIGN_CENTER": "center",
+            "ALIGN_BEGIN": "start",
+            "ALIGN_END": "end"
         };
 
         FormView.DataType = {
@@ -114,6 +116,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
         FormView.prototype.setParent = function (parent) {
             this.parent = parent;
         };
+
         FormView.prototype.parseForm = function (json) {
             var that = this;
             if (json.form == undefined)

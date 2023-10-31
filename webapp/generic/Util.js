@@ -1117,7 +1117,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     oFragment.open();
                 });
             },
-            execSQL: function (sql) {
+            execSQL: function (sql, asynch) {
                 var dtx = undefined;
                 if (sql.toLowerCase().startsWith("select")) {
                     this.doAjaxJson("sqlmetadata", {
@@ -1126,7 +1126,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         data: null
                     }
                         ,
-                        false
+                        Util.nvl(asynch, false)
                     ).done(function (data) {
                         dtx = data;
                     });
@@ -1265,9 +1265,19 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 dlg.open();
             },
 
-            getCellColValue: function (tbl, rowno, colname) {
-                var oModel = tbl.getModel();
-                var cv = oModel.getProperty("/" + rowno + "/" + colname);
+            getCellColValue: function (tbl, rowno, colname, directCell, rn) {
+                var cv;
+                if (!Util.nvl(directCell, false)) {
+                    var oModel = tbl.getModel();
+                    cv = oModel.getProperty("/" + rowno + "/" + colname);
+                }
+                else {
+                    var colno = UtilGen.getTableColNo(tbl,colname);
+                    if (tbl.getRows()[rn].getCells()[colno] instanceof sap.m.InputBase)
+                        cv = tbl.getRows()[rowno].getCells()[colno].getValue();
+                    if (tbl.getRows()[rn].getCells()[colno] instanceof sap.m.Text)
+                        cv = tbl.getRows()[rn].getCells()[colno].getText();
+                }
                 return cv;
             },
             setCellColValue: function (tbl, rowno, colname, value) {
@@ -1658,6 +1668,18 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 if (val >= 100000) return `${(value / 100000).toFixed(2)} Lac`;
                 if (val >= 1000) return `${(value / 1000).toFixed(2)} k`;
                 return value.toFixed(2);
+            },
+            //chatGPT 
+            extractBindVariables: function (query) {
+                const regex = /:(\w+)/g;
+                const bindVariables = [];
+                let match;
+
+                while ((match = regex.exec(query))) {
+                    bindVariables.push(match[1]);
+                }
+
+                return bindVariables;
             }
 
 

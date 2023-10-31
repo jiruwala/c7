@@ -21,10 +21,10 @@ sap.ui.jsview('bin.Dashboard', {
         this.addStyleClass("sapUiSizeCompact");
         this.timeInLong = (new Date()).getTime();
         Util.setLanguageModel(this);
-
+        this.autoHideMenus = true;
         var that = this;
         UtilGen.DBView = this;
-
+        this.standAlonMode = false;
         that.screen = -1;
         that.screen_name = "";
         that.screen_type = "Dashboard";
@@ -52,13 +52,21 @@ sap.ui.jsview('bin.Dashboard', {
             notificationsNumber: "0",
             homeIconPressed: function () {
                 var md = (that.app.getMode() == sap.m.SplitAppMode.HideMode ? sap.m.SplitAppMode.StretchCompressMode : sap.m.SplitAppMode.HideMode);
+                md = (that.standAlonMode ? sap.m.SplitAppMode.HideMode : md);
                 that.app.setMode(md);
             },
             copilotPressed: function () {
                 // var md = (that.app.getMode() == sap.m.SplitAppMode.HideMode ? sap.m.SplitAppMode.StretchCompressMode : sap.m.SplitAppMode.HideMode);
                 // that.app.setMode(md);
-                UtilGen.setControlValue(that.lstPgs, "main");
+                // UtilGen.setControlValue(that.lstPgs, "main");
+                // that.lstPgs.fireSelectionChange();
+                var cn = that.lstPgs.getItems().indexOf(that.lstPgs.getSelectedItem());
+                cn++;
+                if (cn > that.lstPgs.getItems().length - 1)
+                    cn = 0;
+                that.lstPgs.setSelectedItem(that.lstPgs.getItems()[cn]);
                 that.lstPgs.fireSelectionChange();
+
             },
             notificationsPressed: function (event) {
                 Util.Notifications.showList(event, event.getParameter("button"));
@@ -78,7 +86,8 @@ sap.ui.jsview('bin.Dashboard', {
                     that.app.hideMaster();
                 }
                 else
-                    that.app.showMaster();
+                    if (!that.standAlonMode)
+                        that.app.showMaster();
             },
             menu: new sap.m.Menu({
                 items: [
@@ -698,6 +707,7 @@ sap.ui.jsview('bin.Dashboard', {
         var changeProfile = Util.nvl(pChangeProfile, true);
         var exePara = Util.nvl(pexePara, true);
         var mdl = sap.ui.getCore().getModel("settings");
+        that.standAlonMode = false;
         if (mdl == undefined) {
             this.do_logon();
             return;
@@ -709,6 +719,9 @@ sap.ui.jsview('bin.Dashboard', {
             return;
         }
         var url = new URL(window.location.href);
+        var sm = url.searchParams.get("standalone");
+        if (sm != undefined && sm == "true")
+            that.standAlonMode = true;
         var user = url.searchParams.get("user");
         if (exePara && user != undefined) {
             this.do_logon();
@@ -874,12 +887,13 @@ sap.ui.jsview('bin.Dashboard', {
         var secs = {};
 
         UtilGen.clearPage(this.pg);
+        this.updateMenus();
+
+        if (that.standAlonMode) return;
 
         this.app.toDetail(this.pg);
 
 
-
-        this.updateMenus();
         var sq = "select v_secs.*  from v_secs where menu_group='" + that.current_profile + "' and menu_id=1 order by ms_id,ss_id,tile_id";
         var dt = Util.execSQL(sq);
 
@@ -992,10 +1006,26 @@ sap.ui.jsview('bin.Dashboard', {
         UtilGen.execCmd(tile.dtx.EXEC_LINE, this, tile, this.newPage);
     }
     ,
+    autoShowHideMenu: function (showHide, parentWnd) {
+        var that = this;
+        if (!this.autoHideMenus)
+            return;
+        if (parentWnd != undefined && !(parentWnd instanceof sap.m.Page))
+            return;
+        if (showHide)
+            that.app.setMode(sap.m.SplitAppMode.StretchCompressMode);
+        else
+            that.app.setMode(sap.m.SplitAppMode.HideMode);
+    },
     show_main_menus: function () {
         var that = this;
 
         UtilGen.clearPage(this.pgMain);
+        if (this.standAlonMode) {
+            this.app.setMode(sap.m.SplitAppMode.HideMode);
+            return;
+        }
+
         var btnMnu = new sap.m.Button({
             icon: "sap-icon://drop-down-list",
             text: this.current_profile_name,
@@ -1038,12 +1068,33 @@ sap.ui.jsview('bin.Dashboard', {
                 mnu.openBy(this);
             }
         }).addStyleClass("profileMenus");
+
         var tb = new sap.m.Toolbar({
             width: "100%",
             content: [
                 new sap.m.Button({
-                    icon: "sap-icon://log", press: function () {
-                        that.do_log_out();
+                    icon: "sap-icon://action-settings", press: function () {
+                        // that.do_log_out();   
+                        var mnu = new sap.m.Menu();
+                        var m1 = new sap.m.MenuItem({
+                            text: "Log Off",
+                            icon: "sap-icon://log",
+                            press: function () {
+                                that.do_log_out();
+                            }
+                        });
+                        var m2 = new sap.m.MenuItem({
+                            icon: that.autoHideMenus ? "sap-icon://accept" : "",
+                            text: "Auto Hide Menus",
+                            press: function () {
+                                that.autoHideMenus = !that.autoHideMenus;
+                            }
+                        })
+
+                        mnu.addItem(m1);
+                        if (!sap.ui.Device.system.phone)
+                            mnu.addItem(m2);
+                        mnu.openBy(this);
                     }
                 }),
                 btnMnu
@@ -1543,16 +1594,16 @@ sap.ui.jsview('bin.Dashboard', {
             }
             sq = sq.replaceAll(":MENU_CODE", txtCode.getValue());
             sq = sq.replaceAll(":GROUP_CODE", that.current_profile);
-            sq = sq.replaceAll(":MENU_TITLE", txtName.getValue());
             sq = sq.replaceAll(":MENU_TITLEA", txtName2.getValue());
+            sq = sq.replaceAll(":MENU_TITLE", txtName.getValue());
             sq = sq.replaceAll(":PARENT_MENUCODE", txtParent.getValue());
             sq = sq.replaceAll(":MENU_PATH", genPath(txtParent.getValue(), txtCode.getValue()));
             sq = sq.replaceAll(":JS_COMMAND", txtJS.getValue());
             sq = sq.replaceAll(":TYPE_OF_EXEC", chkTypeMenu.getSelected() ? "PARENT" : "QUERY");
             sq = sq.replaceAll(":SHORTCUT_ICON", txtShortIcon.getValue());
-            sq = sq.replaceAll(":SHORTCUT", hvShortCut.getSelected() ? "Y" : "N");            
-            sq = sq.replaceAll(":SHORT_TITLE", txtShortTitle1.getValue());
+            sq = sq.replaceAll(":SHORTCUT", hvShortCut.getSelected() ? "Y" : "N");
             sq = sq.replaceAll(":SHORT_TITLEA", txtShortTitle2.getValue());
+            sq = sq.replaceAll(":SHORT_TITLE", txtShortTitle1.getValue());
             // sq=sq.replaceAll(":",);
             var dt = Util.execSQL(sq);
             return dt.ret;
@@ -1572,7 +1623,7 @@ sap.ui.jsview('bin.Dashboard', {
                 var dtx = JSON.parse("{" + dt.data + "}").data;
                 txtCode.setValue(dtx[0].MENU_CODE);
                 txtName.setValue(dtx[0].MENU_TITLE);
-                txtName2.setValue(dtx[0].MENU_TITLE2);
+                txtName2.setValue(dtx[0].MENU_TITLEA);
                 txtParent.setValue(dtx[0].PARENT_MENUCODE);
                 txtParentName.setValue(Util.getSQLValue("select menu_title from c7_menus where menu_code=" + Util.quoted(dtx[0].PARENT_MENUCODE) + " and group_code=" + Util.quoted(that.current_profile)));
                 txtJS.setValue(dtx[0].JS_COMMAND);
@@ -1783,6 +1834,14 @@ sap.ui.jsview('bin.Dashboard', {
                             var rf = Util.nvl(this.getCustomData()[4].getKey(), "");
                             var fldCode = that.byId("para_" + this.getCustomData()[1].getKey() + "__" + that.timeInLong);
                             var fldTit = that.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
+                            if (sq != "")
+                                for (var pi in parAr) {
+                                    var vl = UtilGen.getControlValue(that.byId("para_" + parAr[pi] + "__" + that.timeInLong));
+                                    if (vl != null && vl instanceof Date)
+                                        vl = Util.toOraDateString(vl);
+
+                                    sq = sq.replaceAll(":" + parAr[pi], Util.nvl(vl, ""));
+                                }
                             Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
                                 UtilGen.setControlValue(fldCode, data.CODE, data.CODE, true);
                                 if (fldTit != undefined)

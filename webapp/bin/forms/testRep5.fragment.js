@@ -479,7 +479,8 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 // disp_class: "paddingLR5P",
                                 disp_class: "reportTable2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
-                                dispRecords: { "S": 6, "M": 15, "L": 18, "XL": 22, "XXL": 35 },
+                                dispRecords: { "S": 8, "M": 12, "L": 16, "XL": 22, "XXL": 35 },
+                                rowHeight: 18,
                                 execOnShow: false,
                                 canvas: "qry2Canvas",
                                 canvasType: ReportView.CanvasType.VBOX,
@@ -491,6 +492,10 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 // parent: "PARENTACC",
                                 code: "ACCNO",
                                 title: "NAME",
+                                afterApplyCols: function (qryObj) {
+                                    if (thatForm.jp.getParent() instanceof sap.m.Page)
+                                        UtilGen.DBView.autoShowHideMenu(false);
+                                },
                                 beforeLoadQry: function (sql) {
                                     // var sq =
                                     //     "BEGIN C6_STATMENT(:parameter.fromdate,:parameter.todate,':parameter.paccno',':parameter.pcc',':parameter.pref','ALL',TRUE,':parameter.pageing'); COMMIT; END;";
@@ -1411,8 +1416,9 @@ sap.ui.jsfragment("bin.forms.testRep5", {
 
         var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
         // if (bk.length > 0) {
+
         var plsql = "declare ";
-        //cursor su is ----in getaccbal function to replace
+        //cursor su is ----in getaccbal function to replace        
         var sqxAB = "SELECT nvl(sum(deb-crd),0) bal FROM :V_STATMENT_1 v " +
             " WHERE v.PATH LIKE ACNo AND VOU_DATE<DT AND " +
             " (cost_PATH  LIKE CC||'%' or cc is null) " +
@@ -1429,13 +1435,20 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var sqx = " SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
             " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
             " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
-            " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
+            " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code ";
+
+        var sqxcnt = "SELECT NVL(count(*),0) CNTS FROM :ACVOUCHER2 V, ACACCOUNT A " +
+            " WHERE PATH LIKE (select nvl(max(path),'') from acaccount where accno=':parameter.fromacc' )||'%' " +
+            " AND VOU_DATE>=:parameter.fromdate AND VOU_DATE<=:parameter.todate " +
+            " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION ";
+
 
         var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs1 = [sqxAB.replaceAll(":V_STATMENT_1", "V_STATMENT_1").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs2 = [sqxAx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs3 = [sqxAx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
-
+        var sqsc = [sqxcnt.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        
         for (var bi in bk) {
             sqs.push(sqx.
                 replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
@@ -1449,9 +1462,13 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             sqs3.push(sqxAx2.
                 replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
                 replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+            sqsc.push(sqxcnt.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
+
         }
         var sqls = "";
-        var sqls1 = "", sqls2 = "", sqls3 = "";
+        var sqls1 = "", sqls2 = "", sqls3 = "", sqlsc = "";
         for (var si in sqs)
             sqls += (sqls.length > 0 ? " union all " : "") + sqs[si];
         for (var si in sqs1)
@@ -1460,6 +1477,8 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             sqls2 += (sqls2.length > 0 ? " union all " : "") + sqs2[si];
         for (var si in sqs3)
             sqls3 += (sqls3.length > 0 ? " union all " : "") + sqs3[si];
+        for (var si in sqsc)
+            sqlsc += (sqlsc.length > 0 ? " union all " : "") + sqsc[si];
 
         var paras = "fromdt date := :parameter.fromdate;";
         paras += "todt date := :parameter.todate;";
@@ -1473,22 +1492,33 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         sqls = sqls.replaceAll(":_CURSOR_ACX2", sqls3);
 
         sqls = thatForm.frm.parseString(sqls);
-        console.log(sqls);
-        var dt = Util.execSQL(sqls);
-        if (dt.ret != "SUCCESS")
-            FormView.err("Err. executing sql for multiple years !");
-        // }
-        // else {
-        //     var sq =
-        //         "BEGIN C7_STATMENT_ACCS(:parameter.fromdate,:parameter.todate,':parameter.fromacc',':parameter.toacc'); COMMIT; END;";
-        //     sq = thatForm.frm.parseString(sq);
-        //     Util.doAjaxJson("sqlmetadata?", {
-        //         sql: sq,
-        //         ret: "NONE",
-        //         data: null
-        //     }, false).done(function (data) {
-        //     });
-        // }
+        // console.log(sqls);
+        var cntdt = Util.execSQLWithData(thatForm.frm.parseString(sqlsc));
+        var sumcnt = 0;
+        for (var cnti = 0; cnti < cntdt.length; cnti++)
+            sumcnt += cntdt[cnti].CNTS;
+
+        var execSq = function () {
+            var dt = Util.execSQL(sqls);
+            if (dt.ret != "SUCCESS")
+                FormView.err("Err. executing sql for multiple years !");
+        };
+        if (sumcnt > 5000) {
+            jQuery.sap.require("sap.m.MessageBox");
+            sap.m.MessageBox.confirm("Are you sure to execute recoreds # " + sumcnt + " #  ?", {
+                title: "Confirm",                                    // default
+                onClose: function (oAction) {
+                    if (oAction == sap.m.MessageBox.Action.OK) {
+                        execSq();
+                    }
+                },                                       // default
+                styleClass: "",                                      // default
+                initialFocus: null,                                  // default
+                textDirection: sap.ui.core.TextDirection.Inherit     // default
+            });
+        } else
+            execSq();
+
 
     }
     ,

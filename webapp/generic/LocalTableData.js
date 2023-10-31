@@ -388,6 +388,8 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
             this.cols = nData.cols.slice(0);
             this.rows = nData.rows.slice(0);
             this.masterRows = this.rows.slice(0);
+            this.dataJson.metadata = lstCols;
+
         };
 
         LocalTableData.prototype.addRow = function () {

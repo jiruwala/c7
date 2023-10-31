@@ -178,10 +178,13 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             var showmonth = thatForm.frm.getFieldValue("parameter.showMonth");
-                                            if (showmonth == "Y")
+                                            if (showmonth == "Y") {
+                                                UtilGen.DBView.autoShowHideMenu(false, thatForm.jp.getParent());
                                                 return thatForm.helperFunc.getQryPL3_1(qryObj);
+                                            }
 
                                             thatForm.helperFunc.getQryPL3(qryObj);
+
 
                                         }
                                     },
@@ -468,9 +471,11 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     }
                     paras["fnOnCellClick"] = function (oData, rowno, col) {
                         var st = "";
-                        if ((col == "CODE" || col == "DESCR") && oData[rowno]["CODE"] != null) {
+                        if ((col == "CODE" || col == "DESCR") && oData[rowno]["REFER"] != null) {
                             // var sq1="";
                             // st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+
+
                         }
                         return st;
                     }

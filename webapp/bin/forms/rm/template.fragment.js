@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rm.ccp", {
+sap.ui.jsfragment("bin.forms.rm.template", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -328,7 +328,6 @@ sap.ui.jsfragment("bin.forms.rm.ccp", {
                         // if (oData[rowno]["CODE"].startsWith("com_") ||
                         //     oData[rowno]["CODE"] == "avgsales")
                         //     st += "vertical-align:top;font-weight:bold;";
-
                         return st;
                     }
                     paras["fnOnCellValue"] = function (oData, rowno, col, cellValue) {
