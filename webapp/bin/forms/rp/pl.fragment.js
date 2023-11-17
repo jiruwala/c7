@@ -143,6 +143,9 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQryPL1(qryObj);
+                                            if (qryObj.rep.hideMainMenu)
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp.getParent());
+
                                         }
                                     },
                                 }
@@ -260,6 +263,9 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             var thatObj = this;
                                             thatForm.helperFunc.getQryPL2(qryObj);
+                                            if (qryObj.rep.hideMainMenu)
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp.getParent());
+
                                         }
                                     },
                                 }
@@ -361,6 +367,9 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQryPL3(qryObj);
+                                            if (qryObj.rep.hideMainMenu)
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp.getParent());
+
                                         }
                                     },
                                 }
@@ -783,7 +792,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                 (ez == "Y" ? " and ((to_number(field5)+to_number(field7))-(to_number(field6)+to_number(field8))!=0  or field1='-' ) " : "") +
                 " and usernm='01' and (:parameter.levelno=0 or to_number(FIELD16)<=:parameter.levelno )  order by field17 ";
             sq = thatForm.frm.parseString(sq);
-            var pars = Util.nvl(qryObj.rep.rep.parameters, []);
+            var pars = Util.nvl(qryObj.rep.parameters, []);
 
             Util.doAjaxJson("bat7addQry?" + ps, {
                 sql: sq,
@@ -1041,7 +1050,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                 (ez == "Y" ? " and to_number(field7)-to_number(field8)!=0 " : "") +
                 " and usernm='01' and (0=0 or to_number(FIELD16)<=0 )  order by TO_NUMBER(FIELD15)) ";
             sq = thatForm.frm.parseString(sq);
-            var pars = Util.nvl(qryObj.rep.rep.parameters, []);
+            var pars = Util.nvl(qryObj.rep.parameters, []);
 
             Util.doAjaxJson("bat7addQry?" + ps, {
                 sql: sq,
@@ -1230,7 +1239,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                 sq += (sq.length > 0 ? " union all " : "") + sqs[si];
             sq = sq + " order by path,yr_code ";
             sq = thatForm.frm.parseString(sq);
-            var pars = Util.nvl(qryObj.rep.rep.parameters, []);
+            var pars = Util.nvl(qryObj.rep.parameters, []);
             Util.doAjaxJson("bat7addQry?" + ps, {
                 sql: sq,
                 ret: "",
@@ -1275,7 +1284,6 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                     };
                     var ld = new LocalTableData();
                     ld.parseCol("{" + dt.data + "}");
-
                     ld.cols[ld.getColPos("ACCNO")].mUIHelper.display_width = "180";
                     ld.cols[ld.getColPos("NAME")].mUIHelper.display_width = "400";
                     ld.cols[ld.getColPos("ACCNO")].ct_row = "Y";

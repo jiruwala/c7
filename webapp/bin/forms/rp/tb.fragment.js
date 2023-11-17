@@ -3,11 +3,13 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
         var that = this;
         this.oController = oController;
         this.view = oController.getView();
+        this.helperFunc.init(this);
         this.qryStr = "";
         // this.joApp = new sap.m.SplitApp({mode: sap.m.SplitAppMode.HideMode,});
         // this.joApp2 = new sap.m.App();
         this.timeInLong = (new Date()).getTime();
-
+        this.monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        this.monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
 
         this.bk = new sap.m.Button({
             icon: "sap-icon://nav-back",
@@ -32,590 +34,34 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
         var that2 = this;
         var thatForm = this;
         var view = this.view;
-        var fullSpan = "XL8 L8 M8 S12";
         var colSpan = "XL2 L2 M2 S12";
         var sumSpan = "XL2 L2 M2 S12";
-        var cmdLink = function (obj, rowno, colno, lctb, frm) {
-            if (obj == undefined) return;
-            var tbl = obj.getParent().getParent();
-            var mdl = tbl.getModel();
-            var rr = tbl.getRows().indexOf(obj.getParent());
-            var cont = tbl.getContextByIndex(rr);
-            var rowid = mdl.getProperty("_rowid", cont);
-            // var ac = Util.nvl(lctb.getFieldValue(rowid, "ACCNO"), "");
-            var ac = tbl.getRows()[rr].getCells()[0].getText();
 
-            var mnu = new sap.m.Menu();
-            mnu.removeAllItems();
-
-            mnu.addItem(new sap.m.MenuItem({
-                text: "SOA A/c -" + ac,
-                customData: { key: ac },
-                press: function () {
-                    var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + accno + " toacc=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
-                }
-            }));
-            mnu.addItem(new sap.m.MenuItem({
-                text: "View A/c -" + ac,
-                customData: { key: ac },
-                press: function () {
-                    var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,400px status=view accno=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-                }
-            }));
-            mnu.openBy(obj);
-
-        }
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};
         var fe = [];
 
-        // this.frm = this.createViewHeader();
-        // this.frm.getToolbar().addContent(this.bk);
-
-        // Util.destroyID("poCmdSave", this.view);
-        // this.frm.getToolbar().addContent(new sap.m.Button(this.view.createId("poCmdSave"), {
-        //     icon: "sap-icon://save", press: function () {
-        //         that.save_data();
-        //     }
-        // }));
-        //
-        // Util.destroyID("poCmdDel", this.view);
-        // this.frm.getToolbar().addContent(new sap.m.Button(this.view.createId("poCmdDel"), {
-        //     icon: "sap-icon://delete", press: function () {
-        //         that.delete_data();
-        //     }
-        // }));
-        // that.createScrollCmds(this.frm.getToolbar());
-
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("trialBalance"),
+            title: Util.getLangText("finStat"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "TB001",
-                    name: "Trial Balance",
-                    nameAR: "ميزان المراجعة",
-                    descr: "Standard Trial balance with debit/credit transaction on give period",
-                    descrAR: "ميزان المراجعة مع المعاملات في فترة معينة",
+                    name: Util.getLangText("tbName1"),
+                    descr: Util.getLangText("tbTit1"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
-                    showCustomPara: function (vbPara, rep) {
-
-                    },
+                    printCSS: "print2.css",
                     onSubTitHTML: function () {
                         var up = thatForm.frm.getFieldValue("parameter.unposted");
-                        var tbstr = Util.getLangText("trialBalance");
-                        var ua = Util.getLangText("unAudited");
-                        var cs = thatForm.frm.getFieldValue("parameter.costcent");
-                        var csnm = thatForm.frm.getFieldValue("parameter.csname");
-                        var ht = "<div class='reportTitle'>" + tbstr + (up == "Y" ? " (" + ua + ") " : "") + "</div > ";
-                        if (cs != "")
-                            ht += "<div class='reportTitle2'>" + Util.getLangText("costCent") + " : " + cs + "-" + csnm + "</div > ";
-                        return ht;
-
-                    },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin-left: 10%;" +
-                            "margin-right: 10%;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
-                    rep: {
-                        parameters: {
-                            fromdate: {
-                                colname: "fromdate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$FIRSTDATEOFYEAR",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            todate: {
-                                colname: "todate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '@{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            accno: {
-                                colname: "accno",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("TB001@parameter.accno", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select name from acaccount where accno =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("TB001@parameter.acname", vlnm, vlnm, false);
-
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        Util.showSearchList("select accno,name from acaccount where actype=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("TB001@parameter.accno", valx, valx, true);
-                                            thatForm.frm.setFieldValue("TB001@parameter.acname", val, val, true);
-                                        });
-
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            acname: {
-                                colname: "acname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            costcent: {
-                                colname: "costcent",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"costCent\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                showInPreview: false,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("TB001@parameter.costcent", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select title from accostcent1 where CODE =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("TB001@parameter.csname", vlnm, vlnm, false);
-
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("TB001@parameter.costcent", valx, valx, true);
-                                            thatForm.frm.setFieldValue("TB001@parameter.csname", val, val, true);
-                                        });
-
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            csname: {
-                                colname: "csname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                showInPreview: false,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            levelno: {
-                                colname: "levelno",
-                                data_type: FormView.DataType.Number,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"levelNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "0",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            incrp: {
-                                colname: "incrp",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"inclRP\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-                            unposted: {
-                                colname: "unposted",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '@{\"text\":\"unAudited\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                showInPreview: false,
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-                            exclzero: {
-                                colname: "exclzero",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"exclZero\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-                        },
-                        print_templates: [
-                            {
-                                title: "PDF",
-                                reportFile: "tb001",
-                            }
-                        ],
-                        canvas: [],
-                        db: [
-                            {
-                                type: "query",
-                                name: "qry2",
-                                showType: FormView.QueryShowType.QUERYVIEW,
-                                disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 14, "L": 20 },
-                                execOnShow: false,
-                                dml: "select '01' accno , 'do it' descr from dual",
-                                parent: "PARENTACC",
-                                levelCol: "LEVELNO",
-                                code: "ACCNO",
-                                title: "NAME",
-                                fixedCols: 2,
-                                isMaster: false,
-                                showToolbar: true,
-                                masterToolbarInMain: false,
-                                filterCols: ["ACCNO", "NAME"],
-                                canvasType: ReportView.CanvasType.VBOX,
-                                onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
-                                    var oModel = this.getControl().getModel();
-                                    var cc = oModel.getProperty("CHILDCOUNT", currentRowContext);
-                                    if (cc > 0)
-                                        for (var i = startCell; i < endCell; i++) {
-                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("font-weight", "bold");
-                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("font-weight", "bold");
-                                        }
-                                },
-                                beforeLoadQry: function (sql) {
-                                    var sq =
-                                        "begin " +
-                                        "  cp_acc.plevelno:=:parameter.levelno;" +
-                                        "  cp_acc.pfromdt:=:parameter.fromdate;" +
-                                        "  cp_acc.ptodt:=:parameter.todate; " +
-                                        "  cp_acc.pfromacc:=':parameter.accno'; " +
-                                        "  cp_acc.prnp:=':parameter.incrp'; " +
-                                        "  cp_acc.pcc:=':parameter.costcent'; " +
-                                        "  cp_acc.punposted:=':parameter.unposted'; " +
-                                        "  cp_acc.build_gl('01'); " +
-                                        "  commit; " +
-                                        "end;";
-                                    sq = thatForm.frm.parseString(sq);
-                                    Util.doAjaxJson("sqlmetadata?", {
-                                        sql: sq,
-                                        ret: "NONE",
-                                        data: null
-                                    }, false).done(function (data) {
-                                    });
-                                    var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-                                    return "select field1 accno,field2 name,field19 parentacc,field17 path," +
-                                        " to_number(field5) bdeb,to_number(field6) bcrd," +
-                                        " to_number(field7) tdeb, to_number(field8) tcrd, " +
-                                        " to_number(field13) cdeb, to_number(field14) ccrd, " +
-                                        " to_number(FIELD16) levelno , to_number(field18) childcount " +
-                                        " from temporary " +
-                                        " where idno=66601 " +
-                                        (ez == "Y" ? " and to_number(field7)-to_number(field8)!=0  " : "") +
-                                        " and usernm='01' order by field17 ";
-                                },
-                                fields: {
-                                    accno: {
-                                        colname: "accno",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "accNo",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-
-                                    },
-                                    name: {
-                                        colname: "name",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "titleTxt",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "300",
-                                        display_align: "ALIGN_LEFT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    parentacc: {
-                                        colname: "parentacc",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "parentacc",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "300",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        display_type: "INVISIBLE",
-                                        other_settings: {},
-                                        grouped: false,
-                                    },
-                                    childcount: {
-                                        colname: "childcount",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "childcount",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "10",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        display_type: "INVISIBLE",
-                                        other_settings: {},
-                                        grouped: false,
-                                    },
-                                    bdeb: {
-                                        colname: "bdeb",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "debitTxt",
-                                        valOnZero: "",
-                                        title2: "",
-                                        parentTitle: "openBal",
-                                        parentSpan: 2,
-                                        display_width: "100",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_debit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
-                                    bcrd: {
-                                        colname: "bcrd",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "creditTxt",
-                                        valOnZero: "",
-                                        title2: "",
-                                        parentTitle: "openBal",
-                                        parentSpan: 2,
-                                        display_width: "100",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_credit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
-                                    tdeb: {
-                                        colname: "tdeb",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "debitTxt",
-                                        title2: "",
-                                        parentTitle: "transTxt",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "100",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_debit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
-                                    tcrd: {
-                                        colname: "tcrd",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "creditTxt",
-                                        title2: "",
-                                        parentTitle: "transTxt",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "100",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_credit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
-                                    cdeb: {
-                                        colname: "cdeb",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "debitTxt",
-                                        title2: "",
-                                        parentTitle: "closeBal",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "100",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_debit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
-                                    ccrd: {
-                                        colname: "ccrd",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "creditTxt",
-                                        title2: "",
-                                        parentTitle: "closeBal",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "100",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_credit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
-
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    code: "TB002",
-                    name: "Trial Balance",
-                    descr: "Standard Trial Balance with closing balances",
-                    nameAR: "ميزان المراجعة",
-                    descrAR: "ميزان المراجعة مع الأرصدة الختامية",
-                    paraColSpan: undefined,
-                    hideAllPara: false,
-                    paraLabels: undefined,
-                    showSQLWhereClause: true,
-                    showFilterCols: true,
-                    showDispCols: true,
-                    onSubTitHTML: function () {
-                        var up = thatForm.frm.getFieldValue("parameter.unposted");
-                        var tbstr = Util.getLangText("trialBalance");
+                        var tbstr = Util.getLangText("tbName1") + ": " + thatForm.frm.getFieldValue("parameter.acname");
                         var ua = Util.getLangText("unAudited");
                         var cs = thatForm.frm.getFieldValue("parameter.costcent");
                         var csnm = thatForm.frm.getFieldValue("parameter.csname");
@@ -628,242 +74,13 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        css: {
-                            "padding-left": "50px",
-                            // "padding-top:20px;",
-                            "border-style": "inset",
-                            // "margin-left: 10%;",
-                            // "margin-right: 10%;",
-                            // "border-radius:25px;",
-                            "background-color": "#dcdcdc"
-                        }
-                    },
+                    mainParaContainerSetting: ReportUtils.Report.getMainParaContainerSettings(),
                     rep: {
-                        parameters: {
-                            fromdate: {
-                                colname: "fromdate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$FIRSTDATEOFYEAR",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            todate: {
-                                colname: "todate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '@{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            accno: {
-                                colname: "accno",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("TB002@parameter.accno", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select name from acaccount where accno =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("TB002@parameter.acname", vlnm, vlnm, false);
-
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        Util.showSearchList("select accno,name from acaccount where actype=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("TB002@parameter.accno", valx, valx, true);
-                                            thatForm.frm.setFieldValue("TB002@parameter.acname", val, val, true);
-                                        });
-
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            acname: {
-                                colname: "acname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            costcent: {
-                                colname: "costcent",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"costCent\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                showInPreview: false,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("TB001@parameter.costcent", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select title from accostcent1 where CODE =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("TB001@parameter.csname", vlnm, vlnm, false);
-
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("TB001@parameter.costcent", valx, valx, true);
-                                            thatForm.frm.setFieldValue("TB001@parameter.csname", val, val, true);
-                                        });
-
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            csname: {
-                                colname: "csname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                showInPreview: false,
-                                display_width: colSpan,
-                                showInPreview: false,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            levelno: {
-                                colname: "levelno",
-                                data_type: FormView.DataType.Number,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"levelNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "0",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            incrp: {
-                                colname: "incrp",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"inclRP\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-                            unposted: {
-                                colname: "unposted",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"unAudited\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                showInPreview: false,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-                            exclzero: {
-                                colname: "exclzero",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '@{\"text\":\"exclZero\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-                        },
+                        parameters: thatForm.helperFunc.getParas("TB001"),
                         print_templates: [
                             {
-                                title: "PDF",
-                                reportFile: "tb001",
+                                title: "PL Report",
+                                reportFile: "trans_1",
                             }
                         ],
                         canvas: [],
@@ -871,611 +88,71 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                             {
                                 type: "query",
                                 name: "qry2",
-                                showType: FormView.QueryShowType.QUERYVIEW,
-                                disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 14, "L": 20 },
+                                showType: FormView.QueryShowType.FORM,
+                                disp_class: "",
+                                dispRecords: -1,
                                 execOnShow: false,
-                                dml: "select '01' accno , 'do it' descr from dual",
-                                parent: "PARENTACC",
-                                levelCol: "LEVELNO",
-                                code: "ACCNO",
-                                title: "NAME",
-                                fixedCols: 0,
+                                dml: "",
+                                parent: "",
+                                levelCol: "",
+                                code: "",
+                                title: "",
                                 isMaster: false,
-                                showToolbar: true,
+                                isCrossTb: "N",
+                                showToolbar: false,
                                 masterToolbarInMain: false,
-                                filterCols: ["ACCNO", "NAME"],
-                                canvasType: ReportView.CanvasType.VBOX,
-                                onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
-                                    var oModel = this.getControl().getModel();
-                                    var cc = oModel.getProperty("CHILDCOUNT", currentRowContext);
-                                    if (cc > 0)
-                                        for (var i = startCell; i < endCell; i++) {
-                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("font-weight", "bold");
-                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("font-weight", "bold");
-                                        }
-                                },
-                                beforeLoadQry: function (sql) {
-                                    var sq =
-                                        "begin " +
-                                        "  cp_acc.plevelno:=:parameter.levelno;" +
-                                        "  cp_acc.pfromdt:=:parameter.fromdate;" +
-                                        "  cp_acc.ptodt:=:parameter.todate; " +
-                                        "  cp_acc.prnp:=':parameter.incrp'; " +
-                                        "  cp_acc.pcc:=':parameter.costcent'; " +
-                                        "  cp_acc.pfromacc:=':parameter.accno'; " +
-                                        "  cp_acc.punposted:=':parameter.unposted'; " +
-                                        "  cp_acc.build_gl('01'); " +
-                                        "  commit; " +
-                                        "end;";
-                                    sq = thatForm.frm.parseString(sq);
-                                    Util.doAjaxJson("sqlmetadata?", {
-                                        sql: sq,
-                                        ret: "NONE",
-                                        data: null
-                                    }, false).done(function (data) {
-                                    });
-                                    var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-                                    return "select field1 accno,field2 name,field19 parentacc,field17 path," +
-                                        " to_number(field5) bdeb,to_number(field6) bcrd," +
-                                        " to_number(field7) tdeb, to_number(field8) tcrd, " +
-                                        " to_number(field13) cdeb, to_number(field14) ccrd, " +
-                                        " to_number(FIELD16) levelno ,to_number(field18) childcount" +
-                                        " from temporary " +
-                                        " where idno=66601 " +
-                                        (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
-                                        " and usernm='01' order by field17 ";
+                                filterCols: [],
+                                canvasType: ReportView.CanvasType.SCROLLCONTAINER,
+
+                                bat7CustomAddQry: function (qryObj, ps) {
+
                                 },
                                 fields: {
                                     accno: {
                                         colname: "accno",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "accNo",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-
-                                    },
-                                    name: {
-                                        colname: "name",
                                         data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "titleTxt",
+                                        class_name: FormView.ClassTypes.SCROLLCONTAINER,
+                                        title: '',
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
-                                        display_width: "300",
-                                        display_align: "ALIGN_LEFT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    parentacc: {
-                                        colname: "parentacc",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "parentacc",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "300",
+                                        display_width: "",
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
                                         display_format: "",
-                                        display_type: "INVISIBLE",
-                                        other_settings: {},
-                                        grouped: false,
-                                    },
-                                    childcount: {
-                                        colname: "childcount",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "childcount",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "300",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        display_type: "INVISIBLE",
-                                        other_settings: {},
-                                        grouped: false,
-                                    },
-                                    cdeb: {
-                                        colname: "cdeb",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "debitTxt",
-                                        title2: "",
-                                        parentTitle: "closeBal",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_debit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
                                         default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
                                         other_settings: {},
-                                    },
-                                    ccrd: {
-                                        colname: "ccrd",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "creditTxt",
-                                        title2: "",
-                                        parentTitle: "closingBal",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_credit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
+                                        onPrintField: function () {
+                                            return thatForm.qr.getContent();
+                                        },
+                                        afterAddOBject: function () {
+                                            thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
+                                            var vb = new sap.m.VBox({ width: "-1px", items: [thatForm.qr] }).addStyleClass("sapUiSmallMargin");
+                                            this.obj.addContent(vb);
 
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    code: "TB003",
-                    name: "Trial balance transaction",
-                    descr: "Accounts transaction summary",
-                    nameAR: "عملية ميزان المراجعة",
-                    descrAR: "إجمالي عمليات الحسابات",
-                    paraColSpan: undefined,
-                    hideAllPara: false,
-                    paraLabels: undefined,
-                    showSQLWhereClause: true,
-                    showFilterCols: true,
-                    showDispCols: true,
-                    onSubTitHTML: function () {
-                        var up = thatForm.frm.getFieldValue("parameter.unposted");
-                        var tbstr = Util.getLangText("trialBalance");
-                        var ua = Util.getLangText("unAudited");
-                        var cs = thatForm.frm.getFieldValue("parameter.costcent");
-                        var csnm = thatForm.frm.getFieldValue("parameter.csname");
-                        var ht = "<div class='reportTitle'>" + tbstr + (up == "Y" ? " (" + ua + ") " : "") + "</div > ";
-                        if (cs != "")
-                            ht += "<div class='reportTitle2'>" + Util.getLangText("costCent") + " : " + cs + "-" + csnm + "</div > ";
-                        return ht;
+                                        },
+                                        bat7OnSetFieldAddQry: function (qryObj, ps) {
 
-                    },
-                    showCustomPara: function (vbPara, rep) {
+                                            var ag = thatForm.frm.getFieldValue("TB001@parameter.accno");
+                                            if (ag == "NONE") {
+                                                this.obj.setVisible(false);
+                                                return;
+                                            }
 
-                    },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin-left: 10%;" +
-                            "margin-right: 10%;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
-                    rep: {
-                        parameters: {
-                            fromdate: {
-                                colname: "fromdate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$FIRSTDATEOFYEAR",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            todate: {
-                                colname: "todate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '@{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            accno: {
-                                colname: "accno",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
+                                            return thatForm.helperFunc.addQryPL1(qryObj, ps);
+                                        },
+                                        bat7OnSetFieldGetData: function (qryObj) {
+                                            thatForm.helperFunc.getQryPL1(qryObj);
+                                            if (qryObj.rep.hideMainMenu)
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp.getParent());
 
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("TB003@parameter.accno", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select name from acaccount where accno =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("TB003@parameter.acname", vlnm, vlnm, false);
-
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        Util.showSearchList("select accno,name from acaccount where actype=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("TB003@parameter.accno", valx, valx, true);
-                                            thatForm.frm.setFieldValue("TB003@parameter.acname", val, val, true);
-                                        });
-
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            acname: {
-                                colname: "acname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            costcent: {
-                                colname: "costcent",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"costCent\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                showInPreview: false,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("TB001@parameter.costcent", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select title from accostcent1 where CODE =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("TB001@parameter.csname", vlnm, vlnm, false);
-
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("TB001@parameter.costcent", valx, valx, true);
-                                            thatForm.frm.setFieldValue("TB001@parameter.csname", val, val, true);
-                                        });
-
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            csname: {
-                                colname: "csname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                showInPreview: false,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            levelno: {
-                                colname: "levelno",
-                                data_type: FormView.DataType.Number,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"levelNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "0",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            unposted: {
-                                colname: "unposted",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"unAudited\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                showInPreview: false,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-                            exclzero: {
-                                colname: "exclzero",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"exclZero\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-                        },
-                        print_templates: [
-                            {
-                                title: "PDF",
-                                reportFile: "tb001",
-                            }
-                        ],
-                        canvas: [],
-                        db: [
-                            {
-                                type: "query",
-                                name: "qry2",
-                                showType: FormView.QueryShowType.QUERYVIEW,
-                                disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 14, "L": 20 },
-                                execOnShow: false,
-                                dml: "select '01' accno , 'do it' descr from dual",
-                                parent: "PARENTACC",
-                                levelCol: "LEVELNO",
-                                code: "ACCNO",
-                                title: "NAME",
-                                fixedCols: 2,
-                                isMaster: false,
-                                showToolbar: true,
-                                masterToolbarInMain: false,
-                                filterCols: ["ACCNO", "NAME"],
-                                canvasType: ReportView.CanvasType.VBOX,
-                                onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
-                                    var oModel = this.getControl().getModel();
-                                    var bal = parseFloat(oModel.getProperty("BALANCE", currentRowContext));
-                                    if (bal >= 0)
-                                        qv.getControl().getRows()[dispRow].getCells()[4].$().parent().parent().find("*").css("cssText", UtilGen.DBView.style_debit_numbers + ";text-align:end;");
-                                    else
-                                        qv.getControl().getRows()[dispRow].getCells()[4].$().parent().parent().find("*").css("cssText", UtilGen.DBView.style_credit_numbers + ";text-align:end;");
-
-                                    var cc = oModel.getProperty("CHILDCOUNT", currentRowContext);
-                                    if (cc > 0)
-                                        for (var i = startCell; i < endCell; i++) {
-                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("font-weight", "bold");
-                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("font-weight", "bold");
                                         }
-
-
-                                },
-                                beforeLoadQry: function (sql) {
-                                    var sq =
-                                        "begin " +
-                                        "  cp_acc.plevelno:=:parameter.levelno;" +
-                                        "  cp_acc.pfromdt:=:parameter.fromdate;" +
-                                        "  cp_acc.ptodt:=:parameter.todate; " +
-                                        "  cp_acc.pfromacc:=':parameter.accno'; " +
-                                        "  cp_acc.pcc:=':parameter.costcent'; " +
-                                        "  cp_acc.punposted:=':parameter.unposted'; " +
-                                        "  cp_acc.build_gl('01'); " +
-                                        "  commit; " +
-                                        "end;";
-                                    sq = thatForm.frm.parseString(sq);
-                                    Util.doAjaxJson("sqlmetadata?", {
-                                        sql: sq,
-                                        ret: "NONE",
-                                        data: null
-                                    }, false).done(function (data) {
-                                    });
-                                    var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-                                    return "select field1 accno,field2 name,field19 parentacc,field17 path," +
-                                        " to_number(field5) bdeb,to_number(field6) bcrd," +
-                                        " to_number(field7) tdeb, to_number(field8) tcrd, " +
-                                        " to_number(field7)-to_number(field8) balance," +
-                                        " to_number(FIELD16) levelno , to_number(field18) childcount " +
-                                        " from temporary " +
-                                        " where idno=66601 " +
-                                        (ez == "Y" ? " and to_number(field7)-to_number(field8)!=0 " : "") +
-                                        " and usernm='01' order by field17 ";
-                                },
-                                fields: {
-                                    accno: {
-                                        colname: "accno",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "accNo",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-
                                     },
-                                    name: {
-                                        colname: "name",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "titleTxt",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "300",
-                                        display_align: "ALIGN_LEFT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    parentacc: {
-                                        colname: "parentacc",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "parentacc",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "300",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        display_type: "INVISIBLE",
-                                        other_settings: {},
-                                        grouped: false,
-                                    },
-                                    childcount: {
-                                        colname: "childcount",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "childcount",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "300",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        display_type: "INVISIBLE",
-                                        other_settings: {},
-                                        grouped: false,
-                                    },
-                                    tdeb: {
-                                        colname: "tdeb",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "debitTxt",
-                                        title2: "",
-                                        parentTitle: "transTxt",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_debit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
-                                    tcrd: {
-                                        colname: "tcrd",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "Credit",
-                                        title2: "",
-                                        parentTitle: "transTxt",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: UtilGen.DBView.style_credit_numbers + ";",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    },
-                                    balance: {
-                                        colname: "balance",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "balanceTxt",
-                                        title2: "",
-                                        parentTitle: "summaryBalTxt",
-                                        parentSpan: 2,
-                                        valOnZero: "",
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                    }
-
                                 }
                             }
                         ]
                     }
-                },
+                }
             ]
         };
 
@@ -1483,30 +160,429 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
         this.frm.parasAsLabels = true;
         return this.frm.createViewMain(this, js);
 
-    }
-    ,
-    loadData: function () {
-        //alert(sap.ui.Device.resize.height);
-        // var that = this;
-        // var sq = "select accno,name,debit,credit from acc_balance_1 order by path";
-        // Util.doAjaxJson("sqlmetadata", {sql: sq}, false).done(function (data) {
-        //     if (data.ret == "SUCCESS") {
-        //         that.qv.setJsonStrMetaData("{" + data.data + "}");
-        //         var c = that.qv.mLctb.getColPos("DEBIT");
-        //         that.qv.mLctb.cols[c].getMUIHelper().display_format = "MONEY_FORMAT";
-        //         that.qv.mLctb.cols[c].mSummary = "SUM";
-        //         c = that.qv.mLctb.getColPos("CREDIT");
-        //         that.qv.mLctb.cols[c].getMUIHelper().display_format = "MONEY_FORMAT";
-        //         that.qv.mLctb.cols[c].mSummary = "SUM";
-        //
-        //         that.qv.mLctb.parse("{" + data.data + "}", true);
-        //         that.qv.loadData();
-        //         // that.qv.getControl().setVisibleRowCount(that.qv.mLctb.rows.length + 3);
-        //     }
-        // });
 
     }
     ,
+    loadData: function () {
+
+    }
+    ,
+    helperFunc: {
+        init: function (frm) {
+            this.thatForm = frm;
+        },
+        getParas3: function (repCode) {
+            var para = this.getParas(repCode); // get all standard parameters
+            return para;
+        },
+        getParas: function (repCode) {
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var that2 = this.thatForm;
+            var thatForm = this.thatForm;
+            var view = this.thatForm.view;
+            var colSpan = "XL2 L2 M2 S12";
+            var sumSpan = "XL2 L2 M2 S12";
+
+            var para = {
+                fromdate: {
+                    colname: "fromdate",
+                    data_type: FormView.DataType.Date,
+                    class_name: FormView.ClassTypes.DATEFIELD,
+                    title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "$FIRSTDATEOFYEAR",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
+                todate: {
+                    colname: "todate",
+                    data_type: FormView.DataType.Date,
+                    class_name: FormView.ClassTypes.DATEFIELD,
+                    title: '@{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "$TODAY",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
+                accno: {
+                    colname: "accno",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        showValueHelp: true,
+                        change: function (e) {
+
+                            var vl = e.oSource.getValue();
+                            thatForm.frm.setFieldValue(repCode + "@parameter.accno", vl, vl, false);
+                            var vlnm = Util.getSQLValue("select name from acaccount where actype=0  and childcount>0 and accno =" + Util.quoted(vl));
+                            thatForm.frm.setFieldValue(repCode + "@parameter.acname", vlnm, vlnm, false);
+
+                        },
+                        valueHelpRequest: function (event) {
+                            Util.showSearchList("select accno,name from acaccount where actype=0 order by path", "NAME", "ACCNO", function (valx, val) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.accno", valx, valx, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.acname", val, val, true);
+                            });
+
+                        },
+                        width: "35%"
+                    },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
+                acname: {
+                    colname: "acname",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: { width: "49%", editable: false },
+                    list: undefined,
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false,
+                    dispInPara: true,
+                },
+                costcent: {
+                    colname: "costcent",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"costCent\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    showInPreview: false,
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        showValueHelp: true,
+                        change: function (e) {
+
+                            var vl = e.oSource.getValue();
+                            thatForm.frm.setFieldValue(repCode + "@parameter.costcent", vl, vl, false);
+                            var vlnm = Util.getSQLValue("select title from accostcent1 where CODE =" + Util.quoted(vl));
+                            thatForm.frm.setFieldValue(repCode + "@parameter.csname", vlnm, vlnm, false);
+
+                        },
+                        valueHelpRequest: function (event) {
+                            Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.costcent", valx, valx, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.csname", val, val, true);
+                            });
+
+                        },
+                        width: "35%"
+                    },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
+                csname: {
+                    colname: "csname",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                    title2: "",
+                    showInPreview: false,
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: { width: "49%", editable: false },
+                    list: undefined,
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false,
+                    dispInPara: true,
+                },
+                levelno: {
+                    colname: "levelno",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"levelNo\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "3",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
+                unposted: {
+                    colname: "unposted",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"unAudited\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    showInPreview: false,
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "Y",
+                    other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
+                exclzero: {
+                    colname: "exclzero",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '@{\"text\":\"exclZero\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "Y",
+                    other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
+                hideTotals: {
+                    colname: "hideTotals",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"hideTotals\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "Y",
+                    other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
+            };
+            return para;
+        },
+        addQryPL1: function (qryObj, ps) {
+            var thatForm = this.thatForm;
+            var ret = true;
+            var sq =
+                "begin " +
+                "  cp_acc.plevelno:=:parameter.levelno;" +
+                "  cp_acc.pfromdt:=:parameter.fromdate;" +
+                "  cp_acc.ptodt:=:parameter.todate; " +
+                "  cp_acc.pfromacc:=':parameter.accno'; " +
+                "  cp_acc.prnp:=':parameter.incrp'; " +
+                "  cp_acc.pcc:=':parameter.costcent'; " +
+                "  cp_acc.punposted:=':parameter.unposted'; " +
+                "  cp_acc.build_gl('01'); " +
+                "  commit; " +
+                "end;";
+            sq = thatForm.frm.parseString(sq);
+            Util.doAjaxJson("sqlmetadata?", {
+                sql: sq,
+                ret: "NONE",
+                data: null
+            }, false).done(function (data) {
+            });
+            var ez = thatForm.frm.getFieldValue("parameter.exclzero");
+            var sq = "select field1 accno,field2 name,field19 parentacc,field17 path," +
+                " to_number(field5) bdeb,to_number(field6) bcrd," +
+                " to_number(field7) tdeb, to_number(field8) tcrd, " +
+                " to_number(field13) cdeb, to_number(field14) ccrd, " +
+                " to_number(FIELD16) levelno , to_number(field18) childcount " +
+                " from temporary " +
+                " where idno=66601 " +
+                (ez == "Y" ? " and to_number(field7)-to_number(field8)!=0  " : "") +
+                " and usernm='01' order by field17 ";
+            sq = thatForm.frm.parseString(sq);
+            var pars = Util.nvl(qryObj.rep.parameters, []);
+
+            Util.doAjaxJson("bat7addQry?" + ps, {
+                sql: sq,
+                ret: "",
+                data: "",
+                repCode: qryObj.rep.code,
+                repNo: qryObj.repNo,
+                command: "",
+                scheduledAt: "",
+                p1: "",
+                p2: "",
+                qrNo: 1001,
+            }, false).done(function (data) {
+                if (!data.ret == "SUCCESS") {
+                    ret = false;
+                }
+            });
+            return ret;
+        },
+
+        getQryPL1: function (qryObj) {
+            var thatForm = this.thatForm;
+            var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+            var sett = sap.ui.getCore().getModel("settings").getData();
+
+            Util.doAjaxJson("bat7getData", {
+                sql: "",
+                ret: "",
+                data: "",
+                repCode: qryObj.rep.code,
+                repNo: qryObj.repNo,
+                command: "",
+                scheduledAt: "",
+                p1: "",
+                p2: "",
+                qrNo: 1001,
+            }, false).done(function (dt) {
+                if (dt.ret == "SUCCESS" && thatForm.qr != undefined) {
+                    // var dtx = JSON.parse("{" + dt.data + "}").data;  
+                    var paras = {
+                        mColParent: "PARENTACC",
+                        mColCode: "ACCNO",
+                        mColName: "NAME",
+                        mColLevel: "LEVELNO",
+                        mColChild: "CHILDCOUNT"
+                    };
+                    var ld = new LocalTableData();
+                    ld.parseCol("{" + dt.data + "}");
+                    // YTD Balance to be hidden in case period from starting of the year
+
+                    ld.getColByName("PATH").mHideCol = true;
+                    ld.getColByName("PARENTACC").mHideCol = true;
+                    // ld.getColByName("BDEB").mHideCol = true;
+                    // ld.getColByName("BCRD").mHideCol = true;
+                    // ld.getColByName("TDEB").mHideCol = true;
+                    // ld.getColByName("TCRD").mHideCol = true;
+                    // ld.getColByName("CDEB").mHideCol = true;
+                    // ld.getColByName("CCRD").mHideCol = true;
+                    // ld.getColByName("BALANCE").mHideCol =true;
+                    ld.getColByName("ACCNO").mHideCol = true;
+                    ld.getColByName("LEVELNO").mHideCol = true;
+                    // ld.getColByName("FLG").mHideCol = true;
+                    ld.getColByName("CHILDCOUNT").mHideCol = true;
+                    ld.getColByName("NAME").mUIHelper.display_width = "450";
+                    ld.getColByName("ACCNO").mTitle = Util.getLangText("accNo");
+                    ld.getColByName("NAME").mTitle = Util.getLangText("titleTxt");
+
+
+
+
+                    var scl = ["BDEB", "BCRD", "TDEB", "TCRD", "CDEB", "CCRD"];
+                    var sct = ["debitTxt", "creditTxt", "debitTxt", "creditTxt", "debitTxt", "creditTxt"];
+                    var scp = ["bfBal", "bfBal", "transactionTxt", "transactionTxt", "closeBal", "closeBal"];
+
+                    for (var cl in scl) {
+                        ld.getColByName(scl[cl]).mUIHelper.display_width = "120";
+                        ld.getColByName(scl[cl]).mUIHelper.data_type = "NUMBER";
+                        ld.getColByName(scl[cl]).mUIHelper.display_format = "QTY_FORMAT";
+                        ld.getColByName(scl[cl]).mTitle = Util.getLangText(sct[cl]);
+                        ld.getColByName(scl[cl]).mTitleParent = Util.getLangText(scp[cl]);
+                        ld.getColByName(scl[cl]).mTitleParentSpan = 2;
+                        ld.getColByName(scl[cl]).mSummary = "SUM";
+                    }
+
+                    var fntsize = Util.getLangDescrAR("12px", "16px");
+                    paras["tableClass"] = "class=\"tbl1\"";
+                    paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
+                    paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
+                    paras["fnOnCellAddClass"] = function (oData, rowno, col) {
+                        var st = "";
+                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
+                            st = "linkLabel";
+
+                        return st;
+                    }
+                    paras["fnOnCellClick"] = function (oData, rowno, col) {
+                        var st = "";
+                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
+                            st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        return st;
+                    }
+
+                    paras["fnOnCellAddStyle"] = function (oData, rowno, col) {
+                        if (rowno == -1)
+                            return "border:groove;";
+
+                        paras["hideTotals"] = (thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
+                        var st = "padding-left:5px;padding-right:5px;";
+                        if (oData[rowno]["CHILDCOUNT"] > 0 && oData[rowno]["PARENTACC"] != "")
+                            st += "font-weight:bold;height:30px;vertical-align:bottom;";
+                        if (oData[rowno]["ACCNO"] == null && col.endsWith("BALANCE"))
+                            st += "vertical-align:top;";
+                        if (oData[rowno]["ACCNO"] == null && col == "NAME")
+                            st += "vertical-align:top;";
+                        if (oData[rowno]["ACCNO"] == "-" && col == "NAME")
+                            st += "vertical-align:top;";
+                        if (oData[rowno]["ACCNO"] == "-" && col.endsWith("BALANCE"))
+                            st += "vertical-align:top;font-weight:bold;font-size:14px;";
+                        if (oData[rowno]["PARENTACC"] == "")
+                            st += "font-weight:bold;height:40px;vertical-align:bottom!important;";
+                        if (oData[rowno]["LEVELNO"] == -1)
+                            st = "font-weight:bold;border-bottom:groove;background-color:lightgrey;";
+
+                        return st;
+                    }
+                    paras["fnOnAddTotalRow"] = function (footerNode_fg, mapNode_fg) {
+                        // footerNode_fg["YTD_RATE"] = mapNode_fg["YTD_RATE"];
+                        footerNode_fg["LEVELNO"] = mapNode_fg["LEVELNO"];
+                        // footerNode_fg["RVN_PRATE"] = mapNode_fg["RVN_PRATE"];
+                        // footerNode_fg["RVN_YRATE"] = mapNode_fg["RVN_YRATE"];
+
+                    };
+                    ld.parse("{" + dt.data + "}", true);
+
+                    // calculating ytd rate.
+
+                    var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
+                    thatForm.qr.setContent(str);
+                }
+            });
+
+        }
+    },// helperFunc
     validateSave: function () {
         return true;
     }

@@ -1655,6 +1655,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     sp.backFunction = function () {
                         if (dlg != undefined) {
                             dlg.close();
+                            UtilGen.DBView.autoShowHideMenu(true);
                             return;
                         }
                         view.app.toDetail(view.pg, "show");
@@ -1687,7 +1688,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 // view.loadData();
                                 if (view.lstPgs.getItems().length == 1)
                                     view.loadData_main();
-
+                                UtilGen.DBView.autoShowHideMenu(true);
                             };
 
                         }
@@ -1704,6 +1705,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     // view.loadData();
                                     if (view.lstPgs.getItems().length == 1)
                                         view.loadData_main();
+                                    UtilGen.DBView.autoShowHideMenu(true, pgx);
                                 };
                             }
                             else {
@@ -1721,7 +1723,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 sp.onWndClose();
                             if (pOnWndClose != undefined)
                                 pOnWndClose();
-
+                            // UtilGen.DBView.autoShowHideMenu(true);
                         })
                     }
                     else if (dtx.formType == "popover") {
@@ -1732,6 +1734,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 sp.onWndClose();
                             if (pOnWndClose != undefined)
                                 pOnWndClose();
+                            // UtilGen.DBView.autoShowHideMenu(true);
                         })
 
                     }
@@ -2931,7 +2934,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 var rootNode = null;
                 var footer = {};
                 var findNodebyVal = function (id) {
-
                     return mapNodes[id];
                 };
 
@@ -2967,12 +2969,48 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         cnt++;
                         // if (cnt - 1 == 0 && grouped) continue;
                         if (ld.cols[c].mHideCol) continue;
+
                         cs[c] = "";
                         tmpv1 = ld.cols[c].mTitle;
-                        tmpv2 = "";//"\"text-align:Center\"";
-                        var st = "style=\"text-align: center;" + (that.fnOnCellAddStyle != undefined ? Util.nvl(that.fnOnCellAddStyle(oData, -1, ld.cols[c].mColName), "") : "") + "\"" + " colspan=\"" + hs + "\"";
-                        cs[c] = "<th " + st + ">" + tmpv1 + "</th>";
-                        h += "<th " + tmpv2 + st + ">" + Util.htmlEntities(tmpv1) + "</th>";
+
+                        if (nxtSpan > 1) {
+                            cs[c] = "";
+                            if (ld.cols[c].mTitleParent != "")
+                                tmpv1 = ld.cols[c].mTitle;
+                            else
+                                tmpv1 = ld.cols[c].mTitleParent;
+
+                            var st = "style=\"text-align: center;" + (that.fnOnCellAddStyle != undefined ? Util.nvl(that.fnOnCellAddStyle(oData, -1, ld.cols[c].mColName), "") : "") + "\"" + " colspan=\"1\"";
+                            h += "<th " + st + ">" + Util.htmlEntities(tmpv1) + "</th>";
+                            nxtSpan--;
+                            continue;
+                        }
+                        hs = ld.cols[c].mTitleParentSpan;
+                        if (hs > 1) {
+                            // cs[c] = "<th style=\"text-align: center;\" colspan=\"" + hs + "\">" + this.col[c].getMultiLabels()[0].getText() + "</th>";
+                            hasSpan = true;
+                            nxtSpan = hs;
+                            tmpv1 = ld.cols[c].mTitle;
+                            // tmpv2 = "\"text-align:Center\"";
+                            var st = "style=\"text-align: center;" + (that.fnOnCellAddStyle != undefined ? Util.nvl(that.fnOnCellAddStyle(oData, -1, ld.cols[c].mColName), "") : "") + "\"" + " colspan=\"" + hs + "\"";
+                            var st2 = "style=\"text-align: center;" + (that.fnOnCellAddStyle != undefined ? Util.nvl(that.fnOnCellAddStyle(oData, -1, ld.cols[c].mColName), "") : "") + "\"" + " colspan=\"1\"";
+                            cs[c] = "<th " + st + ">" + ld.cols[c].mTitleParent + "</th>";
+                            h += "<th " + st2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
+                        }
+                        else {
+                            // cs[c] = "<th colspan=\"1\"></th>";
+                            tmpv1 = ld.cols[c].mTitle;
+                            // tmpv2 = "\"text-align:Center\"";
+                            var st = "style=\"text-align: center;" + (that.fnOnCellAddStyle != undefined ? Util.nvl(that.fnOnCellAddStyle(oData, -1, ld.cols[c].mColName), "") : "") + "\"" + " colspan=\"1\"";
+                            h += "<th " + st + ">" + Util.htmlEntities(tmpv1) + "</th>";
+                            cs[c] = "<th " + st + ">";
+                            hs--;
+                        }
+
+                        // tmpv2 = "";//"\"text-align:Center\"";
+                        // var st = "style=\"text-align: center;" + (that.fnOnCellAddStyle != undefined ? Util.nvl(that.fnOnCellAddStyle(oData, -1, ld.cols[c].mColName), "") : "") + "\"" + " colspan=\"" + hs + "\"";
+                        // cs[c] = "<th " + st + ">" + tmpv1 + "</th>";
+                        // h += "<th " + tmpv2 + st + ">" + Util.htmlEntities(tmpv1) + "</th>";
                     }
 
                     for (var x in cs)

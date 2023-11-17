@@ -187,7 +187,7 @@ public class ExeBatch {
 					+ "pos,year,type,costcent,fcdebit,fccredit ,cust_code,branch_no) VALUES ("
 					+ "repair.getcurperiodcode(),kfld,jvno,2,:vou_date,"
 					+ ":flag,:debit,:credit,:accno,':descr',:descr2,sysdate,:usernm,"
-					+ ":pos,'2003',:type,':costcent',:fcdebit,:fccredit, ':cust_code',:branch_no);"
+					+ ":pos,'2003',:type,':costcent',:fcdebit,:fccredit, ':cust_code',':branch_no');"
 					+ " totdeb:=totdeb + amt_dr ; " + "totcrd:=totcrd + amt_cr ;" + "end if; "
 					+ " if ':cust_code' is not null then "
 					+ " update acvoucher2 set accno=(select ac_no from c_ycust where code=':cust_code') where keyfld=kfld and pos=:pos;"
@@ -242,9 +242,9 @@ public class ExeBatch {
 
 			sql = " if totdeb>0 then INSERT INTO acvoucher1 "
 					+ "(periodcode, keyfld, NO, vou_code, vou_date, flag, debamt,"
-					+ "crdamt, descr, usernm, creatdt, YEAR, TYPE, CODEACC ,code , slsmn, rcvfrom )  VALUES ("
+					+ "crdamt, descr, usernm, creatdt, YEAR, TYPE, CODEACC ,code , slsmn, rcvfrom, bookserialno )  VALUES ("
 					+ ":periodcode, :keyfld, :no, :vou_code, :vou_date, :flag, :debamt,"
-					+ ":crdamt, :descr, :usernm, :creatdt, :year, :type, :codeacc ,:code ,null, ':rcvfrom' ); end if; ";
+					+ ":crdamt, :descr, :usernm, :creatdt, :year, :type, :codeacc ,:code ,null, ':rcvfrom' ,':bookserialno' ); end if; ";
 			sql = sql.replaceAll(":periodcode", "repair.getcurperiodcode()");
 			sql = sql.replaceAll(":keyfld", "KFLD");
 			sql = sql.replaceAll(":no", "jvno");
@@ -258,6 +258,7 @@ public class ExeBatch {
 			sql = sql.replaceAll(":creatdt", "sysdate");
 			sql = sql.replaceAll(":year", "'2003'");
 			sql = sql.replaceAll(":rcvfrom", utils.nvl(mapFlds1.get("rcvfrom"), "batch"));
+			sql = sql.replaceAll(":bookserialno", utils.nvl(mapFlds1.get("bookserialno"), ""));
 			sql = sql.replaceAll(":type", (bnkcash) + "");
 			sql = sql.replaceAll(":codeacc", utils.nvl(mapFlds1.get("codeacc"), ""));
 			sql = sql.replaceAll(":code", utils.nvl(mapFlds1.get("codeacc"), ""));
@@ -309,7 +310,7 @@ public class ExeBatch {
 					+ "pos,year,type,costcent,fcdebit,fccredit ,cust_code,branch_no) VALUES ("
 					+ "repair.getcurperiodcode(),kfld,jvno,3,:vou_date,"
 					+ ":flag,:debit,:credit,:accno,':descr',:descr2,sysdate,:usernm,"
-					+ ":pos,'2003',:type,':costcent',:fcdebit,:fccredit, ':cust_code',:branch_no);"
+					+ ":pos,'2003',:type,':costcent',:fcdebit,:fccredit, ':cust_code',':branch_no');"
 					+ " totdeb:=totdeb + amt_dr ; " + "totcrd:=totcrd + amt_cr ;" + "end if; "
 					+ " if ':cust_code' is not null then "
 					+ " update acvoucher2 set accno=(select ac_no from c_ycust where code=':cust_code') where keyfld=kfld and pos=:pos;"
@@ -364,9 +365,9 @@ public class ExeBatch {
 
 			sql = " if totdeb>0 then INSERT INTO acvoucher1 "
 					+ "(periodcode, keyfld, NO, vou_code, vou_date, flag, debamt,"
-					+ "crdamt, descr, usernm, creatdt, YEAR, TYPE, CODEACC ,code , slsmn, rcvfrom )  VALUES ("
+					+ "crdamt, descr, usernm, creatdt, YEAR, TYPE, CODEACC ,code , slsmn, rcvfrom ,bookserialno )  VALUES ("
 					+ ":periodcode, :keyfld, :no, :vou_code, :vou_date, :flag, :debamt,"
-					+ ":crdamt, :descr, :usernm, :creatdt, :year, :type, :codeacc ,:code ,null, ':rcvfrom' ); end if; ";
+					+ ":crdamt, :descr, :usernm, :creatdt, :year, :type, :codeacc ,:code ,null, ':rcvfrom' ,':bookserialno' ); end if; ";
 			sql = sql.replaceAll(":periodcode", "repair.getcurperiodcode()");
 			sql = sql.replaceAll(":keyfld", "KFLD");
 			sql = sql.replaceAll(":no", "jvno");
@@ -380,6 +381,7 @@ public class ExeBatch {
 			sql = sql.replaceAll(":creatdt", "sysdate");
 			sql = sql.replaceAll(":year", "'2003'");
 			sql = sql.replaceAll(":rcvfrom", utils.nvl(mapFlds1.get("payto"), "batch"));
+			sql = sql.replaceAll(":bookserialno", utils.nvl(mapFlds1.get("bookserialno"), ""));
 			sql = sql.replaceAll(":type", (bnkcash) + "");
 			sql = sql.replaceAll(":codeacc", utils.nvl(mapFlds1.get("codeacc"), ""));
 			sql = sql.replaceAll(":code", utils.nvl(mapFlds1.get("codeacc"), ""));
@@ -427,7 +429,7 @@ public class ExeBatch {
 					+ "pos,year,type,costcent,fcdebit,fccredit, cust_code,branch_no ) VALUES ("
 					+ "repair.getcurperiodcode(),kfld,jvno,1,:vou_date,"
 					+ ":flag,:debit,:credit,:accno,':descr',:descr2,sysdate,:usernm,"
-					+ ":pos,'2003',1,':costcent',:fcdebit,:fccredit , ':cust_code',:branch_no );"
+					+ ":pos,'2003',1,':costcent',:fcdebit,:fccredit , ':cust_code',':branch_no' );"
 					+ " totdeb:=totdeb + amt_dr ; " + "totcrd:=totcrd + amt_cr ;" + "end if; "
 					+ "if ':cust_code' is not null then "
 					+ " update acvoucher2 set accno=(select ac_no from c_ycust where code=':cust_code') where keyfld=kfld and pos=:pos;"
@@ -456,9 +458,9 @@ public class ExeBatch {
 		if (cnt > 0) {
 			sql = " if totcrd>0 then " + "INSERT INTO acvoucher1 "
 					+ "(periodcode, keyfld, NO, vou_code, vou_date, flag, debamt,"
-					+ "crdamt, descr, usernm, creatdt, YEAR, TYPE , slsmn , rcvfrom  )  VALUES ("
+					+ "crdamt, descr, usernm, creatdt, YEAR, TYPE , slsmn , rcvfrom, bookserialno  )  VALUES ("
 					+ ":periodcode, :keyfld, :no, :vou_code, :vou_date, :flag, :debamt,"
-					+ ":crdamt, :descr, :usernm, :creatdt, :year, :type ,null, null); end if; ";
+					+ ":crdamt, :descr, :usernm, :creatdt, :year, :type ,null, null ,':bookserialno' ); end if; ";
 			sql = sql.replaceAll(":periodcode", "repair.getcurperiodcode()");
 			sql = sql.replaceAll(":keyfld", "KFLD");
 			sql = sql.replaceAll(":no", "jvno");
@@ -471,6 +473,7 @@ public class ExeBatch {
 			sql = sql.replaceAll(":usernm", "'" + instanceInfo.getmLoginUser() + "'");
 			sql = sql.replaceAll(":creatdt", "sysdate");
 			sql = sql.replaceAll(":year", "'2003'");
+			sql = sql.replaceAll(":bookserialno", utils.nvl(mapFlds1.get("bookserialno"), ""));
 			sql = sql.replaceAll(":type", "1");
 
 			sqls = sqlsBeg + sqls2 + sql;

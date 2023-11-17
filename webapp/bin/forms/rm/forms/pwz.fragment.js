@@ -106,13 +106,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
 
         this.txtFromDate = new sap.m.DatePicker({ width: "50%" });
         this.txtToDate = new sap.m.DatePicker({ width: "50%" });
+        
         this.txtRef = new sap.m.Input({
             width: "30%", showValueHelp: true,
             valueHelpRequest: function (e) {
-                Util.showSearchList("select code,name from c_ycust where childcount=0 and issupp='Y' order by path", "NAME", "CODE", function (valx, val) {
+                Util.showSearchList("select code,name from c_ycust where code in (select ref_code from c7_rmpord where pur_keyfld is null and location_code='"+UtilGen.getControlValue(that.txtLocations)+"' ) and childcount=0 and issupp='Y' order by path", "NAME", "CODE", function (valx, val) {
                     that.txtRef.setValue(valx);
                     that.txtRefName.setValue(val);
-                });
+                });                
             },
             change: function (e) {
                 var vl = Util.getSQLValue("select name from c_ycust where code=" + Util.quoted(that.txtRef.getValue()));
@@ -215,7 +216,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             //     itmP[dtx[di].REFER] = dtx[di].PRICE;
 
             var getPrice = function (rfr, dtx) {
-                var dt = new Date(dt.replaceAll(".", ":"));
+                var dt = new Date(dtx.replaceAll(".", ":"));
                 var pr = Util.getSQLValue("select nvl(max(price),0) from c_contract_items " +
                     " where cust_code='" + that.txtRef.getValue() + "' and " +
                     " branch_no=" + that.txtBranch.getValue() + " and " +

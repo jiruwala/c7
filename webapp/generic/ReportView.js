@@ -135,6 +135,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 rep.onSubTitHTML = Util.nvl(rps[r].onSubTitHTML, undefined);
                 rep.showHTMLMenu = Util.nvl(rps[r].showHTMLMenu, true);
                 rep.showXLSMenu = Util.nvl(rps[r].showXLSMenu, true);
+                rep.hideMainMenu = Util.nvl(rps[r].hideMainMenu, true);
                 rep.parameters = [];
                 var pms = Util.nvl(rps[r].rep.parameters, []);
                 for (var i in pms) {
@@ -227,7 +228,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     });
                     qr.canvasStyle = Util.nvl(qrys[i].canvasStyle, "");
                     qr.summary = {};
-                    qr.rep = rps[r];
+                    qr.rep = rep;
                     qr.repNo = parseInt(r);
                     qr.qrNo = i;
                     qr.execOnShow = Util.nvl(qrys[i].execOnShow, false);
@@ -1609,7 +1610,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             sql = qryObj.beforeLoadQry(sql, qryObj);
                         sql = thatRV.parseString(sql);
 
-                        var pars = Util.nvl(qryObj.rep.rep.parameters, []);
+                        var pars = Util.nvl(qryObj.rep.parameters, []);
                         var ps = "";
                         for (var i in pars) {
                             var vl = thatRV.getFieldValue("parameter." + pars[i].colname);
@@ -1683,7 +1684,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             sq = sq.replace(/where 1=1/i, "where " + sw);
 
                         sq = thatRV.parseString(sq);
-                        var pars = Util.nvl(qryObj.rep.rep.parameters, []);
+                        var pars = Util.nvl(qryObj.rep.parameters, []);
                         var ps = "";
                         for (var i in pars) {
                             var vl = thatRV.getFieldValue("parameter." + pars[i].colname);
@@ -1760,6 +1761,8 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                     if (qrDets[i].fields[key].obj != undefined && qrDets[i].fields[key].hasOwnProperty("bat7OnSetFieldGetData") &&
                                         qrDets[i].fields[key].bat7OnSetFieldGetData != undefined)
                                         qrDets[i].fields[key].bat7OnSetFieldGetData(qrDets[i]);
+                                    if (qrDets[i].rep.hideMainMenu)
+                                        UtilGen.DBView.autoShowHideMenu(!qrDets[i].rep.hideMainMenu, thatRV.frag.jp.getParent());
 
                                 }
                             }
@@ -1771,6 +1774,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 qrDets[i].obj.loadData();
                                 if (qrDets[i].hasOwnProperty("bat7CustomGetData") && qrDets[i].bat7CustomGetData != undefined)
                                     qrDets[i].bat7CustomGetData(qryObj);
+                                if (qrDets[i].rep.hideMainMenu)
+                                    UtilGen.DBView.autoShowHideMenu(!qrDets[i].rep.hideMainMenu, thatRV.frag.jp.getParent());
+
                             }
                         }
                     }
@@ -2255,6 +2261,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                         if (qryObj.afterApplyCols != undefined)
                                             qryObj.afterApplyCols(qryObj);
+
+                                        if (qryObj.rep.hideMainMenu)
+                                            UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatRV.frag.jp.getParent());
 
                                         var detfil = "";
                                         if (thatRV.filterData != undefined) {
@@ -3173,7 +3182,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 ]
             }).addStyleClass("repPage");
             this.pgMaster.setSubHeader(ttb);
-            this.vbPara.addItem(new sap.m.VBox({ height: "100px" }));
+            this.vbPara.addItem(new sap.m.VBox({ height: "200px" }));
 
         };
 
@@ -3467,7 +3476,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
             if (ht != "") {
                 // var newWin = window.open("");
-                var dir = UtilGen.DBView.sLangu == "AR" ? " style=\" direction:rtl;\"" : "";
+                var dir = UtilGen.DBView.sLangu == "AR" ? " dir='rtl' " : "";
                 // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/" + rep.printCSS + "\">";
                 // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"print2.css\">";
                 var hd = "";
@@ -3476,7 +3485,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     dataType: "text",
                     async: false,
                     success: function (cssText) {
-                        hd = cssText;
+                        hd = cssText;                        
                         hd = "<style>" + hd + "</style>";
                         ht = "<html" + dir + ">" + "<head>" + hd + "</head><body>" + ht + "</body></html>";
                         // newWin.document.write(ht);
@@ -3534,7 +3543,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 }
             }
 
-            var dir = UtilGen.DBView.sLangu == "AR" ? " style=\" direction:rtl;\"" : "";
+            var dir = UtilGen.DBView.sLangu == "AR" ? " dir='rtl' " : "";
             // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/" + rep.printCSS + "\">";
             // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"print2.css\">";
             var hd = "";
