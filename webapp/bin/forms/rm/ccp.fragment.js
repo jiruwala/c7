@@ -169,7 +169,6 @@ sap.ui.jsfragment("bin.forms.rm.ccp", {
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQryPL3(qryObj);
-                                            UtilGen.DBView.autoShowHideMenu(false, thatForm.jp.getParent());
 
                                         }
                                     },

@@ -114,7 +114,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				<textFieldExpression><![CDATA[$P{COMPANY_SPECS}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement style="strTitle" x="156" y="85" width="242" height="22" uuid="501e5c1e-470b-4ba8-8275-fd2add1eb296"/>
+				<reportElement style="strTitle" x="156" y="83" width="242" height="22" uuid="501e5c1e-470b-4ba8-8275-fd2add1eb296"/>
 				<box>
 					<topPen lineWidth="1.0"/>
 					<leftPen lineWidth="1.0"/>
@@ -131,7 +131,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				<imageExpression><![CDATA["company_logo.bmp"]]></imageExpression>
 			</image>
 			<textField isBlankWhenNull="true">
-				<reportElement style="strTitle" x="156" y="107" width="242" height="22" uuid="5aa10ee6-7477-432d-8c37-835cca73887d"/>
+				<reportElement style="strTitle" x="156" y="105" width="242" height="22" uuid="5aa10ee6-7477-432d-8c37-835cca73887d"/>
 				<box>
 					<topPen lineWidth="1.0"/>
 					<leftPen lineWidth="1.0"/>

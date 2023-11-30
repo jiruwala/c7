@@ -479,21 +479,19 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
                                             UtilGen.setControlValue(thatForm.frm.objs["qry1.parentaccname"].obj, "", "", true);
                                             return;
                                         }
-                                        if (that.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
-                                            var closeacc = thatForm.frm.objs["qry1.closeacc"].obj;
-                                            var closeaccname = thatForm.frm.objs["qry1.closeaccname"].obj;
-                                            var vldt = JSON.parse("{" + vldtt.data + "}").data;
-                                            var acn = vldt[0].CLOSEACC;
-                                            var nm = vldt[0].NAME;
-                                            UtilGen.setControlValue(this, vl, vl, false);
-                                            UtilGen.setControlValue(thatForm.frm.objs["qry1.parentaccname"].obj, nm, nm, false);
-                                            if (acn != "") {
-                                                nm = Util.getSQLValue("select name from acaccount where accno=" + Util.quoted(acn));
-                                                UtilGen.setControlValue(closeacc, acn, acn, false);
-                                                UtilGen.setControlValue(closeaccname, nm, nm, true);
-                                            }
-                                            that.get_new_ac();
+                                        var closeacc = thatForm.frm.objs["qry1.closeacc"].obj;
+                                        var closeaccname = thatForm.frm.objs["qry1.closeaccname"].obj;
+                                        var vldt = JSON.parse("{" + vldtt.data + "}").data;
+                                        var acn = vldt[0].CLOSEACC;
+                                        var nm = vldt[0].NAME;
+                                        UtilGen.setControlValue(this, vl, vl, false);
+                                        UtilGen.setControlValue(thatForm.frm.objs["qry1.parentaccname"].obj, nm, nm, false);
+                                        if (acn != "") {
+                                            nm = Util.getSQLValue("select name from acaccount where accno=" + Util.quoted(acn));
+                                            UtilGen.setControlValue(closeacc, acn, acn, false);
+                                            UtilGen.setControlValue(closeaccname, nm, nm, true);
                                         }
+
                                     },
 
                                 },

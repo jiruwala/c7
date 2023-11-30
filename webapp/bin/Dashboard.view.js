@@ -234,6 +234,15 @@ sap.ui.jsview('bin.Dashboard', {
         var tb = new sap.m.Toolbar({
             content: [
                 new sap.m.Button({
+                    icon: "sap-icon://menu",
+                    press: function () {
+                        var md = (that.app.getMode() == sap.m.SplitAppMode.HideMode ? sap.m.SplitAppMode.StretchCompressMode : sap.m.SplitAppMode.HideMode);
+                        md = (that.standAlonMode ? sap.m.SplitAppMode.HideMode : md);
+                        that.app.setMode(md);       
+                    }
+                }),
+
+                new sap.m.Button({
                     text: Util.getLangText("refresh"),
                     tooltip: Util.getLangText("refreshTip"),
                     icon: "sap-icon://refresh", press: function () {
@@ -1010,8 +1019,18 @@ sap.ui.jsview('bin.Dashboard', {
         var that = this;
         if (!this.autoHideMenus)
             return;
-        if (parentWnd != undefined && !(parentWnd instanceof sap.m.Page))
+        if (sap.ui.Device.system.phone)
             return;
+        // if (parentWnd != undefined && !(parentWnd instanceof sap.m.Page))
+        //     return;        
+        var pwnd = parentWnd;
+        var isdlg = false;
+        while (Util.nvl(pwnd, undefined) != undefined && !isdlg) {
+            if (pwnd instanceof sap.m.Dialog || pwnd instanceof sap.m.Popover)
+                isdlg = true;
+            pwnd = pwnd.getParent();
+        }
+        if (isdlg) return;
         if (showHide)
             that.app.setMode(sap.m.SplitAppMode.StretchCompressMode);
         else
@@ -1068,7 +1087,6 @@ sap.ui.jsview('bin.Dashboard', {
                 mnu.openBy(this);
             }
         }).addStyleClass("profileMenus");
-
         var tb = new sap.m.Toolbar({
             width: "100%",
             content: [
@@ -1835,13 +1853,13 @@ sap.ui.jsview('bin.Dashboard', {
                             var fldCode = that.byId("para_" + this.getCustomData()[1].getKey() + "__" + that.timeInLong);
                             var fldTit = that.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);
                             if (sq != "")
-                                for (var pi in parAr) {
-                                    var vl = UtilGen.getControlValue(that.byId("para_" + parAr[pi] + "__" + that.timeInLong));
-                                    if (vl != null && vl instanceof Date)
-                                        vl = Util.toOraDateString(vl);
-
-                                    sq = sq.replaceAll(":" + parAr[pi], Util.nvl(vl, ""));
-                                }
+                                for (var pi in parAr)
+                                    if (that.byId("para_" + parAr[pi] + "__" + that.timeInLong) != undefined) {
+                                        var vl = that.byId("para_" + parAr[pi] + "__" + that.timeInLong).getValue();
+                                        if (vl != null && vl instanceof Date)
+                                            vl = Util.toOraDateString(vl);
+                                        sq = sq.replaceAll(":" + parAr[pi], Util.nvl(vl, ""));
+                                    }
                             Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
                                 UtilGen.setControlValue(fldCode, data.CODE, data.CODE, true);
                                 if (fldTit != undefined)
@@ -1854,19 +1872,21 @@ sap.ui.jsview('bin.Dashboard', {
                             var sq = Util.nvl(this.getCustomData()[2].getKey(), "");
                             sq = sq.replaceAll(":CODE", this.getValue());
                             var onCalc = this.getCustomData()[5].getKey();
-                            if (onCalc != "") {
-                                for (var pi in parAr) {
-                                    var vl = UtilGen.getControlValue(that.byId("para_" + parAr[pi] + "__" + that.timeInLong));
+                            for (var pi in parAr)
+                                if (that.byId("para_" + parAr[pi] + "__" + that.timeInLong) != undefined) {
+                                    var vl = that.byId("para_" + parAr[pi] + "__" + that.timeInLong).getValue();
                                     if (vl != null && vl instanceof Date)
                                         vl = Util.toOraDateString(vl);
-
-                                    onCalc = onCalc.replaceAll(":" + parAr[pi], Util.nvl(vl, "null"));
+                                    sq = sq.replaceAll(":" + parAr[pi], Util.nvl(vl, ""));
+                                    if (onCalc != "")
+                                        onCalc = onCalc.replaceAll(":" + parAr[pi], Util.nvl(vl, "null"));
                                 }
-                                try {
+                            try {
+                                if (onCalc != "")
                                     eval(onCalc);
-                                }
-                                catch (err) { sap.m.MessageToast.show(err); console.log(err); }
                             }
+                            catch (err) { sap.m.MessageToast.show(err); console.log(err); }
+
                             if (Util.nvl(sq, "") == "") return;
                             var vl = Util.getSQLValue(sq);
                             var fldTit = that.byId("para_TITLE" + this.getCustomData()[1].getKey() + "TITLE__" + that.timeInLong);

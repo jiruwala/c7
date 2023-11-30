@@ -19,7 +19,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         this.jp = this.createView();
 
         this.loadData();
-        this.jp.onWndClose = function () {            
+        this.jp.onWndClose = function () {
             sap.m.MessageToast.show("Closing the report !");
             that.frm.helperFunctions.destoryRV();
         };

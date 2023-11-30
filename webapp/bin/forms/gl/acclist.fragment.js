@@ -123,7 +123,7 @@ sap.ui.jsfragment("bin.forms.gl.acclist", {
                     icon: "sap-icon://create-form",
                     text: Util.getLangText("newAc"),
                     press: function (e) {
-                        UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=750px,350px status=new",
+                        UtilGen.execCmd("bin.forms.gl.masterAc formSize=650px,400px status=new",
                             that2.view, e.getSource());
                     }
                 }),
@@ -285,7 +285,6 @@ sap.ui.jsfragment("bin.forms.gl.acclist", {
             var oData = that2.acqv.getControl().getContextByIndex(indic[0]);
             if (oData == undefined || indic.length <= 0) return;
             var accno = oData.getProperty(oData.getPath())[that2.mColCode];
-            var rowid = oData.getProperty(oData.getPath())["_rowid"];
             var childs = oData.getProperty(oData.getPath())["CHILDCOUNT"];
             var acname = oData.getProperty(oData.getPath())[that2.mColCodName];
             sap.m.MessageToast.show(acname);
@@ -330,7 +329,7 @@ sap.ui.jsfragment("bin.forms.gl.acclist", {
             var childs = oData.getProperty(oData.getPath())["CHILDCOUNT"];
             var usecount = oData.getProperty(oData.getPath())["USECOUNT"];
             var accno = oData.getProperty(oData.getPath())[that2.mColCode];
-            var rowid = oData.getProperty(oData.getPath())["_rowid"];
+
             var mnu = e.getParameter("contextMenu");
             mnu.removeAllItems();
             if (usecount == 0)
@@ -338,24 +337,22 @@ sap.ui.jsfragment("bin.forms.gl.acclist", {
                     text: "Add child AC",
                     press: function () {
                         var fv = Util.nvl(that.acqv.getControl().getFirstVisibleRow(), 0);
-                        UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=750px,350px status=new parentacc=" + accno, that2.view, e.getSource().getParent().getParent(), undefined, function () {
+                        UtilGen.execCmd("bin.forms.gl.masterAc formSize=650px,400px status=new parentacc=" + accno, that2.view, e.getSource().getParent().getParent(), undefined, function () {
                             that.loadData();
                             var iin = that.acqv.mLctb.find("ACCNO", accno);
-                            that.acqv.getControl().addSelectionInterval(rowid, rowid);
-                            that.acqv.getControl().setFirstVisibleRow(rowid - 1 < 0 ? 0 : rowid - 1);
-                            that.acqv.getControl().fireRowSelectionChange();
-
+                            // that.acqv.getControl().addSelectionInterval(iin, iin);
+                            // that.acqv.getControl().fireRowSelectionChange();
                         });
                     }
                 }));
             mnu.addItem(new sap.m.MenuItem({
                 text: "View A/c", press: function () {
-                    UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=750px,350px status=view accno=" + accno, that2.view, e.getSource().getParent().getParent());
+                    UtilGen.execCmd("bin.forms.gl.masterAc formSize=650px,400px status=view accno=" + accno, that2.view, e.getSource().getParent().getParent());
                 }
             }));
             mnu.addItem(new sap.m.MenuItem({
                 text: "Edit A/c", press: function () {
-                    UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=750px,350px status=edit accno=" + accno, that2.view, e.getSource().getParent().getParent());
+                    UtilGen.execCmd("bin.forms.gl.masterAc formSize=650px,400px status=edit accno=" + accno, that2.view, e.getSource().getParent().getParent());
                 }
             }));
 
@@ -409,12 +406,8 @@ sap.ui.jsfragment("bin.forms.gl.acclist", {
             this.mode = mod;
         }
         that.current_det_ac = "";
-        this.acqv.getControl().expandToLevel(255);
-        // var ki=this.acqv.findNodebyVal("11120000")._rowid;
-        // this.acqv.getControl().setSelectedIndex(ki);
-        // this.acqv.getControl().setFirstVisibleRow(ki-1);
-        //this.loadData_details('', 1);
         this.acqv.getControl().setSelectedIndex(0);
+        //this.loadData_details('', 1);
         this.acqv.getControl().fireRowSelectionChange();
     }
     ,

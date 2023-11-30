@@ -103,7 +103,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                             UtilGen.Search.getLOVSearchField("select name from c_ycust where code = :CODE ", qry.formview.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
                             UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.driver_no"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
                             UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.driver_no"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
-
+                            
                             var kfld = Util.getSQLValue("select pur_keyfld from c7_rmpord where keyfld=" + qry.formview.getFieldValue("keyfld"));
                             if (Util.nvl(kfld, "") != "") {
                                 qry.formview.setFormReadOnly();
@@ -143,17 +143,22 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                         }
                     },
                     beforeDeleteValidate: function (frm) {
-                        var qry = that.frm.objs["qry1"];
-                        if (qry.name == "qry1" && (qry.status == FormView.RecordStatus.EDIT) ||
-                            (qry.status == FormView.RecordStatus.VIEW)) {
-                            var valx = that.frm.getFieldValue("pac");
-                            var purkf = Util.getSQLValue("select pur_keyfld from c7_rmpord where keyfld=" +valx );
-                            if (purkf != undefined) 
-                                FormView.err("Purchase has been generated !");                                                                                                                
-                        }
+                        // var qry = that.frm.objs["qry1"];
+                        // if (qry.name == "qry1" && (qry.status == FormView.RecordStatus.EDIT) ||
+                        //     (qry.status == FormView.RecordStatus.VIEW)) {
+                        //     var valx = that.frm.getFieldValue("pac");
+                        //     var accno = that.frm.getFieldValue("qry1.code");
+                        //     if (valx != accno) {
+                        //         FormView.err("Account not same as " + accno + " <> " + valx + " , Refresh data !");
+                        //     }
+                        //     var vldtt = Util.getSQLValue("select usecount from accostcent1 where code = " + Util.quoted(valx));
+                        //     if (Util.nvl(vldtt, 0) > 0) {
+                        //         FormView.err("Err ! , this cost center have transaction #" + vldtt);
+                        //     }
+                        // }
                     },
                     beforeDelRow: function (qry, idx, ld, data) {
-                        
+
                     },
                     afterDelRow: function (qry, ld, data) {
                         if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
@@ -397,7 +402,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                     valueHelpRequest: function (e) {
                                         UtilGen.Search.do_quick_search(e, this,
                                             "select brno code,b_name TITLE from CBRANCH where code='" + that.frm.objs["qry1.ref_code"].obj.getValue() + "'  order by BRNO ",
-                                            "select brno code,b_name title from cbranch where brno=:CODE and code='" + that.frm.objs["qry1.ref_code"].obj.getValue(), that.frm.objs["qry1.branchname"].obj);
+                                            "select brno code,b_name title from cbranch where code=:CODE", that.frm.objs["qry1.branchname"].obj);
                                     },
                                 },
                                 edit_allowed: true,

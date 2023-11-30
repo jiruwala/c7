@@ -10,6 +10,24 @@ sap.ui.controller('bin.Dashboard', {
         // sap.m.TreeItemBase.prototype.ExpandedIconURI = sap.ui.core.IconPool.getIconURI("less");
         // sap.m.TreeItemBase.prototype.CollapsedIconURI = sap.ui.core.IconPool.getIconURI("add");
         Util.setLanguageModel(this.getView());
+        var that = this.getView();
+
+        var keypress = function (event) {
+            if (event.keyCode == 27) {
+                var md = (that.app.getMode() == sap.m.SplitAppMode.HideMode ? sap.m.SplitAppMode.StretchCompressMode : sap.m.SplitAppMode.HideMode);
+                md = (that.standAlonMode ? sap.m.SplitAppMode.HideMode : md);
+                that.app.setMode(md);
+            }
+        };
+        setTimeout(function () {
+            document.removeEventListener("keydown", keypress); //Remove the event listener
+            document.addEventListener("keydown", keypress);
+        });
+        //  thatForm.frag.mainPage.attachBrowserEvent("keydown", function (e) {
+        //         if (e.key == "ESC")
+        //             UtilGen.DBView.autoShowHideMenu(true, thatForm.navApp.getParent());
+        //     });
+
     },
 
     /**
