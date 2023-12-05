@@ -106,14 +106,22 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
 
         this.txtFromDate = new sap.m.DatePicker({ width: "50%" });
         this.txtToDate = new sap.m.DatePicker({ width: "50%" });
-        
+
         this.txtRef = new sap.m.Input({
             width: "30%", showValueHelp: true,
             valueHelpRequest: function (e) {
-                Util.showSearchList("select code,name from c_ycust where code in (select ref_code from c7_rmpord where pur_keyfld is null and location_code='"+UtilGen.getControlValue(that.txtLocations)+"' ) and childcount=0 and issupp='Y' order by path", "NAME", "CODE", function (valx, val) {
-                    that.txtRef.setValue(valx);
-                    that.txtRefName.setValue(val);
-                });                
+                var fromdt = UtilGen.getControlValue(that.txtFromDate);
+                var todt = UtilGen.getControlValue(that.txtToDate);
+                Util.showSearchList("select code,name from c_ycust where code in " +
+                    "(select distinct ref_code from c7_rmpord where pur_keyfld is null and location_code='" +
+                    UtilGen.getControlValue(that.txtLocations) + "' and " +
+                    " ord_date>=" + Util.toOraDateString(fromdt) +
+                    " and ord_date<=" + Util.toOraDateString(todt) + ") and " +
+                    " childcount=0 and issupp='Y' order by path",
+                    "NAME", "CODE", function (valx, val) {
+                        that.txtRef.setValue(valx);
+                        that.txtRefName.setValue(val);
+                    });
             },
             change: function (e) {
                 var vl = Util.getSQLValue("select name from c_ycust where code=" + Util.quoted(that.txtRef.getValue()));
@@ -127,10 +135,19 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
         this.txtBranch = new sap.m.Input({
             width: "30%", showValueHelp: true,
             valueHelpRequest: function (e) {
-                Util.showSearchList("select brno code,b_name name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " order by brno", "NAME", "CODE", function (valx, val) {
-                    that.txtBranch.setValue(valx);
-                    that.txtBranchName.setValue(val);
-                });
+                var fromdt = UtilGen.getControlValue(that.txtFromDate);
+                var todt = UtilGen.getControlValue(that.txtToDate);
+
+                Util.showSearchList("select brno code,b_name name from cbranch where brno in " +
+                    " (select distinct branch_no from c7_rmpord where pur_keyfld is null and " +
+                    " ord_date>=" + Util.toOraDateString(fromdt) +
+                    " and ord_date<=" + Util.toOraDateString(todt) + " and " +
+                    " location_code='" + UtilGen.getControlValue(that.txtLocations) + "' and  ref_code=" + Util.quoted(that.txtRef.getValue()) +
+                    ") and  code=" + Util.quoted(that.txtRef.getValue()) +
+                    " order by brno", "NAME", "CODE", function (valx, val) {
+                        that.txtBranch.setValue(valx);
+                        that.txtBranchName.setValue(val);
+                    });
             },
             change: function (e) {
                 var vl = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " and brno=" + Util.quoted(that.txtBranch.getValue()));

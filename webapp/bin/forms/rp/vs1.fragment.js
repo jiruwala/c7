@@ -100,13 +100,13 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                                         }
                                     }
                                     var rpt = rptName;
-                                    var rpts = ["vouchers/jv_rng", "vouchers/rv_rng", "vouchers/pv_rng"]
                                     var pt = UtilGen.getControlValue(thatForm.frm.objs["VS101@parameter.ptype"].obj.mainObj);
                                     var pt2 = UtilGen.getControlValue(thatForm.frm.objs["VS101@parameter.ptype2"].obj.mainObj);
+                                    var rpts = ["vouchers/jv_rng", "vouchers/rv_rng" + pt2, "vouchers/pv_rng" + pt2];
                                     if (pt == 1)
                                         rpt = rpts[0];
                                     if (pt == 2 || pt == 3)
-                                        rpt = rpts[pt - 1] + (pt - 1);
+                                        rpt = rpts[pt - 1];
 
                                     return { reportFile: rpt, paras: "&_para_vouType=" + pt2 };
                                 }
@@ -197,7 +197,7 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "",
+                    default_value: "0",
                     other_settings: {
                         width: "35%"
                     },
@@ -218,7 +218,7 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "",
+                    default_value: "0",
                     other_settings: { width: "35%" },
                     list: undefined,
                     edit_allowed: true,
@@ -288,7 +288,7 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "-1",
+                    default_value: "1",
                     other_settings: {
                         width: "35%",
                         items: {
@@ -302,7 +302,7 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                             var cbt2 = thatForm.frm.objs["VS101@parameter.ptype2"].obj.mainObj;
                             if (cntVal == "1")
                                 Util.fillCombo(cbt2, "@1/General JV,2/Purchase JV,3/Sales JV");
-                            if (cntVal == "2")
+                            if (cntVal == "2" || cntVal == 3)
                                 Util.fillCombo(cbt2, "@1/Bank,2/Cash");
                             if (cbt2.getItems().length > 0)
                                 cbt2.setSelectedItem(cbt2.getItems()[0]);
