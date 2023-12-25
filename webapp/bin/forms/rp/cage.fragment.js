@@ -609,7 +609,8 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         plsql = plsql.replaceAll(":_CURSOR_A3", sqls1);
         plsql = plsql.replaceAll(":_CURSOR_PA2", sqls2);
         plsql = plsql.replaceAll(":_CURSOR_PA3", sqls3);
-        
+
+
         plsql = thatForm.frm.parseString(plsql);
         console.log(plsql);
         var dt = Util.execSQL(plsql);
