@@ -144,7 +144,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQryPL1(qryObj);
                                             if (qryObj.rep.hideMainMenu)
-                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp.getParent());
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
 
                                         }
                                     },
@@ -264,7 +264,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                             var thatObj = this;
                                             thatForm.helperFunc.getQryPL2(qryObj);
                                             if (qryObj.rep.hideMainMenu)
-                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp.getParent());
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
 
                                         }
                                     },
@@ -368,7 +368,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQryPL3(qryObj);
                                             if (qryObj.rep.hideMainMenu)
-                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp.getParent());
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
 
                                         }
                                     },

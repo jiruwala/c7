@@ -234,6 +234,15 @@ sap.ui.jsview('bin.Dashboard', {
         var tb = new sap.m.Toolbar({
             content: [
                 new sap.m.Button({
+                    icon: "sap-icon://menu",
+                    press: function () {
+                        var md = (that.app.getMode() == sap.m.SplitAppMode.HideMode ? sap.m.SplitAppMode.StretchCompressMode : sap.m.SplitAppMode.HideMode);
+                        md = (that.standAlonMode ? sap.m.SplitAppMode.HideMode : md);
+                        that.app.setMode(md);       
+                    }
+                }),
+
+                new sap.m.Button({
                     text: Util.getLangText("refresh"),
                     tooltip: Util.getLangText("refreshTip"),
                     icon: "sap-icon://refresh", press: function () {
@@ -1012,8 +1021,16 @@ sap.ui.jsview('bin.Dashboard', {
             return;
         if (sap.ui.Device.system.phone)
             return;
-        if (parentWnd != undefined && !(parentWnd instanceof sap.m.Page))
-            return;
+        // if (parentWnd != undefined && !(parentWnd instanceof sap.m.Page))
+        //     return;        
+        var pwnd = parentWnd;
+        var isdlg = false;
+        while (Util.nvl(pwnd, undefined) != undefined && !isdlg) {
+            if (pwnd instanceof sap.m.Dialog || pwnd instanceof sap.m.Popover)
+                isdlg = true;
+            pwnd = pwnd.getParent();
+        }
+        if (isdlg) return;
         if (showHide)
             that.app.setMode(sap.m.SplitAppMode.StretchCompressMode);
         else

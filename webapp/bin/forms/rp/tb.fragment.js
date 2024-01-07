@@ -144,7 +144,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQryPL1(qryObj);
                                             if (qryObj.rep.hideMainMenu)
-                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp.getParent());
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
 
                                         }
                                     },
@@ -575,6 +575,18 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     ld.parse("{" + dt.data + "}", true);
 
                     // calculating ytd rate.
+                    paras["showFooter"] = true;
+                    paras["fnOnFooter"] = function (footer) {
+                        // var dfq1 = new DecimalFormat("#,##0");
+                        // var totbdeb = 0;
+                        // for (var li = 0; li < ld.rows.length; li++) {
+                        //     var lvl = ld.getFieldValue(li, "LEVELNO");
+                        //     if (lvl == 1)
+                        //         totbdeb += ld.getFieldValue(li, "BDEB");
+                        // }
+                        // footer["BDEB"] = totbdeb;
+                        footer["LEVELNO"] = -1;
+                    }
 
                     var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
                     thatForm.qr.setContent(str);

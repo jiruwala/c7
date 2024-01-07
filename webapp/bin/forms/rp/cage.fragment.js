@@ -83,6 +83,15 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    onSubTitHTML: function () {
+                        var up = thatForm.frm.getFieldValue("parameter.unposted");
+                        var tbstr = Util.getLangText("Receivables Ageing");
+                        var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
+                        // if (cs != "")
+                        //     ht += "<div class='reportTitle2'>" +"</div > ";
+                        return ht;
+
+                    },
                     showCustomPara: function (vbPara, rep) {
 
                     },
@@ -157,6 +166,96 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            pcust: {
+                                colname: "pcust",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue("CAGE1@parameter.pcust", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select name from c_ycust where code=" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue("CAGE1@parameter.acname", vlnm, vlnm, false);
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        Util.showSearchList("select code accno,name from c_ycust where childcount>0 and iscust='Y' order by path", "NAME", "ACCNO", function (valx, val) {
+                                            thatForm.frm.setFieldValue("CAGE1@parameter.pcust", valx, valx, true);
+                                            thatForm.frm.setFieldValue("CAGE1@parameter.acname", val, val, true);
+                                        });
+
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            acname: {
+                                colname: "acname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            pstatus: {
+                                colname: "pstatus",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"clientStatus\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            exclzero: {
+                                colname: "exclzero",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '@{\"text\":\"exclZero\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
 
                         },
                         print_templates: [
@@ -172,7 +271,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 23 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
@@ -215,7 +314,10 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                     // }, false).done(function (data) {
                                     // });
                                     thatForm.save_cage();
-                                    return "select *from C6_VAGE where usernm=c6_session.get_user_session order by code ";
+                                    var ez = thatForm.frm.getFieldValue("parameter.exclzero");
+                                    var sq = "select *from C6_VAGE where " + (ez == "Y" ? "  bal!=0 and " : " ") +
+                                        " usernm=c6_session.get_user_session order by code ";
+                                    return sq;
                                 },
                                 fields: {
                                     code: {
@@ -268,6 +370,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     },
                                     crd_limit: {
@@ -304,6 +407,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     },
                                     b60: {
@@ -322,6 +426,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     },
                                     b90: {
@@ -339,6 +444,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_style: "",
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
+                                        summary: "SUM",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
@@ -357,6 +463,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_style: "",
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
+                                        summary: "SUM",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
@@ -376,6 +483,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
+                                        summary:"SUM",
                                         commandLinkClick: cmdLink
                                     }
 
@@ -403,7 +511,9 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             "PATH, SUM (DEBIT) TOTDEB,SUM (CREDIT) TOTCRD" +
             " FROM   :ACVOUCHER2, c_ycust " +
             " WHERE VOU_DATE <= TODATE and  " +
+            " (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus) and " +
             "  acvoucher2.cust_code=code " +
+            " and c_ycust.path like parent_path " +
             " AND (cust_code>= fromcust and cust_code<=tocust) " +
             " and c_ycust.childcount=0 and c_ycust.iscust='Y' :KEYFLD_CONDITION " +
             " GROUP BY   ACVOUCHER2.cust_code, PATH ";
@@ -412,25 +522,35 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             " SUM (DEBIT) TOTDEB, SUM (CREDIT) TOTCRD," +
             " VOU_DATE       FROM   :ACVOUCHER2, c_ycust " +
             " WHERE  VOU_DATE <= TODATE " +
+            " and (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus)  " +
+            " and c_ycust.path like parent_path " +
             " AND ACVOUCHER2.cust_code = c_ycust.code and iscust='Y' " +
             " AND (cust_code>= fromcust and cust_code<=tocust) :KEYFLD_CONDITION  " +
             " GROUP BY   ACVOUCHER2.cust_code, PATH, VOU_DATE ";
         // :_CURSOR_PA2  order by path
         var sqx3 = "SELECT code, PATH, SUM (DEBIT) TOTDEB," +
             "SUM (CREDIT) TOTCRD FROM  :ACVOUCHER2, c_ycust WHERE VOU_DATE <= TODATE " +
+            " and c_ycust.path like parent_path " +
+            " and (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus)  " +
             " and issupp = 'Y' AND ACVOUCHER2.cust_code = code AND(code >= fromcust  and code <= tocust) " +
             " :KEYFLD_CONDITION GROUP BY   code, PATH ";
         // :_CURSOR_PA3  order by VOU_DATE,PATH;
         var sqx4 = "SELECT   code,PATH, SUM (DEBIT) TOTDEB, " +
             " SUM (CREDIT) TOTCRD, VOU_DATE FROM  :ACVOUCHER2, c_ycust" +
             " WHERE VOU_DATE <= TODATE AND ACVOUCHER2.cust_code = c_ycust.code " +
+            " and c_ycust.path like parent_path " +
+            " and (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus)  " +
             " and issupp='Y' AND (code>= fromcust and code<=tocust) :KEYFLD_CONDITION " +
             " GROUP BY   code, PATH, VOU_DATE ";
+        // :_SQL_CODE_FOUND
+        var sqxCx = " SELECT DISTINCT CUST_CODE FROM  :ACVOUCHER2 WHERE (CUST_CODE>= fromcust and CUST_CODE<=tocust)  " +
+            " and debit+credit!=0 :KEYFLD_CONDITION ";
 
         var sqs = [sqx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
         var sqs1 = [sqx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
         var sqs2 = [sqx3.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
         var sqs3 = [sqx4.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
+        var sqc1 = [sqxCx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and ACVOUCHER2.keyfld>0 " : ""))];
 
 
         for (var bi in bk) {
@@ -446,11 +566,15 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             sqs3.push(sqx4.
                 replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
                 replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and ACVOUCHER2.keyfld>0 ")));
+            sqc1.push(sqxCx.
+                replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and ACVOUCHER2.keyfld>0 ")));
 
         }
 
         var sqls = "";
         var sqls1 = "", sqls2 = "", sqls3 = "";
+        var sqcs1 = "";
         for (var si in sqs)
             sqls += (sqls.length > 0 ? " union all " : "") + sqs[si];
         for (var si in sqs1)
@@ -459,22 +583,28 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             sqls2 += (sqls2.length > 0 ? " union all " : "") + sqs2[si];
         for (var si in sqs3)
             sqls3 += (sqls3.length > 0 ? " union all " : "") + sqs3[si];
+        for (var si in sqc1)
+            sqcs1 += (sqcs1.length > 0 ? " union all " : "") + sqc1[si];
 
         sqls += "  order by PATH ";
         sqls1 += "  order by VOU_DATE,PATH ";
         sqls2 += "  order by PATH ";
         sqls3 += "  order by VOU_DATE,PATH ";
 
-        var paras = "todate date := :parameter.todate;";
+        var paras = "rep_type varchar2(100) :='R';";
+        paras += " todate date := :parameter.todate;";
         paras += "fromcust varchar2(100) := ':parameter.from_cust';";
         paras += " tocust varchar2(100) := ':parameter.to_cust'; ";
+        paras += " parent_cust varchar2(255) := ':parameter.pcust'; ";
+        paras += " pstatus varchar2(255) := ':parameter.pstatus'; ";
         paras += " get_unpostbal varchar2(100) := 'FALSE'; ";
-        paras += " salesp number ; ";
+        paras += " slp number ; ";
         paras += " hide_zero varchar2(100) := 'FALSE'; ";
         paras += " hide_negative varchar2(100) := 'FALSE'; ";
         var plsql = "declare " + paras;
         var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99995");
         plsql = plsql + str;
+        plsql = plsql.replaceAll(":_SQL_CODE_FOUND", sqcs1);
         plsql = plsql.replaceAll(":_CURSOR_A2", sqls);
         plsql = plsql.replaceAll(":_CURSOR_A3", sqls1);
         plsql = plsql.replaceAll(":_CURSOR_PA2", sqls2);
@@ -493,8 +623,4 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
     loadData: function () {
     }
 
-})
-    ;
-
-
-
+});

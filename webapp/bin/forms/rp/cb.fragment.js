@@ -185,7 +185,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 22 },
                                 execOnShow: false,
                                 dml: "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP," +
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL," +

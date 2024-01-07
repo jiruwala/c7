@@ -1655,7 +1655,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     sp.backFunction = function () {
                         if (dlg != undefined) {
                             dlg.close();
-                            UtilGen.DBView.autoShowHideMenu(true);
+                            // UtilGen.DBView.autoShowHideMenu(true);
                             return;
                         }
                         view.app.toDetail(view.pg, "show");
@@ -1688,7 +1688,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 // view.loadData();
                                 if (view.lstPgs.getItems().length == 1)
                                     view.loadData_main();
-                                UtilGen.DBView.autoShowHideMenu(true);
+                                UtilGen.DBView.autoShowHideMenu(true, con);
                             };
 
                         }
