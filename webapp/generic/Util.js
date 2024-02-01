@@ -1001,6 +1001,15 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         binding.filter(filter);
                     }
                 });
+                searchField.attachBrowserEvent("keydown", function (evt) {
+                    if (evt.key == "ArrowDown") {
+                        qv.getControl().focus();
+                    }
+                    if (evt.key == "ArrowUp") {
+                        qv.getControl().focus();
+                    }
+
+                });
                 if (container instanceof sap.m.VBox)
                     container.addItem(searchField);
                 else

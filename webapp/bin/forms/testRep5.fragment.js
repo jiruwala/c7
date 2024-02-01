@@ -92,13 +92,10 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             var jvpos = parseInt(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "JVPOS")].getText());
             // var  = tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "")].getText();
 
-            // var vcd = lctb.getFieldValue(rx, "VOU_CODE");
-            // var typ = lctb.getFieldValue(rx, "VOU_TYPE");
-            // var kfld = lctb.getFieldValue(rx, "KEYFLD");
-            // var jvpos = lctb.getFieldValue(rx, "JVPOS");
             var dtx = Util.execSQLWithData("select vou_code,type from acvoucher1 where keyfld=" + kfld, "No data found ..");
             var vcd = dtx[0].VOU_CODE;
             var typ = dtx[0].TYPE;
+
             if (vcd == 1 && typ == 1) {
                 UtilGen.execCmd("gl.jv formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
             } else if (vcd == 3 && (typ == 1 || typ == 6)) {

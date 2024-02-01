@@ -2433,7 +2433,6 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     h += "<th " + tmpv2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
                     hs--;
                 }
-
             }
 
             for (var x in cs)
@@ -2618,12 +2617,12 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
             for (var v in oData[i]) {
                 // task  :  find out that should i print this row or not , by checking this row is collapsed or expanded..
-
                 cnt++;
                 tmpv2 = "", tmpv3 = "", classadd = "", styleadd = "";
 
                 var cn = that.mLctb.getColPos(v.replace("___", "/"));
                 var cc = that.mLctb.cols[cn];
+                if (cc == undefined || cc == null) continue;
                 if (cn > -1 && that.mLctb.cols[cn].mHideCol) continue;
                 if (cnt - 1 == 0) {
                     t = v;
