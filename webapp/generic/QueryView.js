@@ -54,6 +54,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             this.mColLstGroup = "";
             this.mColLstGroupNm = "";
             this.eventCalc = undefined;
+            this.eventKey = undefined;
             this.mapNodes = {};
             this.when_validate_field = undefined;
             (sap.ui.getCore().byId(this.tableId + "table") != undefined ? sap.ui.getCore().byId(this.tableId + "table").destroy() : null);
@@ -955,9 +956,12 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             var colno = this.getParent().indexOfCell(this);
                             var totalRows = that.getControl().getModel().getData().length;
                             var firstVis = that.getControl().getFirstVisibleRow();
+                            var visRows = that.getControl().getVisibleRowCount();
                             that.deleteRow(firstVis + rowno);
-
-
+                            var rn = (rowno - 1 < 0) ? 0 : (rowno == visRows - 1 ? rowno : rowno - 1);
+                            if (totalRows - 1 <= visRows - 1)
+                                rn = totalRows - 2;
+                                that.getControl().getRows()[rn].getCells()[colno].focus();
                         }
                     });
                     o.attachBrowserEvent("keydown", function (evt) {
@@ -999,14 +1003,26 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             var rowno = that.getControl().indexOfRow(this.getParent());
                             var colno = this.getParent().indexOfCell(this);
                             var firstVis = that.getControl().getFirstVisibleRow();
-                            if (rowno > 0) {
-                                rowno--;
-                                that.getControl().getRows()[rowno].getCells()[colno].focus();
-                            } else if (firstVis > 0) {
-                                that.getControl().setFirstVisibleRow(firstVis - 1);
-                                that.getControl().getRows()[0].getCells()[colno].focus();
+                            var totalRows = that.getControl().getModel().getData().length;
+                            var visRows = that.getControl().getVisibleRowCount();
+                            if (that.eventKey != undefined && Util.nvl(that.eventKey(evt.key, rowno, colno, firstVis), false)) {
+                                if (rowno > 0) {
+                                    rowno--;
+                                    that.getControl().getRows()[rowno].getCells()[colno].focus();
+                                } else if (firstVis > 0) {
+                                    that.getControl().setFirstVisibleRow(firstVis - 1);
+                                    that.getControl().getRows()[0].getCells()[colno].focus();
+                                }
                             }
+                            else {
+                                var rn = (rowno - 1 < 0) ? 0 : (rowno == visRows - 1 ? rowno : rowno - 1);
+                                if (totalRows - 1 <= visRows - 1)
+                                    rn = totalRows - 2;    
+                                that.getControl().getRows()[rn].getCells()[colno].focus();
+                            }
+
                         }
+
                         if (evt.key == "F5") {
                             evt.preventDefault();
                             var colno = this.getParent().indexOfCell(this);
@@ -2433,7 +2449,6 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     h += "<th " + tmpv2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
                     hs--;
                 }
-
             }
 
             for (var x in cs)
@@ -2618,12 +2633,12 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
             for (var v in oData[i]) {
                 // task  :  find out that should i print this row or not , by checking this row is collapsed or expanded..
-
                 cnt++;
                 tmpv2 = "", tmpv3 = "", classadd = "", styleadd = "";
 
                 var cn = that.mLctb.getColPos(v.replace("___", "/"));
                 var cc = that.mLctb.cols[cn];
+                if (cc == undefined || cc == null) continue;
                 if (cn > -1 && that.mLctb.cols[cn].mHideCol) continue;
                 if (cnt - 1 == 0) {
                     t = v;

@@ -100,10 +100,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
 
                         if (qry.name == "qry1") {
                             qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
-                            UtilGen.Search.getLOVSearchField("select name from c_ycust where code = :CODE ", qry.formview.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
+                            UtilGen.Search.getLOVSearchField("select name from c_ycust where code = ':CODE' ", qry.formview.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
                             UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.driver_no"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
-                            UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.driver_no"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
-                            
+                            UtilGen.Search.getLOVSearchField("select descr name from items where reference = ':CODE' ", qry.formview.objs["qry1.refer"].obj, undefined, that.frm.objs["qry1.refername"].obj);
+                            UtilGen.Search.getLOVSearchField("select b_name name from cbranch where code='" + qry.formview.objs["qry1.ref_code"].obj.getValue() + "' and  brno = :CODE ", qry.formview.objs["qry1.branch_no"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
+
                             var kfld = Util.getSQLValue("select pur_keyfld from c7_rmpord where keyfld=" + qry.formview.getFieldValue("keyfld"));
                             if (Util.nvl(kfld, "") != "") {
                                 qry.formview.setFormReadOnly();
@@ -351,6 +352,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                     width: "25%",
                                     showValueHelp: true,
                                     change: function (e) {
+                                        UtilGen.setControlValue(that.frm.objs["qry1.refer"].obj, "", "", false);
+                                        UtilGen.setControlValue(that.frm.objs["qry1.refername"].obj, "", "", false);
+                                        UtilGen.setControlValue(that.frm.objs["qry1.branch_no"].obj, "", "", false);
+                                        UtilGen.setControlValue(that.frm.objs["qry1.branchname"].obj, "", "", false);
 
                                         UtilGen.Search.getLOVSearchField("select name from c_ycust where childcount=0 and code = ':CODE'", that.frm.objs["qry1.ref_code"].obj, undefined, that.frm.objs["qry1.ref_name"].obj);
 
@@ -397,6 +402,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                     width: "25%",
                                     showValueHelp: true,
                                     change: function (e) {
+                                        UtilGen.setControlValue(that.frm.objs["qry1.refer"].obj, "", "", false);
+                                        UtilGen.setControlValue(that.frm.objs["qry1.refername"].obj, "", "", false);
                                         UtilGen.Search.getLOVSearchField("select b_name from cbranch where code='" + that.frm.objs["qry1.ref_code"].obj.getValue() + "'  and  BRNO = ':CODE'", that.frm.objs["qry1.branch_no"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
                                     },
                                     valueHelpRequest: function (e) {
@@ -441,6 +448,26 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                     showValueHelp: true,
                                     change: function (e) {
                                         // UtilGen.Search.getLOVSearchField("select descr name from items where childcount=0 and reference = ':CODE'", that.frm.objs["qry1.refer"].obj, undefined, that.frm.objs["qry1.refername"].obj);
+
+                                        var sqcnt = "select nvl(count(*),0) cnts from c_contract_items" +
+                                            " where cust_code=':ref_code' and branch_no=':loc' and refer=':refer' order by refer "
+                                                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ref_code"))
+                                                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.branch_no"))
+                                                .replaceAll(":refer", that.frm.objs["qry1.refer"].obj.getValue());
+
+                                        var cnt = Util.getSQLValue(sqcnt);
+                                        if (cnt <= 0) {
+                                            var sq = ("SELECT refer code,ITEMS.DESCR title " +
+                                                " FROM CUSTITEMS,ITEMS " +
+                                                " WHERE REFERENCE=REFER AND CODE='" + thatForm.frm.getFieldValue("qry1.ref_code") + "' and custitems.refer=':refer'").replaceAll(":refer", that.frm.objs["qry1.refer"].obj.getValue());
+                                            cnt = Util.getSQLValue(sq);
+                                        }
+                                        if (cnt <= 0) {
+                                            UtilGen.setControlValue(that.frm.objs["qry1.refer"].obj, "", "", false);
+                                            UtilGen.setControlValue(that.frm.objs["qry1.refername"].obj, "", "", false);
+                                            FormView.err("Not found item !");
+                                            return;
+                                        }
                                         var txtDescr = thatForm.frm.objs['qry1.refername'].obj;
                                         var txtPackd = thatForm.frm.objs['qry1.packd'].obj;
                                         var txtUnitd = thatForm.frm.objs['qry1.unitd'].obj;
@@ -455,15 +482,29 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                             // txtPackd.setValue(dtx[0].PACKD);
                                             // txtUnitd.setValue(dtx[0].UNITD);
                                             // txtPack.setValue(dtx[0].PACK);
-                                        } else FormView.err("Not found item !");
+                                        } else {
+                                            UtilGen.setControlValue(that.frm.objs["qry1.refer"].obj, "", "", false);
+                                            UtilGen.setControlValue(that.frm.objs["qry1.refername"].obj, "", "", false);
+                                            FormView.err("Not found item !");
+                                        }
                                     },
                                     valueHelpRequest: function (e) {
-                                        UtilGen.Search.do_quick_search(e, this,
-                                            "select distinct refer code,descr title from c_contract_items" +
+                                        var sqcnt = "select nvl(count(*),0) cnts from c_contract_items" +
                                             " where cust_code=':ref_code' and branch_no=':loc' order by refer "
                                                 .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ref_code"))
-                                                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.branch_no")),
-                                            "select reference code,descr title from items where reference=:CODE", that.frm.objs["qry1.refername"].obj);
+                                                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.branch_no"));
+
+                                        var sq = "select distinct refer code,descr title from c_contract_items" +
+                                            " where cust_code=':ref_code' and branch_no=':loc' order by refer "
+                                                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ref_code"))
+                                                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.branch_no"));
+                                        var cnt = Util.getSQLValue(sqcnt);
+                                        if (cnt <= 0) {
+                                            sq = "SELECT refer code,ITEMS.DESCR title " +
+                                                " FROM CUSTITEMS,ITEMS " +
+                                                " WHERE REFERENCE=REFER AND CODE='" + thatForm.frm.getFieldValue("qry1.ref_code") + "'";
+                                        }
+                                        UtilGen.Search.do_quick_search(e, this, sq, "select reference code,descr title from items where reference=:CODE", that.frm.objs["qry1.refername"].obj);
 
                                     },
                                 },
@@ -614,8 +655,18 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 colname: 'KEYFLD',
                                 return_field: "pac",
                             },
+                            {
+                                colname: 'DLV_NO'
+                            },
+                            {
+                                colname: 'REF_CODE'
+                            },
+                            {
+                                colname: 'NAME'
+                            },
+
                         ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                        sql: "SELECT p.keyfld,p.ord_date,p.DLV_NO,p.REF_CODE, c.name from C7_RMPORD p,c_ycust c where c.code=p.ref_code order by p.keyfld desc ",
+                        sql: "SELECT p.keyfld,TO_CHAR(p.ord_date,'DD/MM/RRRR') ORD_DATE,p.DLV_NO,p.REF_CODE, c.name from C7_RMPORD p,c_ycust c where c.code=p.ref_code order by p.keyfld desc ",
                         afterSelect: function (data) {
                             that2.frm.loadData(undefined, "view");
                             return true;
@@ -666,15 +717,32 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
     }
     ,
     loadData: function () {
-        // if (Util.nvl(this.oController.accno, "") != "" &&
-        //     Util.nvl(this.oController.status, "view") == FormView.RecordStatus.VIEW) {
-        //     this.frm.setFieldValue("pac", this.oController.accno, this.oController.accno, true);
-        //     this.frm.loadData(undefined, FormView.RecordStatus.VIEW);
-        //     this.oController.accno = "";
-        //     return;
+        var frag = this;
+        frag.oController.status = Util.nvl(frag.oController.status, 'new');
+        frag.frm.readonly = Util.nvl(frag.oController.readonly, false);
 
-        // }
-        this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
+        if (frag.frm.readonly)
+            frag.oController.status = "view";
+
+
+        if (frag.oController.nolist)
+            frag.frm.cmdButtons.cmdList.setVisible(false);
+
+        if (frag.oController.readonly) {
+            frag.frm.cmdButtons.cmdNew.setVisible(false);
+            frag.frm.cmdButtons.cmdEdit.setVisible(false);
+            frag.frm.cmdButtons.cmdDel.setVisible(false);
+        }
+
+        if (frag.oController.status != FormView.RecordStatus.NEW) {
+            frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld), "");
+            frag.frm.setQueryStatus(undefined, frag.oController.status);
+        } else {
+            frag.frm.setFieldValue('pac', Util.nvl(frag.qryStr), "");
+            frag.frm.setQueryStatus(undefined, Util.nvl(frag.oController.status, FormView.RecordStatus.NEW));
+        }
+        if (frag.qryStr != "")
+            frag.frm.loadData(undefined, frag.oController.status);
     }
     ,
     validateSave: function () {

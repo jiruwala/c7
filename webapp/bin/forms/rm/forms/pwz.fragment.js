@@ -241,6 +241,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
                     Util.toOraDateString(dt) + " >=startdate and " +
                     Util.toOraDateString(dt) + " <=enddate "
                 );
+                if (pr == 0)
+                    pr = Util.getSQLValue("select nvl(max(price),0) from CUSTITEMS  " +
+                        " where code='" + that.txtRef.getValue() + "' and " +
+                        " refer='" + rfr + "' "
+                    );
                 return pr;
             }
             if (dt.data.length <= 0) return;
@@ -257,7 +262,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             " DRIVER_NAME, DLV_NO, TRUCK_NO, REF_CODE, NAME, REFER, DESCR" +
             " from c7_vrmpord  where ord_date>=" + Util.toOraDateString(fromdt) +
             " and ord_date<=" + Util.toOraDateString(todt) +
-            " and ref_code=" + Util.quoted(that.txtRef.getValue()) +
+            " and ref_code=" + Util.quoted(that.txtRef.getValue()) + " and " +
+            " location_code=" + Util.quoted(UtilGen.getControlValue(that.txtLocations)) +
             " order by keyfld";
 
         var dt = Util.execSQL(sq);
@@ -494,9 +500,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
         }
         this.infoPage.removeAllHeaderContent();
         this.infoPage.addHeaderContent(new sap.m.Title({ text: "Purchase wizard / " + that.txtRefName.getValue() }));
-
+        var loc = UtilGen.getControlValue(that.txtLocations);
         UtilGen.setControlValue(that.txtInfoLocations, "-", "-", true);
-        UtilGen.setControlValue(that.txtInfoLocations, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
+        UtilGen.setControlValue(that.txtInfoLocations, loc, loc, true);
         that.txtInfoLocations.fireSelectionChange();
         // that.txtInfoLocations.fireSelectionChange();
         that.txtInfoRef.setValue(that.txtRef.getValue() + "-" + that.txtRefName.getValue());
@@ -542,6 +548,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             " for x in ds loop" +
             "     select nvl(max(price),0) into pr from c_contract_items where cust_code=x.ref_code and refer=x.refer and branch_no=x.branch_no and x.ord_date>=startdate and x.ord_date<=enddate ;" +
             "     select prd_dt,exp_dt into prd_date, exp_date from items where reference=x.refer;    " +
+            "  if pr=0 then " +
+            "   select max(price) into pr from custitems where code=x.ref_code and refer=x.refer; " +
+            "  end if;" +
             " " +
             "     " +
             "     posx:=posx+1;" +

@@ -1870,7 +1870,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
             },
             Search: {
-                do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect) {
+                do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect, pPoints) {
+                    var points = Util.nvl(pPoints, {});
                     if (e.getParameters().clearButtonPressed || e.getParameters().refreshButtonPressed) {
                         UtilGen.setControlValue(control, "", "", false);
                         if (titObj != undefined)
@@ -1879,15 +1880,16 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }
                     // var control = this;
                     var sq = pSq;
-                    Util.showSearchList(sq, "TITLE", "CODE", function (valx, val) {
-                        if (titObj == undefined)
-                            UtilGen.setControlValue(control, val, valx, false);
+                    Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
+                        UtilGen.setControlValue(control, data.CODE, data.CODE, true);
+                        if (titObj != undefined)
+                            UtilGen.setControlValue(titObj, data.TITLE, data.TITLE, true);
                         else {
-                            UtilGen.setControlValue(control, valx, valx, false);
-                            UtilGen.setControlValue(titObj, val, val, false);
+                            UtilGen.setControlValue(control, data.CODE, data.CODE, false);
+                            UtilGen.setControlValue(titObj, data.TITLE, data.TITLE, false);
                         }
 
-                        var vldtt = Util.execSQL(pSqGetTitle.replaceAll(":CODE", Util.quoted(valx)));
+                        var vldtt = Util.execSQL(pSqGetTitle.replaceAll(":CODE", Util.quoted(data.CODE)));
                         if (vldtt.ret != "SUCCESS") {
                             UtilGen.setControlValue(control, "", "", false);
                             if (titObj != undefined)
@@ -1905,7 +1907,20 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }
                         if (eventAfterSelect != undefined)
                             eventAfterSelect();
-                    });
+                        return true;
+                    }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints);
+
+
+                    // Util.showSearchList(sq, "TITLE", "CODE", function (valx, val) {
+                    //     if (titObj == undefined)
+                    //         UtilGen.setControlValue(control, val, valx, false);
+                    //     else {
+                    //         UtilGen.setControlValue(control, valx, valx, false);
+                    //         UtilGen.setControlValue(titObj, val, val, false);
+                    //     }
+
+
+                    // });
                 },
                 getLOVSearchField: function (sql, control, nullValid, titObj) {
                     var vl = control.getValue();
