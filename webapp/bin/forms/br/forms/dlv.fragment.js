@@ -98,6 +98,14 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 ],
                 events: {
                     afterLoadQry: function (qry) {
+                        qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
+                        if (qry.name == "qry1") {
+                            var strInvType = "select descr title from invoicetype where location_code=':locationx' and no = ':CODE' ".replaceAll(":locationx", UtilGen.getControlValue(qry.formview.objs["qry1.location_code"].obj));
+                            var strInvs = "select b_name title from cbranch where code=':cust_code' and brno = ':CODE' ".replaceAll(":cust_code", UtilGen.getControlValue(qry.formview.objs["qry1.ord_ref"].obj));
+                            UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.ord_empno"].obj, undefined, that.frm.objs["qry1.txt_empname"].obj);
+                            UtilGen.Search.getLOVSearchField(strInvType, qry.formview.objs["qry1.ord_type"].obj, undefined, that.frm.objs["qry1.typename"].obj);
+                            UtilGen.Search.getLOVSearchField(strInvs, qry.formview.objs["qry1.ord_discamt"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
+                        }
                     },
                     beforeLoadQry: function (qry, sql) {
                         return sql;
@@ -148,8 +156,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         // if (qry.name == "qry1")
                         //     delAdd += "delete from c7_attach where kind_of='VOU'and refer=:qry1.keyfld ;";
 
-                        // if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
-                        //     qry.obj.addRow();
+                        if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
+                            qry.obj.addRow();
                         // return delAdd;
                     },
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
@@ -172,9 +180,11 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         name: "qry1",
                         dml: "select *from order1 where ord_code=9 and keyfld=:pac",
                         where_clause: " ord_code=9 and ord_no=':keyfld' ",
-                        update_exclude_fields: ['keyfld'],
-                        insert_exclude_fields: [],
+                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', 'typename', 'txt_balance'],
+                        insert_exclude_fields: ['branchname', 'txt_empname', 'typename', 'txt_balance'],
                         insert_default_values: {
+                            "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
+                            "ORD_CODE": "9",
                         },
                         update_default_values: {
 
@@ -184,7 +194,6 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         insert_allowed: true,
                         delete_allowed: false,
                         fields: thatForm.helperFunc.getFields1()
-
                     },
                     {
                         type: "query",
@@ -198,16 +207,43 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         insert_allowed: true,
                         delete_allowed: true,
                         delete_before_update: "delete from c_order1 where keyfld=':qry1.keyfld';",
-                        where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld'],
-                        insert_exclude_fields: [],
+                        where_clause: " keyfld=':   keyfld' ",
+                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'PACKD', 'PACK'],
+                        insert_exclude_fields: ['DESCR', 'AMOUNT', 'PACKD', 'PACK'],
                         insert_default_values: {
+                            "PERIODCODE": sett["CURRENT_PERIOD"],
+                            "LOCATION_CODE": ":qry1.location_code",
+                            "ORD_NO": ":qry1.ord_no",
+                            "ORD_CODE": "9",
+                            "ORD_REF": ":qry1.ord_ref",
+                            "ORD_REFNM": ":qry1.ord_refnm",
+                            "ORD_DISCAMT": ":qry1.ord_discamt",
+                            "ORD_DATE": ":qry1.ord_date",
+                            "ORD_EMPNO": ":qry1.ord_empno",
+                            "KEYFLD": ":qry1.keyfld",
+                            "STRA": sett["DEFAULT_STORE"],
+
 
                         },
                         update_default_values: {
                         },
                         table_name: "c_order1",
                         before_add_table: function (scrollObjs, qrj) {
+                            qrj.eventKey = function (key, rowno, colno, firstVis) {
+                                var totalRows = qrj.getControl().getModel().getData().length;
+                                var visRows = qrj.getControl().getVisibleRowCount();
+                                var cl = UtilGen.getTableColNo(qrj.getControl(), "ORD_SHIP");
+                                var vl = qrj.getControl().getRows()[rowno].getCells()[cl].getValue();
+                                if (vl == "") {
+                                    qrj.deleteRow(firstVis + rowno);
+                                    var rn = (rowno - 1 < 0) ? 0 : (rowno == visRows - 1 ? rowno : rowno - 1);
+                                    if (totalRows - 1 <= visRows - 1)
+                                        rn = totalRows - 2;
+                                    qrj.getControl().getRows()[rn].getCells()[cl].focus();
+                                    return false;
+                                }
+                                return true;
+                            }
                         },
                         when_validate_field: function (table, currentRowoIndexContext, cx, rowno, colno) {
                             return true;
@@ -301,6 +337,9 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
         init: function (frm) {
             this.thatForm = frm;
         },
+        getItemPrice:function(refer){
+            return .1;
+        },
         getFields1: function () {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
@@ -380,7 +419,12 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             var locval = UtilGen.getControlValue(thatForm.frm.objs["qry1.location_code"].obj)
                             UtilGen.Search.do_quick_search(e, this,
                                 "select no code,descr title from invoicetype where location_code=':locationx' order by no ".replaceAll(":locationx", locval),
-                                "select no code,descr title from invoicetype where location_code=':locationx' and no=:CODE".replaceAll(":locationx", locval), thatForm.frm.objs["qry1.typename"].obj);
+                                "select no code,descr title from invoicetype where location_code=':locationx' and no=:CODE".replaceAll(":locationx", locval), thatForm.frm.objs["qry1.typename"].obj, undefined,
+                                {
+                                    pWidth: "300px", pHeight: "400px",
+                                    "background-color": 'blue',
+                                    "dialogStyle": "cyanDialog"
+                                });
                         }
 
                     },
@@ -400,10 +444,10 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "24%" },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true
+                    other_settings: { editable: false, width: "24%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
                 },
                 ord_no: {
                     colname: "ord_no",
@@ -417,7 +461,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: { editable: true, width: "20%" },
-                    edit_allowed: true,
+                    edit_allowed: false,
                     insert_allowed: true,
                     require: true
                 },
@@ -464,10 +508,10 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_empno"].obj, undefined, thatForm.frm.objs["qry1.txt_empname"].obj);
                             var objEmp = thatForm.frm.objs["qry1.ord_empno"].obj;
                             var objTel = thatForm.frm.objs["qry1.ord_ship"].obj;
-                            var objV = thatForm.frm.objs["qry1.vehicleno"].obj;
+                            var objV = thatForm.frm.objs["qry1.payterm"].obj;
                             var dtxM = Util.execSQLWithData("select mobile,vehicleno,HADDR from salesp where no=" + objEmp.getValue());
                             UtilGen.setControlValue(objTel, dtxM[0]["MOBILE"], dtxM[0]["MOBILE"], true);
-                            UtilGen.setControlValue(objV, dtxM[0]["VEHICLENO"], dtxM[0]["VEHICLENO"], true);
+                            UtilGen.setControlValue(objV, dtxM[0]["payterm"], dtxM[0]["payterm"], true);
 
                         },
                         valueHelpRequest: function (e) {
@@ -493,9 +537,9 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: { editable: true, width: "19%" },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
                 },
                 ord_ship: {// telephone no
                     colname: "ord_ship",
@@ -513,8 +557,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     insert_allowed: true,
                     require: true
                 },
-                vehicleno: {
-                    colname: "vehicleno",
+                payterm: {
+                    colname: "payterm",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
                     title: '@{\"text\":\"truckNo\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
@@ -589,7 +633,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     colname: "txt_balance",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"balanceTxt\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"balanceTxt\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -597,9 +641,9 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: { editable: true, width: "25%" },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
                 },
                 ord_discamt: {// branch no
                     colname: "ord_discamt",
@@ -609,7 +653,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
+                    display_align: "ALIGN_START",
                     display_style: "",
                     display_format: "",
                     other_settings: {
@@ -645,9 +689,9 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: { editable: true, width: "64%" },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
                 }
             };
         },
@@ -660,9 +704,20 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     list_type: "sql",
                     cols: [
                         {
+                            colname: "ORD_NO",
+                        },
+                        {
+                            colname: "ORD_REF",
+                        },
+                        {
+                            colname: "ORD_REFNM"
+                        },
+                        {
                             colname: 'KEYFLD',
                             return_field: "pac",
-                        }
+                        },
+
+
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
                     sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
                         " order by o1.ord_date desc,ord_no desc",

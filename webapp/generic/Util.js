@@ -1005,7 +1005,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     if (evt.key == "ArrowDown") {
                         qv.getControl().focus();
                     }
-                    if (evt.key == "ArrowUp") {
+
+                    if (evt.key == "ArrowDown") {
                         qv.getControl().focus();
                     }
 
@@ -1195,8 +1196,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return "";
             },
-            show_list: function (sql, cols, retCols, pfnSel, width, height, visibleRowCount, multiSelect, fnShowSel, pppms, dta, jsCmd) {
+            show_list: function (sql, cols, retCols, pfnSel, width, height, visibleRowCount, multiSelect, fnShowSel, pppms, dta, jsCmd, pCss) {
                 // var vbox = new sap.m.VBox({width: "100%"});
+
                 var vbox = new sap.m.Page({ showHeader: true });
                 var ppms = Util.nvl(pppms, undefined);
                 var fnSel = Util.nvl(pfnSel, undefined);
@@ -1217,6 +1219,11 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     contentHeight: this.nvl(height, "500px"),
                     contentWidth: this.nvl(width, "400px")
                 });
+                if (pCss != undefined)
+                    dlg.$().css(pCss);
+                if (pCss!=undefined && pCss["dialogStyle"] != undefined)
+                    dlg.addStyleClass(pCss["dialogStyle"]);
+
                 dlg.attachBrowserEvent("keydown", function (e) {
                     if (e.key == 'Enter')
                         btn.firePress();

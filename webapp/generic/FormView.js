@@ -942,7 +942,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var status = Util.nvl(status2, "");
             if (FormView.RecordStatus[status.toUpperCase()] == undefined)
                 status = FormView.RecordStatus.VIEW;
-
             if (typeof qryName == "string")
                 qryObj = this.objs[qryName];
             else qryObj = qryName;
