@@ -106,6 +106,20 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             UtilGen.Search.getLOVSearchField(strInvType, qry.formview.objs["qry1.ord_type"].obj, undefined, that.frm.objs["qry1.typename"].obj);
                             UtilGen.Search.getLOVSearchField(strInvs, qry.formview.objs["qry1.ord_discamt"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
                         }
+                        if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
+                            qry.obj.mLctb.getColByName("ORD_SHIP").beforeSearchEvent = function (sq, ctx, model) {
+                                qry.obj.mLctb.getColByName("ORD_SHIP").btnsx = [new sap.m.Button({
+                                    text: 'New Item..',
+                                    press: function () {
+                                        sap.m.MessageToast.show('New Item');
+                                    }
+                                }
+                                )];
+                                return thatForm.frm.parseString(sq);
+                            };
+
+
+
                     },
                     beforeLoadQry: function (qry, sql) {
                         return sql;
@@ -133,10 +147,14 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
 
                             objOn.fireSelectionChange();
-
+                            // thatForm.helperFunc.validity.updateFieldsEditing();
 
                         }
 
+                    },
+                    afterEditRow(qry, index, ld) {
+                        if (qry.name == "qry1")
+                            thatForm.helperFunc.validity.updateFieldsEditing();
                     },
                     beforeDeleteValidate: function (frm) {
                         // var kf = frm.getFieldValue("keyfld");
@@ -158,6 +176,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
                         if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                             qry.obj.addRow();
+
                         // return delAdd;
                     },
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
@@ -179,7 +198,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         type: "query",
                         name: "qry1",
                         dml: "select *from order1 where ord_code=9 and keyfld=:pac",
-                        where_clause: " ord_code=9 and ord_no=':keyfld' ",
+                        where_clause: " keyfld=':keyfld' ",
                         update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', 'typename', 'txt_balance'],
                         insert_exclude_fields: ['branchname', 'txt_empname', 'typename', 'txt_balance'],
                         insert_default_values: {
@@ -206,8 +225,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
-                        delete_before_update: "delete from c_order1 where keyfld=':qry1.keyfld';",
-                        where_clause: " keyfld=':   keyfld' ",
+                        delete_before_update: "delete from c_order1 where keyfld='keyfld';",
+                        where_clause: " keyfld=':keyfld' ",
                         update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'PACKD', 'PACK'],
                         insert_exclude_fields: ['DESCR', 'AMOUNT', 'PACKD', 'PACK'],
                         insert_default_values: {
@@ -244,8 +263,10 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                                 }
                                 return true;
                             }
+
                         },
                         when_validate_field: function (table, currentRowoIndexContext, cx, rowno, colno) {
+                            thatForm.helperFunc.validity.updateFieldsEditing();
                             return true;
                         },
                         eventCalc: function (qv, cx, rowno, reAmt) {
@@ -297,6 +318,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
         this.frm = new FormView(this.mainPage);
         this.frm.view = view;
         this.frm.pg = this.mainPage;
+        this.frm.frag = this;
         this.frm.parseForm(js);
         this.frm.createView();
 
@@ -336,6 +358,54 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
     helperFunc: {
         init: function (frm) {
             this.thatForm = frm;
+            this.validity.init(frm);
+        },
+        validity: {
+            init: function (frm) {
+                this.thatForm = frm;
+            },
+            checkCustomer: function (pmsg) {
+                var thatForm = this.thatForm;
+                var msg = Util.nvl(pmsg, true);
+                var custCod = thatForm.frm.getFieldValue("qry1.ord_ref");
+                var dtx = Util.getSQLValue("select usecount,flag from c_ycust where flag=1 and code=" + Util.quoted(custCod));
+                if (msg && (dtx == undefined || dtx.length <= 0))
+                    FormView.err("Customer code is not valid ! ");
+                return (msg ? true : pmsg);
+            },
+            checkDriver: function (pmsg) {
+                var thatForm = this.thatForm;
+                var msg = Util.nvl(pmsg, true);
+                var driv = thatForm.frm.getFieldValue("qry1.ord_empno");
+                var dtx = Util.getSQLValue("select name from salesp where flag=1 and no=" + Util.quoted(driv));
+                if (msg && (dtx == undefined || dtx.length <= 0))
+                    FormView.err("Driver is not valid ! ");
+                return (msg ? true : pmsg);
+            },
+            updateFieldsEditing: function () {
+                var thatForm = this.thatForm;
+                var qv = thatForm.frm.objs["qry2"].obj;
+                var ld = qv.mLctb;
+                var itmCount = 0;
+                if (!(thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                    thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW))
+                    return;
+                var setControls = function (ed) {
+                    thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(ed);
+                    thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(ed);
+                    thatForm.frm.objs["qry1.ord_discamt"].obj.setEditable(ed);
+                    thatForm.frm.objs["qry1.ord_type"].obj.setEditable(ed);
+                }
+                setControls(true);
+                qv.updateDataToTable();
+                for (var i = 0; i < ld.rows.length; i++)
+                    if (Util.nvl(ld.getFieldValue(i, "ORD_SHIP"), "").trim() != "")
+                        itmCount++;
+
+                if (itmCount > 0) {
+                    setControls(false);
+                }
+            }
         },
         getFields1: function () {
             var codSpan = "XL3 L3 M3 S12";
@@ -408,8 +478,20 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         showValueHelp: true,
                         change: function (e) {
                             var locval = UtilGen.getControlValue(thatForm.frm.objs["qry1.location_code"].obj)
-                            var sq = "select descr name from invoicetype where location_code=':LOCATION' and no = ':CODE'".replaceAll(":LOCATION", locval);
-                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_type"].obj, undefined, thatForm.frm.objs["qry1.typename"].obj);
+                            var sq = "select descr name ,accno from invoicetype " +
+                                " where location_code=':LOCATION' and no = ':CODE'".replaceAll(":LOCATION", locval).replaceAll(":CODE", thatForm.frm.objs["qry1.ord_type"].obj.getValue());
+                            var dtx = Util.execSQLWithData(sq, "No data found ..");
+                            thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(true);
+                            if (dtx != undefined) {
+                                UtilGen.setControlValue(thatForm.frm.objs["qry1.typename"].obj, dtx[0].NAME);
+                                UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_ref"].obj, dtx[0].ACCNO);
+                                var nm = Util.getSQLValue("select name from c_ycust where code='" + dtx[0].ACCNO + "'");
+                                UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_refnm"].obj, nm);
+                                if (Util.nvl(dtx[0].ACCNO, '') != "")
+                                    thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
+                            }
+                            // UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_type"].obj, undefined, thatForm.frm.objs["qry1.typename"].obj);
+
 
                         },
                         valueHelpRequest: function (e) {
@@ -512,9 +594,15 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
                         },
                         valueHelpRequest: function (e) {
+                            var btns = [new sap.m.Button({
+                                text: 'New Driver ', press: function () {
+                                    thatForm.helperFunc.showDrivers(this);
+
+                                }
+                            })];
                             UtilGen.Search.do_quick_search(e, this,
                                 "select no code,name title from salesp  order by no ",
-                                "select no code,name title from salesp where NO=:CODE", thatForm.frm.objs["qry1.txt_empname"].obj);
+                                "select no code,name title from salesp where NO=:CODE", thatForm.frm.objs["qry1.txt_empname"].obj, undefined, undefined, btns);
                         }
 
                     },
@@ -542,7 +630,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     colname: "ord_ship",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"telTxt\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"txtTel\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -600,9 +688,17 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
                         },
                         valueHelpRequest: function (e) {
+                            var btns = [new sap.m.Button({
+                                text: 'New Customer ', press: function () {
+                                    UtilGen.execCmd("gl.rp formType=dialog formSize=850px,450px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+
+                                    });
+                                }
+                            })];
+
                             UtilGen.Search.do_quick_search(e, this,
                                 "select code,name title from c_ycust  order by path ",
-                                "select code,name title from c_ycust where code=:CODE", thatForm.frm.objs["qry1.ord_refnm"].obj);
+                                "select code,name title from c_ycust where code=:CODE", thatForm.frm.objs["qry1.ord_refnm"].obj, undefined, undefined, btns);
                         }
 
                     },
@@ -663,10 +759,15 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
                         },
                         valueHelpRequest: function (e) {
+                            var btns = [new sap.m.Button({
+                                text: 'New Branch ', press: function () {
+                                    thatForm.helperFunc.showBranch(this);
+                                }
+                            })];
                             var locval = UtilGen.getControlValue(thatForm.frm.objs["qry1.ord_ref"].obj)
                             UtilGen.Search.do_quick_search(e, this,
                                 "select brno code,b_name  title from cbranch where code=':locationx' order by brno ".replaceAll(":locationx", locval),
-                                "select brno code,b_name title from cbranch where code=':locationx' and brno=:CODE".replaceAll(":locationx", locval), thatForm.frm.objs["qry1.branchname"].obj);
+                                "select brno code,b_name title from cbranch where code=':locationx' and brno=:CODE".replaceAll(":locationx", locval), thatForm.frm.objs["qry1.branchname"].obj, undefined, undefined, btns);
                         }
 
                     },
@@ -794,7 +895,285 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 },
 
             ];
+        },
+        getItemPrice: function (refer) {
+            var thatForm = this.thatForm;
+            var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+            var sqcnt = ("select nvl(max(price),0) cnts from c_contract_items" +
+                " where cust_code=':ref_code' and branch_no=':loc' and " +
+                " trunc(:ord_date)>=startdate and trunc(:ord_date)<=enddate " +
+                " and refer=:refer order by refer ")
+                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ord_ref"))
+                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.ord_discamt"))
+                .replaceAll(":refer", refer)
+                .replaceAll(":ord_date", Util.toOraDateString(dt));
+
+            var cnt = Util.getSQLValue(sqcnt);
+            if (cnt <= 0) {
+                var sq = ("SELECT custitems.price " +
+                    " FROM CUSTITEMS,ITEMS " +
+                    " WHERE REFERENCE=REFER AND CODE='" +
+                    thatForm.frm.getFieldValue("qry1.ord_ref") +
+                    "' and custitems.refer=:refer").replaceAll(":refer", refer);
+                cnt = Util.getSQLValue(sq);
+            }
+            if (cnt <= 0) {
+                var sq = "select price1 from items where reference=" + refer;
+                cnt = Util.getSQLValue(sq);
+            }
+            return cnt;
+        },
+        showDrivers: function (obj) {
+            var thatForm = this.thatForm;
+            var vb = new sap.m.VBox();
+            var btAp = new sap.m.Button({
+                text: Util.getLangText("Save"),
+                enabled: false,
+                press: function () {
+                    saveData();
+                }
+            });
+            var enableDisableSave = function () {
+                var ed = false;
+                if (txtNo.getValue() != "" && txtName.getValue() != "") ed = true;
+                btAp.setEnabled(ed);
+            }
+            var txtNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
+            var txtName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "40%", editable: true });
+            var txtName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "40%", editable: true });
+            var txtVehicleNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: true });
+            var txtMobile = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: true });
+
+            txtNo.attachLiveChange(enableDisableSave);
+            txtName.attachLiveChange(enableDisableSave);
+
+            var checkDriverExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(name),'') from salesp where no=" + txtNo.getValue());
+                if (pmsg == Util.nvl(exis, '') != '')
+                    FormView.err("Driver No Existed .with name " + exis);
+                return (msg ? true : pmsg);
+            };
+
+            var checkNameExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(no||''),'') from salesp where upper(name)=upper('" + txtName.getValue() + "')");
+                if (msg && Util.nvl(exis, '') != '')
+                    FormView.err("Driver NAME Existed .with NO # " + exis);
+                return (msg ? true : pmsg);
+            };
+
+            var checkDriverExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(name),'') from salesp where no=" + txtNo.getValue());
+                if (msg && Util.nvl(exis, '') != '')
+                    FormView.err("Driver No Existed .with name " + exis);
+                return (msg ? true : pmsg);
+            };
+
+
+            txtNo.attachChange(function () {
+                checkDriverExist(true);
+            });
+            txtName.attachChange(function () {
+                checkNameExist(true);
+            });
+            var saveData = function () {
+                checkDriverExist(true);
+                checkNameExist(true);
+                var sq = "Insert into salesp (NO,NAME,NAMEA,TYPE,VEHICLENO,MOBILE) VALUES  " +
+                    " (:NO,':NAME',':NAMEA','D',':VEHICLENO',':MOBILE') ";
+                sq = sq.replaceAll(":NO", txtNo.getValue())
+                    .replaceAll(":NAME", txtName.getValue())
+                    .replaceAll(":NAMEA", txtName2.getValue())
+                    .replaceAll(":VEHICLENO", txtVehicleNo.getValue())
+                    .replaceAll(":MOBILE", txtVehicleNo.getValue());
+
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS") {
+                    sap.m.MessageToast.show("Successfully Saved new, refresh list ");
+                    dlg.close();
+                }
+
+            }
+            var fe = [
+                Util.getLabelTxt("txtDriverNo", "15%"), txtNo,
+                Util.getLabelTxt("txtDriverName", "20%", "@"), txtName,
+                Util.getLabelTxt("txtDriverName2", "60%", ""), txtName2,
+                Util.getLabelTxt("txtVehicleNo", "60%"), txtVehicleNo,
+                Util.getLabelTxt("txtVehicleNo", "60%"), txtMobile,
+            ];
+            var newNo = Util.getSQLValue("select nvl(max(no),0)+1 from salesp");
+            txtNo.setValue(newNo + "");
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: { "S": 500, "M": 650, "L": 750 },
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+            cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            vb.addItem(cnt);
+            Util.navEnter(fe);
+            var dlg = new sap.m.Dialog({
+                title: Util.getLangText("newDriverText"),
+                contentWidth: "70%",
+                contentHeight: "150px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    btAp,
+                    new sap.m.Button({
+                        text: Util.getLangText("closeTxt"),
+                        press: function () {
+                            dlg.close();
+                        }
+                    })
+
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+        },
+        showBranch: function () {
+            var thatForm = this.thatForm;
+            var vb = new sap.m.VBox();
+            var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
+            var nam = thatForm.frm.getFieldValue("qry1.ord_refnm");
+            if (Util.nvl(cod, '') == "")
+                FormView.err("Err !, No customer is assigned !");
+            var btAp = new sap.m.Button({
+                text: Util.getLangText("Save"),
+                enabled: false,
+                press: function () {
+                    saveData();
+                }
+            });
+            var enableDisableSave = function () {
+                var ed = false;
+                if (txtBrNo.getValue() != "" && txtbname.getValue() != "") ed = true;
+                btAp.setEnabled(ed);
+            }
+            var txtCustCode = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: false });
+            var txtCustName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: false });
+            var txtBrNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
+            var txtbname = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: true });
+            var txtbName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: true });
+            var txtArea = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtBlock = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtStreet = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtJedda = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtQasima = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtTel = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+
+            txtBrNo.attachLiveChange(enableDisableSave);
+            txtbname.attachLiveChange(enableDisableSave);
+
+            var newNo = Util.getSQLValue("select nvl(max(brno),0)+1 from cbranch where code='" + cod + "'");
+            txtBrNo.setValue(newNo + "");
+            txtCustCode.setValue(cod);
+            txtCustName.setValue(nam);
+
+            var checkBrNoExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(b_name),'') from cbranch where code='" + cod + "' and  brno=" + txtBrNo.getValue());
+                if (msg && Util.nvl(exis, '') != '')
+                    FormView.err("Branch No Existed .with name " + exis);
+                return (msg ? true : pmsg);
+            };
+
+            var checkNameExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(brno||''),'') from cbranch where code='" + cod + "' and upper(b_name)=upper('" + txtbname.getValue() + "')");
+                if (msg && Util.nvl(exis, '') != '')
+                    FormView.err("Branch NAME Existed .with NO # " + exis);
+                return (msg ? true : pmsg);
+            };
+
+            txtBrNo.attachChange(function () {
+                checkBrNoExist(true);
+            });
+            txtbname.attachChange(function () {
+                checkNameExist(true);
+            });
+            var saveData = function () {
+                checkBrNoExist(true);
+                checkNameExist(true);
+                var acno = Util.getSQLValue("select ac_no from c_ycust where code='" + txtCustCode.getValue() + "'");
+                var sq = "Insert into cbranch (BRNO, CODE, ACCNO, B_NAME, B_NAMEA, AREA, TEL, BLOCK, STREET, JEDDA, QASIMA) VALUES  " +
+                    " (:BRNO, ':CODE', ':ACCNO', ':B_NAME', ':B_NAMEA', ':AREA', ':TEL', ':BLOCK', ':STREET', ':JEDDA', ':QASIMA') ";
+                sq = sq.replaceAll(":BRNO", txtBrNo.getValue())
+                    .replaceAll(":CODE", txtCustCode.getValue())
+                    .replaceAll(":B_NAMEA", txtbName2.getValue())
+                    .replaceAll(":B_NAME", txtbname.getValue())
+                    .replaceAll(":ACCNO", acno)
+                    .replaceAll(":AREA", txtArea.getValue())
+                    .replaceAll(":TEL", txtTel.getValue())
+                    .replaceAll(":BLOCK", txtBlock.getValue())
+                    .replaceAll(":STREET", txtStreet.getValue())
+                    .replaceAll(":JEDDA", txtJedda.getValue())
+                    .replaceAll(":QASIMA", txtQasima.getValue());
+
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS") {
+                    sap.m.MessageToast.show("Successfully Saved new BRANCH, refresh list ");
+                    dlg.close();
+                }
+
+            }
+            var fe = [
+                Util.getLabelTxt("txtCust", "15%"), txtCustCode,
+                Util.getLabelTxt("", "1%", "@"), txtCustName,
+                Util.getLabelTxt("txtBranch", "15%"), txtBrNo,
+                Util.getLabelTxt("", "1%", "@"), txtbname,
+                Util.getLabelTxt("txtName2", "41%", ""), txtbName2,
+                Util.getLabelTxt("Area", "15%", ""), txtArea,
+                Util.getLabelTxt("Block", "17%", "@"), txtBlock,
+                Util.getLabelTxt("Street", "17%", "@"), txtStreet,
+                Util.getLabelTxt("Jedda", "15%", ""), txtJedda,
+                Util.getLabelTxt("Qasima", "17%", "@"), txtQasima,
+                Util.getLabelTxt("Tel", "17%", "@"), txtTel,
+
+            ];
+
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: { "S": 500, "M": 650, "L": 750 },
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+            cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            vb.addItem(cnt);
+            Util.navEnter(fe);
+            var dlg = new sap.m.Dialog({
+                title: Util.getLangText("newDriverText"),
+                contentWidth: "70%",
+                contentHeight: "250px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    btAp,
+                    new sap.m.Button({
+                        text: Util.getLangText("closeTxt"),
+                        press: function () {
+                            dlg.close();
+                        }
+                    })
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
         }
+
     }
     ,
     loadData: function () {

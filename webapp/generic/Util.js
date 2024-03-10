@@ -952,12 +952,13 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     return false; // Not in camelCase format
                 }
             },
-            showSearchTable: function (sql, container, pflcol, fnOnselect, multiSelect, ppms, dta, jsCmd) {
-
+            showSearchTable: function (sql, container, pflcol, fnOnselect, multiSelect, ppms, dta, jsCmd, refreshCmd) {
                 if (container instanceof sap.m.VBox)
                     container.removeAllItems();
-                else
+                else {
+                    container.removeAllHeaderContent();
                     container.removeAllContent();
+                }
                 var tm = new Date().getTime();
                 var qv = new QueryView("searchTbl" + tm);
                 qv.getControl().setFixedBottomRowCount(0);
@@ -970,6 +971,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 var flcol = pflcol;
                 var searchField = new sap.m.SearchField({
+                    layoutData: new sap.ui.layout.GridData({ span: "XL10 L10 M10 S10" }),
                     liveChange: function (event) {
                         var flts = [];
                         var val = event.getParameter("newValue");
@@ -1011,10 +1013,16 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     }
 
                 });
+
+                var hb = new sap.m.HBox({
+                    width: "100%",
+                    items: [...[searchField], ...Util.nvl([refreshCmd], [])]
+                })
                 if (container instanceof sap.m.VBox)
-                    container.addItem(searchField);
+                    container.addItem(hb);
+
                 else
-                    container.addHeaderContent(searchField);
+                    container.addHeaderContent(hb);
                 var dat = {};
                 if (!sql.startsWith("@"))
                     dat = (dta != undefined ? dta : this.execSQL(sql));
@@ -1196,7 +1204,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return "";
             },
-            show_list: function (sql, cols, retCols, pfnSel, width, height, visibleRowCount, multiSelect, fnShowSel, pppms, dta, jsCmd, pCss) {
+            show_list: function (sql, cols, retCols, pfnSel, width, height, visibleRowCount, multiSelect, fnShowSel, pppms, dta, jsCmd, pCss, pBtns) {
                 // var vbox = new sap.m.VBox({width: "100%"});
 
                 var vbox = new sap.m.Page({ showHeader: true });
@@ -1221,7 +1229,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 });
                 if (pCss != undefined)
                     dlg.$().css(pCss);
-                if (pCss!=undefined && pCss["dialogStyle"] != undefined)
+                if (pCss != undefined && pCss["dialogStyle"] != undefined)
                     dlg.addStyleClass(pCss["dialogStyle"]);
 
                 dlg.attachBrowserEvent("keydown", function (e) {
@@ -1233,6 +1241,12 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     text: "Close",
                     press: function () {
                         dlg.close();
+                    }
+                });
+                var btnRfrsh = new sap.m.Button({
+                    icon: "sap-icon://refresh",
+                    press: function (e) {
+                        refreshData();
                     }
                 });
                 var btn = new sap.m.Button({
@@ -1250,7 +1264,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                             }
                         else {
                             var odata = qv.getControl().getContextByIndex(sl[0]);
-                            data = (odata.getProperty(odata.getPath()))
+                            data = (odata.getProperty(odata.getPath()));
                         }
                         if (jsCmd != undefined && jsCmd.length > 0)
                             for (var gi in jsCmd) {
@@ -1269,14 +1283,18 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                             dlg.close();
                     }
                 });
-                var qv = this.showSearchTable(sql, vbox, cols, function () {
-                    if (Util.nvl(multiSelect, false) == false) {
-                        sap.m.MessageToast.show("selected !");
-                        btn.firePress();
-                    }
-                }, Util.nvl(multiSelect, false), ppms, dta, jsCmd);
-
-                qv.getControl().addStyleClass("noColumnBorder");
+                var btnsx = [...[], ...Util.nvl(pBtns, [])];
+                var qv = undefined;
+                var refreshData = function () {
+                    qv = Util.showSearchTable(sql, vbox, cols, function () {
+                        if (Util.nvl(multiSelect, false) == false) {
+                            sap.m.MessageToast.show("selected !");
+                            btn.firePress();
+                        }
+                    }, Util.nvl(multiSelect, false), ppms, dta, jsCmd, btnRfrsh);
+                    qv.getControl().addStyleClass("noColumnBorder");
+                };
+                refreshData();
                 // if (visibleRowCount != undefined) {
                 //     qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
                 //     qv.getControl().setVisibleRowCount(this.nvl(visibleRowCount, 6));
@@ -1288,7 +1306,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 // fnShowSel purpose:  to locate records which is known to be selected.
                 if (fnShowSel != undefined)
                     fnShowSel(qv);
-
+                for (var n in btnsx)
+                    dlg.addButton(btnsx[n]);
                 dlg.addButton(btn1);
                 dlg.addButton(btn);
                 dlg.open();
