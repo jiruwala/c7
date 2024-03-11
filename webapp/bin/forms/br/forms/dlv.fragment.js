@@ -109,9 +109,9 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
                             qry.obj.mLctb.getColByName("ORD_SHIP").beforeSearchEvent = function (sq, ctx, model) {
                                 qry.obj.mLctb.getColByName("ORD_SHIP").btnsx = [new sap.m.Button({
-                                    text: 'New Item..',
+                                    text: 'Add Item in Contract',
                                     press: function () {
-                                        sap.m.MessageToast.show('New Item');
+                                        thatForm.helperFunc.addInContract();
                                     }
                                 }
                                 )];
@@ -368,7 +368,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 var thatForm = this.thatForm;
                 var msg = Util.nvl(pmsg, true);
                 var custCod = thatForm.frm.getFieldValue("qry1.ord_ref");
-                var dtx = Util.getSQLValue("select usecount,flag from c_ycust where flag=1 and code=" + Util.quoted(custCod));
+                var dtx = Util.getSQLValue("select childcount,flag from c_ycust where childcount=0 and flag=1 and code=" + Util.quoted(custCod));
                 if (msg && (dtx == undefined || dtx.length <= 0))
                     FormView.err("Customer code is not valid ! ");
                 return (msg ? true : pmsg);
@@ -410,11 +410,12 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
         getFields1: function () {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
             return {
                 keyfld: {
                     colname: "keyfld",
                     data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    class_name: FormView.ClassTypes.LABEL,
                     title: '{\"text\":\"Key ID\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
@@ -422,7 +423,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: false, width: "10%" },
+                    other_settings: { editable: false, width: "20%" },
                     edit_allowed: false,
                     insert_allowed: false,
                     require: true
@@ -431,7 +432,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     colname: "location_code",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '@{\"text\":\"locationTxt\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
+                    title: '{\"text\":\"locationTxt\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -439,7 +440,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: {
-                        editable: true, width: "15%",
+                        editable: true, width: "20%",
                         items: {
                             path: "/",
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
@@ -466,7 +467,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     colname: "ord_type",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"txtOrdType\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"txtOrdType\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -548,7 +549,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     colname: "ord_date",
                     data_type: FormView.DataType.Date,
                     class_name: FormView.ClassTypes.DATEFIELD,
-                    title: '@{\"text\":\"ordDate\",\"width\":\"45%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"ordDate\",\"width\":\"41%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -556,7 +557,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: {
-                        width: "20%",
+                        width: "24%",
                         minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
                         change: function () {
                         }
@@ -582,7 +583,6 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         width: "15%",
                         showValueHelp: true,
                         change: function (e) {
-
                             var sq = "select name from salesp where no = :CODE";
                             UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_empno"].obj, undefined, thatForm.frm.objs["qry1.txt_empname"].obj);
                             var objEmp = thatForm.frm.objs["qry1.ord_empno"].obj;
@@ -724,7 +724,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 },
                 txt_balance: {
                     colname: "txt_balance",
-                    data_type: FormView.DataType.String,
+                    data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.TEXTFIELD,
                     title: '@{\"text\":\"balanceTxt\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
                     title2: "",
@@ -732,7 +732,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
                     display_style: "",
-                    display_format: "",
+                    display_format: sett["FORMAT_MONEY_1"],
                     other_settings: { editable: true, width: "25%" },
                     edit_allowed: false,
                     insert_allowed: false,
@@ -1058,10 +1058,10 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 if (txtBrNo.getValue() != "" && txtbname.getValue() != "") ed = true;
                 btAp.setEnabled(ed);
             }
-            var txtCustCode = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: false });
-            var txtCustName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: false });
+            var txtCustCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "25%" }).addStyleClass("redText");
+            var txtCustName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%" }).addStyleClass("redText");
             var txtBrNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
-            var txtbname = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: true });
+            var txtbname = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%", editable: true });
             var txtbName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: true });
             var txtArea = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
             var txtBlock = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
@@ -1075,8 +1075,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
             var newNo = Util.getSQLValue("select nvl(max(brno),0)+1 from cbranch where code='" + cod + "'");
             txtBrNo.setValue(newNo + "");
-            txtCustCode.setValue(cod);
-            txtCustName.setValue(nam);
+            txtCustCode.setText(cod);
+            txtCustName.setText(nam);
 
             var checkBrNoExist = function (pmsg) {
                 var msg = Util.nvl(pmsg, true);
@@ -1100,14 +1100,16 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             txtbname.attachChange(function () {
                 checkNameExist(true);
             });
+
+
             var saveData = function () {
                 checkBrNoExist(true);
                 checkNameExist(true);
-                var acno = Util.getSQLValue("select ac_no from c_ycust where code='" + txtCustCode.getValue() + "'");
+                var acno = Util.getSQLValue("select ac_no from c_ycust where code='" + txtCustCode.getText() + "'");
                 var sq = "Insert into cbranch (BRNO, CODE, ACCNO, B_NAME, B_NAMEA, AREA, TEL, BLOCK, STREET, JEDDA, QASIMA) VALUES  " +
                     " (:BRNO, ':CODE', ':ACCNO', ':B_NAME', ':B_NAMEA', ':AREA', ':TEL', ':BLOCK', ':STREET', ':JEDDA', ':QASIMA') ";
                 sq = sq.replaceAll(":BRNO", txtBrNo.getValue())
-                    .replaceAll(":CODE", txtCustCode.getValue())
+                    .replaceAll(":CODE", txtCustCode.getText())
                     .replaceAll(":B_NAMEA", txtbName2.getValue())
                     .replaceAll(":B_NAME", txtbname.getValue())
                     .replaceAll(":ACCNO", acno)
@@ -1126,8 +1128,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
             }
             var fe = [
-                Util.getLabelTxt("txtCust", "15%"), txtCustCode,
-                Util.getLabelTxt("", "1%", "@"), txtCustName,
+                Util.getLabelTxt("txtCust", "15%", ""), txtCustName,
                 Util.getLabelTxt("txtBranch", "15%"), txtBrNo,
                 Util.getLabelTxt("", "1%", "@"), txtbname,
                 Util.getLabelTxt("txtName2", "41%", ""), txtbName2,
@@ -1152,6 +1153,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     "margin-top: 3px;"
                 ]
             }, "sapUiSizeCompact", "");
+
             cnt.addContent(new sap.m.VBox({ height: "40px" }));
             vb.addItem(cnt);
             Util.navEnter(fe);
@@ -1159,6 +1161,242 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 title: Util.getLangText("newDriverText"),
                 contentWidth: "70%",
                 contentHeight: "250px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    btAp,
+                    new sap.m.Button({
+                        text: Util.getLangText("closeTxt"),
+                        press: function () {
+                            dlg.close();
+                        }
+                    })
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+        },
+        addInContract: function () {
+            var thatForm = this.thatForm;
+            var vb = new sap.m.VBox();
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
+            var nam = thatForm.frm.getFieldValue("qry1.ord_refnm");
+            var brno = thatForm.frm.getFieldValue("qry1.ord_discamt");
+            var brnam = thatForm.frm.getFieldValue("qry1.branchname");
+            var lastDate = undefined;
+            var lastPrice = 0;
+
+            var todt = thatForm.frm.getFieldValue("qry1.ord_date");
+            if (Util.nvl(cod, '') == "")
+                FormView.err("Err !, No CUSTOMER is assigned !");
+
+            if (Util.nvl(brno, '') == "")
+                FormView.err("Err !, No BRANCH is assigned !");
+
+            var btAp = new sap.m.Button({
+                text: Util.getLangText("Save"),
+                enabled: false,
+                press: function () {
+                    saveData();
+                }
+            });
+            var getPrevData = function () {
+                var pcust = txtCustCode.getText();
+                var pitem = txtItem.getValue();
+                var pbranch = txtBrNo.getText();
+                lastPrice = 0
+                lastDate = undefined;
+                var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+                var sq = "select max(startdate) from c_contract_items " +
+                    " where refer=':pitem' and cust_code=':pcust' and branch_no=:pbranch ";
+                sq = sq.replaceAll(":pitem", pitem)
+                    .replaceAll(":pcust", pcust)
+                    .replaceAll(":pbranch", pbranch);
+
+                var  dtx= Util.getSQLValue(sq);
+                if (Util.nvl(dtx, '') != '') {
+                    lastDate = new Date(dtx.replaceAll(".", ":"));
+                    var sq2 = "select price from c_contract_items " +
+                        " where refer=':pitem' and cust_code=':pcust' and branch_no=:pbranch and startdate=:stdt";
+
+                    sq2 = sq2.replaceAll(":pitem", pitem)
+                        .replaceAll(":pcust", pcust)
+                        .replaceAll(":pbranch", pbranch)
+                        .replaceAll(":stdt", Util.toOraDateString(lastDate));
+
+                    lastPrice = Util.nvl(Util.getSQLValue(sq2), 0);
+                    lblLastFrom.setText("Last date : " + sdf.format(lastDate));
+                    lblOldPrice.setText("Last Price : " + lastPrice);
+                }
+
+            };
+
+            var enableDisableSave = function () {
+                var ed = false;
+                var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+                if (txtStartDate.getValue() != "" && txtItem.getValue() != "" && parseFloat(txtNewPrice.getValue()) > 0) ed = true;
+                if (lastDate != undefined && sdf.format(lastDate) == sdf.format(txtStartDate.getDateValue())) ed = false;
+
+                btAp.setEnabled(ed);
+            }
+            var txtStartDate = new sap.m.DatePicker({
+                textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: true,
+                dateValue: todt,
+                valueFormat: sett["ENGLISH_DATE_FORMAT"],
+                displayFormat: sett["ENGLISH_DATE_FORMAT"],
+                change:function(e){
+                    enableDisableSave();
+                }
+            });
+
+            var txtCustCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "25%" }).addStyleClass("redText");
+            var txtCustName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%" }).addStyleClass("redText");
+            var txtBrNo = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "25%" }).addStyleClass("redText");
+            var txtBName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%" }).addStyleClass("redText");
+
+            var lblLastFrom = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "49%" });
+            var txtItem = new sap.m.Input({
+                textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: true,
+                showValueHelp: true,
+                valueHelpRequest: function (e) {
+                    var locval = txtItem.getValue();
+                    UtilGen.Search.do_quick_search(e, this,
+                        "select reference code,descr title from items order by descr2 ",
+                        "select reference code,descr title from items  where reference=:CODE", txtItemName, undefined,
+                        {
+                            pWidth: "300px", pHeight: "400px",
+                            "background-color": 'blue',
+                            "dialogStyle": "cyanDialog"
+                        });
+                }
+
+            });
+            var txtItemName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "64%", editable: true });
+            var txtNewPrice = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: true });
+            var lblOldPrice = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "49%" });
+
+            // txtStartDate.attachLiveChange(enableDisableSave);
+            txtItem.attachLiveChange(enableDisableSave);
+            txtNewPrice.attachLiveChange(enableDisableSave);
+
+            txtNewPrice.setValue("0");
+            txtCustCode.setText(cod);
+            txtCustName.setText(cod + " / " + nam);
+            txtBrNo.setText(brno);
+            txtBName.setText(brno + " / " + brnam);
+
+
+            var checkItemExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(descr),'') from items where reference='" + txtItem.getValue() + "' and  flag=1 and childcounts=0");
+                if (msg && Util.nvl(exis, '').trim() == '')
+                    FormView.err("Item is not valid ! " + exis);
+                txtItemName.setValue(exis);
+                return (msg ? true : msg);
+            };
+
+
+            txtItem.attachChange(function () {
+                checkItemExist(true);
+                getPrevData();
+            });
+
+            var saveData = function () {
+
+                checkItemExist(true);
+                getPrevData();
+                var sq1 = "declare pcust varchar2(100):=':pcust' ; " +
+                    " pbr  number:=':pbranch' ; " +
+                    " pord_date date:=:ord_date ; " +
+                    " pitem varchar2(255):=':pitem' ; " +
+                    " pprice number:=:pprice  ; ";
+                sq1 = sq1.replaceAll(":pcust", txtCustCode.getText())
+                    .replaceAll(":pbranch", txtBrNo.getText())
+                    .replaceAll(":ord_date", Util.toOraDateString(txtStartDate.getDateValue()))
+                    .replaceAll(":pprice", txtNewPrice.getValue())
+                    .replaceAll(":pitem", txtItem.getValue());
+
+                var sq = sq1 + " pbr_name varchar2(500);" +
+                    " tmp number;" +
+                    " kf number;" +
+                    " cno number;" +
+                    " refadr varchar2(500);" +
+                    " ptel varchar2(100);" +
+                    " psl number;" +
+                    " lastkf number;" +
+                    " ldt date;" +
+                    " itdescr varchar2(500);" +
+                    " itpackd varchar2(100);" +
+                    " itunitd varchar2(100);" +
+                    " itpack number;" +
+                    " begin" +
+                    " select max(keyfld) into kf from c_contract where cust_code=pcust and branch_no=pbr;" +
+                    " select area,tel,b_name into refadr,ptel,pbr_name from cbranch where brno=pbr and code=pcust;" +
+                    " select nvl(salesp,(select max(no) from salesp where type='S')) into psl from c_ycust where code=pcust;" +
+                    " select descr,packd,unitd,pack into itdescr,itpackd, itunitd,itpack from items where reference=pitem and flag=1 and childcounts=0;" +
+                    " " +
+                    " if kf is  null then" +
+                    "  select nvl(max(no),0)+1,nvl(max(keyfld),0)+1  into cno,kf from c_contract;" +
+                    "  insert into c_contract( KEYFLD, NO, CONTRACT_TYPE, CONTRACT_DATE, CUST_CODE, REF_TITLE, " +
+                    "              REF_ADDRESS, REF_ID, TEL, FAX, PROJECT_NAME, REMARKS, END_PRICE_DATE, FLAG, " +
+                    "              PROJECT_ADDRESS, REF_NAME, BRANCH_NO, PAYTERM, PROJECT_NO, SALESP, DISCP, COLLECTORS)" +
+                    "              values" +
+                    "              (kf,cno,1,pord_date,pcust,'.'," +
+                    "              refadr, null,ptel,'',pbr_name,'',null,1," +
+                    "              refadr,',',pbr,null,pbr,psl,0,null); " +
+                    " end if;" +
+                    " " +
+                    " SELECT NVL(MAX(STARTDATE),TO_DATE('31/12/2099','DD/MM/YYYY')) INTO LDT FROM C_CUSTITEMS WHERE STARTDATE<pord_date AND KEYFLD=kf AND REFER=pitem;" +
+                    " " +
+                    " UPDATE C_CUSTITEMS" +
+                    "  SET ENDDATE=pord_date-1" +
+                    "  WHERE KEYFLD=kf AND STARTDATE=LDT AND REFER=pitem;" +
+                    " " +
+                    " " +
+                    " insert into c_custitems( KEYFLD, STARTDATE, REFER, PRICE, DESCR, PACKD, UNITD," +
+                    "             PACK, ENDDATE, FLAG, UPDATE_TIME, DISC_AMT, PRE_PRICE, PRE_DISC_AMT)" +
+                    "             values " +
+                    "             (kf,pord_date,pitem,pprice,itdescr,itpackd,itunitd," +
+                    "             itpack,TO_DATE('31/12/2099','DD/MM/YYYY'),2,sysdate,0,pprice,0);" +
+                    " end;";
+
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS") {
+                    sap.m.MessageToast.show("Successfully Added new Contract Item, refresh list ");
+                    dlg.close();
+                }
+
+            }
+            var fe = [
+                Util.getLabelTxt("txtCust", "15%", ""), txtCustName,
+                Util.getLabelTxt("txtBranch", "15%", ""), txtBName,
+                Util.getLabelTxt("txtStartDate", "15%"), txtStartDate,
+                Util.getLabelTxt("", "1%", "@"), lblLastFrom,
+                Util.getLabelTxt("itemTxt", "15%"), txtItem,
+                Util.getLabelTxt("", "1%", "@"), txtItemName,
+                Util.getLabelTxt("txtNewPrice", "15%", ""), txtNewPrice,
+                Util.getLabelTxt("Area", "1%", "@"), lblOldPrice,
+            ];
+
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: { "S": 500, "M": 650, "L": 750 },
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+            cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            vb.addItem(cnt);
+            Util.navEnter(fe);
+            var dlg = new sap.m.Dialog({
+                title: Util.getLangText("addContractItem"),
+                contentWidth: "70%",
+                contentHeight: "150px",
                 content: [vb],
                 modal: true,
                 buttons: [
