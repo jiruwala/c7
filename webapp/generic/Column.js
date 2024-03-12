@@ -53,7 +53,7 @@ sap.ui.define(["./DataCell"], function (DataCell) {
         this.ct_row = "N";
         this.ct_col = "N";
         this.ct_val = "N";
-
+        this.btnsx = undefined;
 
     }
 

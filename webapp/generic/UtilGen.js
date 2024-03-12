@@ -1205,7 +1205,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                                 evtx.getSource().focus();
                                     }
                                     return true;
-                                }, "100%", "100%", undefined, false, undefined, pms
+                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx
                                 );
 
                             }
@@ -1869,8 +1869,22 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 } else return dispRecs;
 
             },
+            dispWidthByDevice: function (dispRecs) {
+                if (typeof dispRecs == "object") {
+                    var newr = "L";
+                    if (sap.ui.Device.resize.width <= 639)
+                        newr = "S";
+                    if (sap.ui.Device.resize.width > 640 && sap.ui.Device.resize.width <= 1007)
+                        newr = "M";
+                    if (sap.ui.Device.resize.width > 1007)
+                        newr = "L";
+                    console.log("dispWidthByDevice " + newr + " -width=" + sap.ui.Device.resize.width + " width=" + dispRecs[newr]);
+                    return dispRecs[newr];
+                } else return dispRecs;
+
+            },
             Search: {
-                do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect, pPoints) {
+                do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect, pPoints, btns) {
                     var points = Util.nvl(pPoints, {});
                     if (e.getParameters().clearButtonPressed || e.getParameters().refreshButtonPressed) {
                         UtilGen.setControlValue(control, "", "", false);
@@ -1908,7 +1922,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (eventAfterSelect != undefined)
                             eventAfterSelect();
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints);
+                    }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
 
 
                     // Util.showSearchList(sq, "TITLE", "CODE", function (valx, val) {

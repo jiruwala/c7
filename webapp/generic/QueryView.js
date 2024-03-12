@@ -1140,7 +1140,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         o.attachChange(null, cc.eValidateColumn);
                     o.cc = cc;
                     o.attachBrowserEvent("keydown", function (oEvent) {
-                        if (oEvent.key == 'F9') {
+                        if (this.getEditable() && oEvent.key == 'F9') {
                             var clno = this.getParent().indexOfCell(this);
                             var cls = this.getParent().getParent().getColumns();
                             var tm = -1;
