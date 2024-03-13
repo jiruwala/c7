@@ -100,11 +100,18 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     afterLoadQry: function (qry) {
                         qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                         if (qry.name == "qry1") {
+                            thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                             var strInvType = "select descr title from invoicetype where location_code=':locationx' and no = ':CODE' ".replaceAll(":locationx", UtilGen.getControlValue(qry.formview.objs["qry1.location_code"].obj));
                             var strInvs = "select b_name title from cbranch where code=':cust_code' and brno = ':CODE' ".replaceAll(":cust_code", UtilGen.getControlValue(qry.formview.objs["qry1.ord_ref"].obj));
                             UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.ord_empno"].obj, undefined, that.frm.objs["qry1.txt_empname"].obj);
                             UtilGen.Search.getLOVSearchField(strInvType, qry.formview.objs["qry1.ord_type"].obj, undefined, that.frm.objs["qry1.typename"].obj);
                             UtilGen.Search.getLOVSearchField(strInvs, qry.formview.objs["qry1.ord_discamt"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
+                            var saleinv = Util.getSQLValue("select saleinv from order1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
+                            if (saleinv != undefined) {
+                                var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
+                                thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
+                            }
+
                         }
                         if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
                             qry.obj.mLctb.getColByName("ORD_SHIP").beforeSearchEvent = function (sq, ctx, model) {
@@ -157,14 +164,14 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             thatForm.helperFunc.validity.updateFieldsEditing();
                     },
                     beforeDeleteValidate: function (frm) {
-                        // var kf = frm.getFieldValue("keyfld");
-                        // var dt = Util.execSQL("select flag from acvoucher1 where keyfld=" + kf);
-                        // if (dt.ret == "SUCCESS" && dt.data.length > 0) {
-                        //     var dtx = JSON.parse("{" + dt.data + "}").data;
-                        //     if (dtx.length > 0 && dtx[0].FLAG != undefined && dtx[0].FLAG != 1) {
-                        //         FormView.err("This JV is posted !");
-                        //     }
-                        // }
+                        var kf = frm.getFieldValue("keyfld");
+                        var dt = Util.execSQL("select saleinv from order1 where keyfld=" + kf);
+                        if (dt.ret == "SUCCESS") {
+                            var dtx = JSON.parse("{" + dt.data + "}").data;
+                            if (dtx.length > 0 && dtx[0].SALEINV != undefined) {
+                                FormView.err("This Delivery is posted to invoice !");
+                            }
+                        }
                     },
                     beforeDelRow: function (qry, idx, ld, data) {
 
@@ -173,6 +180,16 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         // var delAdd = "";
                         // if (qry.name == "qry1")
                         //     delAdd += "delete from c7_attach where kind_of='VOU'and refer=:qry1.keyfld ;";
+                        var kf = thatForm.frm.getFieldValue("keyfld");
+                        if (qry.name == "qry1") {
+                            var dt = Util.execSQL("select saleinv from order1 where keyfld=" + kf);
+                            if (dt.ret == "SUCCESS") {
+                                var dtx = JSON.parse("{" + dt.data + "}").data;
+                                if (dtx.length > 0 && dtx[0].SALEINV != undefined) {
+                                    FormView.err("This Delivery is posted to invoice !");
+                                }
+                            }
+                        }
 
                         if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                             qry.obj.addRow();
@@ -225,7 +242,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
-                        delete_before_update: "delete from c_order1 where keyfld='keyfld';",
+                        delete_before_update: "delete from c_order1 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
                         update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'PACKD', 'PACK'],
                         insert_exclude_fields: ['DESCR', 'AMOUNT', 'PACKD', 'PACK'],
@@ -868,6 +885,17 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             var mnus = [];
                             var bts = [];
 
+                            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                                that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                                mnus.push(new sap.m.MenuItem({
+                                    icon: "sap-icon://letter",
+                                    text: Util.getLangText("generateInvoice"),
+                                    press: function () {
+                                        thatForm.helperFunc.generateInvoice();
+                                    }
+                                }));
+                            }
+
                             if (bts.length > 0) {
                                 mnus.push(new sap.m.MenuItem({
                                     icon: "sap-icon://indent",
@@ -875,6 +903,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                                     items: bts
                                 }));
                             }
+
+
                             var mnu = new sap.m.Menu({
                                 items: mnus
                             });
@@ -938,10 +968,10 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 if (txtNo.getValue() != "" && txtName.getValue() != "") ed = true;
                 btAp.setEnabled(ed);
             }
-            var txtNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
-            var txtName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "40%", editable: true });
-            var txtName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "40%", editable: true });
-            var txtVehicleNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: true });
+            var txtNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: true });
+            var txtName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "55%", editable: true });
+            var txtName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "55%", editable: true });
+            var txtVehicleNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
             var txtMobile = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: true });
 
             txtNo.attachLiveChange(enableDisableSave);
@@ -998,15 +1028,15 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             }
             var fe = [
                 Util.getLabelTxt("txtDriverNo", "15%"), txtNo,
-                Util.getLabelTxt("txtDriverName", "20%", "@"), txtName,
-                Util.getLabelTxt("txtDriverName2", "60%", ""), txtName2,
-                Util.getLabelTxt("txtVehicleNo", "60%"), txtVehicleNo,
-                Util.getLabelTxt("txtVehicleNo", "60%"), txtMobile,
+                Util.getLabelTxt("txtDriverName", "10%", "@"), txtName,
+                Util.getLabelTxt("txtDriverName2", "45%", ""), txtName2,
+                Util.getLabelTxt("txtVehicleNo", "15%"), txtVehicleNo,
+                Util.getLabelTxt("txtMobile", "30%", "@"), txtMobile,
             ];
             var newNo = Util.getSQLValue("select nvl(max(no),0)+1 from salesp");
             txtNo.setValue(newNo + "");
             var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
-                width: { "S": 500, "M": 650, "L": 750 },
+                width: { "S": 280, "M": 380, "L": 480 },
                 cssText: [
                     "padding-left:5px ;" +
                     "padding-top:3px;" +
@@ -1022,7 +1052,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             Util.navEnter(fe);
             var dlg = new sap.m.Dialog({
                 title: Util.getLangText("newDriverText"),
-                contentWidth: "70%",
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 500 }) + "px",
                 contentHeight: "150px",
                 content: [vb],
                 modal: true,
@@ -1061,7 +1091,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             var txtCustCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "25%" }).addStyleClass("redText");
             var txtCustName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%" }).addStyleClass("redText");
             var txtBrNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
-            var txtbname = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%", editable: true });
+            var txtbname = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: true });
             var txtbName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: true });
             var txtArea = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
             var txtBlock = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
@@ -1142,7 +1172,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             ];
 
             var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
-                width: { "S": 500, "M": 650, "L": 750 },
+                width: { "S": 280, "M": 380, "L": 520 },
                 cssText: [
                     "padding-left:5px ;" +
                     "padding-top:3px;" +
@@ -1159,8 +1189,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             Util.navEnter(fe);
             var dlg = new sap.m.Dialog({
                 title: Util.getLangText("newDriverText"),
-                contentWidth: "70%",
-                contentHeight: "250px",
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 550 }) + "px",
+                contentHeight: "200px",
                 content: [vb],
                 modal: true,
                 buttons: [
@@ -1213,7 +1243,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     .replaceAll(":pcust", pcust)
                     .replaceAll(":pbranch", pbranch);
 
-                var  dtx= Util.getSQLValue(sq);
+                var dtx = Util.getSQLValue(sq);
                 if (Util.nvl(dtx, '') != '') {
                     lastDate = new Date(dtx.replaceAll(".", ":"));
                     var sq2 = "select price from c_contract_items " +
@@ -1240,23 +1270,23 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 btAp.setEnabled(ed);
             }
             var txtStartDate = new sap.m.DatePicker({
-                textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: true,
+                textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: true,
                 dateValue: todt,
                 valueFormat: sett["ENGLISH_DATE_FORMAT"],
                 displayFormat: sett["ENGLISH_DATE_FORMAT"],
-                change:function(e){
+                change: function (e) {
                     enableDisableSave();
                 }
             });
 
             var txtCustCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "25%" }).addStyleClass("redText");
-            var txtCustName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%" }).addStyleClass("redText");
+            var txtCustName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "75%" }).addStyleClass("redText");
             var txtBrNo = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "25%" }).addStyleClass("redText");
-            var txtBName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%" }).addStyleClass("redText");
+            var txtBName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "75%" }).addStyleClass("redText");
 
-            var lblLastFrom = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "49%" });
+            var lblLastFrom = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "39%" });
             var txtItem = new sap.m.Input({
-                textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: true,
+                textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: true,
                 showValueHelp: true,
                 valueHelpRequest: function (e) {
                     var locval = txtItem.getValue();
@@ -1271,9 +1301,9 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 }
 
             });
-            var txtItemName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "64%", editable: true });
-            var txtNewPrice = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: true });
-            var lblOldPrice = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "49%" });
+            var txtItemName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "39%", editable: true });
+            var txtNewPrice = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: true });
+            var lblOldPrice = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "39%" });
 
             // txtStartDate.attachLiveChange(enableDisableSave);
             txtItem.attachLiveChange(enableDisableSave);
@@ -1368,18 +1398,18 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
             }
             var fe = [
-                Util.getLabelTxt("txtCust", "15%", ""), txtCustName,
-                Util.getLabelTxt("txtBranch", "15%", ""), txtBName,
-                Util.getLabelTxt("txtStartDate", "15%"), txtStartDate,
+                Util.getLabelTxt("txtCust", "25%", ""), txtCustName,
+                Util.getLabelTxt("txtBranch", "25%", ""), txtBName,
+                Util.getLabelTxt("txtStartDate", "25%"), txtStartDate,
                 Util.getLabelTxt("", "1%", "@"), lblLastFrom,
-                Util.getLabelTxt("itemTxt", "15%"), txtItem,
+                Util.getLabelTxt("itemTxt", "25%"), txtItem,
                 Util.getLabelTxt("", "1%", "@"), txtItemName,
-                Util.getLabelTxt("txtNewPrice", "15%", ""), txtNewPrice,
+                Util.getLabelTxt("txtNewPrice", "25%", ""), txtNewPrice,
                 Util.getLabelTxt("Area", "1%", "@"), lblOldPrice,
             ];
 
             var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
-                width: { "S": 500, "M": 650, "L": 750 },
+                width: { "S": 280, "M": 380, "L": 480 },
                 cssText: [
                     "padding-left:5px ;" +
                     "padding-top:3px;" +
@@ -1395,8 +1425,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             Util.navEnter(fe);
             var dlg = new sap.m.Dialog({
                 title: Util.getLangText("addContractItem"),
-                contentWidth: "70%",
-                contentHeight: "150px",
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 520 }) + "px",
+                contentHeight: "200px",
                 content: [vb],
                 modal: true,
                 buttons: [
@@ -1410,8 +1440,15 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 ]
             }).addStyleClass("sapUiSizeCompact");;
             dlg.open();
+        },
+        generateInvoice: function () {
+            var thatForm = this.thatForm;
+            var vb = new sap.m.VBox();
+            var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
+            var nam = thatForm.frm.getFieldValue("qry1.ord_refnm");
+            var brno = thatForm.frm.getFieldValue("qry1.ord_discamt");
+            var brnam = thatForm.frm.getFieldValue("qry1.branchname");
         }
-
     }
     ,
     loadData: function () {

@@ -1869,6 +1869,20 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 } else return dispRecs;
 
             },
+            dispWidthByDevice: function (dispRecs) {
+                if (typeof dispRecs == "object") {
+                    var newr = "L";
+                    if (sap.ui.Device.resize.width <= 639)
+                        newr = "S";
+                    if (sap.ui.Device.resize.width > 640 && sap.ui.Device.resize.width <= 1007)
+                        newr = "M";
+                    if (sap.ui.Device.resize.width > 1007)
+                        newr = "L";
+                    console.log("dispWidthByDevice " + newr + " -width=" + sap.ui.Device.resize.width + " width=" + dispRecs[newr]);
+                    return dispRecs[newr];
+                } else return dispRecs;
+
+            },
             Search: {
                 do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect, pPoints, btns) {
                     var points = Util.nvl(pPoints, {});
