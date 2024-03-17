@@ -3353,9 +3353,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 }
                 var scr = new sap.m.ScrollContainer();
                 var qv = new QueryView("qvFilter" + tbf[i].getKey() + this.timeInLong);
-                qv.getControl().addStyleClass("sapUiSizeCondensed");
+                qv.getControl().addStyleClass("sapUiSizeCompact");
                 qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
-                qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
+                qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.MultiToggle);
                 qv.getControl().setAlternateRowColors(false);
                 qv.getControl().setFixedBottomRowCount(0);
                 qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
