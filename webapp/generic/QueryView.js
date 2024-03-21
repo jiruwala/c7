@@ -961,7 +961,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             var rn = (rowno - 1 < 0) ? 0 : (rowno == visRows - 1 ? rowno : rowno - 1);
                             if (totalRows - 1 <= visRows - 1)
                                 rn = totalRows - 2;
-                                that.getControl().getRows()[rn].getCells()[colno].focus();
+                            that.getControl().getRows()[rn].getCells()[colno].focus();
                         }
                     });
                     o.attachBrowserEvent("keydown", function (evt) {
@@ -1017,7 +1017,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             else {
                                 var rn = (rowno - 1 < 0) ? 0 : (rowno == visRows - 1 ? rowno : rowno - 1);
                                 if (totalRows - 1 <= visRows - 1)
-                                    rn = totalRows - 2;    
+                                    rn = totalRows - 2;
                                 that.getControl().getRows()[rn].getCells()[colno].focus();
                             }
 
@@ -1040,28 +1040,30 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     }
                     // if combobox have list of values then add it into sap.m.CombBox model. ( check either LOV in sql or data )
                     if (o instanceof sap.m.ComboBox) {
-                        // o.bindAggregation("items",
-                        //     {
-                        //         path: "/",
-                        //         template: new sap.ui.core.ListItem({text: "{NAME}", key: "{CODE}"}),
-                        //         templateShareable: true
-                        //     });
-                        // var dtx = [];
-                        // // check either LOV in sql or data
-                        // if (cc.mSearchSQL.startsWith("@")) {
-                        //     var spt = cc.mSearchSQL.substring(1).split(",");
-                        //     for (var i in spt) {
-                        //         var dt = {CODE: "", NAME: ""};
-                        //         var s = spt[i].split("/");
-                        //         dt.CODE = s[0];
-                        //         dt.NAME = s[1];
-                        //         dtx.push(dt);
-                        //     }
-                        // }
-                        // } else
-                        //     dtx = Util.execSQL(cc.mSearchSQL);
-                        //
-                        // o.setModel(new sap.ui.model.json.JSONModel(dtx));
+                        o.bindAggregation("items",
+                            {
+                                path: "/",
+                                template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                templateShareable: true
+                            });
+                        var dtx = [];
+                        // check either LOV in sql or data
+                        if (cc.mSearchSQL.startsWith("@")) {
+                            var spt = cc.mSearchSQL.substring(1).split(",");
+                            for (var i in spt) {
+                                var dt = { CODE: "", NAME: "" };
+                                var s = spt[i].split("/");
+                                dt.CODE = s[0];
+                                dt.NAME = s[1];
+                                dtx.push(dt);
+                            }
+                        }
+                        else {
+                            var dt = Util.execSQL(cc.mSearchSQL);
+                            if (dt.ret == "SUCCESS" && dt.data.length > 0)
+                                dtx = JSON.parse("{" + dt.data + "}").data;
+                        }                        
+                        o.setModel(new sap.ui.model.json.JSONModel(dtx));
                     }
                 }
                 if (cc.commandLinkClick != undefined) {
@@ -1134,9 +1136,9 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     o.attachSearch(cc.eValidateColumn);
                 }
                 if ((ssql != "")) {
-                    if (cc.eOnSearch != undefined)
+                    if (cc.eOnSearch != undefined && o.attachValueHelpRequest != undefined)
                         o.attachValueHelpRequest(null, cc.eOnSearch);
-                    if (cc.eValidateColumn != undefined)
+                    if (cc.eValidateColumn != undefined && o.attachChange != undefined)
                         o.attachChange(null, cc.eValidateColumn);
                     o.cc = cc;
                     o.attachBrowserEvent("keydown", function (oEvent) {
@@ -1462,6 +1464,14 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             o[i][v] = df.format(o[i][v]);
                         else if (this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).getMUIHelper().display_format === "QTY_FORMAT")
                             o[i][v] = dfq.format(o[i][v]);
+
+                        // adding trueValues in case check box
+                        if (this.mLctb.getColByName(vv) != undefined &&
+                            this.mLctb.getColByName(vv).trueValues != undefined &&
+                            this.mLctb.getColByName(vv).trueValues.length > 1) {
+                            o[i][v] = (o[i][v] == this.mLctb.getColByName(vv).trueValues[0]);
+                        }
+
 
                     }
                     else {

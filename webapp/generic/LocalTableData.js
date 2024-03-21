@@ -243,7 +243,6 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
             for (var ci = 0; ci < this.cols.length; ci++) {
                 if (this.cols[ci].mGrouped && !this.cols[0].mGrouped && ci > 0)
                     els.push(this.cols.splice(this.cols.indexOf(this.cols[ci--]), 1)[0]);
-
             }
             for (var ci = els.length - 1; ci > -1; ci--)
                 this.cols.splice(0, 0, els[ci]);
