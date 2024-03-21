@@ -1,0 +1,102 @@
+declare
+pcust varchar2(100);
+pbr  number;
+pord_date date;
+pitem varchar2(255);
+pprice number; 
+
+pbr_name varchar2(500);
+tmp number;
+kf number;
+cno number;
+refadr varchar2(500);
+ptel varchar2(100);
+psl number;
+lastkf number;
+ldt date;
+itdescr varchar2(500);
+itpackd varchar2(100);
+itunitd varchar2(100);
+itpack number;
+begin
+select max(keyfld) into kf from c_contract where cust_code=pcust and branch_no=pbr;
+select area,tel,b_name into refadr,ptel,pbr_name from cbranch where brno=pbr and code=pcust;
+select salesp into psl from c_ycust where code=pcust;
+select descr,packd,unitd,pack into itdescr,itpackd, itunitd,itpack from items where reference=pitem and flag=1 and childcounts=0;
+
+if kf is  null then
+ select nvl(max(no),0)+1,nvl(max(keyfld),0)+1  into cno,kf from c_contract;
+ insert into c_contract( KEYFLD, NO, CONTRACT_TYPE, CONTRACT_DATE, CUST_CODE, REF_TITLE, 
+             REF_ADDRESS, REF_ID, TEL, FAX, PROJECT_NAME, REMARKS, END_PRICE_DATE, FLAG, 
+             PROJECT_ADDRESS, REF_NAME, BRANCH_NO, PAYTERM, PROJECT_NO, SALESP, DISCP, COLLECTORS)
+             values
+             (kf,cno,1,pord_date,pcust,'.',
+             refadr, null,ptel,'',pbr_name,'',null,1,
+             refadr,',',pbr,null,pbr,psl,0,null); 
+end if;
+
+SELECT NVL(MAX(STARTDATE),TO_DATE('31/12/2099','DD/MM/YYYY')) INTO LDT FROM C_CUSTITEMS WHERE STARTDATE<pord_date AND KEYFLD=kf AND REFER=pitem;
+
+UPDATE C_CUSTITEMS
+ SET ENDDATE=pord_date-1
+ WHERE KEYFLD=kf AND STARTDATE=LDT AND REFER=pitem;
+
+
+insert into c_custitems( KEYFLD, STARTDATE, REFER, PRICE, DESCR, PACKD, UNITD,
+            PACK, ENDDATE, FLAG, UPDATE_TIME, DISC_AMT, PRE_PRICE, PRE_DISC_AMT)
+            values 
+            (kf,pord_date,pitem,pprice,itdescr,itpackd,itunitd,
+            itpack,TO_DATE('31/12/2099','DD/MM/YYYY'),2,sysdate,0,pprice,0);
+end;
+
+
+
+
+
+
+
+
+
+" pbr_name varchar2(500);"+
+" tmp number;"+
+" kf number;"+
+" cno number;"+
+" refadr varchar2(500);"+
+" ptel varchar2(100);"+
+" psl number;"+
+" lastkf number;"+
+" ldt date;"+
+" itdescr varchar2(500);"+
+" itpackd varchar2(100);"+
+" itunitd varchar2(100);"+
+" itpack number;"+
+" begin"+
+" select max(keyfld) into kf from c_contract where cust_code=pcust and branch_no=pbr;"+
+" select area,tel,b_name into refadr,ptel,pbr_name from cbranch where brno=pbr and code=pcust;"+
+" select salesp into psl from c_ycust where code=pcust;"+
+" select descr,packd,unitd,pack into itdescr,itpackd, itunitd,itpack from items where reference=pitem and flag=1 and childcounts=0;"+
+" "+
+" if kf is  null then"+
+"  select nvl(max(no),0)+1,nvl(max(keyfld),0)+1  into cno,kf from c_contract;"+
+"  insert into c_contract( KEYFLD, NO, CONTRACT_TYPE, CONTRACT_DATE, CUST_CODE, REF_TITLE, "+
+"              REF_ADDRESS, REF_ID, TEL, FAX, PROJECT_NAME, REMARKS, END_PRICE_DATE, FLAG, "+
+"              PROJECT_ADDRESS, REF_NAME, BRANCH_NO, PAYTERM, PROJECT_NO, SALESP, DISCP, COLLECTORS)"+
+"              values"+
+"              (kf,cno,1,pord_date,pcust,'.',"+
+"              refadr, null,ptel,'',pbr_name,'',null,1,"+
+"              refadr,',',pbr,null,pbr,psl,0,null); "+
+" end if;"+
+" "+
+" SELECT NVL(MAX(STARTDATE),TO_DATE('31/12/2099','DD/MM/YYYY')) INTO LDT FROM C_CUSTITEMS WHERE STARTDATE<pord_date AND KEYFLD=kf AND REFER=pitem;"+
+" "+
+" UPDATE C_CUSTITEMS"+
+"  SET ENDDATE=pord_date-1"+
+"  WHERE KEYFLD=kf AND STARTDATE=LDT AND REFER=pitem;"+
+" "+
+" "+
+" insert into c_custitems( KEYFLD, STARTDATE, REFER, PRICE, DESCR, PACKD, UNITD,"+
+"             PACK, ENDDATE, FLAG, UPDATE_TIME, DISC_AMT, PRE_PRICE, PRE_DISC_AMT)"+
+"             values "+
+"             (kf,pord_date,pitem,pprice,itdescr,itpackd,itunitd,"+
+"             itpack,TO_DATE('31/12/2099','DD/MM/YYYY'),2,sysdate,0,pprice,0);"+
+" end;

@@ -56,7 +56,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
+        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT,O1.MANUAL_PRICE MP from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
@@ -200,8 +200,13 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     },
                     beforePrint: function (rptName, params) {
                         return params + "&_para_VOU_TITLE=Journal Voucher";
-                    }
+                    },
+                    afterApplyCols: function (qry) {
+                        if (qry.name == "qry2") {
 
+                        }
+
+                    }
                 },
                 parameters: [
                     {
@@ -891,7 +896,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                                     icon: "sap-icon://letter",
                                     text: Util.getLangText("generateInvoice"),
                                     press: function () {
-                                        thatForm.helperFunc.generateInvoice();
+                                        that2.helperFunc.generateInvoice(this);
                                     }
                                 }));
                             }
@@ -1441,14 +1446,29 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             }).addStyleClass("sapUiSizeCompact");;
             dlg.open();
         },
-        generateInvoice: function () {
+        generateInvoice: function (obj) {
             var thatForm = this.thatForm;
-            var vb = new sap.m.VBox();
-            var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
-            var nam = thatForm.frm.getFieldValue("qry1.ord_refnm");
-            var brno = thatForm.frm.getFieldValue("qry1.ord_discamt");
-            var brnam = thatForm.frm.getFieldValue("qry1.branchname");
-                        
+            var sdf = new simpleDateFormat("MM/dd/yyyy");
+            if (thatForm.frm.objs['qry1'].status == FormView.RecordStatus.EDIT ||
+                thatForm.frm.objs['qry1'].status == FormView.RecordStatus.NEW)
+                thatForm.frm.save_data();
+            if (thatForm.frm.objs['qry1'].status == FormView.RecordStatus.VIEW) {
+                var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
+                var nam = thatForm.frm.getFieldValue("qry1.ord_refnm");
+                var brno = thatForm.frm.getFieldValue("qry1.ord_discamt");
+                var brnam = thatForm.frm.getFieldValue("qry1.branchname");
+                var ordno = thatForm.frm.getFieldValue("qry1.ord_no");
+                var fromdate = sdf.format(thatForm.frm.getFieldValue("qry1.ord_date"));
+                var str = "bin.forms.br.forms.wzd formType=dialog formSize=900px,430px formTitle=Sales_Wizard pcust=:pcust fromdate=:fromdate todate=:todate ordno=:ordno";
+                str = str.replaceAll(":pcust", cod)
+                    .replaceAll(":fromdate", fromdate)
+                    .replaceAll(":todate", fromdate)
+                    .replaceAll(":ordno", ordno);
+                UtilGen.execCmd(str, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            }
+
+
+            // "bin.forms.br.forms.wzd formType=dialog formSize=900px,430px formTitle=Sales_Wizard pcust=0002 fromdate=01/03/2023 todate=12/31/2023 ordno=8112"
         }
     }
     ,

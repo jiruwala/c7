@@ -467,7 +467,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                             UtilGen.setControlValue(that.frm.objs["qry1.refername"].obj, "", "", false);
                                             FormView.err("Not found item !");
                                             return;
-                                        }                                        
+                                        }
                                         var txtDescr = thatForm.frm.objs['qry1.refername'].obj;
                                         var txtPackd = thatForm.frm.objs['qry1.packd'].obj;
                                         var txtUnitd = thatForm.frm.objs['qry1.unitd'].obj;
@@ -656,6 +656,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 return_field: "pac",
                             },
                             {
+                                colname: 'DLV_NO'
+                            },
+                            {
                                 colname: 'REF_CODE'
                             },
                             {
@@ -663,7 +666,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                             },
 
                         ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                        sql: "SELECT p.keyfld,p.ord_date,p.DLV_NO,p.REF_CODE, c.name from C7_RMPORD p,c_ycust c where c.code=p.ref_code order by p.keyfld desc ",
+                        sql: "SELECT p.keyfld,TO_CHAR(p.ord_date,'DD/MM/RRRR') ORD_DATE,p.DLV_NO,p.REF_CODE, c.name from C7_RMPORD p,c_ycust c where c.code=p.ref_code order by p.keyfld desc ",
                         afterSelect: function (data) {
                             that2.frm.loadData(undefined, "view");
                             return true;

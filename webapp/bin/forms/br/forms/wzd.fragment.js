@@ -107,10 +107,10 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
                 Util.showSearchList("select code,name from c_ycust where code in " +
                     "(select distinct ord_ref from c_order1 where saleinv is null and (location_code='" +
                     UtilGen.getControlValue(that.txtLocations) +
-                    "' or '" + UtilGen.getControlValue(that.txtLocations) + "'='-1') and " +
+                    "' or '" + UtilGen.getControlValue(that.txtLocations) + "' = '-1') and " +
                     " ord_date>=" + Util.toOraDateString(fromdt) +
                     " and ord_date<=" + Util.toOraDateString(todt) + ") and " +
-                    " childcount=0 and issupp='Y' order by path ",
+                    " childcount=0 and iscust='Y' order by path ",
                     "NAME", "CODE", function (valx, val) {
                         that.txtRef.setValue(valx);
                         that.txtRefName.setValue(val);
@@ -135,8 +135,8 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
                     " (select distinct ORD_DISCAMT from C_ORDER1 where SALEINV is null and " +
                     " ord_date>=" + Util.toOraDateString(fromdt) +
                     " and ord_date<=" + Util.toOraDateString(todt) + " and " +
-                    "( location_code='" + UtilGen.getControlValue(that.txtLocations) + "' OR " +
-                    +UtilGen.getControlValue(that.txtLocations) + "' = '-1' ) " +
+                    "( location_code='" + UtilGen.getControlValue(that.txtLocations) + "' OR '" +
+                    UtilGen.getControlValue(that.txtLocations) + "' = '-1' ) " +
                     " and  ORD_REF=" + Util.quoted(that.txtRef.getValue()) +
                     ") and  code=" + Util.quoted(that.txtRef.getValue()) +
                     " order by brno", "NAME", "CODE", function (valx, val) {
@@ -172,10 +172,11 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
 
         ]
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");
+        Util.destroyID("cmdNext1", that.view);
         this.mainPage.setFooter(new sap.m.Toolbar({
             content: [
                 new sap.m.ToolbarSpacer(),
-                new sap.m.Button({
+                new sap.m.Button(that.view.createId("cmdNext1"), {
                     text: "Next",
                     press: function () {
                         that.joApp.toDetail(that.detailPage, "slide");
@@ -194,8 +195,11 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
 
         that.createDetailPage();
         that.createInfoPage();
-        this.mainPage.removeAllHeaderContent();
-        this.mainPage.addHeaderContent(new sap.m.Title({ text: "Purchase wizard" }));
+
+        var refName = that.txtRefName.getValue() + " - " + that.txtRef.getValue();
+        var bName = that.txtBranchName.getValue() + " - " + that.txtBranch.getValue();
+        this.detailPage.removeAllHeaderContent();
+        this.detailPage.addHeaderContent(new sap.m.Title({ text: "Sales wizard / " + refName + " / " + bName }));
         this.mainPage.addContent(cnt);
 
         // this.mainPage.addContent(sc);
@@ -210,81 +214,87 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
 
         if (Util.nvl(that.txtRef.getValue(), "") == "") {
             that.joApp.to(that.mainPage, "slide");
-            FormView.err("Must select supplier !");
+            FormView.err("Must select Customer !");
         }
+
         if (fromdt == null || todt == null) { that.joApp.to(that.mainPage, "slide"); return; };
-
+        var refName = that.txtRefName.getValue() + " - " + that.txtRef.getValue();
+        var bName = that.txtBranchName.getValue() + " - " + that.txtBranch.getValue();
         this.detailPage.removeAllHeaderContent();
-        this.detailPage.addHeaderContent(new sap.m.Title({ text: "Purchase wizard / " + that.txtRefName.getValue() }));
+        this.detailPage.addHeaderContent(new sap.m.Title({ text: "Sales wizard / " + refName + " / " + bName }));
+        this.txtAddAmt.setValue(0);
+        this.txtTotalAmount.setValue(0);
+        this.txtTotalDlv.setValue(0);
 
-        var setPriceData = function () {
-            var ld = that.qv.mLctb;
-
-            var itmP = {};
-            // var dtx = Util.execSQLWithData("select refer,price from c_contract_items " +
-            //     " where cust_code='" + that.txtRef.getValue() + "' and " +
-            //     " branch_no=" + that.txtBranch.getValue() + " order by startdate");
-            // for (var di in dtx)
-            //     itmP[dtx[di].REFER] = dtx[di].PRICE;
-
-            var getPrice = function (rfr, dtx) {
-                var dt = new Date(dtx.replaceAll(".", ":"));
-                var pr = Util.getSQLValue("select nvl(max(price),0) from c_contract_items " +
-                    " where cust_code='" + that.txtRef.getValue() + "' and " +
-                    " branch_no=" + that.txtBranch.getValue() + " and " +
-                    " refer='" + rfr + "' and " +
-                    Util.toOraDateString(dt) + " >=startdate and " +
-                    Util.toOraDateString(dt) + " <=enddate "
-                );
-                if (pr == 0)
-                    pr = Util.getSQLValue("select nvl(max(price),0) from CUSTITEMS  " +
-                        " where code='" + that.txtRef.getValue() + "' and " +
-                        " refer='" + rfr + "' "
-                    );
-                return pr;
-            }
-            if (dt.data.length <= 0) return;
-            for (var li = 0; li < ld.rows.length; li++) {
-                //var pr = itmP[ld.getFieldValue(li, "REFER")];
-                var qt = ld.getFieldValue(li, "PACKQTY");
-                var pr = getPrice(ld.getFieldValue(li, "REFER"), ld.getFieldValue(li, "ORD_DATE"));
-                ld.setFieldValue(li, "PRICE", pr);
-                ld.setFieldValue(li, "AMOUNT", pr * qt);
-            }
-        }
-
-        var sq = "select KEYFLD,ORD_DATE, PACKQTY,0 price,0 amount,DRIVER_NO, " +
-            " DRIVER_NAME, DLV_NO, TRUCK_NO, REF_CODE, NAME, REFER, DESCR" +
-            " from c7_vrmpord  where ord_date>=" + Util.toOraDateString(fromdt) +
-            " and ord_date<=" + Util.toOraDateString(todt) +
-            " and ref_code=" + Util.quoted(that.txtRef.getValue()) + " and " +
-            " location_code=" + Util.quoted(UtilGen.getControlValue(that.txtLocations)) +
-            " order by keyfld";
+        var sq = "SELECT   o.periodcode," +
+            "               '001' location_code," +
+            "               o.ORD_NO," +
+            "               o.ord_ref," +
+            "               ord_code," +
+            "               TRIM (o.ord_refnm) ORD_REFNM," +
+            "               o.ord_date," +
+            "               COUNT (o.ord_no) counting," +
+            "                 sum(tqty) tqty , " +
+            "               NVL (SUM (OP_NO * TQTY), 0) ADD_AMT," +
+            "               SUM(SALE_PRICE*TQTY) AMOUNT," +
+            "               SUM(SALE_PRICE*TQTY) +NVL (SUM (OP_NO * TQTY), 0) NET_AMT, " +
+            "               o.ord_discamt," +
+            "               cbranch.b_name branchname," +
+            "               o.KEYFLD" +
+            "        FROM   c_order1 o , " +
+            "               items ," +
+            "               cbranch " +
+            "        WHERE saleinv IS NULL" +
+            "                      AND (o.ord_discamt = cbranch.brno " +
+            "                    AND o.ord_ref = cbranch.code) " +
+            "               AND ( (items.REFERENCE = o.ord_ship))" +
+            " and o.ord_date>=" + Util.toOraDateString(fromdt) +
+            " and o.ord_date<=" + Util.toOraDateString(todt) +
+            " and (o.location_code=" + Util.quoted(UtilGen.getControlValue(that.txtLocations)) +
+            " or " + Util.quoted(UtilGen.getControlValue(that.txtLocations)) + "='-1' ) " +
+            " and ord_ref=" + Util.quoted(that.txtRef.getValue()) +
+            " and (  ord_discamt=" + Util.quoted(that.txtBranch.getValue()) +
+            " or " + Util.quoted(that.txtBranch.getValue()) + " is null )" +
+            "    GROUP BY   o.periodcode," +
+            "               '001'," +
+            "               o.ord_ref, " +
+            "               TRIM (o.ord_refnm)," +
+            "               o.ord_date ," +
+            "               o.ord_discamt ," +
+            "               cbranch.b_name," +
+            "               ord_code," +
+            "               o.ORD_NO," +
+            "               o.KEYFLD," +
+            "               o.ATTN," +
+            "               o.ORD_DISCAMT";
 
         var dt = Util.execSQL(sq);
         if (dt.ret == "SUCCESS") {
             qv.setJsonStrMetaData("{" + dt.data + "}");
             qv.mLctb.getColByName("KEYFLD").getMUIHelper().display_width = 0;
-            qv.mLctb.getColByName("REF_CODE").mHideCol = true;
-            qv.mLctb.getColByName("NAME").mHideCol = true;
+            qv.mLctb.getColByName("ORD_DISCAMT").mTitle = "Branch";
+            qv.mLctb.getColByName("LOCATION_CODE").mHideCol = true;
+            qv.mLctb.getColByName("ORD_CODE").mHideCol = true;
+            qv.mLctb.getColByName("PERIODCODE").mHideCol = true;
+            qv.mLctb.getColByName("ORD_REF").mHideCol = true;
+            qv.mLctb.getColByName("ORD_REFNM").mHideCol = true;
+            qv.mLctb.getColByName("COUNTING").mHideCol = true;
 
             qv.mLctb.getColByName("ORD_DATE").getMUIHelper().display_format = "SHORT_DATE_FORMAT";
-            qv.mLctb.getColByName("ORD_DATE").getMUIHelper().display_width = 120;
-            qv.mLctb.getColByName("DRIVER_NO").getMUIHelper().display_width = 60;
-            qv.mLctb.getColByName("DRIVER_NAME").getMUIHelper().display_width = 100;
-            qv.mLctb.getColByName("DLV_NO").getMUIHelper().display_width = 80;
-            qv.mLctb.getColByName("TRUCK_NO").getMUIHelper().display_width = 80;
-            qv.mLctb.getColByName("REF_CODE").getMUIHelper().display_width = 80;
-            qv.mLctb.getColByName("NAME").getMUIHelper().display_width = 120;
-            qv.mLctb.getColByName("REFER").getMUIHelper().display_width = 80;
-            qv.mLctb.getColByName("DESCR").getMUIHelper().display_width = 80;
-            qv.mLctb.getColByName("PACKQTY").getMUIHelper().display_width = 80;
-            qv.mLctb.getColByName("PRICE").getMUIHelper().display_width = 100;
-            qv.mLctb.getColByName("AMOUNT").getMUIHelper().display_width = 100;
+            qv.mLctb.getColByName("ORD_DATE").getMUIHelper().display_width = 90;
+            qv.mLctb.getColByName("ORD_NO").getMUIHelper().display_width = 80;
+            qv.mLctb.getColByName("TQTY").getMUIHelper().display_width = 60;
+            qv.mLctb.getColByName("AMOUNT").getMUIHelper().display_width = 80;
             qv.mLctb.getColByName("AMOUNT").getMUIHelper().display_format = "MONEY_FORMAT";
-            qv.mLctb.getColByName("PRICE").getMUIHelper().display_format = "MONEY_FORMAT";
+            qv.mLctb.getColByName("NET_AMT").getMUIHelper().display_width = 80;
+            qv.mLctb.getColByName("NET_AMT").getMUIHelper().display_format = "MONEY_FORMAT";
+            qv.mLctb.getColByName("ADD_AMT").getMUIHelper().display_width = 80;
+            qv.mLctb.getColByName("ADD_AMT").getMUIHelper().display_format = "MONEY_FORMAT";
+
+            qv.mLctb.getColByName("BRANCHNAME").getMUIHelper().display_width = 120;
+            qv.mLctb.getColByName("ORD_DISCAMT").getMUIHelper().display_width = 50;
             qv.mLctb.parse("{" + dt.data + "}", true);
-            setPriceData();
+            // setPriceData();
             qv.loadData();
         }
 
@@ -295,6 +305,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
     createInfoPage: function () {
         var that = this;
         var sett = sap.ui.getCore().getModel("settings").getData();
+        var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var view = this.view;
         var formCss = {
             width: "750px",
@@ -303,16 +314,17 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
                 "padding-right:10px ;" +
                 "padding-top:5px;" +
                 "border-style: groove;" +
-                "margin-left: 1px;" +
-                "margin-right: 1px;" +
+                "margin-left: 5px;" +
+                "margin-right: 5px;" +
                 "border-radius:20px;" +
                 "margin-top: 10px;"
             ]
         };
+
         UtilGen.clearPage(this.infoPage);
         this.txtInfoLocations = new sap.m.ComboBox(
             {
-                width: "75%",
+                width: "35%",
                 customData: [{ key: "" }],
                 items: {
                     path: "/",
@@ -331,7 +343,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             });
         Util.fillCombo(this.txtInfoLocations, "select code,name from locations order by code");
         // this.txtLocations.setSelectedItem(Util.findComboItem(this.txtLocations, sett["DEFAULT_LOCATION"]));
-        UtilGen.setControlValue(that.txtInfoLocations, sett["DEFAULT_LOCATION"]);
+        //UtilGen.setControlValue(that.txtInfoLocations, sett["DEFAULT_LOCATION"]);
 
         this.txtInfoInvType = new sap.m.ComboBox({
             width: "25%",
@@ -343,7 +355,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             },
             selectionChange: function (ev) {
                 var sq = "select nvl(max(invoice_no),0)+1 from pur1 " +
-                    " where location_code=':location' and invoice_code=11 and type=:type "
+                    " where location_code=':location' and invoice_code=21 and type=:type "
                         .replaceAll(":location", UtilGen.getControlValue(that.txtInfoLocations))
                         .replaceAll(":type", UtilGen.getControlValue(that.txtInfoInvType));
                 var nwPurNo = Util.getSQLValue(sq);
@@ -351,28 +363,55 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             },
             value: ""
         });
-        this.txtInfoInvNo = new sap.m.Input({ width: "25%" });
+        var endAlign = sap.ui.core.TextAlign.End;
+        this.txtInfoInvNo = new sap.m.Input({ width: "35%" });
         this.txtInfoInvDate = new sap.m.DatePicker({ width: "25%" });
         this.txtInfoRef = new sap.m.Input({ width: "25%", editable: false });
-        this.txtInfoDescr = new sap.m.Input({ width: "75%" });
-        this.txtInfoAmount = new sap.m.Input({ align: "center", width: "25%", editable: false }).addStyleClass();
+        this.txtInfoRefName = new sap.m.Input({ width: "54%", editable: false });
+        this.txtInfoBranch = new sap.m.Input({ width: "25%", editable: false });
+        this.txtInfoBranchName = new sap.m.Input({ width: "54%", editable: false });
+        this.txtInfoGross = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass();
+        this.txtInfoDisc = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: true }).addStyleClass();
+        this.txtInfoAdd = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: true }).addStyleClass();
+        this.txtInfoAddRemarks = new sap.m.Input({ textAlign: endAlign, width: "54%", editable: true }).addStyleClass();
+        this.txtInfoDiscRemarks = new sap.m.Input({ textAlign: endAlign, width: "54%", editable: true }).addStyleClass();
+        this.txtInfoAmount = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass("yellow");
+        this.txtInfoDescr = new sap.m.Input({ width: "80%" });
+
 
         this.txtInfoInvDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtInfoInvDate.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtInfoInvDate.setDateValue(UtilGen.parseDefaultValue("$TODAY"));
 
+        this.txtInfoAdd.attachChange(function () {
+            that.calcInfoAmt(false);
+        });
+        this.txtInfoDisc.attachChange(function () {
+            that.calcInfoAmt(false);
+        });
 
 
         var fe = [
             // Util.getLabelTxt("txtPurWizard", "100%", "#"), new sap.m.VBox({ height: "50px" }),
-            Util.getLabelTxt("locationTxt", "25%"), this.txtInfoLocations,
-            Util.getLabelTxt("txtInvType", "25%"), this.txtInfoInvType,
-            Util.getLabelTxt("txtInvNo", "25%", "@"), this.txtInfoInvNo,
-            Util.getLabelTxt("dateTxt", "25%"), this.txtInfoInvDate,
-            Util.getLabelTxt("refName", "25%", "@"), this.txtInfoRef,
-            Util.getLabelTxt("descrTxt", "25%"), this.txtInfoDescr,
+            Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
+            Util.getLabelTxt("locationTxt", "20%"), this.txtInfoLocations,
+            Util.getLabelTxt("txtInvType", "20%", "@"), this.txtInfoInvType,
+            Util.getLabelTxt("txtInvNo", "20%", ""), this.txtInfoInvNo,
+            Util.getLabelTxt("dateTxt", "20%", "@"), this.txtInfoInvDate,
+            Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
+            Util.getLabelTxt("txtCust", "20%", ""), this.txtInfoRef,
+            Util.getLabelTxt("", "1%", "@"), this.txtInfoRefName,
+            Util.getLabelTxt("txtBranch", "20%", ""), this.txtInfoBranch,
+            Util.getLabelTxt("", "1%", "@"), this.txtInfoBranchName,
+            Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
+            Util.getLabelTxt("txtGrossAmt", "20%", ""), this.txtInfoGross,
+            Util.getLabelTxt("txtAddInvoice", "20%", ""), this.txtInfoAdd,
+            Util.getLabelTxt("", "1%", "@"), this.txtInfoAddRemarks,
+            Util.getLabelTxt("txtDisc", "20%", ""), this.txtInfoDisc,
+            Util.getLabelTxt("", "1%", "@"), this.txtInfoDiscRemarks,
+            Util.getLabelTxt("txtNetAmt", "20%", "", "redText"), this.txtInfoAmount,
+            Util.getLabelTxt("descrTxt", "20%"), this.txtInfoDescr,
             Util.getLabelTxt("", "25%"), new sap.m.VBox({ height: "25px" }),
-            Util.getLabelTxt("amountTxt", "50%"), this.txtInfoAmount,
         ]
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");
 
@@ -415,8 +454,8 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
         var codSpan = "XL3 L3 M3 S12";
         UtilGen.clearPage(this.detailPage);
         this.qv = new QueryView("qrDet" + this.timeInLong);
-        this.qv.getControl().addStyleClass("sapUiSizeCondensed");
-        this.qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
+        // this.qv.getControl().addStyleClass("sapUiSizeCondensed");
+        this.qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowSelector);
         this.qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.MultiToggle);
         this.qv.getControl().setAlternateRowColors(true);
         this.qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
@@ -426,30 +465,49 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
         var sc = new sap.m.ScrollContainer({ width: "100%", height: "100%", vertical: true, content: this.qv.getControl() });
 
         this.detailPage.addContent(sc);
+        var refName = that.txtRefName.getValue() + " - " + that.txtRef.getValue();
+        var bName = that.txtBranchName.getValue() + " - " + that.txtBranch.getValue();
         this.detailPage.removeAllHeaderContent();
-        this.detailPage.addHeaderContent(new sap.m.Title({ text: "Purchase wizard" }));
+        this.detailPage.addHeaderContent(new sap.m.Title({ text: "Sales wizard / " + refName + " / " + bName }));
 
-        this.qv.getControl().attachRowSelectionChange(function () {
+        this.qv.getControl().attachRowSelectionChange(function (e) {
             var tot = 0;
             var sett = sap.ui.getCore().getModel("settings").getData();
             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
             var slices = this.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
             var slicesof = that.qv.getControl().getBinding("rows").aIndices;
             var amtx = 0;
+            var addamt = 0;
+            var totalcounts = 0;
             for (var i = 0; i < slices.length; i++) {
-                var kfld = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
-                var price = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "PRICE"), "");
-                var pkqty = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "PACKQTY"), "");
-                amtx += (price * pkqty);
+                amtx += parseFloat(Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "NET_AMT"), "0"));
+                addamt += parseFloat(Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "ADD_AMT"), "0"));
+                totalcounts++;
             }
+
             that.txtTotalAmount.setValue(df.format(amtx));
+            that.txtAddAmt.setValue(df.format(addamt));
+            that.txtTotalDlv.setValue(totalcounts);
         });
 
-        this.txtTotalAmount = new sap.m.Input({ width: "200px" });
-        sc.addContent(new sap.m.VBox({ height: "20px" }));
-        sc.addContent(new sap.m.Text({ text: "Total Amount" }));
-        sc.addContent(this.txtTotalAmount);
+        this.txtTotalAmount = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
+        this.txtAddAmt = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");;
+        this.txtTotalDlv = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");;
+        var hbl = new sap.m.HBox({
+            items: [
+                new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, text: "Net Amount", width: "200px" }),
+                new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, text: "Additional", width: "200px" }),
+                new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, text: "Selected Deliveries", width: "200px" })
+            ]
+        })
+        var hbt = new sap.m.HBox({
+            items: [that.txtTotalAmount, that.txtAddAmt, that.txtTotalDlv]
+        })
 
+        sc.addContent(new sap.m.VBox({ height: "20px" }));
+        sc.addContent(new sap.m.VBox({ items: [hbl, hbt] }));
+
+        Util.destroyID("cmdNext2", that.view);
         this.detailPage.setFooter(new sap.m.Toolbar({
             content: [
                 new sap.m.ToolbarSpacer(),
@@ -460,7 +518,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
                         // that.loadData();
                     }
                 }),
-                new sap.m.Button({
+                new sap.m.Button(that.view.createId("cmdNext2"), {
                     text: "Next",
                     press: function () {
                         that.joApp.toDetail(that.infoPage, "slide");
@@ -487,24 +545,72 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
     load_infoPage: function () {
         var that = this;
         var sett = sap.ui.getCore().getModel("settings").getData();
-
+        var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var slices = this.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
         if (slices.length <= 0) {
             that.joApp.toDetail(that.detailPage, "slice");
             FormView.err("No Any delivery selected !");
         }
-        this.infoPage.removeAllHeaderContent();
-        this.infoPage.addHeaderContent(new sap.m.Title({ text: "Purchase wizard / " + that.txtRefName.getValue() }));
+        var refName = that.txtRefName.getValue() + " - " + that.txtRef.getValue();
+        var bName = that.txtBranchName.getValue() + " - " + that.txtBranch.getValue();
+        this.detailPage.removeAllHeaderContent();
+        this.detailPage.addHeaderContent(new sap.m.Title({ text: "Sales wizard / " + refName + " / " + bName }));
+
         var loc = UtilGen.getControlValue(that.txtLocations);
         UtilGen.setControlValue(that.txtInfoLocations, "-", "-", true);
         UtilGen.setControlValue(that.txtInfoLocations, loc, loc, true);
         that.txtInfoLocations.fireSelectionChange();
-        // that.txtInfoLocations.fireSelectionChange();
-        that.txtInfoRef.setValue(that.txtRef.getValue() + "-" + that.txtRefName.getValue());
-        that.txtInfoAmount.setValue(that.txtTotalAmount.getValue())
+        var adamt = df.format(parseFloat(that.txtAddAmt.getValue()));
+        that.txtInfoRef.setValue(that.txtRef.getValue());
+        that.txtInfoRefName.setValue(that.txtRefName.getValue());
+        that.txtInfoBranch.setValue(that.txtBranch.getValue());
+        that.txtInfoBranchName.setValue(that.txtBranchName.getValue());
+        that.txtInfoDisc.setValue(df.format(0));
+        that.txtInfoAdd.setValue(adamt);
+        that.txtInfoGross.setValue(that.txtTotalAmount.getValue());
+        that.txtInfoAmount.setValue(that.txtTotalAmount.getValue());
+
+        if (that.txtInfoBranch.getValue().trim() == "") {
+            var br = Util.getSQLValue("select min(brno) from cbranch where code=" + Util.quoted(that.txtInfoRef.getValue()));
+            var brnam = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtInfoRef.getValue()) + " and brno=" + br);
+            that.txtInfoBranch.setValue(br);
+            that.txtInfoBranchName.setValue(brnam);
+        }
+        that.calcInfoAmt(true, true);
     },
     loadData: function () {
-        // if (Util.nvl(this.oController.accno, "") != "" &&
+        var thatForm = this;
+        if (Util.nvl(this.oController.pcust, "") != "") {
+            var pcust = this.oController.pcust;
+            var pbrno = Util.nvl(this.oController.pbrno, '');
+            var fromdt = Util.nvl(this.oController.fromdate, '');
+            var todt = Util.nvl(this.oController.todate, '');
+            var ordno = Util.nvl(this.oController.ordno, '');
+            thatForm.txtRef.setValue(pcust);
+            thatForm.txtRef.fireChange();
+            thatForm.txtBranch.setValue(pbrno);
+            thatForm.txtBranch.fireChange();
+            if (fromdt != '')
+                thatForm.txtFromDate.setDateValue(new Date(fromdt));
+            if (todt != '')
+                thatForm.txtToDate.setDateValue(new Date(todt));
+
+            thatForm.view.byId("cmdNext1").firePress();
+            if (ordno != '')
+                setTimeout(function () {
+                    var ld = thatForm.qv.mLctb;
+                    var rn = ld.find("ORD_NO", ordno);
+                    if (rn > -1) {
+                        thatForm.qv.getControl().setSelectedIndex(rn);
+                        thatForm.qv.getControl().setFirstVisibleRow(rn);
+                        // thatForm.view.byId("cmdNext2").firePress();
+                    }
+
+                }, 100);
+
+
+        }
+        // if (Util.nvl(this.oController.pcust, "") != "" &&
         //     Util.nvl(this.oController.status, "view") == FormView.RecordStatus.VIEW) {
         //     this.frm.setFieldValue("pac", this.oController.accno, this.oController.accno, true);
         //     this.frm.loadData(undefined, FormView.RecordStatus.VIEW);
@@ -513,11 +619,44 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
 
         // }
         // this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
-    }
-    ,
+    },
+    calcInfoAmt: function (pRfresh, pRefreshAdd) {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+        var rfresh = Util.nvl(pRfresh, false);
+        var rfreshAdd = Util.nvl(pRfresh, false);
+        if (rfresh) {
+            var kfldStr = "";
+            var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
+            var slicesof = that.qv.getControl().getBinding("rows").aIndices;
+            for (var i = 0; i < slices.length; i++) {
+                var kfld = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
+                kfldStr = kfldStr + (kfldStr.length > 0 ? "," : "") + kfld;
+            }
+            if (kfldStr.length <= 0)
+                FormView.err("No rows selected !");
+            var sq = "select nvl(sum(o.sale_price*o.tqty),0) from C_ORDER1 o,items it where o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
+            sq = sq.replaceAll(":txtKflds", kfldStr);
+            var sum = Util.getSQLValue(sq);
+            that.txtInfoGross.setValue(df.format(sum));
+            if (rfreshAdd) {
+                var sq = "select nvl(sum(op_no*tqty),0) from C_ORDER1 o,items it where o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
+                sq = sq.replaceAll(":txtKflds", kfldStr);
+                var sumadd = Util.getSQLValue(sq);
+                that.txtInfoAdd.setValue(df.format(sumadd));
+            }
+
+        }
+        var add = Util.extractNumber(that.txtInfoAdd.getValue());
+        var disc = Util.extractNumber(that.txtInfoDisc.getValue());
+        var gross = Util.extractNumber(that.txtInfoGross.getValue());
+        that.txtInfoAmount.setValue(df.format((gross + add) - disc));
+    },
     generatePur: function () {
         var that = this;
         var invdt = UtilGen.getControlValue(this.txtInfoInvDate);
+        that.calcInfoAmt(true);
         var sq = "declare " +
             " pcode varchar2(255):=repair.GETSETUPVALUE_2('CURRENT_PERIOD');" +
             " ploc varchar2(255):=:txtLoc;" +
@@ -527,62 +666,83 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             " pstr number:=:txtStr;" +
             " pref varchar2(255):= :txtRef;" +
             " pBrNo number:=:txtBranch; " +
+            " addamt number:=:addamt; " +
+            " discamt number :=:discamt;" +
+            " adescr_memo varchar2(500) :=':addescr';" +
+            " ddescr_ctg varchar2(500) :=':ddescr';" +
             " " +
+            " grossamt number :=0;" +
             " prd_date date;" +
             " exp_date date;" +
             " kfld number;" +
             " posx number:=0;" +
             " pr number;" +
             " refnm varchar2(500);" +
+            " dag number:=0;" +
+            " aag number:=0;" +
+            " totdag number:=0;" +
+            " totaag number:=0;" +
             " totamt number:=0;" +
             " " +
-            " cursor ds is select *from c7_rmpord where keyfld in (:txtKflds) order by keyfld;" +
+            " cursor ds is select o.*,it.packd, it.pack,it.unitd,it.pkaver,it.prd_dt prd_date,it.exp_dt exp_date from C_ORDER1 o,items it where o.ord_ship=it.reference and o.keyfld in (:txtKflds) order by o.keyfld , o.ORD_POS ;" +
+            " cursor pu(kfx number) is select *from pur2 where keyfld=kfx order by itempos;" +
             " " +
             " begin" +
             " select nvl(max(keyfld),0)+1 into kfld from pur1;" +
             " for x in ds loop" +
-            "     select nvl(max(price),0) into pr from c_contract_items where cust_code=x.ref_code and refer=x.refer and branch_no=x.branch_no and x.ord_date>=startdate and x.ord_date<=enddate ;" +
-            "     select prd_dt,exp_dt into prd_date, exp_date from items where reference=x.refer;    " +
+            "     select nvl(max(price),0) into pr from c_contract_items where cust_code=x.ord_ref and refer=x.ord_ship and branch_no=x.ord_discamt and x.ord_date>=startdate and x.ord_date<=enddate ;" +
             "  if pr=0 then " +
-            "   select max(price) into pr from custitems where code=x.ref_code and refer=x.refer; " +
+            "   select max(price) into pr from custitems where code=x.ord_ref and refer=x.ord_ship; " +
             "  end if;" +
-            " " +
-            "     " +
+            " if pr=0 then " +
+            "   select price1 into pr from items where reference=x.ord_ship; " +
+            " end if; " +
             "     posx:=posx+1;" +
-            "     insert into pur2(PERIODCODE, LOCATION_CODE, INVOICE_NO," +
+            "     insert into pur2(PERIODCODE, LOCATION_CODE, INVOICE_NO, " +
             "                 INVOICE_CODE, TYPE, ITEMPOS, REFER, STRA, PRICE, PKCOST," +
-            "                 DISC_AMT, PACK, PACKD, UNITD, DAT, QTY, PKQTY, FREEQTY, FREEPKQTY," +
+            "                 DISC_AMT, PACK, PACKD, UNITD, DAT, QTY, PKQTY, FREEQTY, FREEPKQTY, " +
             "                 ALLQTY, PRD_DATE, EXP_DATE, YEAR, FLAG, ORDWAS, KEYFLD, RATE, CURRENCY," +
             "                 CREATDT, ORDERNO, QTYIN, QTYOUT, DISC_AMT_GROSS, SLSMNXX," +
             "                 RECIEVED_KEYFLD, FREE_ALLQTY,costcent,size_of_descr,recipt_date)" +
             "                 values (" +
             "                 pcode, ploc, pinvno," +
-            "                 11, ptype, posx, x.refer, pstr , pr,  pr*1 ," +
+            "                 21, ptype, posx, x.ord_ship, pstr , pr*x.pack,  x.pkaver ," +
             "                 0, x.pack, x.packd, x.unitd, pdate," +
-            "                 0, x.packqty, 0, 0," +
-            "                 x.packqty*x.pack, prd_date, exp_date, '2003', 2, x.dlv_no ," +
-            "                 kfld , 1, 'KWD', SYSDATE, X.KEYFLD, X.PACKQTY *X.PACK, 0, 0, x.DRIVER_NO," +
-            "                 null, 0,'',x.truck_no,x.ord_date) ;" +
-            "     totamt:=totamt+(x.packqty*pr);                " +
-            "     update c7_rmpord set sale_price=pr,PUR_KEYFLD=kfld,flag=2 where keyfld=x.keyfld;" +
+            "                 0, x.tqty, 0, 0," +
+            "                 x.tqty*x.pack, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
+            "                 kfld , 1, 'KWD', SYSDATE, X.KEYFLD, X.tqty*X.PACK, 0, 0, x.ORD_EMPNO," +
+            "                 null, 0,'',x.PAYTERM,x.ord_date ) ;" +
+            "     totamt:=totamt+(x.TQTY*pr);                " +
+            " " +
+            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where keyfld=x.keyfld;" +
+            "   update ORDER1 set SALEINV=kfld,ord_flag=2 where keyfld=x.keyfld; " +
             " " +
             " end loop;" +
             " select name into refnm from c_ycust where code=pref and childcount=0 and flag=1 ;" +
             " if posx>0 then" +
             "  insert into PUR1(PERIODCODE, LOCATION_CODE, INVOICE_NO," +
             "                 INVOICE_CODE, TYPE, INVOICE_DATE, STRA, SLSMN," +
-            "                  MEMO, INV_REF, INV_REFNM, INV_AMT, DISC_AMT, INV_COST," +
+            "                  MEMO, ctg, INV_REF, INV_REFNM, INV_AMT, DISC_AMT, INV_COST,ADD_CHARGEX,deptno, " +
             "                  FLAG, CREATDT, LPNO, BKNO, KEYFLD, USERNAME, SUPINVNO, SHIPCO," +
             "                 INS_CO, BANK, LCNO, INS_NO, RATE, CURRENCY, KDCOST, CHG_KDAMT," +
-            "                 ORDERNO, C_CUS_NO,YEAR,NO_OF_RECIEVED,costcent,C_BRANCH_NO) VALUES" +
+            "                 ORDERNO, C_CUS_NO,YEAR,NO_OF_RECIEVED,costcent,C_BRANCH_NO ) VALUES" +
             "                 (pcode, ploc, pinvno," +
-            "                  11, ptype, pdate, pstr, null," +
-            "                  '', (select ac_no from c_ycust where code=pref ), refnm," +
-            "                   totamt, 0, 0," +
+            "                  21, ptype, pdate, pstr, null," +
+            "                  adescr_memo,ddescr_ctg, (select ac_no from c_ycust where code=pref ), refnm," +
+            "                   totamt, discamt, 0, addamt,addamt," +
             "                  2, sysdate, '', '', kfld,user, '', ''," +
             "                 '', '', '', '', 1,'KWD', 1 , 0," +
             "                 null, pref,'2003',0,null,pBrNo);" +
-            " x_post_purchase(kfld);" +
+            " for xx in pu(kfld) loop " +
+            " IF DISCAMT>0 and totamt>0 THEN " +
+            " dag:=((discamt / totamt) * (((xx.price)/xx.PACK)*(xx.allqty/xx.pack))) / (xx.allqty/xx.pack);" +
+            " end if;" +
+            "  IF addamt>0 THEN " +
+            " aag:=((addamt / totamt) * (((xx.price)/xx.PACK)*(xx.allqty/xx.pack))) / (xx.allqty/xx.pack); " +
+            " END IF;" +
+            " update pur2 set add_amt_gross=aag,disc_amt_gross=dag where keyfld=xx.keyfld and itempos=xx.itempos;" +
+            " end loop;" +
+            " x_post_sale_invoice(kfld);" +
             " " +
             " end if;" +
             " " +
@@ -602,9 +762,13 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             .replaceAll(":txtDate", Util.toOraDateString(invdt))
             .replaceAll(":txtType", UtilGen.getControlValue(that.txtInfoInvType))
             .replaceAll(":txtStr", "1")
-            .replaceAll(":txtRef", Util.quoted(that.txtRef.getValue()))
+            .replaceAll(":txtRef", Util.quoted(that.txtInfoRef.getValue()))
             .replaceAll(":txtKflds", kfldStr)
-            .replaceAll(":txtBranch", that.txtBranch.getValue());
+            .replaceAll(":addamt", Util.extractNumber(that.txtInfoAdd.getValue()))
+            .replaceAll(":discamt", Util.extractNumber(that.txtInfoDisc.getValue()))
+            .replaceAll(":addescr", that.txtInfoAddRemarks.getValue())
+            .replaceAll(":ddescr", that.txtInfoDiscRemarks.getValue())
+            .replaceAll(":txtBranch", that.txtInfoBranch.getValue());
 
         var dt = Util.execSQL(sq);
         if (dt.ret != "SUCCESS") {
@@ -612,7 +776,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
         } else {
             that.joApp.to(that.detailPage, "slide");
             that.load_detailPage();
-            sap.m.MessageToast.show("Purchase generated successfully !");
+            sap.m.MessageToast.show("Sales generated successfully !");
         }
 
     },

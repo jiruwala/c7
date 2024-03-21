@@ -272,7 +272,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             qv.mLctb.getColByName("KEYFLD").getMUIHelper().display_width = 0;
             qv.mLctb.getColByName("REF_CODE").mHideCol = true;
             qv.mLctb.getColByName("NAME").mHideCol = true;
-
+            
             qv.mLctb.getColByName("ORD_DATE").getMUIHelper().display_format = "SHORT_DATE_FORMAT";
             qv.mLctb.getColByName("ORD_DATE").getMUIHelper().display_width = 120;
             qv.mLctb.getColByName("DRIVER_NO").getMUIHelper().display_width = 60;

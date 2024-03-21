@@ -54,6 +54,7 @@ sap.ui.define(["./DataCell"], function (DataCell) {
         this.ct_col = "N";
         this.ct_val = "N";
         this.btnsx = undefined;
+        this.trueValues = []; //["Y", "N"] if check box
 
     }
 

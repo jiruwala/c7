@@ -127,10 +127,15 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         thatForm.frm.setFieldValue("ST001@parameter.prefname", vlnm, vlnm, false);
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select reference,descr from items where itprice4=0 order by path", "DESCR", "REFERENCE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("ST001@parameter.prefer", valx, valx, true);
-                                            thatForm.frm.setFieldValue("ST001@parameter.prefname", val, val, true);
-                                        });
+                                        // Util.showSearchList("select reference,descr from items where itprice4=0 order by path", "DESCR", "REFERENCE", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("ST001@parameter.prefer", valx, valx, true);
+                                        //     thatForm.frm.setFieldValue("ST001@parameter.prefname", val, val, true);
+                                        // });
+
+                                        UtilGen.Search.do_quick_search(event, this,
+                                            "select reference code,descr title from items where itprice4=0 order by path",
+                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs["ST001@parameter.prefname"].obj);
+
                                     },
                                     width: "35%"
                                 },
@@ -197,10 +202,6 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
 
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -1011,15 +1012,20 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                     showValueHelp: true,
                                     change: function (e) {
                                         var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("ST001@parameter.prefer", vl, vl, false);
+                                        thatForm.frm.setFieldValue("ST002@parameter.prefer", vl, vl, false);
                                         var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("ST001@parameter.prefname", vlnm, vlnm, false);
+                                        thatForm.frm.setFieldValue("ST002@parameter.prefname", vlnm, vlnm, false);
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select reference,descr from items where itprice4=0 order by path", "DESCR", "REFERENCE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("ST001@parameter.prefer", valx, valx, true);
-                                            thatForm.frm.setFieldValue("ST001@parameter.prefname", val, val, true);
-                                        });
+                                        // Util.showSearchList("select reference,descr from items where itprice4=0 order by path", "DESCR", "REFERENCE", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("ST001@parameter.prefer", valx, valx, true);
+                                        //     thatForm.frm.setFieldValue("ST001@parameter.prefname", val, val, true);
+                                        // });
+                                        UtilGen.Search.do_quick_search(event, this,
+                                            "select reference code,descr title from items where itprice4=0 order by path",
+                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs["ST002@parameter.prefname"].obj);
+
+
                                     },
                                     width: "35%"
                                 },

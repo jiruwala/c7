@@ -708,6 +708,10 @@ th {
     font-size: x-small;
 }
 
+.largeFont {
+    font-size: large;
+}
+
 .dbRcnt {
     font-size: small;
     color: brown;
@@ -824,6 +828,9 @@ th {
 }
 
 
+.cyanDialog .sapMDialog header {
+    background-color: cyan !important;
+}
 
 .reportTable2 {
     padding-left: 5%;
@@ -1206,7 +1213,7 @@ th {
 .formVoucher {}
 
 .bottom_border {
-     border-bottom: groove;
+    border-bottom: groove;
 }
 
 table {
@@ -1224,7 +1231,7 @@ table {
     border-left: groove;
     border-bottom: groove;
     border-top: groove;
-    border-radius: 25px;    
+    border-radius: 25px;
 }
 
 .html_table_row1:hover {

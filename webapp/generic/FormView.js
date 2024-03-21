@@ -414,9 +414,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 if (flds[f].hasOwnProperty("trueValues"))
                                     flds[f].obj.trueValues = flds[f].trueValues;
 
-                                if (flds[f].obj instanceof sap.m.Input && flds[f].obj.getShowValueHelp() ) {
+                                if (flds[f].obj instanceof sap.m.Input && flds[f].obj.getShowValueHelp()) {
                                     flds[f].obj.attachBrowserEvent("keydown", function (oEvent) {
-                                        if (this.getEditable() && oEvent.key == 'F9' ) {
+                                        if (this.getEditable() && oEvent.key == 'F9') {
                                             this.fireValueHelpRequest(oEvent);
                                         }
                                     });
@@ -449,7 +449,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     qr.obj.getControl().setVisibleRowCount(qr.dispRecords);
                     qr.obj.insertable = qr.insert_allowed;
                     qr.obj.deletable = qr.delete_allowed;
-                    qr.obj.frag=this.frag;
+                    qr.obj.frag = this.frag;
                     thatForm.loadQueryView(qr, true);
 
                     if (qr.hasOwnProperty("before_add_table") && qr.before_add_table != undefined) {
@@ -624,7 +624,11 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
 
                             UtilGen.applyCols(qryObj.applyCol, qryObj.obj, this);
+
                             // when validation of field.
+                            if (thatForm.form.events.hasOwnProperty("afterApplyCols"))
+                                thatForm.form.events.afterApplyCols(qryObj);
+
 
                         }
                     }

@@ -138,8 +138,9 @@ sap.ui.jsfragment("bin.forms.rm.rep.pords", {
                                         for (var i = startCell; i < endCell; i++) {
                                             var cellValue = oModel.getProperty(qv.mLctb.cols[0].mColName, currentRowContext);
                                             if (!(cellValue + "").startsWith(String.fromCharCode(4094)) && qv.getControl().getColumns()[i - startCell].getWidth() != '0px') {
-                                                qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("cssText", "color:blue;text-align:center;");
-                                                qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("cssText", "color:blue;text-align:center;");
+                                                var align = (qv.getControl().getColumns()[i - startCell].tableCol.mColName == "AMOUNT" ? "right" : "center");
+                                                qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("cssText", "color:blue;text-align:" + align + ";");
+                                                qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("cssText", "color:blue;text-align:" + align + ";");
                                             }
                                         }
                                 },
@@ -157,7 +158,7 @@ sap.ui.jsfragment("bin.forms.rm.rep.pords", {
                                         " po.TRUCK_NO, po.REF_CODE, po.BRANCH_NO, po.REFER, po.PACKD, po.UNITD, " +
                                         " po.PACK, po.PACKQTY, po.PUR_KEYFLD, po.FLAG, po.SALE_PRICE,IT.DESCR, " +
                                         " yc.name ref_name2 , cb.b_name branch_name ,sp.name driver_name ," +
-                                        " po.packqty||' '||initcap(po.packd) pkqtystr , po.packqty  " +
+                                        " po.packqty||' '||initcap(po.packd) pkqtystr ,  po.sale_price*po.packqty amount " +
                                         " from C7_RMPORD po,items it, c_ycust yc,cbranch cb , SALESP sp " +
                                         " where it.reference=po.refer " +
                                         " and po.branch_no=cb.brno " +
@@ -447,9 +448,26 @@ sap.ui.jsfragment("bin.forms.rm.rep.pords", {
                     other_settings: {},
                     commandLinkClick: cmdLink
                 },
-                pkqtystr: {
-                    colname: "pkqtystr",
+                packd: {
+                    colname: "PACKD",
                     data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "itemPackD",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                    commandLinkClick: cmdLink
+                },
+                packqty: {
+                    colname: "packqty",
+                    data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.LABEL,
                     title: "itemPackQty",
                     title2: "",
@@ -462,6 +480,41 @@ sap.ui.jsfragment("bin.forms.rm.rep.pords", {
                     display_format: "",
                     default_value: "",
                     other_settings: {},
+                    commandLinkClick: cmdLink
+                },
+                sale_price: {
+                    colname: "sale_price",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "price",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_END",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "MONEY_FORMAT",
+                    default_value: "",
+                    other_settings: {},
+                    commandLinkClick: cmdLink
+                },
+                amount: {
+                    colname: "amount",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "amount",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "MONEY_FORMAT",
+                    default_value: "",
+                    other_settings: {},
+                    summary: "SUM",
                     commandLinkClick: cmdLink
                 },
                 pur_keyfld: {

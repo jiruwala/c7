@@ -1679,8 +1679,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
                 iframe.src = url;
             },
-            getLabelTxt: function (ptxt, pwidth, preText, styleText) {
-                return Util.nvl(preText, "") + '{\"text\":\"' + ptxt + '\",\"width\":\"' + Util.nvl(pwidth, "15%") + '\","textAlign":"End","styleClass":"' + Util.nvl(styleText, "") + '"}'
+            getLabelTxt: function (ptxt, pwidth, preText, styleText, alignTxt) {
+                return Util.nvl(preText, "") + '{\"text\":\"' + ptxt + '\",\"width\":\"' + Util.nvl(pwidth, "15%") + '\","textAlign":"' + Util.nvl(alignTxt, 'End') + '","styleClass":"' + Util.nvl(styleText, "") + '"}';
             },
             abbreviateNumber: function (number) {
                 var sett = sap.ui.getCore().getModel("settings").getData();
