@@ -56,7 +56,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT,O1.MANUAL_PRICE MP from C_ORDER1 o1 ,ITEMS IT where " +
+        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
@@ -93,7 +93,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "vouchers/jv",
+                        reportFile: "br/salord",
                     }
                 ],
                 events: {
@@ -107,7 +107,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             UtilGen.Search.getLOVSearchField(strInvType, qry.formview.objs["qry1.ord_type"].obj, undefined, that.frm.objs["qry1.typename"].obj);
                             UtilGen.Search.getLOVSearchField(strInvs, qry.formview.objs["qry1.ord_discamt"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
                             var saleinv = Util.getSQLValue("select saleinv from order1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
-                            if (saleinv != undefined) {
+                            if (Util.nvl(saleinv, '') != '') {
                                 var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
                                 thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
                             }
@@ -153,11 +153,13 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
                             qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
 
+
                             objOn.fireSelectionChange();
                             // thatForm.helperFunc.validity.updateFieldsEditing();
 
                         }
-
+                        // if (qry.name == "qry2")
+                        //     ld.setFieldValue(idx, "MP", "N");
                     },
                     afterEditRow(qry, index, ld) {
                         if (qry.name == "qry1")
@@ -169,6 +171,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         if (dt.ret == "SUCCESS") {
                             var dtx = JSON.parse("{" + dt.data + "}").data;
                             if (dtx.length > 0 && dtx[0].SALEINV != undefined) {
+                                // frm.setFormReadOnly();
                                 FormView.err("This Delivery is posted to invoice !");
                             }
                         }
@@ -186,6 +189,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             if (dt.ret == "SUCCESS") {
                                 var dtx = JSON.parse("{" + dt.data + "}").data;
                                 if (dtx.length > 0 && dtx[0].SALEINV != undefined) {
+                                    qry.formview.setFormReadOnly();
                                     FormView.err("This Delivery is posted to invoice !");
                                 }
                             }
@@ -199,7 +203,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
                     },
                     beforePrint: function (rptName, params) {
-                        return params + "&_para_VOU_TITLE=Journal Voucher";
+                        var no = that.frm.getFieldValue("qry1.ord_no");
+                        return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
                     },
                     afterApplyCols: function (qry) {
                         if (qry.name == "qry2") {
@@ -243,7 +248,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         applyCol: "C7.BRDLV1",
                         addRowOnEmpty: true,
                         dml: dmlSq,
-                        dispRecords: { "S": 7, "M": 9, "L": 13, "XL": 20, "XXL": 25 },
+                        dispRecords: { "S": 5, "M": 7, "L": 10, "XL": 20, "XXL": 25 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
@@ -263,7 +268,6 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             "ORD_EMPNO": ":qry1.ord_empno",
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": sett["DEFAULT_STORE"],
-
 
                         },
                         update_default_values: {
@@ -292,6 +296,21 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             return true;
                         },
                         eventCalc: function (qv, cx, rowno, reAmt) {
+                            var sett = sap.ui.getCore().getModel("settings").getData();
+                            var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+
+                            if (reAmt)
+                                qv.updateDataToTable();
+
+                            var ld = qv.mLctb;
+                            var sumAmt = 0;
+
+                            for (var i = 0; i < ld.rows.length; i++)
+                                sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
+
+                            thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
+                            if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumAmt));
 
                         },
                         summary: {
@@ -326,6 +345,22 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                                 edit_allowed: false,
                                 insert_allowed: true,
                                 require: false
+                            },
+                            totamt: {
+                                colname: "totamt",
+                                data_type: FormView.DataType.Number,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"Total DR\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                                title2: "Total ",
+                                canvas: "default_canvas",
+                                display_width: sumSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "background-color:yellow;",
+                                display_format: sett["FORMAT_MONEY_1"],
+                                other_settings: { width: "30%" },
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: true
                             },
                         }
 
@@ -617,7 +652,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         },
                         valueHelpRequest: function (e) {
                             var btns = [new sap.m.Button({
-                                text: 'New Driver ', press: function () {
+                                text: Util.getLangText('newDriverText'), press: function () {
                                     thatForm.helperFunc.showDrivers(this);
 
                                 }
@@ -711,7 +746,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         },
                         valueHelpRequest: function (e) {
                             var btns = [new sap.m.Button({
-                                text: 'New Customer ', press: function () {
+                                text: Util.getLangText('    '), press: function () {
                                     UtilGen.execCmd("gl.rp formType=dialog formSize=850px,450px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
 
                                     });
@@ -864,6 +899,18 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 }, {
                     name: "cmdEdit",
                     canvas: "default_canvas",
+                    onPress: function (e) {
+                        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                            var saleinv = Util.getSQLValue("select saleinv from order1 where keyfld=" + that2.frm.getFieldValue("keyfld"));
+                            if (Util.nvl(saleinv, '') != '') {
+                                var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
+                                that2.view.byId("txtMsg" + that2.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
+                                // that2.frm.setFormReadOnly();
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
                 },
                 {
                     name: "cmdNew",
@@ -889,9 +936,10 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                         press: function () {
                             var mnus = [];
                             var bts = [];
-
-                            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
-                                that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                            if (
+                                (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW ||
+                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
                                 mnus.push(new sap.m.MenuItem({
                                     icon: "sap-icon://letter",
                                     text: Util.getLangText("generateInvoice"),
@@ -900,7 +948,6 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                                     }
                                 }));
                             }
-
                             if (bts.length > 0) {
                                 mnus.push(new sap.m.MenuItem({
                                     icon: "sap-icon://indent",
@@ -920,7 +967,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 {
                     name: "cmdClose",
                     canvas: "default_canvas",
-                    title: "Close",
+                    title: Util.getLangText("cmdClose"),
                     obj: new sap.m.Button({
                         icon: "sap-icon://decline",
                         press: function () {
@@ -962,7 +1009,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             var thatForm = this.thatForm;
             var vb = new sap.m.VBox();
             var btAp = new sap.m.Button({
-                text: Util.getLangText("Save"),
+                text: Util.getLangText("saveRec"),
                 enabled: false,
                 press: function () {
                     saveData();
@@ -1064,7 +1111,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 buttons: [
                     btAp,
                     new sap.m.Button({
-                        text: Util.getLangText("closeTxt"),
+                        text: Util.getLangText("cmdClose"),
                         press: function () {
                             dlg.close();
                         }
@@ -1082,7 +1129,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
             if (Util.nvl(cod, '') == "")
                 FormView.err("Err !, No customer is assigned !");
             var btAp = new sap.m.Button({
-                text: Util.getLangText("Save"),
+                text: Util.getLangText("saveRec"),
                 enabled: false,
                 press: function () {
                     saveData();
@@ -1229,7 +1276,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                 FormView.err("Err !, No BRANCH is assigned !");
 
             var btAp = new sap.m.Button({
-                text: Util.getLangText("Save"),
+                text: Util.getLangText("saveRec"),
                 enabled: false,
                 press: function () {
                     saveData();

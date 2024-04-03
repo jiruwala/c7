@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="orddetails" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="b5ac15f9-7843-4e53-9579-505bbd92a6d0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ora"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<template><![CDATA["voucherStyle.jrtx"]]></template>
+	<parameter name="KEYFLD" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TOTAL_IN_WORDS" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="CURRENCY_FORMAT" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT C.LOCATION_CODE, C.PERIODCODE, C.ORD_NO, C.ORD_CODE, C.ORD_REF, C.ORD_REFNM, C.ORD_DATE, C.ORD_SHIP, C.ORD_SHPDT, C.ORD_AMT, C.ORD_DISCAMT, C.ORD_FLAG, C.ORD_EMPNO, C.YEAR, C.REMARKS, C.PAYTERM, C.VALIDATIY, C.ATTN, C.KEYFLD, C.DELIVEREDQTY, C.ORDERDQTY, C.SALEINV, C.ONAME, C.ROUNDS, C.TMPLANTLEAVE, C.TMSITEARRIVAL, C.TMMIXINGSTART, C.TMSITELEAVE, C.TMOFPLANARRIVAL, C.SANDQTY, C.STONEQTY, C.CEMENTQTY, C.BLOCK, C.STREET, C.JEDDA, C.AREA, C.BLDG, C.TEL, C.OP_NO, C.TYPOFCEM, C.TRUCKMIX, C.CHEMADD, C.QTYWATER, C.TQTY, C.WGHT, C.JOBNO, C.SALETYP, C.STRA, C.ORDERED_KEY, C.USERNM, C.CREATDT, C.SALESP, C.SALE_PRICE, C.SLNAME, C.PLANT_NAME, C.PRODUCTION_TYPE, C.SAND_TYPE, C.AGG_TYPE, C.CAST_TYPE, C.ISSUE_KEYFLD, C.ISSUE_NO, C.ISSUE_PLANT_NO, I.PACKD ORD_PACKD, 
+I.UNITD ORD_UNITD, 
+I.PACK ORD_PACK, C.ORD_POS,0 ORD_UNQTY, TQTY ORD_PKQTY ,
+I.DESCR, I.DESCRA,I.PARTNO
+FROM 
+C_ORDER1 C,ITEMS I
+WHERE ORD_SHIP=I.REFERENCE
+and c.keyfld=  $P{KEYFLD} 
+ORDER BY ORD_POS]]>
+	</queryString>
+	<field name="LOCATION_CODE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="LOCATION_CODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="LOCATION_CODE"/>
+	</field>
+	<field name="PERIODCODE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="PERIODCODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="PERIODCODE"/>
+	</field>
+	<field name="ORD_NO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_NO"/>
+	</field>
+	<field name="ORD_CODE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_CODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_CODE"/>
+	</field>
+	<field name="ORD_REF" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_REF"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_REF"/>
+	</field>
+	<field name="ORD_REFNM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_REFNM"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_REFNM"/>
+	</field>
+	<field name="ORD_DATE" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_DATE"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_DATE"/>
+	</field>
+	<field name="ORD_SHIP" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_SHIP"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_SHIP"/>
+	</field>
+	<field name="ORD_SHPDT" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_SHPDT"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_SHPDT"/>
+	</field>
+	<field name="ORD_AMT" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_AMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_AMT"/>
+	</field>
+	<field name="ORD_DISCAMT" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_DISCAMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_DISCAMT"/>
+	</field>
+	<field name="ORD_FLAG" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_FLAG"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_FLAG"/>
+	</field>
+	<field name="ORD_EMPNO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_EMPNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_EMPNO"/>
+	</field>
+	<field name="YEAR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="YEAR"/>
+		<property name="com.jaspersoft.studio.field.label" value="YEAR"/>
+	</field>
+	<field name="REMARKS" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="REMARKS"/>
+		<property name="com.jaspersoft.studio.field.label" value="REMARKS"/>
+	</field>
+	<field name="PAYTERM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="PAYTERM"/>
+		<property name="com.jaspersoft.studio.field.label" value="PAYTERM"/>
+	</field>
+	<field name="VALIDATIY" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="VALIDATIY"/>
+		<property name="com.jaspersoft.studio.field.label" value="VALIDATIY"/>
+	</field>
+	<field name="ATTN" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ATTN"/>
+		<property name="com.jaspersoft.studio.field.label" value="ATTN"/>
+	</field>
+	<field name="KEYFLD" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="KEYFLD"/>
+		<property name="com.jaspersoft.studio.field.label" value="KEYFLD"/>
+	</field>
+	<field name="DELIVEREDQTY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="DELIVEREDQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="DELIVEREDQTY"/>
+	</field>
+	<field name="ORDERDQTY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ORDERDQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORDERDQTY"/>
+	</field>
+	<field name="SALEINV" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="SALEINV"/>
+		<property name="com.jaspersoft.studio.field.label" value="SALEINV"/>
+	</field>
+	<field name="ONAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ONAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="ONAME"/>
+	</field>
+	<field name="ROUNDS" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ROUNDS"/>
+		<property name="com.jaspersoft.studio.field.label" value="ROUNDS"/>
+	</field>
+	<field name="TMPLANTLEAVE" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="TMPLANTLEAVE"/>
+		<property name="com.jaspersoft.studio.field.label" value="TMPLANTLEAVE"/>
+	</field>
+	<field name="TMSITEARRIVAL" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="TMSITEARRIVAL"/>
+		<property name="com.jaspersoft.studio.field.label" value="TMSITEARRIVAL"/>
+	</field>
+	<field name="TMMIXINGSTART" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="TMMIXINGSTART"/>
+		<property name="com.jaspersoft.studio.field.label" value="TMMIXINGSTART"/>
+	</field>
+	<field name="TMSITELEAVE" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="TMSITELEAVE"/>
+		<property name="com.jaspersoft.studio.field.label" value="TMSITELEAVE"/>
+	</field>
+	<field name="TMOFPLANARRIVAL" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="TMOFPLANARRIVAL"/>
+		<property name="com.jaspersoft.studio.field.label" value="TMOFPLANARRIVAL"/>
+	</field>
+	<field name="SANDQTY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="SANDQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="SANDQTY"/>
+	</field>
+	<field name="STONEQTY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="STONEQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="STONEQTY"/>
+	</field>
+	<field name="CEMENTQTY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="CEMENTQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="CEMENTQTY"/>
+	</field>
+	<field name="BLOCK" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="BLOCK"/>
+		<property name="com.jaspersoft.studio.field.label" value="BLOCK"/>
+	</field>
+	<field name="STREET" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="STREET"/>
+		<property name="com.jaspersoft.studio.field.label" value="STREET"/>
+	</field>
+	<field name="JEDDA" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="JEDDA"/>
+		<property name="com.jaspersoft.studio.field.label" value="JEDDA"/>
+	</field>
+	<field name="AREA" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="AREA"/>
+		<property name="com.jaspersoft.studio.field.label" value="AREA"/>
+	</field>
+	<field name="BLDG" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="BLDG"/>
+		<property name="com.jaspersoft.studio.field.label" value="BLDG"/>
+	</field>
+	<field name="TEL" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="TEL"/>
+		<property name="com.jaspersoft.studio.field.label" value="TEL"/>
+	</field>
+	<field name="OP_NO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="OP_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="OP_NO"/>
+	</field>
+	<field name="TYPOFCEM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="TYPOFCEM"/>
+		<property name="com.jaspersoft.studio.field.label" value="TYPOFCEM"/>
+	</field>
+	<field name="TRUCKMIX" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="TRUCKMIX"/>
+		<property name="com.jaspersoft.studio.field.label" value="TRUCKMIX"/>
+	</field>
+	<field name="CHEMADD" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="CHEMADD"/>
+		<property name="com.jaspersoft.studio.field.label" value="CHEMADD"/>
+	</field>
+	<field name="QTYWATER" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="QTYWATER"/>
+		<property name="com.jaspersoft.studio.field.label" value="QTYWATER"/>
+	</field>
+	<field name="TQTY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="TQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="TQTY"/>
+	</field>
+	<field name="WGHT" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="WGHT"/>
+		<property name="com.jaspersoft.studio.field.label" value="WGHT"/>
+	</field>
+	<field name="JOBNO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="JOBNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="JOBNO"/>
+	</field>
+	<field name="SALETYP" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="SALETYP"/>
+		<property name="com.jaspersoft.studio.field.label" value="SALETYP"/>
+	</field>
+	<field name="STRA" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="STRA"/>
+		<property name="com.jaspersoft.studio.field.label" value="STRA"/>
+	</field>
+	<field name="ORDERED_KEY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ORDERED_KEY"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORDERED_KEY"/>
+	</field>
+	<field name="USERNM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="USERNM"/>
+		<property name="com.jaspersoft.studio.field.label" value="USERNM"/>
+	</field>
+	<field name="CREATDT" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="CREATDT"/>
+		<property name="com.jaspersoft.studio.field.label" value="CREATDT"/>
+	</field>
+	<field name="SALESP" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="SALESP"/>
+		<property name="com.jaspersoft.studio.field.label" value="SALESP"/>
+	</field>
+	<field name="SALE_PRICE" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="SALE_PRICE"/>
+		<property name="com.jaspersoft.studio.field.label" value="SALE_PRICE"/>
+	</field>
+	<field name="SLNAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="SLNAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="SLNAME"/>
+	</field>
+	<field name="PLANT_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="PLANT_NAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="PLANT_NAME"/>
+	</field>
+	<field name="PRODUCTION_TYPE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="PRODUCTION_TYPE"/>
+		<property name="com.jaspersoft.studio.field.label" value="PRODUCTION_TYPE"/>
+	</field>
+	<field name="SAND_TYPE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="SAND_TYPE"/>
+		<property name="com.jaspersoft.studio.field.label" value="SAND_TYPE"/>
+	</field>
+	<field name="AGG_TYPE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="AGG_TYPE"/>
+		<property name="com.jaspersoft.studio.field.label" value="AGG_TYPE"/>
+	</field>
+	<field name="CAST_TYPE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="CAST_TYPE"/>
+		<property name="com.jaspersoft.studio.field.label" value="CAST_TYPE"/>
+	</field>
+	<field name="ISSUE_KEYFLD" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ISSUE_KEYFLD"/>
+		<property name="com.jaspersoft.studio.field.label" value="ISSUE_KEYFLD"/>
+	</field>
+	<field name="ISSUE_NO" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ISSUE_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="ISSUE_NO"/>
+	</field>
+	<field name="ISSUE_PLANT_NO" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ISSUE_PLANT_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="ISSUE_PLANT_NO"/>
+	</field>
+	<field name="ORD_PACKD" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_PACKD"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_PACKD"/>
+	</field>
+	<field name="ORD_UNITD" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_UNITD"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_UNITD"/>
+	</field>
+	<field name="ORD_PACK" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_PACK"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_PACK"/>
+	</field>
+	<field name="ORD_POS" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_POS"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_POS"/>
+	</field>
+	<field name="ORD_UNQTY" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_UNQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_UNQTY"/>
+	</field>
+	<field name="ORD_PKQTY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_PKQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_PKQTY"/>
+	</field>
+	<field name="DESCR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="DESCR"/>
+		<property name="com.jaspersoft.studio.field.label" value="DESCR"/>
+	</field>
+	<field name="DESCRA" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="DESCRA"/>
+		<property name="com.jaspersoft.studio.field.label" value="DESCRA"/>
+	</field>
+	<field name="PARTNO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="PARTNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="PARTNO"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="41" splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="50" splitType="Prevent">
+			<textField pattern="">
+				<reportElement style="strHeader" x="320" y="15" width="211" height="20" uuid="6e212046-73c6-497a-b079-f43842b48aea"/>
+				<box leftPadding="1" rightPadding="1">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ORD_SHIP}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement style="strHeader" x="50" y="20" width="230" height="20" uuid="8000101c-0aaf-4774-94a1-66bd27e49522"/>
+				<box leftPadding="1" rightPadding="1">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="33" splitType="Stretch"/>
+	</summary>
+</jasperReport>

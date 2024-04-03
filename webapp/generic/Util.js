@@ -1238,7 +1238,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
                 });
                 var btn1 = new sap.m.Button({
-                    text: "Close",
+                    text: Util.getLangText("cmdClose"),
                     press: function () {
                         dlg.close();
                     }
@@ -1250,7 +1250,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     }
                 });
                 var btn = new sap.m.Button({
-                    text: "Select", press: function () {
+                    text: Util.getLangText("selectTxt"), press: function () {
                         var sl = qv.getControl().getSelectedIndices();
                         if (sl.length <= 0 && !Util.nvl(multiSelect, false)) {
                             sap.m.MessageToast.show("Must select !");
@@ -1662,6 +1662,22 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 },
 
             },
+            printServerReport: function (rpt, ps) {
+                Util.doXhr("report?reportfile=" + rpt + "&" + ps, true, function (e) {
+                    if (this.status == 200) {
+                        var blob = new Blob([this.response], { type: "application/pdf" });
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.target = "_blank";
+                        link.style.display = "none";
+                        document.body.appendChild(link);
+                        link.download = "rptVou" + new Date() + ".pdf";
+                        Util.printPdf(link.href);
+
+                    }
+                });
+
+            },
             printPdf: function (url) {
                 var iframe = this._printIframe;
                 if (!this._printIframe) {
@@ -1681,6 +1697,12 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             },
             getLabelTxt: function (ptxt, pwidth, preText, styleText, alignTxt) {
                 return Util.nvl(preText, "") + '{\"text\":\"' + ptxt + '\",\"width\":\"' + Util.nvl(pwidth, "15%") + '\","textAlign":"' + Util.nvl(alignTxt, 'End') + '","styleClass":"' + Util.nvl(styleText, "") + '"}';
+            },
+            getEmptyLabel: function (pWidth) {
+                var width = {};
+                if (pWidth != undefined) width = { width: pWidth };
+                var se = { ...{ text: "" }, ...width };
+                return new sap.m.Text(se);
             },
             abbreviateNumber: function (number) {
                 var sett = sap.ui.getCore().getModel("settings").getData();
@@ -1729,7 +1751,6 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
                 return bindVariables;
             }
-
 
         };
 

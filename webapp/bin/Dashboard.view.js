@@ -238,7 +238,7 @@ sap.ui.jsview('bin.Dashboard', {
                     press: function () {
                         var md = (that.app.getMode() == sap.m.SplitAppMode.HideMode ? sap.m.SplitAppMode.StretchCompressMode : sap.m.SplitAppMode.HideMode);
                         md = (that.standAlonMode ? sap.m.SplitAppMode.HideMode : md);
-                        that.app.setMode(md);       
+                        that.app.setMode(md);
                     }
                 }),
 
@@ -1108,10 +1108,25 @@ sap.ui.jsview('bin.Dashboard', {
                                 that.autoHideMenus = !that.autoHideMenus;
                             }
                         })
-
+                        var m3 = new sap.m.MenuItem({
+                            icon: "sap-icon://expand",
+                            text: "Expand All",
+                            press: function () {
+                                that.mv.getControl().expandToLevel(255);
+                            }
+                        })
+                        var m4 = new sap.m.MenuItem({
+                            icon: "sap-icon://collapse",
+                            text: "Collapse All",
+                            press: function () {
+                                that.mv.getControl().collapseAll();
+                            }
+                        });
                         mnu.addItem(m1);
                         if (!sap.ui.Device.system.phone)
                             mnu.addItem(m2);
+                        mnu.addItem(m3);
+                        mnu.addItem(m4);
                         mnu.openBy(this);
                     }
                 }),
@@ -1124,7 +1139,7 @@ sap.ui.jsview('bin.Dashboard', {
         // if (this.mv == undefined)
         this.mv = new QueryView("mainMenus");
         var mnuTit = Util.getLangDescrAR("MENU_TITLE", "NVL(MENU_TITLEA,MENU_TITLE) MENU_TITLE ");
-        var dt = Util.execSQL("select menu_code," + mnuTit + ",parent_menucode,childcount,JS_COMMAND,JS_PARAMS,SHORTCUT_ICON,TYPE_OF_EXEC " +
+        var dt = Util.execSQL("select menu_code," + mnuTit + ",parent_menucode,childcount,JS_COMMAND,JS_PARAMS,SHORTCUT_ICON,TYPE_OF_EXEC,EXPAND_NODE " +
             " from C7_MENUS where group_code='" + that.current_profile + "' order by menu_path")
         // var dt = Util.execSQL("select accno menu_code,name menu_title, parentacc from acaccount order by path ")
 
@@ -1154,6 +1169,7 @@ sap.ui.jsview('bin.Dashboard', {
         mv.mLctb.getColByName("JS_PARAMS").mHideCol = true;
         mv.mLctb.getColByName("SHORTCUT_ICON").mHideCol = true;
         mv.mLctb.getColByName("TYPE_OF_EXEC").mHideCol = true;
+        mv.mLctb.getColByName("EXPAND_NODE").mHideCol = true;
 
         mv.switchType("tree");
         // var sc = new sap.m.ScrollContainer({ content: [mv.getControl()] });
@@ -1184,7 +1200,24 @@ sap.ui.jsview('bin.Dashboard', {
 
         });
         mv.loadData();
+
+        //chatgpt helped
+        var rowsUpdated = function () {
+            var aRows = that.mv.getControl().getRows();
+            aRows.forEach(function (oRow) {
+                var oContext = oRow.getBindingContext();
+                if (Util.nvl(oContext, undefined) != undefined) {
+                    var sStatus = oContext.getProperty("EXPAND_NODE");
+                    if (sStatus == "Y")
+                        oRow.expand();
+                }
+            });
+            mv.getControl().detachRowsUpdated(rowsUpdated);
+        };
         mv.getControl().collapseAll();
+        mv.getControl().attachRowsUpdated(rowsUpdated);
+
+        // mv.getControl().collapseAll();
         mv.getControl().setContextMenu(new sap.m.Menu());
         mv.getControl().attachBeforeOpenContextMenu(function (e) {
             var rn = e.getParameter("rowIndex");

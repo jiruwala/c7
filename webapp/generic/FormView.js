@@ -688,13 +688,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 icon: "sap-icon://edit",
                 text: Util.getLangText("editRec"),
                 pressed: false,
-                press: function () {
+                press: function (e) {
                     var ob = that.getObjectByObj(this);
-                    if (ob.onPress != undefined)
-                        if (ob.onPress(e)) {
-                            that.save_data();
-                            return;
-                        } else return;
+                    if (ob.onPress != undefined && !ob.onPress(e))
+                        FormView.err("Record is unable to edit !");
 
                     if (this.getPressed()) {
                         that.setQueryStatus(undefined, FormView.RecordStatus.EDIT);
@@ -1065,18 +1062,19 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
             return sv;
         };
-        FormView.prototype.setFormReadOnly = function () {
+        FormView.prototype.setFormReadOnly = function (pPara) {
+            var pEnabled = Util.nvl(pPara, false);
             var qryObj = undefined;
             var qrys = (qryObj != undefined ? [qryObj] : this.form.db);
 
             for (var o in qrys) {
                 qryObj = qrys[o];
-                this._setQryDisableForEditing(qryObj);
-                this.cmdButtons.cmdEdit.setPressed(false);
-                this.cmdButtons.cmdEdit.setEnabled(false);
-                this.cmdButtons.cmdDel.setEnabled(false);
+                (pEnabled ? this._setQryEnableForEditing(qryObj) : this._setQryDisableForEditing(qryObj));
+                this.cmdButtons.cmdEdit.setPressed(pEnabled);
+                this.cmdButtons.cmdEdit.setEnabled(pEnabled);
+                this.cmdButtons.cmdDel.setEnabled(pEnabled);
             }
-            this.form.readonly = true;
+            this.form.readonly = !pEnabled;
 
         };
         FormView.prototype.setQueryStatus = function (qryName, status2) {

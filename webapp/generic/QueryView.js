@@ -807,20 +807,53 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 var o;
                 // if (colClass != sap.m.ComboBox) {
                 if (colClass != SelectText) {
-                    o = UtilGen.createControl(colClass, this.view, "", {
-                        // technical   : replacing global "___" with colname for cross tab.
-                        "text": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
-                        "value": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
-                        "dateValue": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
-                        textAlign: Util.getAlignTable(a),
-                        textDirection: UtilGen.DBView.sLangu == "AR" ? sap.ui.core.TextDirection.RTL : sap.ui.core.TextDirection.LTR,
-                        width: "100%",
-                        src: "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
-                        enabled: this.mLctb.cols[i].mEnabled,
-                        showValueHelp: (ssql != "" ? true : false),
-                        maxLines: 1,
-                    }, Util.nvl(cc.getMUIHelper().data_type, "").toLowerCase(), f);
-                    o.setTextAlign(Util.getAlignTable(a));
+                    if (colClass == sap.m.ComboBox) {
+                        var getSelectedKey = function (key) {
+                            console.log(key);
+                        };
+                        var fnchange = function (evtx) {
+                            var coln = this.getCustomData()[0].getKey();
+                            var row = evtx.getSource().getParent();
+                            var table = evtx.getSource().getParent().getParent(); // get table control.
+                            var oModel = table.getModel();
+                            var rowStart = table.getFirstVisibleRow(); //starting Row index
+                            var currentRowoIndexContext = table.getContextByIndex(rowStart + table.indexOfRow(row));
+                            oModel.setProperty(currentRowoIndexContext.sPath + "/" + coln, this.getValue());
+                        };
+                        var cnm = this.mLctb.cols[i].mColName.replace(/\//g, "___");
+                        o = UtilGen.createControl(colClass, this.view, "", {
+                            selectedKey: "{" + cnm + "}",
+                            // value: "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                            items: {
+                                path: "/",
+                                template: new sap.ui.core.Item({ text: "{NAME}", key: "{CODE}" }),
+                                templateShareable: true
+                            },
+                            customData: [{ key: cnm }],
+                            width: "100%",
+                            src: "{" + cnm + "}",
+                            enabled: this.mLctb.cols[i].mEnabled,
+                            // selectionChange:fnchange
+                        }, Util.nvl(cc.getMUIHelper().data_type, "").toLowerCase(), f, undefined, cc.mSearchSQL, undefined);
+                        o.setTextAlign(Util.getAlignTable(a));
+                    } else {
+                        o = UtilGen.createControl(colClass, this.view, "", {
+
+                            // technical   : replacing global "___" with colname for cross tab.
+                            "text": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                            "value": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                            "dateValue": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                            textAlign: Util.getAlignTable(a),
+                            textDirection: UtilGen.DBView.sLangu == "AR" ? sap.ui.core.TextDirection.RTL : sap.ui.core.TextDirection.LTR,
+                            width: "100%",
+                            src: "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                            enabled: this.mLctb.cols[i].mEnabled,
+                            showValueHelp: (ssql != "" ? true : false),
+                            maxLines: 1,
+
+                        }, Util.nvl(cc.getMUIHelper().data_type, "").toLowerCase(), f);
+                        o.setTextAlign(Util.getAlignTable(a));
+                    }
                 }
                 else
                     o = new colClass({
@@ -1040,30 +1073,29 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     }
                     // if combobox have list of values then add it into sap.m.CombBox model. ( check either LOV in sql or data )
                     if (o instanceof sap.m.ComboBox) {
-                        o.bindAggregation("items",
-                            {
-                                path: "/",
-                                template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                                templateShareable: true
-                            });
-                        var dtx = [];
-                        // check either LOV in sql or data
-                        if (cc.mSearchSQL.startsWith("@")) {
-                            var spt = cc.mSearchSQL.substring(1).split(",");
-                            for (var i in spt) {
-                                var dt = { CODE: "", NAME: "" };
-                                var s = spt[i].split("/");
-                                dt.CODE = s[0];
-                                dt.NAME = s[1];
-                                dtx.push(dt);
-                            }
-                        }
-                        else {
-                            var dt = Util.execSQL(cc.mSearchSQL);
-                            if (dt.ret == "SUCCESS" && dt.data.length > 0)
-                                dtx = JSON.parse("{" + dt.data + "}").data;
-                        }                        
-                        o.setModel(new sap.ui.model.json.JSONModel(dtx));
+                        // o.bindAggregation("items",
+                        //     {
+                        //         path: "/",
+                        //         template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                        //         templateShareable: true
+                        //     });
+                        // var dtx = [];
+                        // if (cc.mSearchSQL.startsWith("@")) {
+                        //     var spt = cc.mSearchSQL.substring(1).split(",");
+                        //     for (var i in spt) {
+                        //         var dt = { CODE: "", NAME: "" };
+                        //         var s = spt[i].split("/");
+                        //         dt.CODE = s[0];
+                        //         dt.NAME = s[1];
+                        //         dtx.push(dt);
+                        //     }
+                        // }
+                        // else {
+                        //     var dt = Util.execSQL(cc.mSearchSQL);
+                        //     if (dt.ret == "SUCCESS" && dt.data.length > 0)
+                        //         dtx = JSON.parse("{" + dt.data + "}").data;
+                        // }
+                        // o.setModel(new sap.ui.model.json.JSONModel(dtx));
                     }
                 }
                 if (cc.commandLinkClick != undefined) {
@@ -1673,6 +1705,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 }
                 else {
                     rootNode["childeren_" + i] = oNode1;
+                    // rootNode["icon"] = "sap-icon://folder";
                 }
                 this.mapNodes[current_code] = oNode1;
 

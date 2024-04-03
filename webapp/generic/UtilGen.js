@@ -327,7 +327,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             cookieDelete: function (cname) {
                 document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             },
-            createControl: function (component, view, id, setting, fldtype, fldFormat, fnChange, sqlStr) {
+            createControl: function (component, view, id, setting, fldtype, fldFormat, fnChange, sqlStr, cbModel) {
 
                 var s = this.nvl(setting, {});
                 if (Util.nvl(id, "") != "")
@@ -398,12 +398,22 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             dttt.NAME = "" + sx[1];
                             dtxx.push(dttt);
                         }
-                        c.setModel(new sap.ui.model.json.JSONModel(dtxx));
+                        if (Util.nvl(cbModel, "") != "") {
+                            dtxx = { lists: dtxx };
+                            c.setModel(new sap.ui.model.json.JSONModel(dtxx), cbModel);
+                        }
+                        else
+                            c.setModel(new sap.ui.model.json.JSONModel(dtxx));
                     } else {
                         var dat = Util.execSQL(sqlStr);
                         if (dat.ret == "SUCCESS" && dat.data.length > 0) {
                             var dtx = JSON.parse("{" + dat.data + "}").data;
-                            c.setModel(new sap.ui.model.json.JSONModel(dtx));
+                            if (Util.nvl(cbModel, "") != "") {
+                                dtx = { lists: dtx };
+                                c.setModel(new sap.ui.model.json.JSONModel(dtx), cbModel);
+                            }
+                            else
+                                c.setModel(new sap.ui.model.json.JSONModel(dtx));
                         }
                     }
                 }
@@ -1920,7 +1930,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             UtilGen.setControlValue(titObj, nm, nm, false);
                         }
                         if (eventAfterSelect != undefined)
-                            eventAfterSelect();
+                            eventAfterSelect(acn, nm);
                         return true;
                     }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
 
