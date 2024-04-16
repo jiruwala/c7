@@ -62,6 +62,12 @@ body {
     text-align: center !important;
     font-weight: bold !important;
 }
+.titleFontWithoutPad2 {
+    font-size: 1.4rem !important;
+    text-align: center !important;
+    font-weight: bold !important;
+}
+
 
 .titleFont {
     font-size: 1.25rem !important;
@@ -667,6 +673,11 @@ th {
 .greenText {
     color: green !important;
 }
+
+.violetText {
+    color: darkviolet !important;
+}
+
 
 .boldText {
     font-weight: bold;

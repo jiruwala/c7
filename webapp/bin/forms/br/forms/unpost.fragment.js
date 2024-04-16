@@ -56,13 +56,16 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
                 new sap.m.Button({
                     text: Util.getLangText("updateInv"),
                     press: function () {
-                        that.updateInv();
+                        Util.simpleConfirmDialog("Do you want to update this Sales Invoice ?", function (oAction) {
+                            that.updateInv();
+                        });
+
                     }
                 }),
                 new sap.m.Button({
                     text: Util.getLangText("delRec"),
                     press: function () {
-
+                        that.deleteInv();
                     }
                 })
             ]
@@ -200,21 +203,37 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         this.location_code.setSelectedIndex(0);
     }
     ,
-    loadData: function () {
+    loadData: function (pReload) {
 
         var that = this;
         var sett = sap.ui.getCore().getModel("settings").getData();
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+        var reload = Util.nvl(pReload, false);
 
         if (this.qryStr == "") return;
-
         var dt = Util.execSQL("select *from PUR1 where Keyfld='" + this.qryStr + "'");
         if (dt.ret == "SUCCESS") {
             var dtx = JSON.parse("{" + dt.data + "}").data;
+
+            this.location_code.setValue("");
+            this.invoice_no.setValue("");
+            this.invoice_type.setValue("");
+            this.keyfld.setValue("");
+            this.cust_code.setValue("");
+            this.cust_name.setText("");
+
+            this.gross_amt.setValue(df.format(0));
+            this.add_amt.setValue(df.format(0));
+            this.disc_amt.setValue(df.format(0));
+            this.net_amt.setValue(df.format(0));
+            this.ctg.setValue("");
+            this.memo.setValue("")
+
             if (dtx.length <= 0) FormView.err("Invoice not loaded # " + this.qryStr);
+
             var gamt = dtx[0].INV_AMT;
-            var aamt = dtx[0].DEPTNO;
-            var damt = dtx[0].DISC_AMT;
+            var aamt = ((!reload) ? dtx[0].DEPTNO : Util.extractNumber(that.add_amt.getValue()));
+            var damt = ((!reload) ? dtx[0].DISC_AMT : Util.extractNumber(that.disc_amt.getValue()));
             var netamt = (gamt + aamt) - damt;
             this.location_code.setValue(dtx[0].LOCATION_CODE)
             this.invoice_no.setValue(dtx[0].INVOICE_NO);
@@ -224,12 +243,12 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             this.cust_name.setText(dtx[0].INV_REFNM + " (" + dtx[0].C_CUS_NO + ")");
 
             this.gross_amt.setValue(df.format(gamt));
+
             this.add_amt.setValue(df.format(aamt));
             this.disc_amt.setValue(df.format(damt));
+            this.ctg.setValue(((!reload) ? dtx[0].CTG : Util.extractNumber(that.ctg.getValue())));
+            this.memo.setValue(((!reload) ? dtx[0].MEMO : Util.extractNumber(that.memo.getValue())));
             this.net_amt.setValue(df.format(netamt));
-            this.ctg.setValue(dtx[0].CTG);
-            this.memo.setValue(dtx[0].MEMO);
-
         }
 
 
@@ -238,11 +257,16 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         var that = this;
         var dlg = that.oController.getForm().getParent();
         var that = this;
+        that.loadData(true);
+        var kfld = Util.extractNumber(this.keyfld.getValue());
+        if (Util.nvl(kfld, "") == "") FormView.err("No Invoice selected !");
+
         var gamt = Util.extractNumber(this.gross_amt.getValue());
         var aamt = Util.extractNumber(this.add_amt.getValue());
         var damt = Util.extractNumber(this.disc_amt.getValue());
-        var kfld = Util.extractNumber(this.keyfld.getValue());
         var netamt = (gamt + aamt) - damt;
+
+
         if (netamt < 0) FormView.err("Can't update with Net Amount <0 ");
 
         var sq = " declare  " +
@@ -255,12 +279,14 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             " begin " +
             " update pur1 set ctg=':ctg' , memo= ':memo' ,disc_amt=damt , " +
             " deptno=aamt   where keyfld=kfld ; " +
+            " " +
             " for x in p1(kfld) loop " +
             "  update pur2 " +
             "   set disc_amt_gross=((x.disc_amt/x.inv_amt) * (((PRICE-DISC_AMT)/PACK)*ALLQTY)) / (allqty/pack), " +
             "   add_amt_gross=(NVL(x.DEPTNO,0) / x.inv_amt) * (((PRICE-DISC_AMT)/PACK)*ALLQTY) / (allqty/pack) " +
             "   where keyfld=kfld ; " +
             "  " +
+            "  update invunpaid set inv_amt=x.inv_amt,net_amt=(x.inv_amt+aamt)-damt where keyfld=x.keyfld ; " +
             "  end loop; " +
             " x_post_sale_invoice(kfld);  " +
             " end; ";
@@ -276,12 +302,68 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         }
 
     },
+    deleteInv: function () {
+        var that = this;
+        that.loadData(true);
+        var dlg = that.oController.getForm().getParent();
+        var invn = this.invoice_no.getValue();
+        var kfld = this.keyfld.getValue();
+        if (Util.nvl(kfld, "") == "") FormView.err("No Invoice selected !");
+
+        var pdamt = Util.getSQLValue("select paid_amt from invunpaid where keyfld=" + kfld);
+        if (Util.nvl(pdamt, 0) != 0)
+            FormView.err("Found collection on invoice !");
+        Util.simpleConfirmDialog("Are you sure , you want to delete Invoice # " + invn + " ? ", function () {
+            var sq = "declare " +
+                " kfld number:=:kfld ;" +
+                " tmpkf number; " +
+                " cursor p2 is select *from pur2 where keyfld=kfld order by itempos; " +
+                " cursor acdet is select *from acvoucher2 WHERE REFERKEYFLD=KFLD AND REFERCODE=21;" +
+                " cursor ISS_acdet is select *from acvoucher2 WHERE REFERKEYFLD=tmpkf AND REFERCODE=25;" +
+                " begin " +
+                "  for x in p2 loop " +
+                "    update c_order1 set saleinv=null, ord_flag=1 where keyfld=x.ordwas; " +
+                "    update order1 set saleinv=null, ord_flag=1 where keyfld=x.ordwas; " +
+                "  end loop; " +
+                " select max(keyfld) into tmpkf from invoice1 where invoice_keyfld=kfld; " +
+                " DELETE FROM pur1 WHERE KEYFLD=KFLD; " +
+                " DELETE FROM pur2 WHERE KEYFLD=KFLD; " +
+                " DELETE FROM invoice1 where invoice_keyfld=kfld; " +
+                " delete from invoice2 where invoice_keyfld=kfld; " +
+                " for iss in acdet " +
+                " loop " +
+                " C7_DECACCUSES(iss.accno); " +
+                " end loop; " +
+                " for iss in ISS_acdet " +
+                " loop " +
+                " C7_DECACCUSES(iss.accno); " +
+                " end loop; " +
+                " DELETE FROM ACVOUCHER1 WHERE REFERKEYFLD=KFLD AND refercode=21;" +
+                " DELETE FROM ACVOUCHER2 WHERE REFERKEYFLD=KFLD AND refercode=21;" +
+                " DELETE FROM ACVOUCHER1 WHERE REFERKEYFLD=tmpkf AND refercode=25;" +
+                " DELETE FROM ACVOUCHER2 WHERE REFERKEYFLD=tmpkf AND refercode=25;" +
+                " delete from invunpaid where keyfld=kfld;" +
+                " end ;" +
+                " " +
+                " ";
+            sq = sq.replaceAll(":kfld", kfld);
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS") {
+                sap.m.MessageToast.show("Invoice deleted ! ");
+                dlg.close();
+            }
+
+        });
+
+    },
     printInv: function () {
         var that = this;
+        that.loadData(true);
         var kfld = this.keyfld.getValue();
+        if (Util.nvl(kfld, "") == "") FormView.err("No Invoice selected !");
+
         var invn = this.invoice_no.getValue();
         var loc = UtilGen.getControlValue(this.location_code);
-
         Util.printServerReport("br/brsale", "_para_pfromno=" +
             invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
     }

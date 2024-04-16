@@ -226,13 +226,7 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                     }
                     ,
                     onCellRender(qry, rowno, colno, currentRowContext) {
-                        if (qry.status == "edit" && qry.name == "qry2" && colno == 3) {
-                            var oModel = qry.obj.getControl().getModel();
-                            var cellVal = oModel.getProperty("CUST_CODE", currentRowContext)
-                            qry.obj.getControl().getRows()[rowno].getCells()[3].setEnabled(true);
-                            if (cellVal != "" && cellVal != undefined)
-                                qry.obj.getControl().getRows()[rowno].getCells()[3].setEnabled(false);
-                        }
+                        UtilGen.Vouchers.onCellRender(qry, rowno, colno, currentRowContext);
                     }
                     ,
                     beforeExeSql: function (frm, sq) {
@@ -835,7 +829,7 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                                     }
                                     if (bts.length > 0) {
                                         mnus.push(new sap.m.MenuItem({
-                                            icon:"sap-icon://indent",
+                                            icon: "sap-icon://indent",
                                             text: "Quick Entries",
                                             items: bts
                                         }));

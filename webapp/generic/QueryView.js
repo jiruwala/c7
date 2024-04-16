@@ -1012,7 +1012,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             if (rowno < that.getControl().getRows().length - 1) {
                                 rowno++;
                                 setTimeout(function () {
-                                    if (rowno >= dispRows) {
+                                    if (rowno > dispRows) {
                                         that.getControl().setFirstVisibleRow(firstVis + 1);
                                         that.getControl().getRows()[dispRows - 1].getCells()[colno].focus();
                                     } else
@@ -1038,14 +1038,13 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             var firstVis = that.getControl().getFirstVisibleRow();
                             var totalRows = that.getControl().getModel().getData().length;
                             var visRows = that.getControl().getVisibleRowCount();
-                            if (that.eventKey != undefined && Util.nvl(that.eventKey(evt.key, rowno, colno, firstVis), false)) {
-                                if (rowno > 0) {
-                                    rowno--;
-                                    that.getControl().getRows()[rowno].getCells()[colno].focus();
-                                } else if (firstVis > 0) {
-                                    that.getControl().setFirstVisibleRow(firstVis - 1);
-                                    that.getControl().getRows()[0].getCells()[colno].focus();
-                                }
+                            if (that.eventKey != undefined && Util.nvl(that.eventKey(evt.key, rowno, colno, firstVis), false)) { }
+                            if (rowno > 0) {
+                                rowno--;
+                                that.getControl().getRows()[rowno].getCells()[colno].focus();
+                            } else if (firstVis > 0) {
+                                that.getControl().setFirstVisibleRow(firstVis - 1);
+                                that.getControl().getRows()[0].getCells()[colno].focus();
                             }
                             else {
                                 var rn = (rowno - 1 < 0) ? 0 : (rowno == visRows - 1 ? rowno : rowno - 1);

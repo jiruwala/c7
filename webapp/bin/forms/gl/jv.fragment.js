@@ -214,16 +214,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         return delAdd;
                     },
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
-                        var clno = UtilGen.getTableColNo(qry.obj.getControl(), "ACCNO");
-                        if (qry.status == "edit" && qry.name == "qry2" && colno == clno) {
-                            var oModel = qry.obj.getControl().getModel();
-                            var cellVal = oModel.getProperty("CUST_CODE", currentRowContext);
-                            // var clno = UtilGen.getTableColNo(qry.obj.getControl(), "ACCNO");
-                            qry.obj.getControl().getRows()[rowno].getCells()[colno].setEnabled(true);
-                            if (cellVal != "" && cellVal != undefined)
-                                qry.obj.getControl().getRows()[rowno].getCells()[colno].setEnabled(false);
-
-                        }
+                        UtilGen.Vouchers.onCellRender(qry, rowno, colno, currentRowContext);
                     },
                     beforePrint: function (rptName, params) {
                         return params + "&_para_VOU_TITLE=Journal Voucher";

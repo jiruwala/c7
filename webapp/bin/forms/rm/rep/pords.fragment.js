@@ -156,9 +156,11 @@ sap.ui.jsfragment("bin.forms.rm.rep.pords", {
 
                                     var sq = "select po.ref_code||'-'||yc.name ref_name,po.KEYFLD, po.LOCATION_CODE, po.ORD_DATE, po.DRIVER_NO, po.DLV_NO, " +
                                         " po.TRUCK_NO, po.REF_CODE, po.BRANCH_NO, po.REFER, po.PACKD, po.UNITD, " +
-                                        " po.PACK, po.PACKQTY, po.PUR_KEYFLD, po.FLAG, po.SALE_PRICE,IT.DESCR, " +
-                                        " yc.name ref_name2 , cb.b_name branch_name ,sp.name driver_name ," +
-                                        " po.packqty||' '||initcap(po.packd) pkqtystr ,  po.sale_price*po.packqty amount " +
+                                        " po.PACK, po.PACKQTY, po.PUR_KEYFLD, po.FLAG, " +
+                                        " case when po.PUR_KEYFLD is not null then po.SALE_PRICE else get_item_price2(po.refer,po.ref_code,po.branch_no,po.ord_date) end sale_price ,  " +
+                                        " IT.DESCR, yc.name ref_name2 , cb.b_name branch_name ,sp.name driver_name ," +
+                                        " po.packqty||' '||initcap(po.packd) pkqtystr , " +
+                                        " ( case when po.PUR_KEYFLD is not null then po.SALE_PRICE else get_item_price2(po.refer,po.ref_code,po.branch_no,po.ord_date) end  *  po.packqty) amount " +
                                         " from C7_RMPORD po,items it, c_ycust yc,cbranch cb , SALESP sp " +
                                         " where it.reference=po.refer " +
                                         " and po.branch_no=cb.brno " +

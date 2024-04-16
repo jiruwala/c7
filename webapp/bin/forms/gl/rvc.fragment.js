@@ -154,8 +154,8 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         // frm.loadData(undefined, FormView.RecordStatus.NEW);
                         frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
                         setTimeout(function () {
-                            thatForm.fileUpload = undefined;                            
-                        },400);
+                            thatForm.fileUpload = undefined;
+                        }, 400);
                     },
                     beforeSaveQry: function (qry, sqlRow, rowno) {
                         UtilGen.Vouchers.getNewKF(qry, sqlRow, rowno);
@@ -188,8 +188,8 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         }
 
                         if (qry.name == "qry1") {
-                            that2.fileUpload = undefined;            
-                             var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from acvoucher1");
+                            that2.fileUpload = undefined;
+                            var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from acvoucher1");
                             qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
 
                             var vno = Util.getSQLValue("select nvl(max(no),0)+1 " +
@@ -228,14 +228,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         return delAdd;
                     },
                     onCellRender(qry, rowno, colno, currentRowContext) {
-                        if (qry.status == "edit" && qry.name == "qry2" && colno == 3) {
-                            var oModel = qry.obj.getControl().getModel();
-                            var cellVal = oModel.getProperty("CUST_CODE", currentRowContext)
-                            qry.obj.getControl().getRows()[rowno].getCells()[3].setEnabled(true);
-                            if (cellVal != "" && cellVal != undefined)
-                                qry.obj.getControl().getRows()[rowno].getCells()[3].setEnabled(false);
-
-                        }
+                        UtilGen.Vouchers.onCellRender(qry, rowno, colno, currentRowContext);
                     },
                     beforeExeSql: function (frm, sq) {
                         var sql = sq;
@@ -594,8 +587,8 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         delete_allowed: true,
                         delete_before_update: "delete from acvoucher2 where keyfld=':qry1.keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld'],
-                        insert_exclude_fields: ["ACNAME", "CSNAME"],
+                        update_exclude_fields: ['keyfld', "inv_descr"],
+                        insert_exclude_fields: ["ACNAME", "CSNAME", "inv_descr"],
                         insert_default_values: {
                             "DESCR2": ":ACNAME",
                             "KEYFLD": ":qry1.keyfld",
@@ -789,7 +782,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
 
                                     }
                                 }));
-                                var bts=[];
+                                var bts = [];
                                 if (that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
                                     var dt = Util.execSQL("select keyfld||'-'||bat_id code , descr from c7_batches_1 where bat_type='RVC' order by keyfld ");
                                     if (dt.ret == "SUCCESS" && dt.data.length > 0) {
@@ -808,7 +801,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 }
                                 if (bts.length > 0) {
                                     mnus.push(new sap.m.MenuItem({
-                                        icon:"sap-icon://indent",
+                                        icon: "sap-icon://indent",
                                         text: "Quick Entries",
                                         items: bts
                                     }));

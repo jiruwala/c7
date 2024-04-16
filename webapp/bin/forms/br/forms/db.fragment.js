@@ -55,7 +55,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.createViewHeader();
-        var recs = UtilGen.dispTblRecsByDevice({ "S": 9, "M": 14, "L": 20, "XL": 25 });
+        var recs = UtilGen.dispTblRecsByDevice({ "S": 9, "M": 12, "L": 18, "XL": 25 });
         var qr = new QueryView("qryInvs" + that2.timeInLong);
         qr.getControl().setEditable(true);
         qr.getControl().view = that2;
@@ -131,6 +131,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
             }
         });
         var fe = [
+            Util.getLabelTxt("txtBRTitleDashBoard", "100%", "", "titleFontWithoutPad2 boldText"),
             Util.getLabelTxt("txtDaysOff", "15%"), cb,
             Util.getLabelTxt("txtCust", "15%", ""), txtCust,
             Util.getLabelTxt("", "1%", "@"), txtName,

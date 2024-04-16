@@ -1322,7 +1322,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 else {
                     var colno = UtilGen.getTableColNo(tbl, colname);
                     if (tbl.getRows()[rn].getCells()[colno] instanceof sap.m.InputBase)
-                        cv = tbl.getRows()[rowno].getCells()[colno].getValue();
+                        cv = tbl.getRows()[rn].getCells()[colno].getValue();
                     if (tbl.getRows()[rn].getCells()[colno] instanceof sap.m.Text)
                         cv = tbl.getRows()[rn].getCells()[colno].getText();
                 }
@@ -1750,6 +1750,22 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
 
                 return bindVariables;
+            },
+            simpleConfirmDialog: function (msg, fnOk, fnCancel, fnOnClose) {
+                if (sap.m.MessageBox == undefined)
+                    jQuery.sap.require("sap.m.MessageBox");
+                sap.m.MessageBox.confirm(msg, {
+                    title: "Confirm",                                    // default
+                    onClose: function (oAction) {
+                        if (fnOnClose != undefined)
+                            fnOnClose(oAction);
+                        if (oAction == sap.m.MessageBox.Action.OK && fnOk != undefined) fnOk();
+                        else if (fnCancel != undefined) fnCancel();
+                    },                                       // default
+                    styleClass: "",                                      // default
+                    initialFocus: null,                                  // default
+                    textDirection: sap.ui.core.TextDirection.Inherit     // default
+                });
             }
 
         };
@@ -1757,3 +1773,4 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
         return Util;
     });
 
+;

@@ -1350,8 +1350,7 @@ sap.ui.jsview('bin.Dashboard', {
                 var dtx = JSON.parse("{" + dt.data + "}").data;
                 for (var di in dtx) {
                     var code = txtToC.getValue() + dtx[di].MENU_CODE;
-                    var grp_code = txtToG.getValue();
-
+                    var grp_code = txtToG.getValue();                                        
                     var tit = dtx[di].MENU_TITLE;
                     var menupath = txtFromC.getValue() == dtx[di].PARENT_MENUCODE ? getmenupath.replaceAll(":menu_code", txtToC.getValue())
                         .replaceAll(":add_code", code)
@@ -1398,7 +1397,7 @@ sap.ui.jsview('bin.Dashboard', {
 
                 UtilGen.Search.do_quick_search(e, this,
                     "select code,title from c6_main_groups order by code ",
-                    "select code,title from c6_main_groups where code=':CODE' order by code", txtToGName);
+                    "select code,title from c6_main_groups where code=:CODE order by code", txtToGName);
             }
         });
         var txtToGName = new sap.m.Input({

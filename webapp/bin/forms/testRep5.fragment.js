@@ -373,6 +373,24 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 require: false,
                                 dispInPara: true,
                             },
+                            inclUnpost: {
+                                colname: "inclUnpost",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"paraInclUnpost\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                             {
@@ -477,7 +495,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 disp_class: "reportTable2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 dispRecords: { "S": 8, "M": 12, "L": 16, "XL": 22, "XXL": 35 },
-                                rowHeight:18,
+                                rowHeight: 18,
                                 execOnShow: false,
                                 canvas: "qry2Canvas",
                                 canvasType: ReportView.CanvasType.VBOX,
@@ -1549,8 +1567,10 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             sqls3 += (sqls3.length > 0 ? " union all " : "") + sqs3[si];
 
 
+
         var paras = "fromdt date := :parameter.fromdate;";
         paras += "todt date := :parameter.todate;";
+        paras += "pincup varchar2(255) := ':parameter.inclUnpost';";
         paras += "toacc varchar2(100) := ':parameter.paccno'; ";
         paras += "cstcent varchar2(100) := ':parameter.pcc';";
         paras += "pcust varchar2(100) := ':parameter.pref';";
@@ -1559,7 +1579,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         paras += "DEL_OLD_DATA boolean := true;";
 
         sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2,CC VARCHAR2) IS " + sqls + " ORDER BY vou_date;";
-        var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992");
+        var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992.1");
         sqls = sqls + str;
         sqls = sqls.replaceAll(":_CURSOR_SU_ACCBAL", sqls1);
         sqls = sqls.replaceAll(":_CURSOR_ACX1", sqls2);
