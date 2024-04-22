@@ -587,8 +587,8 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         delete_allowed: true,
                         delete_before_update: "delete from acvoucher2 where keyfld=':qry1.keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', "inv_descr"],
-                        insert_exclude_fields: ["ACNAME", "CSNAME", "inv_descr"],
+                        update_exclude_fields: ['KEYFLD', "INV_DESCR"],
+                        insert_exclude_fields: ["ACNAME", "CSNAME", "INV_DESCR"],
                         insert_default_values: {
                             "DESCR2": ":ACNAME",
                             "KEYFLD": ":qry1.keyfld",

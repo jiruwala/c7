@@ -1369,6 +1369,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             qryObj.update_exclude_fields,
                             qryObj.where_clause);
                         sq2 = this.parseString(sq2) + ";";
+                        
                         if (this.form.events.hasOwnProperty("addSqlAfterUpdate")) {
                             var adSq = this.form.events.addSqlAfterUpdate(qryObj, undefined)
                             // if (er != "")

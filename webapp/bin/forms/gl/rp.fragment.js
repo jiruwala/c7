@@ -27,16 +27,22 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             showHeader: false,
             content: []
         }).addStyleClass("sapUiSizeCompact");
+        this.brPage = new sap.m.Page({
+            showHeader: false,
+            content: []
+        }).addStyleClass("sapUiSizeCompact");
+
         this.createView();
         this.loadData();
         this.joApp.addDetailPage(this.mainPage);
+        this.joApp.addDetailPage(this.brPage);
         // this.joApp.addDetailPage(this.pgDetail);
         this.joApp.to(this.mainPage, "show");
 
         this.joApp.displayBack = function () {
             that.frm.refreshDisplay();
         };
-                        
+
         this.mainPage.attachBrowserEvent("keydown", function (oEvent) {
             if (that.frm.isFormEditable() && oEvent.key == 'F4') {
                 that.get_new_cust();
@@ -140,6 +146,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.frm;
+        // this.createBranches();
         var js = {
             form: {
                 title: "R&P Card",
@@ -160,10 +167,21 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("btBranch" + thatForm.timeInLong, thatForm.view);
+
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "0.000" }));
+
+
+                    var btBranch = new sap.m.Button(thatForm.view.createId("btBranch" + thatForm.timeInLong), {
+                        text: Util.getLangText("txtBranches"),
+                        press: function () {
+                            thatForm.showBranches();
+                        }
+                    });
+
                     var hb = new sap.m.Toolbar({
-                        content: [txt, new sap.m.ToolbarSpacer(), txtMsg]
+                        content: [btBranch, txt, new sap.m.ToolbarSpacer(), txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
@@ -176,6 +194,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                     },
                     afterLoadQry: function (qry) {
                         var sett = sap.ui.getCore().getModel("settings").getData();
+                        thatForm.fetchBranch = false;
                         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
                         if (qry.name == "qry1") {
                             var par = that.frm.getFieldValue("qry1.parentcustomer");
@@ -207,8 +226,15 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 s1 = "update c_ycust set childcount=(select nvl(count(*),0) from c_ycust where parentcustomer=':qry1.parentcustomer') where code=':qry1.parentcustomer' ; "
                                 s1 = that.frm.parseString(s1);
                             }
-                            var sq = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME) VALUES (1,':qry1.code',':qr1.ac_no',':qry1.name')";
-                            sq = that.frm.parseString(sq) + ";";
+
+                            var sq = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME) VALUES (1,':qry1.code',':qr1.ac_no',':qry1.name');";
+                            if (that2.fetchBranch && that2.qb != undefined && that2.qb.mLctb.rows.length > 0)
+                                sq = Util.nvl(that2.doUpdateBranches(), sq);;
+
+
+                            sq = that.frm.parseString(sq);
+
+
                             return s1 + sq;
                         }
 
@@ -222,7 +248,11 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 s1 = "update c_ycust set childcount=(select nvl(count(*),0) from c_ycust where parentcustomer=':qry1.parentcustomer') where code=':qry1.parentcustomer' ; "
                                 s1 = that.frm.parseString(s1);
                             }
-                            return s1;
+                            var sq = "";
+                            if (that2.fetchBranch && that2.qb != undefined && that2.qb.mLctb.rows.length > 0)
+                                sq = that.frm.parseString(Util.nvl(that2.doUpdateBranches(), sq));
+
+                            return s1 + sq;
                         }
 
                         return "";
@@ -277,6 +307,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                         return "";
                     },
                     afterNewRow: function (qry, idx, ld) {
+                        thatForm.fetchBranch = false;
                         if (qry.name == "qry1") {
                             thatForm.fileUpload = undefined;
                             that.frm.setFieldValue("pac", "", "", true);
@@ -1049,11 +1080,163 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
     }
     ,
-    validateSave: function () {
+    showBranches: function () {
+        var that2 = this;
+        if (this.qb == undefined) {
+            this.qb = new QueryView("qrBranches" + that2.timeInLong);
+            this.qb.getControl().setEditable(true);
+            this.qb.getControl().view = that2.view;
+            this.qb.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+            this.qb.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+            this.qb.getControl().setFixedBottomRowCount(0);
+            this.qb.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            // this.qb.getControl().setVisibleRowCount(10);
+            this.qb.insertable = true;
+            this.qb.deletable = true;
+            // this.qb.setEditable(false);
+        }
+        if (that2.fetchBranch == false)
+            that2.qb.reset();
+        var cc = "";
+        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+            that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+            cc = that2.frm.getFieldValue("qry1.code");
+        }
+        var seteditale = function () {
+            if (!(that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+                sap.m.MessageToast.show("Must Form EDIT or NEW mode to edit and add branches ! ");
+                cmdEdit.setPressed(false);
+                return;
+            }
 
-        return true;
+            if (cmdEdit.getPressed())
+                that2.qb.editable = true;
+            else
+                that2.qb.editable = false
+            fetchData();            
+            setTimeout(function () {
+                that2.qb.colorRows();
+            });
+        }
+        var fetchData = function () {
+            var qv = that2.qb;
+            if (that2.fetchBranch) {
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+                return;
+            }
+
+            var dt = Util.execSQL("select brno,b_name,area,block,jedda,street,qasima from cbranch where code=" + Util.quoted(cc) + " order by brno");
+            if (dt.ret == "SUCCESS") {
+                qv.setJsonStrMetaData("{" + dt.data + "}");
+                qv.mLctb.cols[qv.mLctb.getColPos("BRNO")].getMUIHelper().display_width = 50;
+
+                qv.mLctb.cols[qv.mLctb.getColPos("BRNO")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("B_NAME")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("AREA")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("BLOCK")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("JEDDA")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("STREET")].mColClass = "sap.m.Input";
+
+                qv.mLctb.parse("{" + dt.data + "}", true);
+                qv.loadData();
+                that2.fetchBranch = true;
+
+                qv.onAddRow = function (idx, ld) {
+                    ld.setFieldValue(idx, "BRNO", idx + 1);
+                }
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+            }
+
+
+        }
+        var pg = new sap.m.Page({
+            showHeader: false,
+            content: [],
+            showFooter: true
+        }).addStyleClass("sapUiSizeCompact");
+        var cmdClose = new sap.m.ToggleButton({
+            text: Util.getLangText("cmdClose"),
+            icon: "sap-icon://decline",
+            pressed: false,
+            press: function () {
+                dlg.close();
+            }
+
+        });
+        var cmdEdit = new sap.m.ToggleButton({
+            text: Util.getLangText("editRec"),
+            icon: "sap-icon://edit",
+            pressed: false,
+            press: function () {
+                seteditale();
+            }
+
+        });
+
+        var tbHeader = new sap.m.Toolbar();
+        pg.setFooter(tbHeader);
+        pg.addContent(this.qb.getControl());
+        tbHeader.addContent(cmdEdit);
+        tbHeader.addContent(cmdClose);
+        var tit = Util.getLangText("titNewCustBranch");
+        if (cc != "")
+            tit = Util.getLangText("txtBranches") + " - " + that2.frm.getFieldValue("qry1.name");
+
+        var dlg = new sap.m.Dialog({
+            title: tit,
+            content: pg,
+            contentWidth: "80%",
+            contentHeight: "400px",
+
+        });
+        fetchData();
+        seteditale();
+        dlg.open();
+        dlg.attachAfterClose(function () {
+            that2.qb.updateDataToTable();
+            sap.m.MessageToast.show("Closing branch window..");
+        });
     }
     ,
+    doUpdateBranches: function () {
+        var that2 = this;
+        if (!that2.fetchBranch || that2.qb == undefined || that2.qb.mLctb.rows.length == 0)
+            return "";
+        var ld = that2.qb.mLctb;
+        var sqls = "";
+        var sq2 = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME,AREA,BLOCK,JEDDA,QASIMA,STREET) " +
+            " VALUES (':BRNO',':qry1.code',':qr1.ac_no',':B_NAME'," +
+            " ':AREA' ,':BLOCK' ,':JEDDA' ,':QASIMA',':STREET' );";
+
+        for (var i = 0; i < ld.rows.length; i++) {
+            var sq = sq2.replaceAll(":BRNO", ld.getFieldValue(i, "BRNO"))
+                .replaceAll(":B_NAME", ld.getFieldValue(i, "B_NAME"))
+                .replaceAll(":AREA", ld.getFieldValue(i, "AREA"))
+                .replaceAll(":BLOCK", ld.getFieldValue(i, "BLOCK"))
+                .replaceAll(":JEDDA", ld.getFieldValue(i, "JEDDA"))
+                .replaceAll(":QASIMA", ld.getFieldValue(i, "QASIMA"))
+                .replaceAll(":STREET", ld.getFieldValue(i, "STREET"));
+            sqls += sq;
+        }
+        sqls = "delete from cbranch where code=':qry1.code';" + sqls;
+        return sqls;
+    },
     save_data: function () {
     }
     ,

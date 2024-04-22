@@ -328,7 +328,7 @@ ORDER BY ORD_POS]]>
 		<band height="21" splitType="Prevent">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strHeader" x="309" y="1" width="200" height="19" uuid="ca21741b-60f6-49e1-a83b-5116e76bcc22">
+				<reportElement style="strHeader" x="281" y="1" width="200" height="19" uuid="ca21741b-60f6-49e1-a83b-5116e76bcc22">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box>
@@ -343,7 +343,7 @@ ORDER BY ORD_POS]]>
 				<textFieldExpression><![CDATA[$F{DESCRA}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strHeader" x="110" y="1" width="293" height="19" uuid="4771fac7-4c73-49e0-a4a5-450ba38f5d8d">
+				<reportElement style="strHeader" x="87" y="1" width="293" height="19" uuid="4771fac7-4c73-49e0-a4a5-450ba38f5d8d">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
 				<box>
@@ -358,7 +358,7 @@ ORDER BY ORD_POS]]>
 				<textFieldExpression><![CDATA[$F{PARTNO}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight" pattern="###,##0" isBlankWhenNull="true">
-				<reportElement style="strColHeader" x="502" y="0" width="103" height="19" uuid="64525551-7f2b-40a9-a5c4-866a85dc4dd7">
+				<reportElement style="strColHeader" x="474" y="0" width="103" height="19" uuid="64525551-7f2b-40a9-a5c4-866a85dc4dd7">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
 				<box>
