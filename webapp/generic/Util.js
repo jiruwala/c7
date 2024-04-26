@@ -27,6 +27,22 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return this.flatten(list);
             },
+            simpleStringify: function (object) {
+                var simpleObject = {};
+                for (var prop in object) {
+                    if (!object.hasOwnProperty(prop)) {
+                        continue;
+                    }
+                    if (typeof (object[prop]) == 'object') {
+                        continue;
+                    }
+                    if (typeof (object[prop]) == 'function') {
+                        continue;
+                    }
+                    simpleObject[prop] = object[prop];
+                }
+                return JSON.stringify(simpleObject);
+            },
             traverseList: function (list, splitter, index) {
                 //console.log("list="+list[index]);
                 if (list[index]) {
@@ -1766,8 +1782,54 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     initialFocus: null,                                  // default
                     textDirection: sap.ui.core.TextDirection.Inherit     // default
                 });
-            }
+            },
 
+            getDefaultColumn: function () {
+                var col = {
+                    "mColpos": 1,
+                    "mColName": "",
+                    "mList": "",
+                    "mColClass": "sap.m.Text",
+                    "mTitle": "",
+                    "mTitleAr": "",
+                    "mGrouped": true,
+                    "mSummary": "",
+                    "mQtreeType": "",
+                    "mHideCol": false,
+                    "mCfOperator": "",
+                    "mCfValue": "",
+                    "mCfTrue": "",
+                    "mCfFalse": "",
+                    "mTitleParent": "",
+                    "mTitleParentSpan": 1,
+                    "mSearchSQLMultiSelect": "N",
+                    "mEnabled": true,
+                    "mSearchColParent": "",
+                    "mSearchColCode": "",
+                    "mSearchColTitle": "",
+                    "mSearchColChildCount": "",
+                    "commandLink": "",
+                    "ct_row": "N",
+                    "ct_col": "N",
+                    "ct_val": "N",
+                    "mSearchSQL": "",
+                    "mLookUpCols": "",
+                    "mRetValues": "",
+                    "eOther": "",
+                    "mDefaultValue": "",
+                    "mUIHelper": {
+                        "canEdit": false,
+                        "data_type": "STRING",
+                        "display_format": "",
+                        "styleName": "",
+                        "display_width": "80",
+                        "isVisible": true,
+                        "display_align": "left",
+                        "display_style": ""
+                    }
+                };
+                return col;
+            }
         };
 
         return Util;

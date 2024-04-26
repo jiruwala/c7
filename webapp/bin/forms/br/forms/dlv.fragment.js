@@ -880,8 +880,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             })];
                             var locval = UtilGen.getControlValue(thatForm.frm.objs["qry1.ord_ref"].obj)
                             UtilGen.Search.do_quick_search(e, this,
-                                "select brno code,b_name  title from cbranch where code=':locationx' order by brno ".replaceAll(":locationx", locval),
-                                "select brno code,b_name title from cbranch where code=':locationx' and brno=:CODE".replaceAll(":locationx", locval), thatForm.frm.objs["qry1.branchname"].obj, undefined, undefined, btns);
+                                "select brno code,b_name  title,AREA,BLOCK,JEDDA,QASIMA from cbranch where code=':locationx' order by brno ".replaceAll(":locationx", locval),
+                                "select brno code,b_name title from cbranch where code=':locationx' and brno=:CODE".replaceAll(":locationx", locval), thatForm.frm.objs["qry1.branchname"].obj, undefined, { pWidth: "80%" }, btns);
                         }
 
                     },

@@ -190,11 +190,11 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 events: {
                     afterExeSql: function (oSql) {
                         thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.code"));
-
                     },
                     afterLoadQry: function (qry) {
                         var sett = sap.ui.getCore().getModel("settings").getData();
                         thatForm.fetchBranch = false;
+                        thatForm.fetchCustItems = false;
                         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
                         if (qry.name == "qry1") {
                             var par = that.frm.getFieldValue("qry1.parentcustomer");
@@ -229,12 +229,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
 
                             var sq = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME) VALUES (1,':qry1.code',':qr1.ac_no',':qry1.name');";
                             if (that2.fetchBranch && that2.qb != undefined && that2.qb.mLctb.rows.length > 0)
-                                sq = Util.nvl(that2.doUpdateBranches(), sq);;
-
-
+                                sq = Util.nvl(that2.doUpdateBranches(), sq);
                             sq = that.frm.parseString(sq);
-
-
                             return s1 + sq;
                         }
 
@@ -1107,6 +1103,10 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
                 sap.m.MessageToast.show("Must Form EDIT or NEW mode to edit and add branches ! ");
                 cmdEdit.setPressed(false);
+                that2.qb.editable = false
+                setTimeout(function () {
+                    that2.qb.colorRows();
+                });
                 return;
             }
 
@@ -1114,7 +1114,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 that2.qb.editable = true;
             else
                 that2.qb.editable = false
-            fetchData();            
+            fetchData();
             setTimeout(function () {
                 that2.qb.colorRows();
             });
@@ -1144,6 +1144,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 qv.mLctb.cols[qv.mLctb.getColPos("BLOCK")].mColClass = "sap.m.Input";
                 qv.mLctb.cols[qv.mLctb.getColPos("JEDDA")].mColClass = "sap.m.Input";
                 qv.mLctb.cols[qv.mLctb.getColPos("STREET")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("QASIMA")].mColClass = "sap.m.Input";
 
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
@@ -1182,7 +1183,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         var cmdEdit = new sap.m.ToggleButton({
             text: Util.getLangText("editRec"),
             icon: "sap-icon://edit",
-            pressed: false,
+            pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
+                || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
             press: function () {
                 seteditale();
             }
@@ -1223,8 +1225,17 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         var sq2 = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME,AREA,BLOCK,JEDDA,QASIMA,STREET) " +
             " VALUES (':BRNO',':qry1.code',':qr1.ac_no',':B_NAME'," +
             " ':AREA' ,':BLOCK' ,':JEDDA' ,':QASIMA',':STREET' );";
-
+        var checkDuplicate = {};
         for (var i = 0; i < ld.rows.length; i++) {
+            if (Util.nvl(ld.getFieldValue(i, "B_NAME"), "") == "") {
+                that2.showBranches();
+                FormView.err("Branch name must enter");
+            }
+            if (checkDuplicate[ld.getFieldValue(i, "BRNO")] != undefined) {
+                that2.showBranches();
+                FormView.err("Branch No # " + ld.getFieldValue(i, "BRNO") + " alredy existed for " + ld.getFieldValue(i, "B_NAME"))
+            } else
+                checkDuplicate[ld.getFieldValue(i, "BRNO")] = ld.getFieldValue(i, "B_NAME");
             var sq = sq2.replaceAll(":BRNO", ld.getFieldValue(i, "BRNO"))
                 .replaceAll(":B_NAME", ld.getFieldValue(i, "B_NAME"))
                 .replaceAll(":AREA", ld.getFieldValue(i, "AREA"))
@@ -1236,6 +1247,24 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         }
         sqls = "delete from cbranch where code=':qry1.code';" + sqls;
         return sqls;
+    },
+    showCustItems: function () {
+        var that2 = this;
+        if (this.qc == undefined) {
+            this.qc = new QueryView("qrCustitems" + that2.timeInLong);
+            this.qc.getControl().setEditable(true);
+            this.qc.getControl().view = that2.view;
+            this.qc.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+            this.qc.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+            this.qc.getControl().setFixedBottomRowCount(0);
+            this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            this.qb.insertable = true;
+            this.qb.deletable = true;
+
+        }
+        if (that2.fetchCustItems == false)
+            that2.qc.reset();
+
     },
     save_data: function () {
     }
