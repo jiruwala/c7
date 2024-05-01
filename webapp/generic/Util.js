@@ -27,6 +27,22 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return this.flatten(list);
             },
+            simpleStringify: function (object) {
+                var simpleObject = {};
+                for (var prop in object) {
+                    if (!object.hasOwnProperty(prop)) {
+                        continue;
+                    }
+                    if (typeof (object[prop]) == 'object') {
+                        continue;
+                    }
+                    if (typeof (object[prop]) == 'function') {
+                        continue;
+                    }
+                    simpleObject[prop] = object[prop];
+                }
+                return JSON.stringify(simpleObject);
+            },
             traverseList: function (list, splitter, index) {
                 //console.log("list="+list[index]);
                 if (list[index]) {
@@ -1238,7 +1254,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
                 });
                 var btn1 = new sap.m.Button({
-                    text: "Close",
+                    text: Util.getLangText("cmdClose"),
                     press: function () {
                         dlg.close();
                     }
@@ -1250,7 +1266,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     }
                 });
                 var btn = new sap.m.Button({
-                    text: "Select", press: function () {
+                    text: Util.getLangText("selectTxt"), press: function () {
                         var sl = qv.getControl().getSelectedIndices();
                         if (sl.length <= 0 && !Util.nvl(multiSelect, false)) {
                             sap.m.MessageToast.show("Must select !");
@@ -1322,7 +1338,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 else {
                     var colno = UtilGen.getTableColNo(tbl, colname);
                     if (tbl.getRows()[rn].getCells()[colno] instanceof sap.m.InputBase)
-                        cv = tbl.getRows()[rowno].getCells()[colno].getValue();
+                        cv = tbl.getRows()[rn].getCells()[colno].getValue();
                     if (tbl.getRows()[rn].getCells()[colno] instanceof sap.m.Text)
                         cv = tbl.getRows()[rn].getCells()[colno].getText();
                 }
@@ -1662,6 +1678,22 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 },
 
             },
+            printServerReport: function (rpt, ps) {
+                Util.doXhr("report?reportfile=" + rpt + "&" + ps, true, function (e) {
+                    if (this.status == 200) {
+                        var blob = new Blob([this.response], { type: "application/pdf" });
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.target = "_blank";
+                        link.style.display = "none";
+                        document.body.appendChild(link);
+                        link.download = "rptVou" + new Date() + ".pdf";
+                        Util.printPdf(link.href);
+
+                    }
+                });
+
+            },
             printPdf: function (url) {
                 var iframe = this._printIframe;
                 if (!this._printIframe) {
@@ -1681,6 +1713,12 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             },
             getLabelTxt: function (ptxt, pwidth, preText, styleText, alignTxt) {
                 return Util.nvl(preText, "") + '{\"text\":\"' + ptxt + '\",\"width\":\"' + Util.nvl(pwidth, "15%") + '\","textAlign":"' + Util.nvl(alignTxt, 'End') + '","styleClass":"' + Util.nvl(styleText, "") + '"}';
+            },
+            getEmptyLabel: function (pWidth) {
+                var width = {};
+                if (pWidth != undefined) width = { width: pWidth };
+                var se = { ...{ text: "" }, ...width };
+                return new sap.m.Text(se);
             },
             abbreviateNumber: function (number) {
                 var sett = sap.ui.getCore().getModel("settings").getData();
@@ -1728,11 +1766,74 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
 
                 return bindVariables;
+            },
+            simpleConfirmDialog: function (msg, fnOk, fnCancel, fnOnClose) {
+                if (sap.m.MessageBox == undefined)
+                    jQuery.sap.require("sap.m.MessageBox");
+                sap.m.MessageBox.confirm(msg, {
+                    title: "Confirm",                                    // default
+                    emphasizedAction: sap.m.MessageBox.Action.CANCEL,                    
+                    onClose: function (oAction) {
+                        if (fnOnClose != undefined)
+                            fnOnClose(oAction);
+                        if (oAction == sap.m.MessageBox.Action.OK && fnOk != undefined) fnOk();
+                        else if (fnCancel != undefined) fnCancel();
+                    },                                       // default
+                    styleClass: "",                                      // default
+                    initialFocus: sap.m.MessageBox.Action.CANCEL                    ,                                  // default
+                    textDirection: sap.ui.core.TextDirection.Inherit     // default
+                });
+            },
+
+            getDefaultColumn: function () {
+                var col = {
+                    "mColpos": 1,
+                    "mColName": "",
+                    "mList": "",
+                    "mColClass": "sap.m.Text",
+                    "mTitle": "",
+                    "mTitleAr": "",
+                    "mGrouped": true,
+                    "mSummary": "",
+                    "mQtreeType": "",
+                    "mHideCol": false,
+                    "mCfOperator": "",
+                    "mCfValue": "",
+                    "mCfTrue": "",
+                    "mCfFalse": "",
+                    "mTitleParent": "",
+                    "mTitleParentSpan": 1,
+                    "mSearchSQLMultiSelect": "N",
+                    "mEnabled": true,
+                    "mSearchColParent": "",
+                    "mSearchColCode": "",
+                    "mSearchColTitle": "",
+                    "mSearchColChildCount": "",
+                    "commandLink": "",
+                    "ct_row": "N",
+                    "ct_col": "N",
+                    "ct_val": "N",
+                    "mSearchSQL": "",
+                    "mLookUpCols": "",
+                    "mRetValues": "",
+                    "eOther": "",
+                    "mDefaultValue": "",
+                    "mUIHelper": {
+                        "canEdit": false,
+                        "data_type": "STRING",
+                        "display_format": "",
+                        "styleName": "",
+                        "display_width": "80",
+                        "isVisible": true,
+                        "display_align": "left",
+                        "display_style": ""
+                    }
+                };
+                return col;
             }
-
-
         };
 
         return Util;
     });
 
+;

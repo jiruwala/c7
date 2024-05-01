@@ -335,18 +335,16 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     cod["balance"] = Util.getSQLValue("select NVL(SUM(((PRICE+add_amt_gross)/PACK)*ALLQTY),0) from pur2  where invoice_code=21 and " +
                         " dat>=" + Util.toOraDateString(fromdt) +
                         " and dat<=" + Util.toOraDateString(todt)
-
                     );
                 }
-                if (cod.code == "discount") {
+                if (cod.code == "discount" || cod.code == "totdisc") {
                     cod["balance"] = Util.getSQLValue("select NVL(SUM(DISC_AMT_GROSS*ALLQTY),0) from pur2  where invoice_code=21 and " +
                         " dat>=" + Util.toOraDateString(fromdt) +
                         " and dat<=" + Util.toOraDateString(todt)
                     );
                 }
                 if (cod.code == "expenses_1" ||
-                    cod.code == "expenses_2" || cod.code == "totsales" ||
-                    cod.code == "totdisc")
+                    cod.code == "expenses_2")
                     cod["balance"] = getBalance(cod.code);
                 if (cod.code == "com_1")
                     cod["balance"] = (totqty == 0 ? 0 :
@@ -471,8 +469,8 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                         if ((col == "CODE" || col == "DESCR") && oData[rowno]["REFER"] != null) {
                             // var sq1="";
                             // st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
-                        
-                            
+
+
                         }
                         return st;
                     }

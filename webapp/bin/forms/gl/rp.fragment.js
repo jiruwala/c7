@@ -27,16 +27,22 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             showHeader: false,
             content: []
         }).addStyleClass("sapUiSizeCompact");
+        this.brPage = new sap.m.Page({
+            showHeader: false,
+            content: []
+        }).addStyleClass("sapUiSizeCompact");
+
         this.createView();
         this.loadData();
         this.joApp.addDetailPage(this.mainPage);
+        this.joApp.addDetailPage(this.brPage);
         // this.joApp.addDetailPage(this.pgDetail);
         this.joApp.to(this.mainPage, "show");
 
         this.joApp.displayBack = function () {
             that.frm.refreshDisplay();
         };
-                        
+
         this.mainPage.attachBrowserEvent("keydown", function (oEvent) {
             if (that.frm.isFormEditable() && oEvent.key == 'F4') {
                 that.get_new_cust();
@@ -140,6 +146,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.frm;
+        // this.createBranches();
         var js = {
             form: {
                 title: "R&P Card",
@@ -160,10 +167,27 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("btBranch" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("btci" + thatForm.timeInLong, thatForm.view);
+
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "0.000" }));
+
+
+                    var btBranch = new sap.m.Button(thatForm.view.createId("btBranch" + thatForm.timeInLong), {
+                        text: Util.getLangText("txtBranches"),
+                        press: function () {
+                            thatForm.showBranches();
+                        }
+                    });
+                    var btCustItems = new sap.m.Button(thatForm.view.createId("btci" + thatForm.timeInLong), {
+                        text: Util.getLangText("custItems"),
+                        press: function () {
+                            thatForm.showCustItems();
+                        }
+                    });
                     var hb = new sap.m.Toolbar({
-                        content: [txt, new sap.m.ToolbarSpacer(), txtMsg]
+                        content: [btBranch, btCustItems, txt, new sap.m.ToolbarSpacer(), txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
@@ -172,10 +196,11 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 events: {
                     afterExeSql: function (oSql) {
                         thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.code"));
-
                     },
                     afterLoadQry: function (qry) {
                         var sett = sap.ui.getCore().getModel("settings").getData();
+                        thatForm.fetchBranch = false;
+                        thatForm.fetchCustItems = false;
                         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
                         if (qry.name == "qry1") {
                             var par = that.frm.getFieldValue("qry1.parentcustomer");
@@ -207,9 +232,18 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 s1 = "update c_ycust set childcount=(select nvl(count(*),0) from c_ycust where parentcustomer=':qry1.parentcustomer') where code=':qry1.parentcustomer' ; "
                                 s1 = that.frm.parseString(s1);
                             }
-                            var sq = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME) VALUES (1,':qry1.code',':qr1.ac_no',':qry1.name')";
-                            sq = that.frm.parseString(sq) + ";";
-                            return s1 + sq;
+
+                            var sq = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME) VALUES (1,':qry1.code',':qr1.ac_no',':qry1.name');";
+                            if (that2.fetchBranch && that2.qb != undefined && that2.qb.mLctb.rows.length > 0)
+                                sq = Util.nvl(that2.doUpdateBranches(), sq);
+
+                            var sq2 = "";
+                            if (that2.fetchCustItems && that2.qc != undefined && that2.qc.mLctb.rows.length > 0)
+                                sq2 = Util.nvl(that2.doUpdateCustItems(), sq2);
+
+                            sq = that.frm.parseString(sq);
+                            sq2 = that.frm.parseString(sq2);
+                            return s1 + sq + sq2;
                         }
 
                         return "";
@@ -222,7 +256,15 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 s1 = "update c_ycust set childcount=(select nvl(count(*),0) from c_ycust where parentcustomer=':qry1.parentcustomer') where code=':qry1.parentcustomer' ; "
                                 s1 = that.frm.parseString(s1);
                             }
-                            return s1;
+                            var sq = "";
+                            if (that2.fetchBranch && that2.qb != undefined && that2.qb.mLctb.rows.length > 0)
+                                sq = that.frm.parseString(Util.nvl(that2.doUpdateBranches(), sq));
+
+                            var sq2 = "";
+                            if (that2.fetchCustItems && that2.qc != undefined && that2.qc.mLctb.rows.length > 0)
+                                sq2 = that.frm.parseString(Util.nvl(that2.doUpdateCustItems(), sq2));
+
+                            return s1 + sq + sq2;
                         }
 
                         return "";
@@ -277,6 +319,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                         return "";
                     },
                     afterNewRow: function (qry, idx, ld) {
+                        thatForm.fetchBranch = false;
+                        thatForm.fetchCustItems = false;
                         if (qry.name == "qry1") {
                             thatForm.fileUpload = undefined;
                             that.frm.setFieldValue("pac", "", "", true);
@@ -1049,11 +1093,391 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
     }
     ,
-    validateSave: function () {
+    showBranches: function () {
+        var that2 = this;
+        if (this.qb == undefined) {
+            this.qb = new QueryView("qrBranches" + that2.timeInLong);
+            this.qb.getControl().setEditable(true);
+            this.qb.getControl().view = that2.view;
+            this.qb.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+            this.qb.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+            this.qb.getControl().setFixedBottomRowCount(0);
+            this.qb.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            // this.qb.getControl().setVisibleRowCount(10);
+            this.qb.insertable = true;
+            this.qb.deletable = true;
+            // this.qb.setEditable(false);
+        }
+        if (that2.fetchBranch == false)
+            that2.qb.reset();
+        var cc = "";
+        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+            that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+            cc = that2.frm.getFieldValue("qry1.code");
+        }
+        var seteditale = function () {
+            if (!(that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+                sap.m.MessageToast.show("Must Form EDIT or NEW mode to edit and add branches ! ");
+                cmdEdit.setPressed(false);
+                that2.qb.editable = false
+                setTimeout(function () {
+                    that2.qb.colorRows();
+                });
+                return;
+            }
 
-        return true;
+            if (cmdEdit.getPressed())
+                that2.qb.editable = true;
+            else
+                that2.qb.editable = false
+            fetchData();
+            setTimeout(function () {
+                that2.qb.colorRows();
+            });
+        }
+        var fetchData = function () {
+            var qv = that2.qb;
+            if (that2.fetchBranch) {
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+                return;
+            }
+
+            var dt = Util.execSQL("select brno,b_name,area,block,jedda,street,qasima from cbranch where code=" + Util.quoted(cc) + " order by brno");
+            if (dt.ret == "SUCCESS") {
+                qv.setJsonStrMetaData("{" + dt.data + "}");
+                qv.mLctb.cols[qv.mLctb.getColPos("BRNO")].getMUIHelper().display_width = 50;
+
+                qv.mLctb.cols[qv.mLctb.getColPos("BRNO")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("B_NAME")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("AREA")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("BLOCK")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("JEDDA")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("STREET")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("QASIMA")].mColClass = "sap.m.Input";
+
+                qv.mLctb.parse("{" + dt.data + "}", true);
+                qv.loadData();
+                that2.fetchBranch = true;
+
+                qv.onAddRow = function (idx, ld) {
+                    ld.setFieldValue(idx, "BRNO", idx + 1);
+                }
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+            }
+
+
+        }
+        var pg = new sap.m.Page({
+            showHeader: false,
+            content: [],
+            showFooter: true
+        }).addStyleClass("sapUiSizeCompact");
+        var cmdClose = new sap.m.ToggleButton({
+            text: Util.getLangText("cmdClose"),
+            icon: "sap-icon://decline",
+            pressed: false,
+            press: function () {
+                dlg.close();
+            }
+
+        });
+        var cmdEdit = new sap.m.ToggleButton({
+            text: Util.getLangText("editRec"),
+            icon: "sap-icon://edit",
+            pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
+                || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
+            press: function () {
+                seteditale();
+            }
+
+        });
+
+        var tbHeader = new sap.m.Toolbar();
+        pg.setFooter(tbHeader);
+        pg.addContent(this.qb.getControl());
+        tbHeader.addContent(cmdEdit);
+        tbHeader.addContent(cmdClose);
+        var tit = Util.getLangText("titNewCustBranch");
+        if (cc != "")
+            tit = Util.getLangText("txtBranches") + " - " + that2.frm.getFieldValue("qry1.name");
+
+        var dlg = new sap.m.Dialog({
+            title: tit,
+            content: pg,
+            contentWidth: "80%",
+            contentHeight: "400px",
+
+        });
+        fetchData();
+        seteditale();
+        dlg.open();
+        dlg.attachAfterClose(function () {
+            that2.qb.updateDataToTable();
+            sap.m.MessageToast.show("Closing branch window..");
+        });
     }
     ,
+    doUpdateBranches: function () {
+        var that2 = this;
+        if (!that2.fetchBranch || that2.qb == undefined || that2.qb.mLctb.rows.length == 0)
+            return "";
+        var ld = that2.qb.mLctb;
+        var sqls = "";
+        var sq2 = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME,AREA,BLOCK,JEDDA,QASIMA,STREET) " +
+            " VALUES (':BRNO',':qry1.code',':qr1.ac_no',':B_NAME'," +
+            " ':AREA' ,':BLOCK' ,':JEDDA' ,':QASIMA',':STREET' );";
+        var checkDuplicate = {};
+        for (var i = 0; i < ld.rows.length; i++) {
+            if (Util.nvl(ld.getFieldValue(i, "B_NAME"), "") == "") {
+                that2.showBranches();
+                FormView.err("Branch name must enter");
+            }
+            if (checkDuplicate[ld.getFieldValue(i, "BRNO")] != undefined) {
+                that2.showBranches();
+                FormView.err("Branch No # " + ld.getFieldValue(i, "BRNO") + " alredy existed for " + ld.getFieldValue(i, "B_NAME"))
+            } else
+                checkDuplicate[ld.getFieldValue(i, "BRNO")] = ld.getFieldValue(i, "B_NAME");
+            var sq = sq2.replaceAll(":BRNO", ld.getFieldValue(i, "BRNO"))
+                .replaceAll(":B_NAME", ld.getFieldValue(i, "B_NAME"))
+                .replaceAll(":AREA", ld.getFieldValue(i, "AREA"))
+                .replaceAll(":BLOCK", ld.getFieldValue(i, "BLOCK"))
+                .replaceAll(":JEDDA", ld.getFieldValue(i, "JEDDA"))
+                .replaceAll(":QASIMA", ld.getFieldValue(i, "QASIMA"))
+                .replaceAll(":STREET", ld.getFieldValue(i, "STREET"));
+            sqls += sq;
+        }
+        sqls = "delete from cbranch where code=':qry1.code';" + sqls;
+        return sqls;
+    },
+    showCustItems: function () {
+        var that2 = this;
+        if (this.qc == undefined) {
+            this.qc = new QueryView("qrCustitems" + that2.timeInLong);
+            this.qc.getControl().setEditable(true);
+            this.qc.getControl().view = that2.view;
+            this.qc.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+            this.qc.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+            this.qc.getControl().setFixedBottomRowCount(0);
+            this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            this.qc.insertable = true;
+            this.qc.deletable = true;
+        }
+        if (that2.fetchCustItems == false)
+            that2.qc.reset();
+        var cc = "";
+        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+            that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+            cc = that2.frm.getFieldValue("qry1.code");
+        }
+        var seteditale = function () {
+            if (!(that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+                sap.m.MessageToast.show("Must Form EDIT or NEW mode to edit and add items ! ");
+                cmdEdit.setPressed(false);
+                that2.qc.editable = false
+                setTimeout(function () {
+                    that2.qc.colorRows();
+                });
+                return;
+            }
+
+            if (cmdEdit.getPressed())
+                that2.qc.editable = true;
+            else
+                that2.qc.editable = false
+            fetchData();
+            setTimeout(function () {
+                that2.qc.colorRows();
+            });
+        }
+        var fetchData = function () {
+            var qv = that2.qc;
+            if (that2.fetchCustItems) {
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+                return;
+            }
+
+            var dt = Util.execSQL("select c.refer,it.descr, c.packd,c.unitd,c.pack,c.price from custitems c,items it where it.reference=c.refer and c.code=" + Util.quoted(cc) + " order by c.refer ");
+            if (dt.ret == "SUCCESS") {
+                qv.setJsonStrMetaData("{" + dt.data + "}");
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].getMUIHelper().display_width = 80;
+
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].mColClass = "sap.m.Input";
+
+                qv.mLctb.cols[qv.mLctb.getColPos("PACKD")].getMUIHelper().display_width = 50;
+                qv.mLctb.cols[qv.mLctb.getColPos("UNITD")].getMUIHelper().display_width = 50;
+                qv.mLctb.cols[qv.mLctb.getColPos("PACK")].getMUIHelper().display_width = 50;
+
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].getMUIHelper().display_format = "MONEY_FORMAT";
+
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].eValidateColumn = function (evtx) {
+                    var row = evtx.getSource().getParent();
+                    var column_no = evtx.getSource().getParent().indexOfCell(evtx.getSource());
+                    var columns = evtx.getSource().getParent().getParent().getColumns();
+                    var table = evtx.getSource().getParent().getParent(); // get table control.
+                    var oModel = table.getModel();
+                    var rowStart = table.getFirstVisibleRow(); //starting Row index
+                    var currentRowoIndexContext = table.getContextByIndex(rowStart + table.indexOfRow(row));
+                    var newValue = evtx.getSource().getValue();
+
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/DESCR', "");
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/PACKD', "");
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/PACK', "1");
+
+                    var dtxM = Util.execSQLWithData("select descr,packd,unitd,pack from items where reference='" + newValue + "' ")
+                    if (dtxM != undefined && dtxM.length > 0) {
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/DESCR', dtxM[0].DESCR);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/PACKD', dtxM[0].PACKD);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/UNITD', dtxM[0].UNITD);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/PACK', dtxM[0].PACK);
+
+                    }
+
+                };
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].mSearchSQL = "select reference code,descr title from items order by descr2";
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].eOnSearch = function (evtx) {
+                    var input = evtx.getSource();
+                    UtilGen.Search.do_quick_search(evtx, input,
+                        "select reference code,descr title from items order by descr2 ",
+                        "select reference code,descr title from items  where reference=:CODE", undefined, function () {
+                            input.fireChange();
+                        },
+                        {
+                            pWidth: "400px", pHeight: "400px",
+                            "background-color": 'blue',
+                            "dialogStyle": "cyanDialog"
+                        });
+
+
+                }
+
+                qv.mLctb.parse("{" + dt.data + "}", true);
+                qv.loadData();
+                that2.fetchCustItems = true;
+
+                qv.onAddRow = function (idx, ld) {
+                    ld.setFieldValue(idx, "PRICE", 0);
+                }
+
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+            }
+        }
+        var pg = new sap.m.Page({
+            showHeader: false,
+            content: [],
+            showFooter: true
+        }).addStyleClass("sapUiSizeCompact");
+        var cmdClose = new sap.m.ToggleButton({
+            text: Util.getLangText("cmdClose"),
+            icon: "sap-icon://decline",
+            pressed: false,
+            press: function () {
+                dlg.close();
+            }
+
+        });
+        var cmdEdit = new sap.m.ToggleButton({
+            text: Util.getLangText("editRec"),
+            icon: "sap-icon://edit",
+            pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
+                || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
+            press: function () {
+                seteditale();
+            }
+
+        });
+
+        var tbHeader = new sap.m.Toolbar();
+        pg.setFooter(tbHeader);
+        pg.addContent(this.qc.getControl());
+        tbHeader.addContent(cmdEdit);
+        tbHeader.addContent(cmdClose);
+        var tit = Util.getLangText("titCustItems");
+        if (cc != "")
+            tit = Util.getLangText("titCustItems") + " - " + that2.frm.getFieldValue("qry1.name");
+
+        var dlg = new sap.m.Dialog({
+            title: tit,
+            content: pg,
+            contentWidth: "80%",
+            contentHeight: "400px",
+
+        });
+        fetchData();
+        seteditale();
+        dlg.open();
+        dlg.attachAfterClose(function () {
+            that2.qc.updateDataToTable();
+            sap.m.MessageToast.show("Closing  Itmes window..");
+        });
+    },
+    doUpdateCustItems: function () {
+        var that2 = this;
+        if (!that2.fetchCustItems || that2.qc == undefined || that2.qc.mLctb.rows.length == 0)
+            return "";
+        var ld = that2.qc.mLctb;
+        var sqls = "";
+        var sq2 = "insert into custitems(code,refer,descr,packd,unitd,pack,price,flag,disc_amt) " +
+            " VALUES (':qry1.code',':REFER','',':PACKD', " +
+            " ':UNITD' ,':PACK' ,:PRICE ,1, 0 );";
+        var checkDuplicate = {};
+        for (var i = 0; i < ld.rows.length; i++) {
+            if (Util.nvl(ld.getFieldValue(i, "REFER"), "") == "") {
+                that2.showCustItems();
+                FormView.err(" REFER MUST ENTER !");
+            }
+            if (Util.nvl(ld.getFieldValue(i, "PRICE"), 0) <= 0) {
+                that2.showCustItems();
+                FormView.err(" PRICE IS INVALID !");
+            }
+            if (checkDuplicate[ld.getFieldValue(i, "REFER")] != undefined) {
+                that2.showCustItems();
+                FormView.err("Refer  # " + ld.getFieldValue(i, "REFER") + " alredy existed for " + ld.getFieldValue(i, "DESCR"))
+            } else
+                checkDuplicate[ld.getFieldValue(i, "REFER")] = ld.getFieldValue(i, "DESCR");
+            var sq = sq2.replaceAll(":REFER", ld.getFieldValue(i, "REFER"))
+                .replaceAll(":PACKD", ld.getFieldValue(i, "PACKD"))
+                .replaceAll(":UNITD", ld.getFieldValue(i, "UNITD"))
+                .replaceAll(":PACK", ld.getFieldValue(i, "PACK"))
+                .replaceAll(":PRICE", ld.getFieldValue(i, "PRICE"));
+            sqls += sq;
+        }
+        sqls = "delete from custitems where code=':qry1.code';" + sqls;
+        return sqls;
+    },
     save_data: function () {
     }
     ,

@@ -373,11 +373,29 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 require: false,
                                 dispInPara: true,
                             },
+                            inclUnpost: {
+                                colname: "inclUnpost",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"paraInclUnpost\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                             {
-                                title: "PDF-1",
-                                reportFile: "soa001_1",
+                                title: "Customer SOA",
+                                reportFile: "soa001_2",
                             }
                         ],
                         canvas: [],
@@ -477,7 +495,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 disp_class: "reportTable2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 dispRecords: { "S": 8, "M": 12, "L": 16, "XL": 22, "XXL": 35 },
-                                rowHeight:18,
+                                rowHeight: 18,
                                 execOnShow: false,
                                 canvas: "qry2Canvas",
                                 canvasType: ReportView.CanvasType.VBOX,
@@ -675,6 +693,22 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
+                                    branch_name: {
+                                        colname: "branch_name",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Branch",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "80",
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
                                     keyfld: {
                                         colname: "keyfld",
                                         data_type: FormView.DataType.Number,
@@ -692,6 +726,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
+
                                 }
                             },
                             {
@@ -1493,6 +1528,8 @@ sap.ui.jsfragment("bin.forms.testRep5", {
     save_soa: function () {
         var thatForm = this;
         var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
+        var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
+        var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
         // if (bk.length > 0) {
         var plsql = "declare ";
         //cursor su is ----in getaccbal function to replace
@@ -1508,11 +1545,11 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var sqxAx2 = "select SUM(DEBIT) CRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
             " A.ACCNO=V.ACCNO AND  " +
             " V.VOU_DATE<=TODATE :KEYFLD_CONDITION ";
-        var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
+        var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO FROM :ACVOUCHER2 V, ACACCOUNT A " +
             " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT " +
-            " AND V.ACCNO=A.ACCNO AND (V.COSTCENT=CC or cc is null) " +
+            " AND V.ACCNO=A.ACCNO AND (V.COSTCENT=CC or cc is null) " + vflg +
             " AND (CUST_CODE=PCUST OR PCUST IS NULL)  :KEYFLD_CONDITION " +
-            " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code ";
+            " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code,v.BRANCH_NO ";
         // var sqx = " SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
         //     " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
         //     " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
@@ -1549,8 +1586,10 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             sqls3 += (sqls3.length > 0 ? " union all " : "") + sqs3[si];
 
 
+
         var paras = "fromdt date := :parameter.fromdate;";
         paras += "todt date := :parameter.todate;";
+        paras += "pincup varchar2(255) := ':parameter.inclUnpost';";
         paras += "toacc varchar2(100) := ':parameter.paccno'; ";
         paras += "cstcent varchar2(100) := ':parameter.pcc';";
         paras += "pcust varchar2(100) := ':parameter.pref';";
@@ -1559,7 +1598,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         paras += "DEL_OLD_DATA boolean := true;";
 
         sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2,CC VARCHAR2) IS " + sqls + " ORDER BY vou_date;";
-        var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992");
+        var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992.1");
         sqls = sqls + str;
         sqls = sqls.replaceAll(":_CURSOR_SU_ACCBAL", sqls1);
         sqls = sqls.replaceAll(":_CURSOR_ACX1", sqls2);

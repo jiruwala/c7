@@ -244,7 +244,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             "        FROM   c_order1 o , " +
             "               items ," +
             "               cbranch " +
-            "        WHERE saleinv IS NULL" +
+            "        WHERE o.saleinv IS NULL" +
             "                      AND (o.ord_discamt = cbranch.brno " +
             "                    AND o.ord_ref = cbranch.code) " +
             "               AND ( (items.REFERENCE = o.ord_ship))" +
@@ -732,7 +732,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             "                   totamt, discamt, 0, addamt,addamt," +
             "                  2, sysdate, '', '', kfld,user, '', ''," +
             "                 '', '', '', '', 1,'KWD', 1 , 0," +
-            "                 null, pref,'2003',0,null,pBrNo);" +
+            "                 null, pref,'2003',0,null,pBrNo );" +
             " for xx in pu(kfld) loop " +
             " IF DISCAMT>0 and totamt>0 THEN " +
             " dag:=((discamt / totamt) * (((xx.price)/xx.PACK)*(xx.allqty/xx.pack))) / (xx.allqty/xx.pack);" +
@@ -743,6 +743,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             " update pur2 set add_amt_gross=aag,disc_amt_gross=dag where keyfld=xx.keyfld and itempos=xx.itempos;" +
             " end loop;" +
             " x_post_sale_invoice(kfld);" +
+            " " +
             " " +
             " end if;" +
             " " +
@@ -769,16 +770,29 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             .replaceAll(":addescr", that.txtInfoAddRemarks.getValue())
             .replaceAll(":ddescr", that.txtInfoDiscRemarks.getValue())
             .replaceAll(":txtBranch", that.txtInfoBranch.getValue());
-
         var dt = Util.execSQL(sq);
         if (dt.ret != "SUCCESS") {
             FormView.err("Error , check  server log !");
         } else {
+            var kfld = Util.getSQLValue("select nvl(max(keyfld),-1) from pur1 where invoice_code=21");
+            that.printInv(kfld);
             that.joApp.to(that.detailPage, "slide");
             that.load_detailPage();
             sap.m.MessageToast.show("Sales generated successfully !");
         }
 
+    },
+    printInv: function (kfld) {
+        var that = this;
+        that.loadData(true);
+        if (Util.nvl(kfld, "") == "") FormView.err("No Invoice selected !");
+        var dt = Util.execSQLWithData("select location_code,invoice_no from pur1 where keyfld=" + kfld);
+        if (dt.length > 0) {
+            var invn = dt[0].INVOICE_NO;
+            var loc = dt[0].LOCATION_CODE;
+            Util.printServerReport("br/brsale", "_para_pfromno=" +
+                invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
+        }
     },
     validateSave: function () {
 

@@ -80,6 +80,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             "VBOX": "sap.m.VBox",
             "SCROLLCONTAINER": "sap.m.ScrollContainer",
             "PANEL": "sap.m.Panel",
+            "BUTTON": "sap.m.Button",
         };
         FormView.ObjTypes = {
             PARAMETER: "parameter",
@@ -141,6 +142,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             // adding parameters;
             this.form.readonly = Util.nvl(json.form.readonly, false);
             this.form.title = Util.nvl(json.form.title, "");
+            this.form.titleStyle = Util.nvl(json.form.titleStyle, "");
             this.form.customDisplay = Util.nvl(json.form.customDisplay, undefined);
             this.form.toolbarBG = Util.nvl(json.form.toolbarBG, "lightgrey");
             this.form.parameters = [];
@@ -554,7 +556,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 }
             }
             this.tbHeader.addContent(new sap.m.ToolbarSpacer());
-            this.tbHeader.addContent(new sap.m.Title({ text: this.form.title }));
+            this.tbHeader.addContent(new sap.m.Title({ text: this.form.title }).addStyleClass(Util.nvl(this.form.titleStyle, "titleFontWithoutPad2")));
 
 
             // focus on first object after showing form
@@ -688,13 +690,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 icon: "sap-icon://edit",
                 text: Util.getLangText("editRec"),
                 pressed: false,
-                press: function () {
+                press: function (e) {
                     var ob = that.getObjectByObj(this);
-                    if (ob.onPress != undefined)
-                        if (ob.onPress(e)) {
-                            that.save_data();
-                            return;
-                        } else return;
+                    if (ob.onPress != undefined && !ob.onPress(e))
+                        FormView.err("Record is unable to edit !");
 
                     if (this.getPressed()) {
                         that.setQueryStatus(undefined, FormView.RecordStatus.EDIT);
@@ -1065,18 +1064,19 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
             return sv;
         };
-        FormView.prototype.setFormReadOnly = function () {
+        FormView.prototype.setFormReadOnly = function (pPara) {
+            var pEnabled = Util.nvl(pPara, false);
             var qryObj = undefined;
             var qrys = (qryObj != undefined ? [qryObj] : this.form.db);
 
             for (var o in qrys) {
                 qryObj = qrys[o];
-                this._setQryDisableForEditing(qryObj);
-                this.cmdButtons.cmdEdit.setPressed(false);
-                this.cmdButtons.cmdEdit.setEnabled(false);
-                this.cmdButtons.cmdDel.setEnabled(false);
+                (pEnabled ? this._setQryEnableForEditing(qryObj) : this._setQryDisableForEditing(qryObj));
+                this.cmdButtons.cmdEdit.setPressed(pEnabled);
+                this.cmdButtons.cmdEdit.setEnabled(pEnabled);
+                this.cmdButtons.cmdDel.setEnabled(pEnabled);
             }
-            this.form.readonly = true;
+            this.form.readonly = !pEnabled;
 
         };
         FormView.prototype.setQueryStatus = function (qryName, status2) {
@@ -1369,6 +1369,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             qryObj.update_exclude_fields,
                             qryObj.where_clause);
                         sq2 = this.parseString(sq2) + ";";
+                        
                         if (this.form.events.hasOwnProperty("addSqlAfterUpdate")) {
                             var adSq = this.form.events.addSqlAfterUpdate(qryObj, undefined)
                             // if (er != "")

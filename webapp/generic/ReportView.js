@@ -2311,7 +2311,6 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                         qryObj.obj.mLctb.updateRecStatus(LocalTableData.RowStatus.QUERY);
                                         qryObj.obj.loadData();
-
                                     } else {
                                         thatRV.ERROR_ON_RCV_DATA = true;
                                     }
@@ -2329,8 +2328,13 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             thatRV.helperFunctions.misc.showFilterColsCmd(thatRV.vbPara, rep);
                         }
                         thatRV.helperFunctions.misc.showDisplayRecs(rep.rptNo);
-
-
+                        setTimeout(function () {
+                            for (var o in qrys) {
+                                qryObj = qrys[o];
+                                if (qryObj.showType == FormView.QueryShowType.QUERYVIEW && qryObj.obj.mLctb.rows.length > 0)
+                                    qryObj.obj.getControl().setFirstVisibleRow(0);
+                            }
+                        }, 100);
                         // clearing report from server in case parameter passed in CLEAR_REP=true
                         if (thatRV.reportVars.clearReportImmediate || rep.clearCatchReportImmediate) {
                             thatRV.helperFunctions.reports.clearReport(rptNo, function () {
@@ -2378,6 +2382,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         clearInterval(thatRV.rcv_data_timer);
                     setTimeout(function () {
                         thatRV.tbMain.$().css("background-color", "lightblue");
+
                     }, 100);
 
                 }
@@ -2550,7 +2555,8 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 var sett = sap.ui.getCore().getModel("settings").getData();
                                 thatRV.helperFunctions.reports.saveReport();
                                 var exe = { reportFile: cd };
-                                exe = Util.nvl(thatRV.reportMenus[idx].beforeExec(idx, cd), exe);
+                                if (thatRV.reportMenus[idx].beforeExec != undefined)
+                                    exe = Util.nvl(thatRV.reportMenus[idx].beforeExec(idx, cd), exe);
                                 thatRV.printReport(exe.reportFile, undefined, exe.paras);
                             }
                         })
@@ -2753,10 +2759,11 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     s = k + "=@" + sdf.format(UtilGen.getControlValue(rep.parameters[i].obj));
                 if (rep.parameters[i].data_type == FormView.DataType.Number)
                     s = k + "=" + df.formatBack(UtilGen.getControlValue(rep.parameters[i].obj));
-
                 ps = ps + (ps.length > 0 ? "&" : "") + s;
+
             }
             ps += ps + Util.nvl(addParas, "");
+            ps = ps + (ps.length > 0 ? "&" : "") + "_para_CP_USER=" + sett["LOGON_USER"];
             Util.doXhr("report?reportfile=" + rpt + "&" + ps, true, function (e) {
                 if (this.status == 200) {
                     var blob = new Blob([this.response], { type: "application/pdf" });
