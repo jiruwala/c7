@@ -247,6 +247,32 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     require: true,
                     dispInPara: true,
                 },
+                costby: {
+                    colname: "costby",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"costBy\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "pur",
+                    },
+                    list: "@pur/Purchase,acc/Accounts",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
                 showMonth: {
                     colname: "showMonth",
                     data_type: FormView.DataType.String,
@@ -325,28 +351,32 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     cod["balance"] = totqty;
                 }
                 if (cod.code == "purchase") {
-                    cod["balance"] = Util.getSQLValue("select nvl(sum(inv_amt-disc_amt),0) from pur1  where invoice_code=11 and " +
+                    var sq = "select nvl(sum(inv_amt-disc_amt),0) from pur1  where invoice_code=11 and " +
                         " invoice_date>=" + Util.toOraDateString(fromdt) +
-                        " and invoice_date<=" + Util.toOraDateString(todt)
-                    );
+                        " and invoice_date<=" + Util.toOraDateString(todt);
+                    var cst = thatForm.frm.getFieldValue("parameter.costby");
+                    if (cst == "acc") {
+                        cod["balance"] = getBalance(cod.code);
+                        cod["descr"] = "Total Cost of goods";
+                    }
+                    else
+                        cod["balance"] = Util.getSQLValue(sq);
 
                 }
                 if (cod.code == "totsales") {
                     cod["balance"] = Util.getSQLValue("select NVL(SUM(((PRICE+add_amt_gross)/PACK)*ALLQTY),0) from pur2  where invoice_code=21 and " +
                         " dat>=" + Util.toOraDateString(fromdt) +
                         " and dat<=" + Util.toOraDateString(todt)
-
                     );
                 }
-                if (cod.code == "discount") {
+                if (cod.code == "discount" || cod.code == "totdisc") {
                     cod["balance"] = Util.getSQLValue("select NVL(SUM(DISC_AMT_GROSS*ALLQTY),0) from pur2  where invoice_code=21 and " +
                         " dat>=" + Util.toOraDateString(fromdt) +
                         " and dat<=" + Util.toOraDateString(todt)
                     );
                 }
                 if (cod.code == "expenses_1" ||
-                    cod.code == "expenses_2" || cod.code == "totsales" ||
-                    cod.code == "totdisc")
+                    cod.code == "expenses_2")
                     cod["balance"] = getBalance(cod.code);
                 if (cod.code == "com_1")
                     cod["balance"] = (totqty == 0 ? 0 :
@@ -471,8 +501,8 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                         if ((col == "CODE" || col == "DESCR") && oData[rowno]["REFER"] != null) {
                             // var sq1="";
                             // st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
-                        
-                            
+
+
                         }
                         return st;
                     }
@@ -573,6 +603,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                 return bl;
             }
             var insSq = function (cod, pos, mnth) {
+                if (isNaN(cod.balance)) cod.balance = 0;
                 var sq = insx.replaceAll(":code", Util.quoted(cod.code))
                     .replaceAll(":descr", Util.quoted(Util.getLangText(cod.descr)))
                     .replaceAll(":levelno", Util.quoted(cod.levelno))
@@ -609,9 +640,16 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                         cod["balance"] = totqty;
                     }
                     if (cod.code == "purchase") {
-                        cod["balance"] = Util.getSQLValue("select nvl(sum(inv_amt-disc_amt),0) from pur1  where invoice_code=11 and " +
-                            " to_char(invoice_date,'rrrr/mm')=" + Util.quoted(mnth)
-                        );
+                        var sq = "select nvl(sum(inv_amt-disc_amt),0) from pur1  where invoice_code=11 and " +
+                            " to_char(invoice_date,'rrrr/mm')=" + Util.quoted(mnth);
+                        var cst = thatForm.frm.getFieldValue("parameter.costby");
+                        if (cst == "acc") {
+                            cod["balance"] = getBalance(cod.code, mnth);
+                            cod["descr"] = "Total Cost of goods";
+                        }
+                        else
+                            cod["balance"] = Util.getSQLValue(sq);
+
                     }
                     if (cod.code == "totsales") {
                         cod["balance"] = Util.getSQLValue("select NVL(SUM(((PRICE+add_amt_gross)/PACK)*ALLQTY),0) from pur2  where invoice_code=21 and " +

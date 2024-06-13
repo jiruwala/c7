@@ -1252,6 +1252,13 @@ sap.ui.jsview('bin.Dashboard', {
 
             } else {
                 mnu.addItem(new sap.m.MenuItem({
+                    text: "Copy menu..",
+                    press: function () {
+                        that.copyMenus2(mc);
+                    }
+                }));
+
+                mnu.addItem(new sap.m.MenuItem({
                     text: "Edit..",
                     press: function () {
                         that.showMenuForm(mc);
@@ -1326,8 +1333,8 @@ sap.ui.jsview('bin.Dashboard', {
                         " values (':GROUP_CODE', ':MENU_CODE', ':MENU_TITLE', ':MENU_TITLEA', ':PARENT_MENUCODE', ':MENU_PATH', ':JS_COMMAND','PARENT' );";
                     sq = sq.replaceAll(":MENU_CODE", txtToC.getValue());
                     sq = sq.replaceAll(":GROUP_CODE", txtToG.getValue());
-                    sq = sq.replaceAll(":MENU_TITLE", txtToCName.getValue());
                     sq = sq.replaceAll(":MENU_TITLEA", "");
+                    sq = sq.replaceAll(":MENU_TITLE", txtToCName.getValue());
                     sq = sq.replaceAll(":PARENT_MENUCODE", "");
                     sq = sq.replaceAll(":MENU_PATH", "XXX\\" + txtToC.getValue() + "\\");
                     sq = sq.replaceAll(":JS_COMMAND", "");
@@ -1352,10 +1359,11 @@ sap.ui.jsview('bin.Dashboard', {
                     var code = txtToC.getValue() + dtx[di].MENU_CODE;
                     var grp_code = txtToG.getValue();                                        
                     var tit = dtx[di].MENU_TITLE;
+                    var tit2 = dtx[di].MENU_TITLEA;
                     var menupath = txtFromC.getValue() == dtx[di].PARENT_MENUCODE ? getmenupath.replaceAll(":menu_code", txtToC.getValue())
                         .replaceAll(":add_code", code)
                         .replaceAll(":group_code", txtToG.getValue()) :
-                        getmenupath.replaceAll(":menu_code", txtToC.getValue + dtx[di].PARENT_MENUCODE)
+                        getmenupath.replaceAll(":menu_code", txtToC.getValue() + dtx[di].PARENT_MENUCODE)
                             .replaceAll(":add_code", code)
                             .replaceAll(":group_code", txtToG.getValue());
                     var js = dtx[di].JS_COMMAND;
@@ -1364,8 +1372,8 @@ sap.ui.jsview('bin.Dashboard', {
                         " values (':GROUP_CODE', ':MENU_CODE', ':MENU_TITLE', ':MENU_TITLEA', ':PARENT_MENUCODE', :MENU_PATH, ':JS_COMMAND',':TYPE_OF_EXEC' );";
                     sql = sql.replaceAll(":MENU_CODE", code);
                     sql = sql.replaceAll(":GROUP_CODE", grp_code);
+                    sql = sql.replaceAll(":MENU_TITLEA", tit2);
                     sql = sql.replaceAll(":MENU_TITLE", tit);
-                    sql = sql.replaceAll(":MENU_TITLEA", "");
                     sql = sql.replaceAll(":PARENT_MENUCODE", parent_menucode);
                     sql = sql.replaceAll(":MENU_PATH", menupath);
                     sql = sql.replaceAll(":JS_COMMAND", js);
@@ -1417,8 +1425,8 @@ sap.ui.jsview('bin.Dashboard', {
                     // var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
 
                     UtilGen.Search.do_quick_search(e, this,
-                        "select menu_code code,menu_title title from c7_menus where  TYPE_OF_EXEC='PARENT' and group_code='" + txtToG.getValue() + "' order by menu_path ",
-                        "select menu_code code ,menu_title title from c7_menus where  TYPE_OF_EXEC='PARENT' and group_code='" + txtToG.getValue() + "' and menu_code=':CODE' order by menu_path", txtToCName);
+                        "select menu_code code,menu_title title from c7_menus where  TYPE_OF_EXEC='PARENT' and group_code=" + txtToG.getValue() + " order by menu_path ",
+                        "select menu_code code ,menu_title title from c7_menus where  TYPE_OF_EXEC='PARENT' and group_code=" + txtToG.getValue() + " and menu_code=':CODE' order by menu_path", txtToCName);
                 }
             });
         var txtToCName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "44%", editable: true });

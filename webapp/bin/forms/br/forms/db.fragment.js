@@ -55,7 +55,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.createViewHeader();
-        var recs = UtilGen.dispTblRecsByDevice({ "S": 9, "M": 12, "L": 18, "XL": 25 });
+        var recs = UtilGen.dispTblRecsByDevice({ "S": 6, "M": 10, "L": 12, "XL": 18 });
         var qr = new QueryView("qryInvs" + that2.timeInLong);
         qr.getControl().setEditable(true);
         qr.getControl().view = that2;
@@ -84,6 +84,26 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         Util.destroyID("txtName" + this.timeInLong);
         Util.destroyID("txtCust" + this.timeInLong);
         var tit = new sap.m.Title(this.view.createId("txtTit" + this.timeInLong), { text: "Sales" });
+        var kind = UtilGen.addControl(fe, "Label", sap.m.ComboBox, "kind" + this.timeInLong,
+            {
+                items: {
+                    path: "/",
+                    template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                    templateShareable: true
+                },
+                width: "35%",
+                value: "21",
+                selectionChange: function (e) {
+                    that.loadData();
+                    var cnt = this;
+                    setTimeout(function () {
+                        cnt.$().find("input").attr("readonly", true);
+                    }, 250);
+
+
+                }
+            }, "string", undefined, this.view, undefined, "@11/Purchase,21/Sales"
+        );
         var cb = UtilGen.addControl(fe, "Label", sap.m.ComboBox, "cb1" + this.timeInLong,
             {
                 items: {
@@ -95,6 +115,11 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
                 value: "15",
                 selectionChange: function (e) {
                     that.loadData();
+                    var cnt = this;
+                    setTimeout(function () {
+                        cnt.$().find("input").attr("readonly", true);
+                    }, 250);
+
                 }
             }, "string", undefined, this.view, undefined, "@15/15 Last,30/30 Last,-1/All"
         );
@@ -132,8 +157,9 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         });
         var fe = [
             Util.getLabelTxt("txtBRTitleDashBoard", "100%", "", "titleFontWithoutPad2 boldText"),
-            Util.getLabelTxt("txtDaysOff", "15%"), cb,
-            Util.getLabelTxt("txtCust", "15%", ""), txtCust,
+            Util.getLabelTxt("transType", "15%"), kind,
+            Util.getLabelTxt("txtDaysOff", "15%", "@"), cb,
+            Util.getLabelTxt("txtCustSupp", "15%", ""), txtCust,
             Util.getLabelTxt("", "1%", "@"), txtName,
             Util.getLabelTxt("", "1%", "@"), bt1,
             Util.getLabelTxt("", "1%", "@"), bt,
@@ -151,6 +177,20 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
                 "margin-top: 2px;"
             ]
         }, "sapUiSizeCompact", "");
+        UtilGen.setControlValue(cb, 15, 15, false);
+        UtilGen.setControlValue(kind, 21, 21, false);
+        setTimeout(function () {
+            kind.$().find("input").attr("readonly", true);
+            cb.$().find("input").attr("readonly", true);
+            cb.$().find("input").focus(function () {
+                cb.$().find("input").attr("readonly", true);
+            })
+            kind.$().find("input").focus(function () {
+                kind.$().find("input").attr("readonly", true);
+            })
+
+        });
+
         // cnt.addContent(new sap.m.VBox({ height: "40px" }));
         this.mainPage.addContent(cnt);
     }
@@ -160,12 +200,15 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         var that = this;
         var qv = this.qr;
         var cb = this.view.byId("cb1" + this.timeInLong);
+        var kind = this.view.byId("kind" + this.timeInLong);
         var txtCust = this.view.byId("txtCust" + this.timeInLong);
         var dys = Util.nvl(UtilGen.getControlValue(cb), 15);
+        var knd = Util.nvl(UtilGen.getControlValue(kind), 21);
         var cst = txtCust.getValue();
+
         var dt = Util.execSQL("select *from (select INVOICE_NO,INVOICE_DATE,C_CUS_NO,INV_REFNM, " +
             "  INV_AMT,DEPTNO ADD_AMT,DISC_AMT,(INV_AMT+DEPTNO)-DISC_AMT NET_AMT,keyfld FROM PUR1 " +
-            " WHERE INVOICE_CODE=21 order by invoice_date desc ) i1  where (rownum<=" +
+            " WHERE INVOICE_CODE=" + knd + " order by invoice_date desc ) i1  where (rownum<=" +
             dys + " or " + dys + "=-1 ) and (c_cus_no='" + cst + "' or '" + cst + "' is null) ");
 
         if (dt.ret == "SUCCESS") {
@@ -200,14 +243,19 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
                 var mdl = tbl.getModel();
                 var rr = tbl.getRows().indexOf(obj.getParent());
                 var rowStart = tbl.getFirstVisibleRow();
+                var kind = that.view.byId("kind" + that.timeInLong);
+                var knd = UtilGen.getControlValue(kind);
+                if (Util.nvl(knd, "") == "") return;
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "KEYFLD")].getText());
-
-                UtilGen.execCmd("bin.forms.br.forms.unpost formTitle=Unposted formType=dialog keyfld=" + kfld + " formSize=620px,350px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                var frm = knd == 21 ? "bin.forms.br.forms.unpost" : "bin.forms.br.forms.punpost";
+                UtilGen.execCmd(frm + " formTitle=Unposted formType=dialog keyfld=" + kfld + " formSize=620px,400px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
                     // sap.m.MessageToast.show("closing...");
+                    that.loadData();
                 });
             };
             qv.mLctb.parse("{" + dt.data + "}", true);
             qv.loadData();
+            qv.getControl().setFirstVisibleRow(0);
         }
 
     }

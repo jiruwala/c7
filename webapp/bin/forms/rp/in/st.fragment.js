@@ -397,7 +397,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 7, "M": 10, "L": 14 },
+                                dispRecords:  { "S": 7, "M": 11, "L": 15, "XL": 18 },
                                 execOnShow: false,
                                 dml: "SELECT -1 KEYFLD,(select nvl(max(DESCR2),'') from items where items.reference=':parameter.prefer' ) DESCR2," +
                                     "   '' PARENTITEM,0 INVOICE_NO,-1 INVOICE_KEYFLD,:parameter.fromdate DAT,1 INVOICE_CODE ," +
@@ -1329,7 +1329,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 7, "M": 10, "L": 14 },
+                                dispRecords:  { "S": 7, "M": 11, "L": 15, "XL": 18 },
                                 execOnShow: false,
                                 dml: "SELECT -1 KEYFLD,(select nvl(max(DESCR2),'') from items where items.reference=':parameter.prefer' ) DESCR2," +
                                     "   '' PARENTITEM,0 INVOICE_NO,-1 INVOICE_KEYFLD,:parameter.fromdate DAT,1 INVOICE_CODE ," +

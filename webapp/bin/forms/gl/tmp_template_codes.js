@@ -110,7 +110,8 @@ var a = {
     valueHelpRequest: function (e) {
         var sett = sap.ui.getCore().getModel("settings").getData();
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-
+        var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+        
         UtilGen.Search.do_quick_search(e, this,
             "select Accno code,Name title from acaccount where childcount=0 and isbankcash='Y' order by path ",
             "select accno code,name title from acaccount where accno=:CODE", that.frm.objs["qry1.codename"].obj);

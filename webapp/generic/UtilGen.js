@@ -597,6 +597,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             sc.$().css("cssText", ar);
                     }, 50);
                 }
+
                 if (Util.nvl(contSetting, {}).hasOwnProperty("css")) {
                     setTimeout(function () {
                         var ar = {}.concat(contSetting["css"]);
@@ -1937,7 +1938,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var acn = vldt[0].CODE;
                         var nm = vldt[0].TITLE;
                         if (titObj == undefined)
-                            UtilGen.setControlValue(control, nm + "-" + acn, acn, true);
+                            UtilGen.setControlValue(control, acn, acn, true);
                         else {
                             UtilGen.setControlValue(control, acn, acn, true);
                             UtilGen.setControlValue(titObj, nm, nm, false);
@@ -2063,7 +2064,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var ld = qry.obj.mLctb;
                         var chld = Util.getSQLValue("select childcount from acaccount where accno=" + Util.quoted(ld.getFieldValue(rowno, "ACCNO")));
                         if (chld == undefined || (typeof chld == "string" && chld == "") || chld > 0)
-                            FormView.err(ld.getFieldValue(rowno, "ACCNO") + " not a valid a/c !");
+                            FormView.err(ld.getFieldValue(rowno, "ACCNO") + " not a valid a/c ! , row no # " + rowno);
 
                         if (Util.nvl(ld.getFieldValue(rowno, "COSTCENT"), "") != "") {
                             var chld = Util.getSQLValue("select code from accostcent1 where CODE=" + Util.quoted(ld.getFieldValue(rowno, "COSTCENT")));
@@ -2202,15 +2203,26 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var btAddRow = new sap.m.Button({
                         icon: "sap-icon://sys-add",
                         tooltip: "select add a row ",
-                        press: function () {
-                            if (qrj.getControl().getSelectedIndices().length == 0) {
-                                sap.m.MessageToast.show("Must select a row !");
-                                return;
-                            }
-                            var sl = qrj.getControl().getSelectedIndices()[0];
-                            qrj.insertRow(sl);
-                        }
                     });
+                    btAddRow.attachBrowserEvent("mousedown", function () {
+
+                        var rowno = -1;
+                        var colno = -1;
+                        if (qrj.getControl().getSelectedIndices().length == 0)
+                            try {
+                                const currentFocusedControlId = sap.ui.getCore().getCurrentFocusedControlId();
+                                var _input = sap.ui.getCore().byId(currentFocusedControlId);
+                                // if (_input != undefined || (!_input.getParent() instanceof sap.ui.table.Row)) return;
+                                rowno = qrj.getControl().indexOfRow(_input.getParent());
+                                colno = _input.getParent().indexOfCell(_input);
+                                qrj.getControl().setSelectedIndex(rowno);
+                            } catch (e) { }
+                        var sl = qrj.getControl().getSelectedIndices()[0];
+                        if (Util.nvl(sl, -1) != -1)
+                            qrj.insertRow(sl);
+                        else qrj.addRow();
+                    }
+                    );
                     var btNewAc = new sap.m.Button({
                         icon: "sap-icon://account",
                         tooltip: "Create new A/c",
@@ -3442,6 +3454,103 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         lc.setFieldValue(ri, Util.nvl(agrFld, "AGR"), "");
 
                 }
+            },
+            createDefaultToolbar1: function (qrj, findCols, addSpace) {
+                qrj.createToolbar("", [],
+                    // EVENT ON APPLY PERSONALIZATION
+                    function (prsn, qv) {
+                    },
+                    // EVENT ON REVERT PERSONALIZATION TO ORIGINAL
+                    function (qv) {
+                    }
+                );
+                var txt = undefined;
+                var btf = undefined;
+                if (Util.nvl(findCols, []).length > 0) {
+                    txt = new sap.m.Input({ width: "100px" });
+                    btf = new sap.m.Button({
+                        icon: "sap-icon://sys-find",
+                        tooltip: "click to find next..",
+                        press: function () {
+                            var bi = 0;
+                            if (qrj.getControl().getSelectedIndices().length > 0) {
+                                bi = qrj.getControl().getSelectedIndices()[0] + 1;
+                            }
+                            var rn = qrj.mLctb.findAny(findCols, txt.getValue(), bi);
+                            if (rn < 0) {
+                                qrj.getControl().setSelectedIndex(-1);
+                                return;
+                            }
+                            qrj.getControl().setSelectedIndex(rn);
+                            if (rn > 1) {
+                                qrj.getControl().setFirstVisibleRow(rn - 1);
+                            } else
+                                qrj.getControl().setFirstVisibleRow(rn);
+                        }
+                    });
+                }
+                var btDelRow = new sap.m.Button({
+                    icon: "sap-icon://sys-minus",
+                    tooltip: "select and delete a row ",
+                });
+                btDelRow.attachBrowserEvent("mousedown", function () {
+
+                    var rowno = -1;
+                    var colno = -1;
+                    if (qrj.getControl().getSelectedIndices().length == 0) {
+                        const currentFocusedControlId = sap.ui.getCore().getCurrentFocusedControlId();
+                        var _input = sap.ui.getCore().byId(currentFocusedControlId);
+                        // if (_input != undefined || (!_input.getParent() instanceof sap.ui.table.Row)) return;
+                        rowno = qrj.getControl().indexOfRow(_input.getParent());
+                        colno = _input.getParent().indexOfCell(_input);
+                        qrj.getControl().setSelectedIndex(rowno);
+                    }
+
+                    if (qrj.getControl().getSelectedIndices().length == 0) {
+                        sap.m.MessageToast.show("Must select a row !");
+                        return;
+                    }
+
+                    var sl = qrj.getControl().getSelectedIndices();
+                    for (var s = sl.length - 1; s >= -1; s--)
+                        qrj.deleteRow(sl[s]);
+                });
+                var btAddRow = new sap.m.Button({
+                    icon: "sap-icon://sys-add",
+                    tooltip: "select add a row ",
+                });
+                btAddRow.attachBrowserEvent("mousedown", function () {
+
+                    var rowno = -1;
+                    var colno = -1;
+                    if (qrj.getControl().getSelectedIndices().length == 0)
+                        try {
+                            const currentFocusedControlId = sap.ui.getCore().getCurrentFocusedControlId();
+                            var _input = sap.ui.getCore().byId(currentFocusedControlId);
+                            // if (_input != undefined || (!_input.getParent() instanceof sap.ui.table.Row)) return;
+                            rowno = qrj.getControl().indexOfRow(_input.getParent());
+                            colno = _input.getParent().indexOfCell(_input);
+                            qrj.getControl().setSelectedIndex(rowno);
+                        }
+                        catch (e) { };
+                    var sl = qrj.getControl().getSelectedIndices()[0];
+                    if (Util.nvl(sl, -1) != -1)
+                        qrj.insertRow(sl);
+                    else qrj.addRow();
+
+                }
+                );
+                qrj.showToolbar.toolbar.removeAllContent();
+                qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
+                qrj.showToolbar.toolbar.addContent(btAddRow);
+                qrj.showToolbar.toolbar.addContent(btDelRow);
+                if (Util.nvl(addSpace, false))
+                    qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
+                if (Util.nvl(findCols, []).length > 0) {
+                    qrj.showToolbar.toolbar.addContent(txt);
+                    qrj.showToolbar.toolbar.addContent(btf);
+                }
+
             }
         };
 

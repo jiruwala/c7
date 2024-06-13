@@ -968,7 +968,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     return false; // Not in camelCase format
                 }
             },
-            showSearchTable: function (sql, container, pflcol, fnOnselect, multiSelect, ppms, dta, jsCmd, refreshCmd) {
+            showSearchTable: function (sql, container, pflcol, fnOnselect, multiSelect, ppms, dta, jsCmd, refreshCmd, listParaCmd) {
                 if (container instanceof sap.m.VBox)
                     container.removeAllItems();
                 else {
@@ -976,6 +976,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     container.removeAllContent();
                 }
                 var tm = new Date().getTime();
+                var listKey = listParaCmd != undefined ? listParaCmd.getSelectedKey() : "";
+
                 var qv = new QueryView("searchTbl" + tm);
                 qv.getControl().setFixedBottomRowCount(0);
                 qv.getControl().addStyleClass("sapUiSizeCondensed");
@@ -1017,6 +1019,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         var filter = new sap.ui.model.Filter(f, false);
                         var binding = lst.getBinding("rows");
                         binding.filter(filter);
+                        setTimeout(function () {
+                            sap.m.MessageToast.show("Rows filtere " + binding.aIndices.length);
+                        }, 100);
                     }
                 });
                 searchField.attachBrowserEvent("keydown", function (evt) {
@@ -1029,10 +1034,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     }
 
                 });
-
                 var hb = new sap.m.HBox({
                     width: "100%",
-                    items: [...[searchField], ...Util.nvl([refreshCmd], [])]
+                    items: [...[searchField], ...Util.nvl([listParaCmd], []), ...Util.nvl([refreshCmd], [])]
                 })
                 if (container instanceof sap.m.VBox)
                     container.addItem(hb);
@@ -1040,6 +1044,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 else
                     container.addHeaderContent(hb);
                 var dat = {};
+                sql = sql.replaceAll("^^list_key", listKey);
                 if (!sql.startsWith("@"))
                     dat = (dta != undefined ? dta : this.execSQL(sql));
                 else dat = Util.getRowData(sql);
@@ -1220,7 +1225,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return "";
             },
-            show_list: function (sql, cols, retCols, pfnSel, width, height, visibleRowCount, multiSelect, fnShowSel, pppms, dta, jsCmd, pCss, pBtns) {
+            show_list: function (sql, cols, retCols, pfnSel, width, height, visibleRowCount, multiSelect, fnShowSel, pppms, dta, jsCmd, pCss, pBtns, pListPara, titDialog) {
                 // var vbox = new sap.m.VBox({width: "100%"});
 
                 var vbox = new sap.m.Page({ showHeader: true });
@@ -1241,7 +1246,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 var dlg = new sap.m.Dialog({
                     content: [vbox],
                     contentHeight: this.nvl(height, "500px"),
-                    contentWidth: this.nvl(width, "400px")
+                    contentWidth: this.nvl(width, "400px"),
+                    title: Util.nvl(titDialog, "")
                 });
                 if (pCss != undefined)
                     dlg.$().css(pCss);
@@ -1265,6 +1271,21 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         refreshData();
                     }
                 });
+                var cmdList = undefined;
+                if (pListPara != undefined) {
+                    cmdList = UtilGen.createControl(sap.m.ComboBox, UtilGen.DBView, "listPara" + (new Date()).getTime(), {
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: pListPara.defaultKey,
+                        selectionChange: function () {
+                            refreshData();
+                        },
+                        layoutData: new sap.ui.layout.GridData({ span: "XL4 L4 M4 S4" }),
+                    }, "string", undefined, undefined, pListPara.selectStr);
+                }
                 var btn = new sap.m.Button({
                     text: Util.getLangText("selectTxt"), press: function () {
                         var sl = qv.getControl().getSelectedIndices();
@@ -1307,8 +1328,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                             sap.m.MessageToast.show("selected !");
                             btn.firePress();
                         }
-                    }, Util.nvl(multiSelect, false), ppms, dta, jsCmd, btnRfrsh);
+                    }, Util.nvl(multiSelect, false), ppms, dta, jsCmd, btnRfrsh, cmdList);
                     qv.getControl().addStyleClass("noColumnBorder");
+                    dlg.setTitle(Util.nvl(titDialog, "") + " : " + qv.mLctb.rows.length + " Rows ");
                 };
                 refreshData();
                 // if (visibleRowCount != undefined) {
@@ -1458,14 +1480,14 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             extractNumber: function (pvr, df) {
                 var vr = this.nvl(pvr, "");
                 if (vr == "")
-                    return null;
+                    return 0;
                 var neg = (vr.toString().startsWith("-") ? "-" : "");
                 var val = vr.toString().replace(/[^\d\.]/g, '').replace(/,/g, '');
                 if (df != undefined)
                     val = parseFloat(neg + (df.formatBack(val)));
                 else
                     val = parseFloat("" + neg + val);
-                return val;
+                return Util.nvl(val, 0);
             },
             err: function (msg) {
                 sap.m.MessageToast.show(msg, {
@@ -1767,11 +1789,13 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
                 return bindVariables;
             },
-            simpleConfirmDialog: function (msg, fnOk, fnCancel, fnOnClose) {
+            simpleConfirmDialog: function (msg, fnOk, fnCancel, fnOnClose, pEa) {
                 if (sap.m.MessageBox == undefined)
                     jQuery.sap.require("sap.m.MessageBox");
+                var ea = Util.nvl(pEa, sap.m.MessageBox.Action.CANCEL);
                 sap.m.MessageBox.confirm(msg, {
                     title: "Confirm",                                    // default
+                    emphasizedAction: ea,
                     onClose: function (oAction) {
                         if (fnOnClose != undefined)
                             fnOnClose(oAction);
@@ -1779,7 +1803,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         else if (fnCancel != undefined) fnCancel();
                     },                                       // default
                     styleClass: "",                                      // default
-                    initialFocus: null,                                  // default
+                    initialFocus: ea,                                  // default
                     textDirection: sap.ui.core.TextDirection.Inherit     // default
                 });
             },

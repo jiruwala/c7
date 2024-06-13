@@ -48,7 +48,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
 
             var it = tbl.getRows()[rr].getCells()[0].getText();
             UtilGen.execCmd("rp.in.st formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            
+
             // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
 
             // var mnu = new sap.m.Menu();
@@ -166,7 +166,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 25 },
                                 execOnShow: false,
                                 dml: "SELECT   REFER, nvl(descr,descra) DESCRA, ITPACKD," +
                                     "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0) qtyx, MAX(0) PACK_COST," +
@@ -366,7 +366,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 25 },
                                 execOnShow: false,
                                 dml: "SELECT   REFER, nvl(descr,descra) DESCRA, ITPACKD," +
                                     " NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0) qtyx,max(0) pack_cost, " +
@@ -702,7 +702,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 14, "L": 20 },
+                                dispRecords: { "S": 10, "M": 14, "L": 20, "XL": 23 },
                                 execOnShow: false,
                                 dml: "select '01' accno , 'do it' descr from dual",
                                 parent: "PARENTACC",

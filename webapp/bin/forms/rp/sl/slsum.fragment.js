@@ -86,6 +86,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    printOrient: "",
                     showCustomPara: function (vbPara, rep) {
 
                     },
@@ -109,10 +110,10 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     rep: {
                         parameters: thatForm.helperFunc.getParas("SLSUM01"),
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
+                            // {
+                            //     title: "Jasper Template ",
+                            //     reportFile: "trans_1",
+                            // }
                         ],
                         canvas: [],
                         db: [
@@ -178,10 +179,21 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                                             qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
                                             qr.getControl().setAlternateRowColors(false);
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-                                            qr.getControl().setVisibleRowCount(10);
+                                            var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
+                                            qr.getControl().setVisibleRowCount(r);
                                             qr.getControl().setRowHeight(20);
-
+                                            qr.filterCols = ["DESCR", "INV_REFNM", "REFER", "LOCATION_NAME", "SLSMN_NAME", "MONTH"];
+                                            qr.createToolbar(qr.disp_class, qr.filterCols,
+                                                // EVENT ON APPLY PERSONALIZATION
+                                                function (prsn, qv) {
+                                                },
+                                                // EVENT ON REVERT PERSONALIZATION TO ORIGINAL
+                                                function (qv) {
+                                                }
+                                            );
+                                            this.obj.addContent(qr.showToolbar.toolbar);
                                             this.obj.addContent(qr.getControl());
+
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
@@ -216,15 +228,59 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         disp: "c_cus_no",
                         exp: "",
                         mGrouped: true,
-                        _grpBy: true
+                        _grpBy: true,
+                        _ordBy: "ASC"
                     },
                     {
                         disp: "inv_refnm",
                         exp: "",
                         mGrouped: true,
+                        _grpBy: true,
+                    }
+
+                ],
+                "types": [
+                    {
+                        disp: "type",
+                        exp: "",
+                        mGrouped: true,
+                        _grpBy: true,
+                        _ordBy: "ASC"
+                    },
+                    {
+                        disp: "typedescr",
+                        exp: "",
+                        mGrouped: true,
                         _grpBy: true
 
                     }
+
+                ],
+                "parentitems": [
+                    {
+                        disp: "parentitem",
+                        exp: "",
+                        mGrouped: true,
+                        _grpBy: true,
+                        _ordBy: "ASC"
+                    },
+                    {
+                        disp: "parentitemdescr",
+                        exp: "",
+                        mGrouped: true,
+                        _grpBy: true
+
+                    }
+
+                ],
+                "month": [
+                    {
+                        disp: "month",
+                        exp: "to_char(invoice_date,'rrrr/mm')",
+                        mGrouped: true,
+                        _grpBy: true,
+                        _ordBy: "ASC"
+                    },
 
                 ],
                 "locations": [
@@ -242,9 +298,27 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         disp: "invdate",
                         exp: "invoice_date",
                         mGrouped: true,
-                        _grpBy: true
+                        _grpBy: true,
+                        _ordBy: "ASC"
 
                     },
+
+                ],
+                "salesman": [
+                    {
+                        disp: "slsmn",
+                        exp: "",
+                        mGrouped: true,
+                        _grpBy: true,
+                        _ordBy: "ASC"
+                    },
+                    {
+                        disp: "slsmn_name",
+                        exp: "",
+                        mGrouped: true,
+                        _grpBy: true
+
+                    }
 
                 ],
                 "items": [
@@ -252,7 +326,8 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         disp: "refer",
                         exp: "",
                         mGrouped: true,
-                        _grpBy: true
+                        _grpBy: true,
+                        _ordBy: "ASC"
 
                     },
                     {
@@ -262,8 +337,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         _grpBy: true
                     },
 
-                ]
-
+                ],
             };
 
             this.addCols = {
@@ -275,15 +349,130 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     },
                     {
                         disp: "qty",
-                        exp: "sum(allqty/pack)",
+                        exp: "sum((qtyout-qtyin)/pack)",
                     },
+                    {
+                        disp: "avg_price",
+                        exp: "getavgprice(nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
+                    },
+                ],
+                "all": [
+                    {
+                        disp: "amt",
+                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
+                    },
+                    {
+                        disp: "cost",
+                        exp: "nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
+                    },
+                    {
+                        disp: "profitamt",
+                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
+                    },
+                    {
+                        disp: "profitmargin",
+                        exp: "round(getavgprice( nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
+                    },
+
+
+
                 ]
             };
-
+            this.otherProps = {
+                "customers": {
+                    "c_cus_no": {
+                        "mTitle": "txtCust",
+                        "mUIHelper": {
+                            "display_format": 60
+                        }
+                    },
+                    "inv_refnm": {
+                        "mTitle": "txtCust",
+                        "mUIHelper": {
+                            "display_format": 120
+                        }
+                    }
+                },
+                "items": {
+                    "avg_price": {
+                        "mTitle": "Avg Price",
+                        "mUIHelper": {
+                            "display_format": "MONEY_FORMAT",
+                            "display_width": 70
+                        }
+                    },
+                    "refer": {
+                        "mTitle": "Refer",
+                        "mUIHelper": {
+                            "display_width": 100
+                        }
+                    },
+                    "descr": {
+                        "mTitle": "Descr",
+                        "mUIHelper": {
+                            "display_width": 120
+                        }
+                    },
+                    "packing": {
+                        "mTitle": "Packing",
+                        "mUIHelper": {
+                            "display_width": 60
+                        }
+                    },
+                    "qty": {
+                        "mTitle": "Pk Qty",
+                        "mUIHelper": {
+                            "display_width": 60
+                        }
+                    },
+                },
+                "date": {
+                    "invdate": {
+                        "mTitle": "Date",
+                        "mUIHelper": {
+                            "display_format": "SHORT_DATE_FORMAT"
+                        }
+                    }
+                },
+                "all": {
+                    "cost": {
+                        "mTitle": "Cost Amt",
+                        "mSummary": "SUM",
+                        "mUIHelper": {
+                            "display_format": "MONEY_FORMAT",
+                            "display_width": 90
+                        }
+                    },
+                    "amt": {
+                        "mTitle": "Amount",
+                        "mSummary": "SUM",
+                        "mUIHelper": {
+                            "display_format": "MONEY_FORMAT",
+                            "display_width": 90
+                        }
+                    },
+                    "profitamt": {
+                        "mTitle": "Profit Amt",
+                        "mSummary": "SUM",
+                        "mUIHelper": {
+                            "display_format": "MONEY_FORMAT",
+                            "display_width": 90
+                        }
+                    },
+                    "profitmargin": {
+                        "mTitle": "Profit Amt",
+                        "mSummary": "SUM",
+                        "mUIHelper": {
+                            "display_format": "MONEY_FORMAT",
+                            "display_width": 90
+                        }
+                    }
+                },
+            }
         },
         getParas: function (repCode) {
             var colSpan = "XL2 L2 M2 S12";
-            var strLst = "@customers/Customers,date/Date,locations/Locations,items/Items";
+            var strLst = "@customers/Customers,month/Monthly,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
             return {
                 fromdate: {
                     colname: "fromdate",
@@ -316,6 +505,32 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     default_value: "$TODAY",
                     other_settings: { width: "35%" },
                     list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
+                ploc: {
+                    colname: "ploc",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "ALL",
+                    },
+                    list: "select 'ALL' code,'ALL' name from dual union all select code,name from locations order by code",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -365,58 +580,48 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "customers",
+                        selectedKey: "",
                     },
                     list: strLst,
                     edit_allowed: true,
                     insert_allowed: true,
-                    require: true,
+                    require: false,
                     dispInPara: true,
                 }
             };
         },
         addQry1: function (qryObj, ps) {
             var thatForm = this.thatForm;
-            var sql = "select :grpCols ,nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* ((QTYOUT-QTYIN))),0) AMT  from joined where " +
+            var sql = "select :grpCols from joined where " +
                 " invoice_date>=:parameter.fromdate and " +
-                " invoice_date<=:parameter.todate " +
-                " and invoice_code=21 group by :grpByCols";
+                " invoice_date<=:parameter.todate and " +
+                " (location_code=':parameter.ploc' or ':parameter.ploc'='ALL') " +
+                " and invoice_code in (21,12) group by :grpByCols ";
             var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
             var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");
             if (eq == "" || eq == seq)
                 FormView.err("Cant group and sub group be same !");
-            var cols = this.sqlCols[eq];
-            var cols2 = this.sqlCols[seq];
-            var acols = this.addCols[eq];
-            var acols2 = this.addCols[seq];
-
             var strCol = "";
             var grpCol = "";
-            for (var s in cols) {
-                strCol += (strCol.length > 0 ? "," : "") + (cols[s].exp != "" ? cols[s].exp + " \"" + cols[s].disp.toUpperCase() + "\"" : cols[s].disp);
-                if (Util.nvl(cols[s]._grpBy, false))
-                    grpCol += (grpCol.length > 0 ? "," : "") + Util.nvl(cols[s].exp, cols[s].disp);
-            }
-            for (var s in cols2) {
-                strCol += (strCol.length > 0 ? "," : "") + (cols2[s].exp != "" ? cols2[s].exp + " \"" + cols2[s].disp.toUpperCase() + "\"" : cols2[s].disp);
-                if (Util.nvl(cols2[s]._grpBy, false))
-                    grpCol += (grpCol.length > 0 ? "," : "") + Util.nvl(cols2[s].exp, cols2[s].disp);
-            }
-            for (var s in acols) {
-                strCol += (strCol.length > 0 ? "," : "") + (acols[s].exp != "" ? acols[s].exp + " \"" + acols[s].disp.toUpperCase() + "\"" : acols[s].disp);
-                if (Util.nvl(acols[s]._grpBy, false))
-                    grpCol += (grpCol.length > 0 ? "," : "") + Util.nvl(acols[s].exp, acols[s].disp);
-            }
-
-            for (var s in acols2) {
-                strCol += (strCol.length > 0 ? "," : "") + (acols2[s].exp != "" ? acols2[s].exp + " \"" + acols2[s].disp.toUpperCase() + "\"" : acols2[s].disp);
-                if (Util.nvl(acols2[s]._grpBy, false))
-                    grpCol += (grpCol.length > 0 ? "," : "") + Util.nvl(acols2[s].exp, acols2[s].disp);
-            }
-
+            var ordCol = "";
+            var fnaddCols = function (cols) {
+                for (var s in cols) {
+                    strCol += (strCol.length > 0 ? "," : "") + (cols[s].exp != "" ? cols[s].exp + " \"" + cols[s].disp.toUpperCase() + "\"" : cols[s].disp);
+                    if (Util.nvl(cols[s]._grpBy, false))
+                        grpCol += (grpCol.length > 0 ? "," : "") + Util.nvl(cols[s].exp, cols[s].disp);
+                    if (Util.nvl(cols[s]._ordBy, "") != "")
+                        ordCol += (ordCol.length > 0 ? "," : "") + Util.nvl(cols[s].exp, cols[s].disp) + " " + cols[s]._ordBy;
+                }
+            };
+            fnaddCols(this.sqlCols[eq]);
+            fnaddCols(this.sqlCols[seq]);
+            fnaddCols(this.addCols[eq]);
+            fnaddCols(this.addCols[seq]);
+            fnaddCols(this.addCols["all"]);
 
             sql = sql.replaceAll(":grpCols", strCol)
-                .replaceAll(":grpByCols", grpCol);
+                .replaceAll(":grpByCols", grpCol) + (ordCol.length > 0 ? " order by " + ordCol : "");
+
 
             sql = thatForm.frm.parseString(sql);
             Util.doAjaxJson("bat7addQry?" + ps, {
@@ -460,12 +665,33 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     ld.cols[ld.getColPos("AMT")].mSummary = "SUM";
                     ld.cols[ld.getColPos("AMT")].mUIHelper.display_format = "MONEY_FORMAT";
                     var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
+                    var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");
                     var cols = that.sqlCols[eq];
-                    for (var g in cols)
-                        ld.cols[ld.getColPos(cols[g].disp)].mGrouped = Util.nvl(cols[g].mGrouped, false);
+
+
+                    if (seq != "")
+                        for (var g in cols)
+                            ld.cols[ld.getColPos(cols[g].disp)].mGrouped = Util.nvl(cols[g].mGrouped, false);
+
+                    var fnSetCols = function (ocols) {
+                        for (var g in ocols) {
+                            var gfld = ocols[g];
+                            var gUi = Util.nvl(gfld.mUIHelper, []);
+                            for (var gk in gfld)
+                                if (typeof (gfld[gk]) != 'object')
+                                    ld.cols[ld.getColPos(g.toUpperCase())][gk] = gfld[gk];
+                            for (var gu in gUi)
+                                ld.cols[ld.getColPos(g.toUpperCase())]["mUIHelper"][gu] = gUi[gu];
+                        }
+                    }
+                    fnSetCols(Util.nvl(that.otherProps[eq], []));
+                    fnSetCols(Util.nvl(that.otherProps[seq], []));
+                    fnSetCols(Util.nvl(that.otherProps["all"], []));
 
                     qr.mLctb.parse("{" + dt.data + "}", true);
                     qr.loadData();
+                    if (qr.mLctb.rows.length > 0)
+                        qr.getControl().setFirstVisibleRow(0);
                 }
             });
         }

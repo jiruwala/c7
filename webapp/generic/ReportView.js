@@ -123,6 +123,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 rep.descrAR = Util.nvl(rps[r].descrAR, rps[r].descr);
                 rep.code = rps[r].code;
                 rep.printCSS = Util.nvl(rps[r].printCSS, "print.css");
+                rep.printOrient = Util.nvl(rps[r].printOrient, "");
+                rep.printCellFontSize = Util.nvl(rps[r].printCellFontSize, "font-size:12px;");
+                rep.printCellPadding = Util.nvl(rps[r].printCellPadding, "padding:5px;");
                 rep.isCrossTb = Util.nvl(rps[r].isCrossTb, "N");
                 rep.rptNo = r;
                 rep.showSQLWhereClause = Util.nvl(rps[r].showSQLWhereClause, false);
@@ -217,6 +220,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     qr.dispRecords = Util.nvl(qrys[i].dispRecords, 10);
                     qr.rowHeight = Util.nvl(qrys[i].rowHeight, 12);
                     qr.onRowRender = Util.nvl(qrys[i].onRowRender, undefined);
+                    qr.onPrintRenderAdd = Util.nvl(qrys[i].onPrintRenderAdd, undefined);
                     qr.dispRecords = UtilGen.dispTblRecsByDevice(qr.dispRecords);
                     qr.fields = {};
                     qr.canvas = Util.nvl(qrys[i].canvas, "default_canvas");
@@ -1361,6 +1365,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 qr.obj.getControl().setRowHeight(qr.rowHeight);
                                 if (qr.onRowRender != undefined)
                                     qr.obj.onRowRender = qr.onRowRender;
+                                if (qr.onPrintRenderAdd != undefined)
+                                    qr.obj.onPrintRenderAdd = qr.onPrintRenderAdd;
+
 
                                 if (Util.nvl(qr.dispRecords, -1) == -1) {
                                     qr.obj.getControl().setVisibleRowCount(12);
@@ -2311,7 +2318,6 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                         qryObj.obj.mLctb.updateRecStatus(LocalTableData.RowStatus.QUERY);
                                         qryObj.obj.loadData();
-
                                     } else {
                                         thatRV.ERROR_ON_RCV_DATA = true;
                                     }
@@ -2329,8 +2335,13 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             thatRV.helperFunctions.misc.showFilterColsCmd(thatRV.vbPara, rep);
                         }
                         thatRV.helperFunctions.misc.showDisplayRecs(rep.rptNo);
-
-
+                        setTimeout(function () {
+                            for (var o in qrys) {
+                                qryObj = qrys[o];
+                                if (qryObj.showType == FormView.QueryShowType.QUERYVIEW && qryObj.obj.mLctb.rows.length > 0)
+                                    qryObj.obj.getControl().setFirstVisibleRow(0);
+                            }
+                        }, 100);
                         // clearing report from server in case parameter passed in CLEAR_REP=true
                         if (thatRV.reportVars.clearReportImmediate || rep.clearCatchReportImmediate) {
                             thatRV.helperFunctions.reports.clearReport(rptNo, function () {
@@ -2378,6 +2389,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         clearInterval(thatRV.rcv_data_timer);
                     setTimeout(function () {
                         thatRV.tbMain.$().css("background-color", "lightblue");
+
                     }, 100);
 
                 }
@@ -3476,7 +3488,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             that.view.reportsData = {
                 report_info: { report_name: Util.nvl(Util.getLangDescrAR(rep.title, rep.title2), "Query") }
             };
-            var ht = "<div class='company'>" + sett["COMPANY_NAME"] + "</div> " + rep.onSubTitHTML(rep);
+            // var ht = "<div class='company'>" + sett["COMPANY_NAME"] + "</div> " + rep.onSubTitHTML(rep);
+            var ht = "<header><div class='company'>" + sett["COMPANY_NAME"] + "</div> " + (rep.onSubTitHTML!=undefined ?rep.onSubTitHTML(rep):"" ) + "</header>";
+            var ft = "<footer><div class='footerText'> Printed by : " + sett["LOGON_USER"] + "</div></footer>";
             var h2 = "";
             var pvl = "";
             var flds = rep.parameters;
@@ -3504,6 +3518,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             ht = ht + flds[f].onPrintField();
                         else
                             ht = ht + "<b>" + flds[f].title + " : </b>" + " " + UtilGen.getControlValue(flds[f].obj) + "<br>";
+
                     }
                 }
             }
@@ -3520,14 +3535,24 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     async: false,
                     success: function (cssText) {
                         hd = cssText;
+                        hd = hd.replaceAll("^^orientation^^", Util.nvl(rep.printOrient, ""))
+                            .replaceAll("^^tdFontSize^^", Util.nvl(rep.printCellFontSize, ""))
+                            .replaceAll("^^tdPadding^^", Util.nvl(rep.printCellPadding, ""));
+
                         hd = "<style>" + hd + "</style>";
-                        ht = "<html" + dir + ">" + "<head>" + hd + "</head><body>" + ht + "</body></html>";
+                        ht = "<html" + dir + ">" + "<head><title></title>" + hd + "</head><body>" + ht + ft + "</body></html>";
                         // newWin.document.write(ht);
                         // $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);
                         // setTimeout(function () {
                         //     newWin.print();
                         // }, 1000);
-                        printJS({ printable: ht, type: "raw-html" });
+                        printJS({
+                            printable: ht,
+                            type: "raw-html",
+                            style: UtilGen.DBView.sLangu == "AR" ? "body { direction: rtl;}" : "",
+                            header: "<div class='company'>" + sett["COMPANY_NAME"] + "</div>",
+                            footer: ft
+                        });
                     }
                 });
             }
@@ -3587,6 +3612,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 async: false,
                 success: function (cssText) {
                     hd = cssText;
+                    hd = hd.replaceAll("^^orientation^^", Util.nvl(rep.printOrient, ""))
+                        .replaceAll("^^tdFontSize^^", Util.nvl(rep.printCellFontSize, ""))
+                        .replaceAll("^^tdPadding^^", Util.nvl(rep.printCellPadding, ""));
                     hd = "<style>" + hd + "</style>";
                     hd = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>" + hd;
                     ht = "<html" + dir + ">" + "<head>" + hd + "</head><body>" + ht + "</body></html>";

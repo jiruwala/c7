@@ -515,6 +515,9 @@ th {
 .yellow {
     background-color: yellow !important;
 }
+.lightblueBG {
+    background-color: lightblue !important;
+}
 
 .simpleForm {
     border: 1px solid darkgrey;
@@ -748,6 +751,10 @@ th {
 .dbCashBank:hover {
     cursor: pointer;
     text-decoration: underline;
+}
+
+.redTextBtn .sapMBtnInner {
+    color: red;
 }
 
 .blueButton .sapMBtnInner {
