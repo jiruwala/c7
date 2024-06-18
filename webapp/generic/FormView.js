@@ -37,6 +37,23 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             oMessageToastDOM.css('color', "red");
             throw msg;
         };
+        FormView.msgSuccess = function (msg) {
+            sap.m.MessageToast.show(msg, {
+            });
+            var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
+            oMessageToastDOM.css('color', "darkgreen");
+            oMessageToastDOM.css('font-size', "18px");
+            // throw "FormView Error: " + msg;
+        };
+        FormView.msgCustom = function (msg, color, bkcolor, fontSize) {
+            sap.m.MessageToast.show(msg, {
+            });
+            var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
+            oMessageToastDOM.css('color', Util.nvl(color, "black"));
+            oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+            oMessageToastDOM.css('background-color', Util.nvl(bkcolor, "white"));
+            // throw "FormView Error: " + msg;
+        };
 
         FormView.QueryShowType = {
             FORM: "form",
@@ -304,7 +321,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
             }
             // canvases
-            this.form.canvases = [{ name: "default_canvas", obj: undefined, objType: FormView.ObjTypes.CANVAS }];
+            this.form.canvases = Util.nvl(json.form.canvas, [
+                { name: "default_canvas", obj: undefined, objType: FormView.ObjTypes.CANVAS }]);
             this.objs["default_canvas"] = this.form.canvases[0];
             var cnvs = Util.nvl(json.form.canvases, []);
 
@@ -344,6 +362,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 lst.name = lsts[i].name;
                 lst.title = lsts[i].title;
                 lst.list_type = lsts[i].list_type;
+                lst.list_para = lsts[i].list_para;
                 lst.cols = lsts[i].cols;  // [{colname:'code',width:'100',return_field:'pac' }]
                 lst.objType = FormView.ObjTypes.LISTS;
                 lst.sql = lsts[i].sql;
@@ -372,7 +391,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             oMessageToastDOM.css('color', "red");
             throw "FormView Error: " + msg;
         };
-
         FormView.prototype.createView = function () {
             var thatForm = this;
             if (this.pg == undefined)
@@ -423,6 +441,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                         }
                                     });
                                 }
+                                flds[f].obj.tableCol = flds[f];
                                 // this.dispCanvases[flds[f].canvas].push(flds[f].obj);
                                 flds[f].obj.addStyleClass(flds[f].display_style);
                                 if (this.firstObj == undefined && flds[f].obj instanceof sap.m.InputBase)
@@ -440,6 +459,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             }
 
                         }
+
                 } else if (this.form.db[q].showType == FormView.QueryShowType.QUERYVIEW) {
                     var qr = this.form.db[q];
                     qr.obj = new QueryView(qr.name + "_" + this.timeInLong);
@@ -540,6 +560,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             // this.objs["default_canvas"].obj = UtilGen.formCreate("", true, this.dispCanvases["default_canvas"], qr.labelSpan, qr.emptySpan, qr.columnsSpan);
             this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, sap.m.ScrollContainer, this.form.formSetting, "sapUiSizeCondensed", "10px");
             this.sc.addContent(this.objs["default_canvas"].obj);
+
+            if (this.objs["default_canvas"].hasOwnProperty("after_add_canvas") && this.objs["default_canvas"].after_add_canvas != undefined)
+                this.objs["default_canvas"].after_add_canvas(this.objs["default_canvas"].obj);
 
             // this.objs["default_canvas"].obj.setToolbar(undefined);
             // this.objs["default_canvas"].obj.destroyToolbar();
@@ -991,12 +1014,19 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
         FormView.prototype._loadDataFromJson = function (qry, dtx, executeChange) {
             var subs = qry.fields;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+
+
             for (var key in subs) {
                 var vl = dtx[key.toUpperCase()];
                 if (subs[key].obj != undefined)
                     UtilGen.setControlValue(subs[key].obj, "", "", false);
                 if (subs[key].obj != undefined && vl != undefined)
                     UtilGen.setControlValue(subs[key].obj, vl, vl, Util.nvl(executeChange, false));
+                if (subs[key].obj != undefined && vl != undefined && subs[key].data_type == FormView.DataType.Number && Util.nvl(subs[key].display_format, "") != "") {
+                    var df = new DecimalFormat(subs[key].display_format);
+                    UtilGen.setControlValue(subs[key].obj, df.format(vl), vl, Util.nvl(executeChange, false));
+                }
 
             }
 
@@ -1018,7 +1048,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 onClose: function (oAction) {
                     if (oAction == sap.m.MessageBox.Action.OK) {
                         var sv = thatForm.deleteQryData();
-                        sap.m.MessageToast.show("Query data deleted thorugh # " + sv + " SQL(s) ")
+                        FormView.msgCustom(Util.getLangText("msgDeleted"), "maroon");
                     }
                 },                                       // default
                 styleClass: "",                                      // default
@@ -1193,6 +1223,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         var fld = flds[i].obj;
                         this._setQryEditableObj(fld, true);
                     }
+                    if (qryObj.status != FormView.RecordStatus.VIEW && Util.nvl(qryObj.addRowOnEmpty, false) && qryObj.obj.mLctb.rows.length == 0)
+                        qryObj.obj.addRow();
                 }
             }
 
@@ -1305,7 +1337,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         return false;
 
                 return true;
-            }, "100%", "100%", undefined, Util.nvl(lstObj.multiSelect, false));
+            }, "100%", "100%", undefined, Util.nvl(lstObj.multiSelect, false), undefined, undefined, undefined, undefined, undefined, undefined, lstObj.list_para, lstObj.title);
 
         };
         FormView.prototype.validate_data = function (qryName) {
@@ -1338,7 +1370,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var qryObj = undefined;
             var thatForm = this;
             if (this.form.readonly)
-                sap.m.MessageToast.err("This form is read only !");
+                FormView.err("This form is read only !");
+
             if (typeof qryName == "string")
                 qryObj = this.objs[qryName];
             else qryObj = qryName;
@@ -1351,6 +1384,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             for (var o in qrys) {
                 qryObj = qrys[o];
                 sq2 = "";
+                if (!(qryObj.status == FormView.RecordStatus.EDIT || qryObj.status == FormView.RecordStatus.NEW))
+                    FormView.err("This form is Not in EDIT/NEW Mode !");
                 if (qryObj.status == FormView.RecordStatus.EDIT && qryObj.edit_allowed) {
                     if (!this.validate_data(qryObj))
                         return false;
@@ -1369,7 +1404,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             qryObj.update_exclude_fields,
                             qryObj.where_clause);
                         sq2 = this.parseString(sq2) + ";";
-                        
+
                         if (this.form.events.hasOwnProperty("addSqlAfterUpdate")) {
                             var adSq = this.form.events.addSqlAfterUpdate(qryObj, undefined)
                             // if (er != "")
@@ -1466,6 +1501,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 if (data.ret != "SUCCESS")
                     thatForm.err(data.ret);
 
+                FormView.msgSuccess(Util.getLangText("msgSaved"));
 
                 if (thatForm.form.events.hasOwnProperty("afterExeSql"))
                     if (thatForm.form.events.afterExeSql(oSql));

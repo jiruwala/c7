@@ -1534,7 +1534,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var plsql = "declare ";
         //cursor su is ----in getaccbal function to replace
         var sqxAB = "SELECT nvl(sum(deb-crd),0) bal FROM :V_STATMENT_1 v " +
-            " WHERE v.PATH LIKE ACNo AND VOU_DATE<DT AND " +
+            " WHERE (v.PATH LIKE ACNo||'%' or acno is null)  AND VOU_DATE<DT AND " +
             " (cost_PATH  LIKE CC||'%' or cc is null) " +
             " and (cust_path like cd||'%' or cd is null) :KEYFLD_CONDITION ";
         //cursor acx1 is  --- GETPATHDEBIT 
@@ -1597,7 +1597,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         paras += "TYPEX varchar2(100) := 'ALL';";
         paras += "DEL_OLD_DATA boolean := true;";
 
-        sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2,CC VARCHAR2) IS " + sqls + " ORDER BY vou_date;";
+        sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2,CC VARCHAR2) IS " + sqls + " ORDER BY vou_date; ";
         var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992.1");
         sqls = sqls + str;
         sqls = sqls.replaceAll(":_CURSOR_SU_ACCBAL", sqls1);

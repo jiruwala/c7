@@ -86,6 +86,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    printOrient: "",
                     showCustomPara: function (vbPara, rep) {
 
                     },
@@ -109,10 +110,10 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     rep: {
                         parameters: thatForm.helperFunc.getParas("SLSUM01"),
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
+                            // {
+                            //     title: "Jasper Template ",
+                            //     reportFile: "trans_1",
+                            // }
                         ],
                         canvas: [],
                         db: [
@@ -352,13 +353,13 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     },
                     {
                         disp: "avg_price",
-                        exp: "getavgprice(nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
+                        exp: "getavgprice(nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
                     },
                 ],
                 "all": [
                     {
                         disp: "amt",
-                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
+                        exp: "nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
                     },
                     {
                         disp: "cost",
@@ -366,11 +367,11 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     },
                     {
                         disp: "profitamt",
-                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
+                        exp: "nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
                     },
                     {
                         disp: "profitmargin",
-                        exp: "round(getavgprice( nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
+                        exp: "round(getavgprice( nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
                     },
 
 

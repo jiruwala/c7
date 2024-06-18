@@ -85,6 +85,15 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    onSubTitHTML: function () {
+                        var up = thatForm.frm.getFieldValue("parameter.unposted");
+                        var tbstr = Util.getLangText("titRcvBalance");
+                        var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
+                        // if (cs != "")
+                        //     ht += "<div class='reportTitle2'>" +"</div > ";
+                        return ht;
+
+                    },
                     showCustomPara: function (vbPara, rep) {
 
                     },
@@ -187,12 +196,14 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 disp_class: "reportTable2",
                                 dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 22 },
                                 execOnShow: false,
-                                dml: "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP," +
+                                dml: "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ," +
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL," +
-                                    " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance" +
-                                    " FROM   acvoucher2 v, c_ycust WHERE v.cust_code = c_ycust.code " +
-                                    " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP," +
-                                    " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL",
+                                    " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance," +
+                                    " (select nvl(sum((sale_price+op_no)*tqty),0) from c_order1 " +
+                                    " where ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
+                                    " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no=c_ycust.salesp(+) and  v.cust_code = c_ycust.code " +
+                                    " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP,sl.name ,0," +
+                                    " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -200,7 +211,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["CODE", "NAME"],
+                                filterCols: ["CODE", "NAME", "SLSNAME", "TEL"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
@@ -211,6 +222,17 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         qv.getControl().getRows()[dispRow].getCells()[3].$().parent().parent().find("*").css("cssText", UtilGen.DBView.style_credit_numbers + ";text-align:end;");
 
 
+                                },
+                                eventCalc: function (qv, cx, rowno, reAmt) {
+                                    var sett = sap.ui.getCore().getModel("settings").getData();
+                                    var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+                                    if (rowno >= 0) return;
+                                    var ld = qv.mLctb;
+                                    for (var i = 0; i < ld.rows.length; i++) {
+                                        var bl = ld.getFieldValue(i, "BALANCE");
+                                        var up = ld.getFieldValue(i, "UNPOST_BAL");
+                                        ld.setFieldValue(i, "ALLBALANCE", (bl + up));
+                                    }
                                 },
                                 bat7CustomAddQry: function (qryObj, ps) {
 
@@ -249,6 +271,40 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
+                                    allbalance: {
+                                        colname: "allbalance",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "allBalance",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        summary: "SUM",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    unpost_bal: {
+                                        colname: "unpost_bal",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "unpostedBal",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        summary: "SUM",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
                                     crd_limit: {
                                         colname: "crd_limit",
                                         data_type: FormView.DataType.Number,
@@ -264,26 +320,39 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         default_value: "",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
-
                                     },
-                                    balance: {
-                                        colname: "balance",
-                                        data_type: FormView.DataType.Number,
+                                    slsname: {
+                                        colname: "slsname",
+                                        data_type: FormView.DataType.String,
                                         class_name: FormView.ClassTypes.LABEL,
-                                        title: "Balance",
+                                        title: "Name",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "150",
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "MONEY_FORMAT",
+                                        display_format: "",
                                         default_value: "",
-                                        summary: "SUM",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
-
+                                    tel: {
+                                        colname: "tel",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtTel",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
                                 }
                             }
                         ]

@@ -302,7 +302,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 FormView.err(that.errStr);
 
 
-                            if (that.frm.getFieldValue("par") != "") {
+                            if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) {
                                 var v1 = Util.getSQLValue("select parentcustomer from c_ycust where code=" + Util.quoted(cod));
                                 if (v1 != par) {
                                     n = Util.getSQLValue("select nvl(count(*),0) from c_ycust where code=" + Util.quoted(cod));
@@ -342,11 +342,17 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             }
                             var vldtt = Util.getSQLValue("select nvl(count(*),0) from pur1 where c_cus_no = " + Util.quoted(valx));
                             if (Util.nvl(vldtt, 0) > 0) {
-                                FormView.err("Err ! , this customer have transaction in Purchase/Sales #" + vldtt);
+                                FormView.err("Err ! , this customer have transaction in Purchase/Sales # " + vldtt);
                             }
+
+                            var vldtt = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_ref = " + Util.quoted(valx));
+                            if (Util.nvl(vldtt, 0) > 0) {
+                                FormView.err("Err ! , this customer have transaction in Delieries # " + vldtt);
+                            }
+
                             var vldtt = Util.getSQLValue("select nvl(count(*),0) from acvoucher2 where cust_code = " + Util.quoted(valx));
                             if (Util.nvl(vldtt, 0) > 0) {
-                                FormView.err("Err ! , this customer have transaction in Accounts #" + vldtt);
+                                FormView.err("Err ! , this customer have transaction in Accounts # " + vldtt);
                             }
                             var vldtt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer = " + Util.quoted(valx));
                             if (Util.nvl(vldtt, 0) > 0) {
@@ -571,18 +577,10 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                     width: "20%",
                                     showValueHelp: true,
                                     valueHelpRequest: function (e) {
-                                        if (e.getParameters().clearButtonPressed || e.getParameters().refreshButtonPressed) {
-                                            UtilGen.setControlValue(this, "", "", true);
-                                            UtilGen.setControlValue(thatForm.frm.objs["qry1.parentcustname"].obj, "", "", true);
-                                            return;
-                                        }
-                                        var control = this;
-                                        var pacnm = thatForm.frm.objs["qry1.parentcustname"].obj
-                                        var sq = "select code,name title from c_ycust order by path ";
-                                        Util.showSearchList(sq, "TITLE", "CODE", function (valx, val) {
-                                            UtilGen.setControlValue(control, valx, valx, true);
-                                            UtilGen.setControlValue(pacnm, val, val, true);
-                                        }, "Select Parent Customer");
+                                        UtilGen.Search.do_quick_search(e, this,
+                                            "select code,name title from c_ycust where usecount=0 order by path ",
+                                            "select code,name title from c_ycust where usecount=0 and code=:CODE", thatForm.frm.objs["qry1.parentcustname"].obj, undefined, undefined, undefined);
+
                                     },
                                     change: function (e) {
                                         var control = this;
@@ -647,18 +645,10 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                     width: "20%",
                                     showValueHelp: true,
                                     valueHelpRequest: function (e) {
-                                        if (e.getParameters().clearButtonPressed || e.getParameters().refreshButtonPressed) {
-                                            UtilGen.setControlValue(this, "", "", true);
-                                            UtilGen.setControlValue(thatForm.frm.objs["qry1.acname"].obj, "", "", true);
-                                            return;
-                                        }
-                                        var control = this;
-                                        var pacnm = thatForm.frm.objs["qry1.acname"].obj
-                                        var sq = "select accno,name from acaccount where childcount=0 order by path ";
-                                        Util.showSearchList(sq, "NAME", "ACCNO", function (valx, val) {
-                                            UtilGen.setControlValue(control, valx, valx, true);
-                                            UtilGen.setControlValue(pacnm, val, val, true);
-                                        }, "Select Controlled A/c");
+
+                                        UtilGen.Search.do_quick_search(e, this,
+                                            "select accno code,name title from acaccount where actype=0 and childcount=0 order by path ",
+                                            "select accno code,name title from acaccount where actype=0 and childcount=0 and accno=:CODE", thatForm.frm.objs["qry1.acname"].obj, undefined, undefined, undefined);
                                     },
                                     change: function (e) {
 
@@ -666,7 +656,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                         var vl = control.getValue();
                                         var pacnm = thatForm.frm.objs["qry1.acname"].obj;
                                         UtilGen.setControlValue(pacnm, "", "", true);
-                                        var pnm = Util.getSQLValue("select name from acaccount where accno = " + Util.quoted(vl));
+                                        var pnm = Util.getSQLValue("select name from acaccount where childcount=0 and accno = " + Util.quoted(vl));
                                         UtilGen.setControlValue(pacnm, pnm, pnm, true);
                                         UtilGen.setControlValue(control, vl, vl, false);
 
@@ -1103,6 +1093,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             this.qb.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
             this.qb.getControl().setFixedBottomRowCount(0);
             this.qb.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            UtilGen.createDefaultToolbar1(this.qb, ["B_NAME", "AREA"], true);
             // this.qb.getControl().setVisibleRowCount(10);
             this.qb.insertable = true;
             this.qb.deletable = true;
@@ -1166,13 +1157,18 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
                 that2.fetchBranch = true;
-
                 qv.onAddRow = function (idx, ld) {
                     ld.setFieldValue(idx, "BRNO", idx + 1);
                 }
                 if (qv.editable && qv.mLctb.rows.length == 0)
                     qv.addRow();
-
+                qv.beforeDelRow = function (idx, ld, data) {
+                    var cod = that2.frm.getFieldValue("qry1.code");
+                    var br = data.BRNO;
+                    var cnt = Util.getSQLValue("select nvl(max(ord_no),-1) from c_order1 where ord_ref='" + cod + "' and ord_discamt=" + br);
+                    if (cnt != -1)
+                        FormView.err("Delivery # " + cnt + " is existed with this branch !");
+                };
                 setTimeout(function () {
                     qv.updateDataToControl();
                     if (qv.editable) {
@@ -1189,8 +1185,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             showFooter: true
         }).addStyleClass("sapUiSizeCompact");
         var cmdClose = new sap.m.ToggleButton({
-            text: Util.getLangText("cmdClose"),
-            icon: "sap-icon://decline",
+            text: Util.getLangText("cmdDone"),
+            icon: "sap-icon://accept",
             pressed: false,
             press: function () {
                 dlg.close();
@@ -1203,6 +1199,11 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
                 || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
             press: function () {
+                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                    that2.frm.cmdButtons.cmdEdit.setPressed(true);
+                    that2.frm.cmdButtons.cmdEdit.firePress();
+                }
+
                 seteditale();
             }
 
@@ -1210,7 +1211,9 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
 
         var tbHeader = new sap.m.Toolbar();
         pg.setFooter(tbHeader);
+        pg.addContent(this.qb.showToolbar.toolbar);
         pg.addContent(this.qb.getControl());
+
         tbHeader.addContent(cmdEdit);
         tbHeader.addContent(cmdClose);
         var tit = Util.getLangText("titNewCustBranch");
@@ -1262,6 +1265,16 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 .replaceAll(":STREET", ld.getFieldValue(i, "STREET"));
             sqls += sq;
         }
+        var brs = "";
+        var cod = that2.frm.getFieldValue("qry1.code");
+        var kys = Object.keys(checkDuplicate)
+        for (var ky in kys)
+            brs += (brs.length > 0 ? "," : "") + "'" + cod + "-" + kys[ky] + "'";
+        var sqt = Util.getSQLValue("select nvl(max(ord_ref||'-'||ord_discamt),'') from c_order1 where ord_ref='" + cod + "' and ord_ref||'-'||ord_discamt not in (" + brs + ") ");
+        if (Util.nvl(sqt, "") != '') {
+            that2.showBranches();
+            FormView.err("Branch # " + sqt + " existed in delivereis but not in master !");
+        }
         sqls = "delete from cbranch where code=':qry1.code';" + sqls;
         return sqls;
     },
@@ -1275,6 +1288,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             this.qc.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
             this.qc.getControl().setFixedBottomRowCount(0);
             this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], true);
             this.qc.insertable = true;
             this.qc.deletable = true;
         }
@@ -1320,7 +1334,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 return;
             }
 
-            var dt = Util.execSQL("select c.refer,it.descr, c.packd,c.unitd,c.pack,c.price from custitems c,items it where it.reference=c.refer and c.code=" + Util.quoted(cc) + " order by c.refer ");
+            var dt = Util.execSQL("select c.refer,it.descr, c.packd,c.unitd,c.pack,c.price,c.price_buy from custitems c,items it where it.reference=c.refer and c.code=" + Util.quoted(cc) + " order by c.refer ");
             if (dt.ret == "SUCCESS") {
                 qv.setJsonStrMetaData("{" + dt.data + "}");
                 qv.mLctb.cols[qv.mLctb.getColPos("REFER")].getMUIHelper().display_width = 80;
@@ -1328,12 +1342,19 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 qv.mLctb.cols[qv.mLctb.getColPos("REFER")].mColClass = "sap.m.Input";
                 qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].mColClass = "sap.m.Input";
                 qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE_BUY")].mColClass = "sap.m.Input";
 
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].getMUIHelper().display_width = 130;
+                qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].getMUIHelper().display_width = 220;
                 qv.mLctb.cols[qv.mLctb.getColPos("PACKD")].getMUIHelper().display_width = 50;
                 qv.mLctb.cols[qv.mLctb.getColPos("UNITD")].getMUIHelper().display_width = 50;
                 qv.mLctb.cols[qv.mLctb.getColPos("PACK")].getMUIHelper().display_width = 50;
 
-                qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].getMUIHelper().display_format = "MONEY_FORMAT";
+                // qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].getMUIHelper().display_format = "MONEY_FORMAT";
+                // qv.mLctb.cols[qv.mLctb.getColPos("PRICE_BUY")].getMUIHelper().display_format = "MONEY_FORMAT";
+
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].mTitle = "Price Sell";
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE_BUY")].mTitle = "Price Buy";
 
                 qv.mLctb.cols[qv.mLctb.getColPos("REFER")].eValidateColumn = function (evtx) {
                     var row = evtx.getSource().getParent();
@@ -1357,7 +1378,6 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                         oModel.setProperty(currentRowoIndexContext.sPath + '/PACK', dtxM[0].PACK);
 
                     }
-
                 };
                 qv.mLctb.cols[qv.mLctb.getColPos("REFER")].mSearchSQL = "select reference code,descr title from items order by descr2";
                 qv.mLctb.cols[qv.mLctb.getColPos("REFER")].eOnSearch = function (evtx) {
@@ -1382,6 +1402,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
 
                 qv.onAddRow = function (idx, ld) {
                     ld.setFieldValue(idx, "PRICE", 0);
+                    ld.setFieldValue(idx, "PRICE_BUY", 0);
+
                 }
 
                 if (qv.editable && qv.mLctb.rows.length == 0)
@@ -1401,8 +1423,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             showFooter: true
         }).addStyleClass("sapUiSizeCompact");
         var cmdClose = new sap.m.ToggleButton({
-            text: Util.getLangText("cmdClose"),
-            icon: "sap-icon://decline",
+            text: Util.getLangText("cmdDone"),
+            icon: "sap-icon://accept",
             pressed: false,
             press: function () {
                 dlg.close();
@@ -1415,6 +1437,10 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
                 || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
             press: function () {
+                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                    that2.frm.cmdButtons.cmdEdit.setPressed(true);
+                    that2.frm.cmdButtons.cmdEdit.firePress();
+                }
                 seteditale();
             }
 
@@ -1422,6 +1448,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
 
         var tbHeader = new sap.m.Toolbar();
         pg.setFooter(tbHeader);
+        pg.addContent(this.qc.showToolbar.toolbar);
         pg.addContent(this.qc.getControl());
         tbHeader.addContent(cmdEdit);
         tbHeader.addContent(cmdClose);
@@ -1450,19 +1477,26 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             return "";
         var ld = that2.qc.mLctb;
         var sqls = "";
-        var sq2 = "insert into custitems(code,refer,descr,packd,unitd,pack,price,flag,disc_amt) " +
+        var sq2 = "insert into custitems(code,refer,descr,packd,unitd,pack,price,flag,disc_amt,price_buy) " +
             " VALUES (':qry1.code',':REFER','',':PACKD', " +
-            " ':UNITD' ,':PACK' ,:PRICE ,1, 0 );";
+            " ':UNITD' ,':PACK' ,:PRICE ,1, 0 ,:PRICE_BUY);";
         var checkDuplicate = {};
         for (var i = 0; i < ld.rows.length; i++) {
             if (Util.nvl(ld.getFieldValue(i, "REFER"), "") == "") {
                 that2.showCustItems();
                 FormView.err(" REFER MUST ENTER !");
             }
-            if (Util.nvl(ld.getFieldValue(i, "PRICE"), 0) <= 0) {
+            var pr = Util.extractNumber(ld.getFieldValue(i, "PRICE"));
+            var prb = Util.extractNumber(ld.getFieldValue(i, "PRICE_BUY"));
+            if (pr < 0 || prb < 0) {
                 that2.showCustItems();
                 FormView.err(" PRICE IS INVALID !");
             }
+            if (pr == 0 && prb == 0) {
+                that2.showCustItems();
+                FormView.err(" PRICE sell or buy must have value  !");
+            }
+
             if (checkDuplicate[ld.getFieldValue(i, "REFER")] != undefined) {
                 that2.showCustItems();
                 FormView.err("Refer  # " + ld.getFieldValue(i, "REFER") + " alredy existed for " + ld.getFieldValue(i, "DESCR"))
@@ -1472,6 +1506,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 .replaceAll(":PACKD", ld.getFieldValue(i, "PACKD"))
                 .replaceAll(":UNITD", ld.getFieldValue(i, "UNITD"))
                 .replaceAll(":PACK", ld.getFieldValue(i, "PACK"))
+                .replaceAll(":PRICE_BUY", ld.getFieldValue(i, "PRICE_BUY"))
                 .replaceAll(":PRICE", ld.getFieldValue(i, "PRICE"));
             sqls += sq;
         }

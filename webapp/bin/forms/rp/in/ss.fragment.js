@@ -355,7 +355,7 @@ sap.ui.jsfragment("bin.forms.rp.in.ss", {
                                         " (to_number(field23)+to_number(field25))-(to_number(field24)+to_number(field26)) cqty ," +
                                         " to_number(FIELD16) levelno , to_number(field18) childcount ,items.packd " +
                                         " from temporary , items where field1 =reference" +
-                                        " and idno=99901 " +
+                                        " and idno=66601 " +
                                         (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
                                         " and usernm='01' order by field17 ";
                                 },

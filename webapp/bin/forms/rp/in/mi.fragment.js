@@ -397,7 +397,7 @@ sap.ui.jsfragment("bin.forms.rp.in.mi", {
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "220",
-                                        display_align: "ALIGN_BEGIN",
+                                        display_align: "ALIGN_END",
                                         grouped: false,
                                         display_style: "",
                                         display_format: "",

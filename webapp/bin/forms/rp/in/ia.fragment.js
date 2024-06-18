@@ -145,7 +145,7 @@ sap.ui.jsfragment("bin.forms.rp.in.ia", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: { "S": 10, "M": 16, "L": 20,"XL": 23 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "PARENTITEM",

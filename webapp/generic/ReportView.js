@@ -123,6 +123,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 rep.descrAR = Util.nvl(rps[r].descrAR, rps[r].descr);
                 rep.code = rps[r].code;
                 rep.printCSS = Util.nvl(rps[r].printCSS, "print.css");
+                rep.printOrient = Util.nvl(rps[r].printOrient, "");
+                rep.printCellFontSize = Util.nvl(rps[r].printCellFontSize, "font-size:12px;");
+                rep.printCellPadding = Util.nvl(rps[r].printCellPadding, "padding:5px;");
                 rep.isCrossTb = Util.nvl(rps[r].isCrossTb, "N");
                 rep.rptNo = r;
                 rep.showSQLWhereClause = Util.nvl(rps[r].showSQLWhereClause, false);
@@ -217,6 +220,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     qr.dispRecords = Util.nvl(qrys[i].dispRecords, 10);
                     qr.rowHeight = Util.nvl(qrys[i].rowHeight, 12);
                     qr.onRowRender = Util.nvl(qrys[i].onRowRender, undefined);
+                    qr.onPrintRenderAdd = Util.nvl(qrys[i].onPrintRenderAdd, undefined);
                     qr.dispRecords = UtilGen.dispTblRecsByDevice(qr.dispRecords);
                     qr.fields = {};
                     qr.canvas = Util.nvl(qrys[i].canvas, "default_canvas");
@@ -1361,6 +1365,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 qr.obj.getControl().setRowHeight(qr.rowHeight);
                                 if (qr.onRowRender != undefined)
                                     qr.obj.onRowRender = qr.onRowRender;
+                                if (qr.onPrintRenderAdd != undefined)
+                                    qr.obj.onPrintRenderAdd = qr.onPrintRenderAdd;
+
 
                                 if (Util.nvl(qr.dispRecords, -1) == -1) {
                                     qr.obj.getControl().setVisibleRowCount(12);
@@ -2561,8 +2568,8 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             }
                         })
                     );
-
-            if (rep.showHTMLMenu)
+            var showPdf = false;
+            if (rep.showHTMLMenu) {
                 this.mnusExp.push(
                     new sap.m.MenuItem({
                         text: "PDF",
@@ -2572,7 +2579,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             thatRV.showHTML();
                         }
                     }));
-            if (rep.showXLSMenu)
+                showPdf = true;
+            }
+            if (rep.showXLSMenu) {
                 this.mnusExp.push(
                     new sap.m.MenuItem({
                         text: "Excel",
@@ -2581,30 +2590,22 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         press: function () {
 
                             thatRV.showXLS();
-
-                            // var rptNo = Util.nvl('', UtilGen.getControlValue(thatRV.lstRep));
-                            // var rep = thatRV.reports[rptNo];
-
-                            // Util.doAjaxJson("bat7SaveToTemp", {
-                            //     sql: "",
-                            //     ret: "",
-                            //     data: "",
-                            //     repCode: rep.code,
-                            //     repNo: rptNo,
-                            //     command: "",
-                            //     scheduledAt: "",
-                            //     p1: "",
-                            //     p2: "",
-                            //
-                            // }, false).done(function (data) {
-                            //     if (data.ret == "SUCCESS") {
-                            //         sap.m.MessageToast.show("saved report on server !");
-                            //     }
-                            // });
-                            //
-
                         }
                     }));
+                showPdf = true;
+            }
+            if (showPdf)
+                this.mnusExp.push(
+                    new sap.m.MenuItem({
+                        text: "PDF/XLS settings",
+                        icon: "sap-icon://action-settings",
+                        customData: { key: i + "" },
+                        press: function () {
+
+                            thatRV.showPdfSetting();
+                        }
+                    }));
+
             this.btRep = new sap.m.Button({
                 icon: "sap-icon://megamenu",
                 text: this.lstRep.getValue(),
@@ -2741,6 +2742,89 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 // thatRV.tbMain.$().css("background-color", "lightblue");
             }, 100);
 
+        };
+        ReportView.prototype.showPdfSetting = function () {
+            var thatRV = this;
+            var vb = new sap.m.VBox();
+            var txtOrient = UtilGen.createControl(sap.m.ComboBox, thatRV.view, "txtOrient" + this.timeInLong, {
+                width: "60%",
+                items: {
+                    path: "/",
+                    template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                    templateShareable: true
+                },
+                selectedKey: "",
+                selectionChange: function (event) {
+
+                }
+            }, "string", undefined, undefined, "@/Default,portrait/portrait,landscape/landscape");
+            var txtFontSize = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "60%", editable: true });
+            var txtCellPad = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "60%", editable: true });
+
+            var applyToReport = function () {
+                var rptNo = Util.nvl(undefined, UtilGen.getControlValue(thatRV.lstRep));
+                var rep = thatRV.reports[rptNo];
+
+                var pgOr = txtOrient.getSelectedKey();
+                var szFont = Util.extractNumber(txtFontSize.getValue());
+                var cellPad = Util.extractNumber(txtCellPad.getValue());
+                if (!(pgOr == "" || pgOr == "landscape" || pgOr == "portrait"))
+                    FormView.err("Invalid orientation !");
+                szFont = (szFont <= 0 ? "12px" : szFont + "px");
+                cellPad = (cellPad <= 0 ? "4px" : cellPad + "px");
+                rep.printOrient = "size:" + pgOr + ";";
+                rep.printCellFontSize = "font-size:" + szFont + ";";
+                rep.printCellPadding = "padding:" + cellPad + ";";
+            }
+            var getVals = function () {
+                var rptNo = Util.nvl(undefined, UtilGen.getControlValue(thatRV.lstRep));
+                var rep = thatRV.reports[rptNo];
+                if (rep.printOrient != "")
+                    txtOrient.setSelectedKey(rep.printOrient.split(":")[1].replaceAll(";", ""));
+                else
+                    txtOrient.setSelectedKey("");
+                txtFontSize.setValue(rep.printCellFontSize.split(":")[1].replaceAll("px", "").replaceAll(";", ""));
+                txtCellPad.setValue(rep.printCellPadding.split(":")[1].replaceAll("px", "").replaceAll(";", ""));
+            }
+            var fe = [
+                Util.getLabelTxt("pageOrientation", "40%", "", "Begin"), txtOrient,
+                Util.getLabelTxt("fontSize", "40%", "", "Begin"), txtFontSize,
+                Util.getLabelTxt("cellPadding", "40%", "", "Begin"), txtCellPad,
+            ];
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: "300px",
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+
+            // cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            vb.addItem(cnt);
+            getVals();
+            var dlg = new sap.m.Dialog({
+                title: Util.getLangText("Pdf Settings"),
+                contentWidth: "350px",
+                contentHeight: "150px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    new sap.m.Button({
+                        text: "Show PDF",
+                        press: function () {
+                            applyToReport();
+                            thatRV.showHTML();
+                        }
+                    })
+
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
         };
         ReportView.prototype.printReport = function (rpt, pRptno, addParas) {
             var that = this;
@@ -3481,7 +3565,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             that.view.reportsData = {
                 report_info: { report_name: Util.nvl(Util.getLangDescrAR(rep.title, rep.title2), "Query") }
             };
-            var ht = "<div class='company'>" + sett["COMPANY_NAME"] + "</div> " + rep.onSubTitHTML(rep);
+            // var ht = "<div class='company'>" + sett["COMPANY_NAME"] + "</div> " + rep.onSubTitHTML(rep);
+            var ht = "<header><div class='company'>" + sett["COMPANY_NAME"] + "</div> " + (rep.onSubTitHTML != undefined ? rep.onSubTitHTML(rep) : "") + "</header>";
+            var ft = "<footer><div class='footerText'> Printed by : " + sett["LOGON_USER"] + "</div></footer>";
             var h2 = "";
             var pvl = "";
             var flds = rep.parameters;
@@ -3509,6 +3595,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             ht = ht + flds[f].onPrintField();
                         else
                             ht = ht + "<b>" + flds[f].title + " : </b>" + " " + UtilGen.getControlValue(flds[f].obj) + "<br>";
+
                     }
                 }
             }
@@ -3525,14 +3612,24 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     async: false,
                     success: function (cssText) {
                         hd = cssText;
+                        hd = hd.replaceAll("^^orientation^^", Util.nvl(rep.printOrient, ""))
+                            .replaceAll("^^tdFontSize^^", Util.nvl(rep.printCellFontSize, ""))
+                            .replaceAll("^^tdPadding^^", Util.nvl(rep.printCellPadding, ""));
+
                         hd = "<style>" + hd + "</style>";
-                        ht = "<html" + dir + ">" + "<head>" + hd + "</head><body>" + ht + "</body></html>";
+                        ht = "<html" + dir + ">" + "<head><title></title>" + hd + "</head><body>" + ht + ft + "</body></html>";
                         // newWin.document.write(ht);
                         // $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);
                         // setTimeout(function () {
                         //     newWin.print();
                         // }, 1000);
-                        printJS({ printable: ht, type: "raw-html" });
+                        printJS({
+                            printable: ht,
+                            type: "raw-html",
+                            style: UtilGen.DBView.sLangu == "AR" ? "body { direction: rtl;}" : "",
+                            header: "<div class='company'>" + sett["COMPANY_NAME"] + "</div>",
+                            footer: ft
+                        });
                     }
                 });
             }
@@ -3592,6 +3689,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 async: false,
                 success: function (cssText) {
                     hd = cssText;
+                    hd = hd.replaceAll("^^orientation^^", Util.nvl(rep.printOrient, ""))
+                        .replaceAll("^^tdFontSize^^", Util.nvl(rep.printCellFontSize, ""))
+                        .replaceAll("^^tdPadding^^", Util.nvl(rep.printCellPadding, ""));
                     hd = "<style>" + hd + "</style>";
                     hd = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>" + hd;
                     ht = "<html" + dir + ">" + "<head>" + hd + "</head><body>" + ht + "</body></html>";

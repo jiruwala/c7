@@ -567,7 +567,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pwz", {
             "                 0, x.packqty, 0, 0," +
             "                 x.packqty*x.pack, prd_date, exp_date, '2003', 2, x.dlv_no ," +
             "                 kfld , 1, 'KWD', SYSDATE, X.KEYFLD, X.PACKQTY *X.PACK, 0, 0, x.DRIVER_NO," +
-            "                 null, 0,'',x.truck_no,x.ord_date) ;" +
+            "                 null, 0,'',x.payterm,x.ord_date) ;" +
             "     totamt:=totamt+(x.packqty*pr);                " +
             "     update c7_rmpord set sale_price=pr,PUR_KEYFLD=kfld,flag=2 where keyfld=x.keyfld;" +
             " " +

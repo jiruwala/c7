@@ -408,7 +408,7 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
             LocalTableData.prototype.insertRow = function (idx) {
                 var r = new Row(this.cols.length);
                 // this.rows.push(r);
-                this.rows.splice(idx, 0, r);
+                this.rows.splice(idx + 1, 0, r);
                 var rn = this.rows.indexOf(r);
                 for (var k in this.cols) {
                     if (this.cols[k].mDefaultValue != undefined)

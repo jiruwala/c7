@@ -13,6 +13,27 @@ body {
     background-color: #b9f2ff !important;
     font-weight: bold;
 }
+.db1LabelsBlue{
+    font-size: .875rem;
+    font-family: "72","72full",Arial,Helvetica,sans-serif;
+    color:blue
+}
+
+.db1LabelsBlueAr{
+    font-size: 1rem;
+    font-family: "72","72full",Arial,Helvetica,sans-serif;
+    color:blue
+}
+
+.db1Labels{
+    font-size: .875rem;
+    font-family: "72","72full",Arial,Helvetica,sans-serif;
+}
+
+.db1LabelsAr{
+    font-size: 1.1rem;
+    font-family: "72","72full",Arial,Helvetica,sans-serif;
+}
 
 .highContrastPage {
     background-color: black !important;
@@ -514,6 +535,9 @@ th {
 
 .yellow {
     background-color: yellow !important;
+}
+.lightblueBG {
+    background-color: lightblue !important;
 }
 
 .simpleForm {

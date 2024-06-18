@@ -73,7 +73,9 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     if (that.mLctb.cols.length < 0) return;
                     if (!ev.getParameters().userInteraction)
                         return;
+                    if (ev.getParameters().rowIndex == -1) return;
                     var oData = that.mTable.getContextByIndex(ev.getParameters().rowIndex);
+
                     var data = oData.getProperty(oData.getPath());
                     if (that.mLctb.cols[0].mGrouped &&
                         data[that.mLctb.cols[0].mColName].startsWith(String.fromCharCode(4094))) {
@@ -658,6 +660,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             }
 
         };
+        // updaing data from table or tree to  model (mLctb)
         QueryView.prototype.updateDataToTable = function () {
             if (this.getControl().getModel() == undefined) return false;
             var dt = JSON.stringify(this.getControl().getModel().getData());
@@ -665,7 +668,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             this.mLctb.parse(dt, true);
 
         };
-
+        // updaing local tbale data to  table or tree  control
         QueryView.prototype.updateDataToControl = function () {
             var dt = Util.nvl(this.buildJsonData(), []);
             var oModel = new sap.ui.model.json.JSONModel();
@@ -675,7 +678,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
         };
 
         QueryView.prototype.addRow = function (dontReload) {
-            if (!this.insertable)
+            if (!this.editable || !this.insertable)
                 return;
             if (this.mLctb.rows.length > 0)
                 this.updateDataToTable();
@@ -1916,9 +1919,9 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 for (var x in cs)
                     hCol += cs[x];
 
-
+                var spacerAdd = "<tr><td class=\"page-header-space\"><div></div></td></tr>";
                 hCol = "<tr>" + hCol + "</tr>";
-                h = "<thead>" + (hasSpan ? hCol : "") +
+                h = "<thead>" + spacerAdd + (hasSpan ? hCol : "") +
                     "<tr>" + h + "</tr></thead>";
 
                 for (var i = 0; i < oData.length; i++) {
@@ -2460,25 +2463,26 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 if (cnt - 1 == 0 && grouped) continue;
                 if (cnt - 1 === this.col.length) continue;
                 if (!this.col[c].getVisible()) continue;
+                if (this.col[c].getWidth() == "0px") continue;
                 if (nxtSpan > 1) {
                     cs[c] = "";
                     if (this.col[c].getMultiLabels().length > 1)
                         tmpv1 = this.col[c].getMultiLabels()[1].getText();
                     else
                         tmpv1 = this.col[c].getMultiLabels()[0].getText();
-                    tmpv2 = "\"text-align:Center\"";
+                    tmpv2 = "\"text-align:Center;background-color:lightgrey;\"";
                     h += "<th " + tmpv2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
                     nxtSpan--;
                     continue;
                 }
                 hs = this.col[c].getHeaderSpan()[0];
                 if (hs > 1) {
-                    cs[c] = "<th style=\"text-align: center;\" colspan=\"" + hs + "\">" + this.col[c].getMultiLabels()[0].getText() + "</th>";
+                    cs[c] = "<th style=\"text-align: center;background-color:lightgrey; \" colspan=\"" + hs + "\">" + this.col[c].getMultiLabels()[0].getText() + "</th>";
                     hasSpan = true;
                     nxtSpan = hs;
                     tmpv1 = this.col[c].getMultiLabels()[1].getText();
-                    tmpv2 = "\"text-align:Center\"";
-                    h += "<th " + tmpv2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
+                    tmpv2 = "\"text-align:Center;background-color:lightgrey;\"";
+                    h += "<th style=" + tmpv2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
 
                 }
                 else {
@@ -2487,19 +2491,18 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         tmpv1 = this.col[c].getMultiLabels()[1].getText();
                     else
                         tmpv1 = this.col[c].getMultiLabels()[0].getText();
-                    tmpv2 = "\"text-align:Center\"";
-                    h += "<th " + tmpv2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
+                    tmpv2 = "\"text-align:Center;background-color:lightgrey;\"";
+                    h += "<th style=" + tmpv2 + ">" + Util.htmlEntities(tmpv1) + "</th>";
                     hs--;
                 }
             }
 
             for (var x in cs)
                 hCol += cs[x];
-
-
             hCol = "<tr>" + hCol + "</tr>";
-
-            h = "<thead>" + (hasSpan ? hCol : "") +
+            var spacerAdd = "<tr><td class=\"page-header-space\"><div></div></td></tr>";
+            var spacerAddFooter = "<tfoot><tr><td class=\"page-footer-space\"><div></div></td></tr></tfoot>";
+            h = "<thead>" + spacerAdd + (hasSpan ? hCol : "") +
                 "<tr>" + h + "</tr></thead>";
 
             // getting data in table..
@@ -2509,8 +2512,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 dt += rs;
             }
             dt = "<tbody>" + dt + "</tbody>";
-            h = company + "<table class='paras paras'>" + dtitle + "</table>" +
-                "<table>" + h + dt + "</table>";
+            h =/* company + "<table class='paras paras'>" + dtitle + "</table>" */ "" +
+                "<table>" + h + dt + spacerAddFooter + "</table>";
             return h;
         };
 
@@ -2583,6 +2586,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 if (cnt - 1 == 0 && grouped) continue;
                 if (cnt - 1 === this.col.length) continue;
                 if (!this.col[c].getVisible()) continue;
+                if (this.col[c].getWidth() == "0px") continue;
                 if (nxtSpan > 1) {
                     cs[c] = "";
                     if (this.col[c].getMultiLabels().length > 1)
@@ -2622,8 +2626,9 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
 
             hCol = "<tr>" + hCol + "</tr>";
-
-            h = "<thead>" + (hasSpan ? hCol : "") +
+            var spacerAdd = "<tr><td class=\"page-header-space\"><div></div></td></tr>";
+            var spacerAddFooter = "<tfoot><tr><td class=\"page-footer-space\"><div></div></td></tr></tfoot>";
+            h = "<thead>" + spacerAdd + (hasSpan ? hCol : "") +
                 "<tr>" + h + "</tr></thead>";
 
             // getting data in table..
@@ -2635,8 +2640,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
             }
             dt = "<tbody>" + dt + "</tbody>";
-            h = company + "<table class='paras paras'>" + dtitle + "</table>" +
-                "<table>" + h + dt + "</table>";
+            h =/* company + "<table class='paras paras'>" + dtitle + "</table>"*/"" +
+                "<table>" + h + dt + spacerAddFooter + "</table>";
             return h;
 
         };
@@ -2649,7 +2654,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             var cnt = 0;
             var grouped = this.mLctb.cols[0].mGrouped;
             var t;
-            var tmpv2 = "", tmpv3 = "", classadd = "", styleadd = "";
+            var tmpv2 = "", tmpv3 = "", classadd = "", styleadd = "", strPrintRender = "";
             //getting style for row...
             var cf = "";  // conditional format css (if condition true and false)
             var rowid = Number(Util.nvl(oData[i]["_rowid"], -1));
@@ -2664,6 +2669,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 var cn = that.mLctb.getColPos(v);
 
                 if (cn > -1 && that.mLctb.cols[cn].mHideCol) continue;
+                if (cn > -1 && that.mLctb.cols[cn].mUIHelper.display_width <= 0) continue;
                 if (cn > -1 && rowid > -1 && Util.nvl(that.mLctb.cols[cn].mCfOperator, "").length > 0) {
                     if (this.mLctb.evaluteCfValue(this.mLctb.cols[cn], rowid))
                         cf += this.mLctb.cols[cn].mCfTrue;
@@ -2672,7 +2678,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 }
             }
             // purpose   :  looping to write html <tr>
-
+            var grptext = false;
             for (var v in oData[i]) {
                 // task  :  find out that should i print this row or not , by checking this row is collapsed or expanded..
                 cnt++;
@@ -2682,6 +2688,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 var cc = that.mLctb.cols[cn];
                 if (cc == undefined || cc == null) continue;
                 if (cn > -1 && that.mLctb.cols[cn].mHideCol) continue;
+                if (cn > -1 && that.mLctb.cols[cn].mUIHelper.display_width <= 0) continue;
                 if (cnt - 1 == 0) {
                     t = v;
                 }   // get 1st array key.. to find this row is summary/group
@@ -2698,6 +2705,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 }
                 if (grouped && cellValue != undefined && oData[i][t].startsWith(String.fromCharCode(4094))) {
                     classadd += "qrGroup ";
+                    grptext = true;
+                    tmpv2 = this.getControl().getColumns().length + "";
                 }
 
                 if (rowid > -1 && cf.length > 0)
@@ -2706,17 +2715,19 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     styleadd += cc.getMUIHelper().display_style;
                 }
 
-                var a = "text-align:" + cc.getMUIHelper().display_align + " ";
+                var a = Util.getLangDescrAR("text-align:" + cc.getMUIHelper().display_align + " ", "text-align:start ");
                 if (cc.getMUIHelper().display_format == "MONEY_FORMAT")
-                    a = "text-align:end ";
+                    a = Util.getLangDescrAR("text-align:end ", "text-align:start ");
                 if (cc.getMUIHelper().display_format == "QTY_FORMAT")
                     a = "text-align:center ";
                 styleadd += a;
 
-                styleadd = (styleadd.length > 0 ? ' style="' : "") + styleadd + (styleadd.length > 0 ? '"' : "");
+                strPrintRender = that.onPrintRenderAdd != undefined ? Util.nvl(that.onPrintRenderAdd(that.mLctb, i, cc), "") : ""
+                styleadd = ((strPrintRender + styleadd).length > 0 ? ' style="' : "") + strPrintRender + styleadd + ((strPrintRender + styleadd).length > 0 ? '"' : "");
                 classadd = (classadd.length > 0 ? ' class="' : "") + classadd + (classadd.length > 0 ? '"' : "");
                 tmpv2 = (tmpv2.length > 0 ? ' colspan="' : "") + tmpv2 + (tmpv2.length > 0 ? '"' : "");
                 rs += "<td" + tmpv2 + classadd + styleadd + " > " + Util.nvl(Util.htmlEntities(spcAdd + cellValue), "") + "</td>";
+                grptext = false;
             }
             // var strch = "";
             // if (child != undefined) {

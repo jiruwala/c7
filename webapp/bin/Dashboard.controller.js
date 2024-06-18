@@ -18,6 +18,26 @@ sap.ui.controller('bin.Dashboard', {
                 md = (that.standAlonMode ? sap.m.SplitAppMode.HideMode : md);
                 that.app.setMode(md);
             }
+            if (event.key == "F1") {
+                var focused = document.activeElement;
+                var fitm = sap.ui.getCore().byId(focused.id);
+                if (fitm == undefined)
+                    fitm = sap.ui.getCore().byId(focused.parentElement.id);
+                if (fitm == undefined)
+                    fitm = sap.ui.getCore().byId(focused.parentElement.parentElement.id);
+
+                if (fitm == undefined)
+                    console.log(focused.id);
+                else {
+                    console.log(JSON.parse(Util.simpleStringify(fitm)));
+                    if (fitm.tableCol != undefined) {
+                        console.log(JSON.parse(Util.simpleStringify(fitm.tableCol)));
+                        sap.m.MessageToast.show(JSON.parse(Util.simpleStringify(fitm.tableCol)).colname);
+                    }
+                }
+
+
+            }
         };
         setTimeout(function () {
             document.removeEventListener("keydown", keypress); //Remove the event listener
@@ -45,6 +65,7 @@ sap.ui.controller('bin.Dashboard', {
      * @memberOf bin.Dashboard **/
     onAfterRendering: function () {
         $('<div class=loadingDiv>Loading libraries</div>').prependTo(document.body);
+        // console.log("rendering...");
     },
 
     /**
