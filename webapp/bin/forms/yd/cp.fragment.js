@@ -107,7 +107,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                 that.show_menu_items();
             }
         }, "string", undefined, undefined, "@1/Week1,2/Week2,3/Week 3,4/Week 4,5/Week 5,6/Week 6");
-        this.cbWeek.setSelectedItem(this.cbWeek.getItems()[0]);
+
         this.vbHeader.addItem(new sap.m.Toolbar({ content: [new sap.m.ToolbarSpacer(), this.bk] }));
         this.vbHeader.addItem(this.txtGroup);
         this.vbHeader.addItem(this.txtOrdNo);
@@ -116,6 +116,15 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
         this.vbHeader.addItem(this.cbWeek);
         this.mainPage.addContent(this.vbHeader);
         this.mainPage.addContent(this.vbDetails1);
+        this.fillWeeks();
+        this.cbWeek.setSelectedItem(this.cbWeek.getItems()[0]);
+    },
+    fillWeeks: function () {
+        var that = this;
+        var sq = "select distinct  to_char(delivery_date,'rrrr/mm')||','||week_no code,to_char(delivery_date,'rrrr/mm')||',Week-'||(week_no) name from order_cust_plan where ord_no=" + that.oController.ord_no + " order by 1";
+        Util.fillCombo(that.cbWeek, sq);
+        // var dt = Util.execSQLWithData(sq, "No data found ..");
+
     }
     ,
     printDelivery: function (ky) {
@@ -123,7 +132,8 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
         var getLabelTxt = function (ptxt, pwidth, preText) {
             return Util.nvl(preText, "") + '{\"text\":\"' + ptxt + '\",\"width\":\"' + Util.nvl(pwidth, "15%") + '\","textAlign":"End","styleClass":""}'
         };
-        var wkno = UtilGen.getControlValue(that.cbWeek);
+        var wkno = UtilGen.getControlValue(that.cbWeek).split(",")[1];
+        var mnth = UtilGen.getControlValue(that.cbWeek).split(",")[0];
         var s2 = ky;
         var view = this.view;
 
@@ -191,7 +201,9 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                         var sett = sap.ui.getCore().getModel("settings").getData();
                         var sf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
                         var view = this.view;
-                        var wkno = UtilGen.getControlValue(that.cbWeek);
+                        // var wkno = UtilGen.getControlValue(that.cbWeek);
+                        var wkno = UtilGen.getControlValue(that.cbWeek).split(",")[1];
+                        var mnth = UtilGen.getControlValue(that.cbWeek).split(",")[0];
                         var profile = "GENERAL";
                         var preId = "";
                         if (Util.nvl(UtilGen.getControlValue(fe[5]), "") == "") FormView.err("Driver not selected !");
@@ -212,7 +224,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                         }
                         else
                             FormView.err("Updated failed !");
-                        var sq = "select op.*,sp.name driver from order_cust_plan op,salesp sp where ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno +
+                        var sq = "select op.*,sp.name driver from order_cust_plan op,salesp sp where to_char(delivery_date,'rrrr/mm')='" + mnth + "' and ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno +
                             " and day_no=" + s2 + " and  SP.NO(+)=OP.DRIVER_NO";
                         var dt = Util.execSQL(sq);
                         if (dt.ret == "SUCCESS") {
@@ -266,7 +278,9 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
         that.custplan = [];
         var sett = sap.ui.getCore().getModel("settings").getData();
         var heightPanle = "10rem";// UtilGen.getControlValue(this.txtPanelSize);
-        var wkno = UtilGen.getControlValue(that.cbWeek);
+        // var wkno = UtilGen.getControlValue(that.cbWeek);
+        var wkno = UtilGen.getControlValue(that.cbWeek).split(",")[1];
+        var mnth = UtilGen.getControlValue(that.cbWeek).split(",")[0];
         var sett = sap.ui.getCore().getModel("settings").getData();
         var sf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " E");
         var profile = 'GENERAL';
@@ -284,12 +298,13 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                             var ky = this.getCustomData()[0].getKey();
                             var s1 = ky.split("%%")[0];
                             var s2 = ky.split("%%")[1];
-                            var wkno = UtilGen.getControlValue(that.cbWeek);
+                            var wkno = UtilGen.getControlValue(that.cbWeek).split(",")[1];
+                            var mnth = UtilGen.getControlValue(that.cbWeek).split(",")[0];        
                             var profile = "GENERAL";
                             var sq = "update order_cust_plan " +
                                 " set RFR_" + s1.toUpperCase() + " = null " +
-                                " where ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno +
-                                " and day_no=" + s2;
+                                " where to_char(delivery_date,'rrrr/mm')='" + mnth + "' and ord_no=" + that.ord_data[0].ORD_NO + " and week_no='" + wkno +
+                                "' and day_no=" + s2;
                             var dt = Util.execSQL(sq);
                             if (dt.ret = "SUCCESS") {
                                 sap.m.MessageToast.show("Cleared menu for " + s1 + " Day # " + (s2));
@@ -303,8 +318,10 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
         };
 
         var initData = function () {
-            var sq = "select op.* from order_plan op where profile_item=" + Util.quoted(that.selectedGroup) +
-                " and  week_no=" + wkno + " and profile=" + Util.quoted(profile) + " order by day_no,posno";
+            var minDayNo = Util.getSQLValue("select min(day_no)  from order_cust_plan where to_char(delivery_date,'rrrr/mm')='" + mnth + "' and week_no=" + wkno + " and ord_no=" + that.ord_data[0].ORD_NO);
+            var maxDayNo = Util.getSQLValue("select max(day_no)  from order_cust_plan where to_char(delivery_date,'rrrr/mm')='" + mnth + "' and week_no=" + wkno + " and ord_no=" + that.ord_data[0].ORD_NO);
+            var sq = "select op.* from order_plan op where day_no>=" + minDayNo + " and day_no<=" + maxDayNo + " and profile_item=" + Util.quoted(that.selectedGroup) +
+                " and  week_no=" + (parseInt(wkno)) + " and profile=" + Util.quoted(profile) + " order by day_no,posno";
             var dt = Util.execSQL(sq);
 
 
@@ -357,7 +374,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                     }
                 }
             }
-            var dt = Util.execSQL("select day_no, DELIVERY_DATE, RFR_BREAKFAST, RFR_LUNCH, RFR_DINNER, RFR_SALAD, RFR_SNACK, RFR_SOUP from order_cust_plan WHERE ORD_NO=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " order by day_no");
+            var dt = Util.execSQL("select day_no, DELIVERY_DATE, RFR_BREAKFAST, RFR_LUNCH, RFR_DINNER, RFR_SALAD, RFR_SNACK, RFR_SOUP from order_cust_plan WHERE to_char(delivery_date,'rrrr/mm')='" + mnth + "' and ORD_NO=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " order by day_no");
             that.custplan = [];
             if (dt.ret == "SUCCESS") {
                 var dtx = JSON.parse("{" + dt.data + "}").data;
@@ -404,11 +421,12 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                     var cd = this.getCustomData()[0].getKey();
                     var dy = cd.split("%%")[1];
                     var cod = cd.split("%%")[2];
-                    var wkno = UtilGen.getControlValue(that.cbWeek);
+                    var wkno = UtilGen.getControlValue(that.cbWeek).split(",")[1];
+                    var mnth = UtilGen.getControlValue(that.cbWeek).split(",")[0];
                     for (var c in cnt)
                         if (cnt[c] instanceof sap.m.CheckBox) cnt[c].setSelected(false);
                     var sq = "update order_cust_plan  set  rfr_" + cd.split("%%")[0] + "=" + Util.quoted(cod) +
-                        " where ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " and day_no=" + dy;
+                        " where to_char(delivery_date,'rrrr/mm')='" + mnth + "' and ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " and day_no=" + dy;
                     var dt = Util.execSQL(sq);
                     if (dt.ret == "SUCCESS") {
                         sap.m.MessageToast.show("Succesfully recorded for " + cd.split("%%")[0] + " , day " + dy + " Week " + wkno);
@@ -476,7 +494,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Salad", "salad%%" + i),
+                        headerToolbar: new_tb("Snack 1", "salad%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,
@@ -491,7 +509,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Snack", "snack%%" + i),
+                        headerToolbar: new_tb("Snack 2", "snack%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,
@@ -506,7 +524,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Soup", "soup%%" + i),
+                        headerToolbar: new_tb("Snack 3", "soup%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,

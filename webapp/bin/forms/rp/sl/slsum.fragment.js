@@ -353,13 +353,13 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     },
                     {
                         disp: "avg_price",
-                        exp: "getavgprice(nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
+                        exp: "getavgprice(nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
                     },
                 ],
                 "all": [
                     {
                         disp: "amt",
-                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
+                        exp: "nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
                     },
                     {
                         disp: "cost",
@@ -367,11 +367,11 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     },
                     {
                         disp: "profitamt",
-                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
+                        exp: "nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
                     },
                     {
                         disp: "profitmargin",
-                        exp: "round(getavgprice( nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
+                        exp: "round(getavgprice( nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
                     },
 
 
@@ -472,6 +472,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
         },
         getParas: function (repCode) {
             var colSpan = "XL2 L2 M2 S12";
+            var thatForm = this.thatForm;
             var strLst = "@customers/Customers,month/Monthly,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
             return {
                 fromdate: {
@@ -508,6 +509,60 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
+                    dispInPara: true,
+                },
+                pcust: {
+                    colname: "pcust",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtCust\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        showValueHelp: true,
+                        change: function (e) {
+                            var vl = e.oSource.getValue();
+                            thatForm.frm.setFieldValue(repCode + "@parameter.pcust", vl, vl, false);
+                            var vlnm = Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl));
+                            thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", vlnm, vlnm, false);
+
+                        },
+                        valueHelpRequest: function (event) {
+                            var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
+                            Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
+                                return true;
+                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                        },
+                        width: "35%"
+                    },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
+                pcustname: {
+                    colname: "pcustname",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: { width: "49%", editable: false },
+                    list: undefined,
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false,
                     dispInPara: true,
                 },
                 ploc: {
@@ -595,6 +650,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
             var sql = "select :grpCols from joined where " +
                 " invoice_date>=:parameter.fromdate and " +
                 " invoice_date<=:parameter.todate and " +
+                " (c_cus_no=':parameter.pcust' or ':parameter.pcust' is null )   and " +
                 " (location_code=':parameter.ploc' or ':parameter.ploc'='ALL') " +
                 " and invoice_code in (21,12) group by :grpByCols ";
             var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");

@@ -593,7 +593,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
 
         var paras = "rep_type varchar2(100) :='R';";
         paras += " todate date := :parameter.todate;";
-        paras += "fromcust varchar2(100) := ':parameter.from_cust';";
+        paras += " fromcust varchar2(100) := ':parameter.from_cust';";
         paras += " tocust varchar2(100) := ':parameter.to_cust'; ";
         paras += " parent_cust varchar2(255) := ':parameter.pcust'; ";
         paras += " pstatus varchar2(255) := ':parameter.pstatus'; ";

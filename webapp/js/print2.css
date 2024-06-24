@@ -21,7 +21,29 @@ table {
 }
 
 td,
-th {}
+th {
+    ^^tdPadding^^
+    ^^tdFontSize^^
+}
+
+.company, .page-header-space {
+    height: 60px;
+    border: 0px !important;
+    page-break-after: avoid;
+
+  }
+
+ .company {
+    position: fixed;
+    top: 0mm;
+    width: 100%;
+
+}
+
+.footerText, .page-footer-space {
+    height: 20px;
+    border: 0px !important;
+  }
 
 .yellow {
     background-color: yellow;
@@ -46,7 +68,12 @@ th {}
 }
 
 .paras {
-    font-size: 12px;
+    font-size:12px;
+    position: fixed;
+    top:50px;
+    width: 100%;
+    text-align: center;
+    color:darkgreen
 }
 
 .paraLabel {
@@ -68,9 +95,31 @@ th {}
     font-weight: bold;
     color: darkgreen;
     text-align: center;
+    page-break-after: avoid;
+    position: fixed;
+    top: 30px;
+    width: 100%;
+
 }
+.page {
+    page-break-after: always;
+  }
+  .footerText {
+      position: fixed;
+      bottom: 0px;
+      font-size:7px;
+  }
+  @page {
+    margin: 10mm ;
+    ^^orientation^^
+  }
+  
 
 @media print {
+    .content-block, p {
+        page-break-inside: avoid;
+      }
+
     thead {
         display: table-header-group;
     }

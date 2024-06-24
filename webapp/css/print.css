@@ -5,7 +5,7 @@ table {
 }
 
 td, th {
-    border: 1px solid darkgray;
+    border: 1px solid black;
     text-align: left;
     ^^tdPadding^^
     ^^tdFontSize^^
@@ -14,7 +14,7 @@ td, th {
     
 }
 .company, .page-header-space {
-    height: 60px;
+    height: 70px;
     border: 0px !important;
     page-break-after: avoid;
 

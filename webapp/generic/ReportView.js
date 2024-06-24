@@ -123,6 +123,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 rep.descrAR = Util.nvl(rps[r].descrAR, rps[r].descr);
                 rep.code = rps[r].code;
                 rep.printCSS = Util.nvl(rps[r].printCSS, "print.css");
+                rep.showPDFDirect = Util.nvl(rps[r].showPDFDirect, "N");
                 rep.printOrient = Util.nvl(rps[r].printOrient, "");
                 rep.printCellFontSize = Util.nvl(rps[r].printCellFontSize, "font-size:12px;");
                 rep.printCellPadding = Util.nvl(rps[r].printCellPadding, "padding:5px;");
@@ -2170,6 +2171,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     if (sap.m.MessageBox == undefined)
                         jQuery.sap.require("sap.m.MessageBox");
                     var fnRetrieveData = function () {
+                        thatRV.totRecordsFetched = 0;
                         var qryObj;
                         var qrys = rep.db;
                         for (var o in qrys) {
@@ -2194,6 +2196,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                             var dtx = JSON.parse("{" + data.data + "}");
                                             thatRV.helperFunctions.load._loadDataFromJson(qryObj, dtx.data[0], true);
+                                            thatRV.totRecordsFetched++;
                                         }
 
                                     });
@@ -2228,6 +2231,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                             qryObj.masterTable.parse("{" + data.data + "}", false);
                                             qryObj.masterTable.cursorNo = 0;
                                             thatRV.helperFunctions.masterDetails.loadMasterRecordDataFromCursor(qryObj);
+                                            thatRV.totRecordsFetched++;
                                         }
 
                                     });
@@ -2318,6 +2322,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                         qryObj.obj.mLctb.updateRecStatus(LocalTableData.RowStatus.QUERY);
                                         qryObj.obj.loadData();
+                                        thatRV.totRecordsFetched += qryObj.obj.mLctb.rows.length;
                                     } else {
                                         thatRV.ERROR_ON_RCV_DATA = true;
                                     }
@@ -2377,6 +2382,12 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         fnRetrieveData();
                         this.initV = false;
                         thatRV.navApp.to(thatRV.frag.joApp);
+                        if (Util.nvl(thatRV.frag.oController.para_showPDF, 'false') == 'true')
+                            setTimeout(function () {
+                                thatRV.showHTML();
+                            });
+
+
                     }
 
                 } // if "END"
@@ -2568,8 +2579,8 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             }
                         })
                     );
-
-            if (rep.showHTMLMenu)
+            var showPdf = false;
+            if (rep.showHTMLMenu) {
                 this.mnusExp.push(
                     new sap.m.MenuItem({
                         text: "PDF",
@@ -2579,7 +2590,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             thatRV.showHTML();
                         }
                     }));
-            if (rep.showXLSMenu)
+                showPdf = true;
+            }
+            if (rep.showXLSMenu) {
                 this.mnusExp.push(
                     new sap.m.MenuItem({
                         text: "Excel",
@@ -2588,30 +2601,22 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         press: function () {
 
                             thatRV.showXLS();
-
-                            // var rptNo = Util.nvl('', UtilGen.getControlValue(thatRV.lstRep));
-                            // var rep = thatRV.reports[rptNo];
-
-                            // Util.doAjaxJson("bat7SaveToTemp", {
-                            //     sql: "",
-                            //     ret: "",
-                            //     data: "",
-                            //     repCode: rep.code,
-                            //     repNo: rptNo,
-                            //     command: "",
-                            //     scheduledAt: "",
-                            //     p1: "",
-                            //     p2: "",
-                            //
-                            // }, false).done(function (data) {
-                            //     if (data.ret == "SUCCESS") {
-                            //         sap.m.MessageToast.show("saved report on server !");
-                            //     }
-                            // });
-                            //
-
                         }
                     }));
+                showPdf = true;
+            }
+            if (showPdf)
+                this.mnusExp.push(
+                    new sap.m.MenuItem({
+                        text: "PDF/XLS settings",
+                        icon: "sap-icon://action-settings",
+                        customData: { key: i + "" },
+                        press: function () {
+
+                            thatRV.showPdfSetting();
+                        }
+                    }));
+
             this.btRep = new sap.m.Button({
                 icon: "sap-icon://megamenu",
                 text: this.lstRep.getValue(),
@@ -2749,6 +2754,89 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             }, 100);
 
         };
+        ReportView.prototype.showPdfSetting = function () {
+            var thatRV = this;
+            var vb = new sap.m.VBox();
+            var txtOrient = UtilGen.createControl(sap.m.ComboBox, thatRV.view, "txtOrient" + this.timeInLong, {
+                width: "60%",
+                items: {
+                    path: "/",
+                    template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                    templateShareable: true
+                },
+                selectedKey: "",
+                selectionChange: function (event) {
+
+                }
+            }, "string", undefined, undefined, "@/Default,portrait/portrait,landscape/landscape");
+            var txtFontSize = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "60%", editable: true });
+            var txtCellPad = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "60%", editable: true });
+
+            var applyToReport = function () {
+                var rptNo = Util.nvl(undefined, UtilGen.getControlValue(thatRV.lstRep));
+                var rep = thatRV.reports[rptNo];
+
+                var pgOr = txtOrient.getSelectedKey();
+                var szFont = Util.extractNumber(txtFontSize.getValue());
+                var cellPad = Util.extractNumber(txtCellPad.getValue());
+                if (!(pgOr == "" || pgOr == "landscape" || pgOr == "portrait"))
+                    FormView.err("Invalid orientation !");
+                szFont = (szFont <= 0 ? "12px" : szFont + "px");
+                cellPad = (cellPad <= 0 ? "4px" : cellPad + "px");
+                rep.printOrient = "size:" + pgOr + ";";
+                rep.printCellFontSize = "font-size:" + szFont + ";";
+                rep.printCellPadding = "padding:" + cellPad + ";";
+            }
+            var getVals = function () {
+                var rptNo = Util.nvl(undefined, UtilGen.getControlValue(thatRV.lstRep));
+                var rep = thatRV.reports[rptNo];
+                if (rep.printOrient != "")
+                    txtOrient.setSelectedKey(rep.printOrient.split(":")[1].replaceAll(";", ""));
+                else
+                    txtOrient.setSelectedKey("");
+                txtFontSize.setValue(rep.printCellFontSize.split(":")[1].replaceAll("px", "").replaceAll(";", ""));
+                txtCellPad.setValue(rep.printCellPadding.split(":")[1].replaceAll("px", "").replaceAll(";", ""));
+            }
+            var fe = [
+                Util.getLabelTxt("pageOrientation", "40%", "", "Begin"), txtOrient,
+                Util.getLabelTxt("fontSize", "40%", "", "Begin"), txtFontSize,
+                Util.getLabelTxt("cellPadding", "40%", "", "Begin"), txtCellPad,
+            ];
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: "300px",
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+
+            // cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            vb.addItem(cnt);
+            getVals();
+            var dlg = new sap.m.Dialog({
+                title: Util.getLangText("Pdf Settings"),
+                contentWidth: "350px",
+                contentHeight: "150px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    new sap.m.Button({
+                        text: "Show PDF",
+                        press: function () {
+                            applyToReport();
+                            thatRV.showHTML();
+                        }
+                    })
+
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+        };
         ReportView.prototype.printReport = function (rpt, pRptno, addParas) {
             var that = this;
             var sett = sap.ui.getCore().getModel("settings").getData();
@@ -2760,7 +2848,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             var ps = "";
             for (var i in rep.parameters) {
                 var s = UtilGen.getControlValue(rep.parameters[i].obj);
-                var k = "_para_" + rep.parameters[i].colname;
+                var k = "_para_ `" + rep.parameters[i].colname;
                 var s = k + "=" + s;
                 if (rep.parameters[i].data_type == FormView.DataType.Date)
                     s = k + "=@" + sdf.format(UtilGen.getControlValue(rep.parameters[i].obj));
@@ -3104,8 +3192,6 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             return this.getText();
                         }
                     }
-
-
                 }
 
 
@@ -3489,7 +3575,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 report_info: { report_name: Util.nvl(Util.getLangDescrAR(rep.title, rep.title2), "Query") }
             };
             // var ht = "<div class='company'>" + sett["COMPANY_NAME"] + "</div> " + rep.onSubTitHTML(rep);
-            var ht = "<header><div class='company'>" + sett["COMPANY_NAME"] + "</div> " + (rep.onSubTitHTML!=undefined ?rep.onSubTitHTML(rep):"" ) + "</header>";
+            var ht = "<header><div class='company'>" + sett["COMPANY_NAME"] + "</div> " + (rep.onSubTitHTML != undefined ? rep.onSubTitHTML(rep) : "") + "</header>";
             var ft = "<footer><div class='footerText'> Printed by : " + sett["LOGON_USER"] + "</div></footer>";
             var h2 = "";
             var pvl = "";
@@ -3558,6 +3644,117 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             }
 
         };
+
+        ReportView.prototype.showHTMLPDF = function (pRptno) {
+            var that = this;
+            var rptNo = Util.nvl(pRptno, UtilGen.getControlValue(this.lstRep));
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var rep = this.reports[rptNo];
+            var sf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+            var html = "";
+            that.view.colData = {};
+            that.view.reportsData = {
+                report_info: { report_name: Util.nvl(Util.getLangDescrAR(rep.title, rep.title2), "Query") }
+            };
+            // var ht = "<div class='company'>" + sett["COMPANY_NAME"] + "</div> " + rep.onSubTitHTML(rep);
+            var ht = "<header><div class='company'>" + sett["COMPANY_NAME"] + "</div> " + (rep.onSubTitHTML != undefined ? rep.onSubTitHTML(rep) : "") + "</header>";
+            var ft = "<footer><div class='footerText'> Printed by : " + sett["LOGON_USER"] + "</div></footer>";
+            var h2 = "";
+            var pvl = "";
+            var flds = rep.parameters;
+            for (var f in flds)
+                if (Util.nvl(flds[f].showInPreview, true)) {
+                    pvl = (flds[f].obj instanceof sap.m.CheckBox) ?
+                        (flds[f].obj.getSelected() ?
+                            flds[f].obj.trueValues[0] : flds[f].obj.trueValues[1])
+                        : flds[f].obj.getValue();
+                    if (flds[f].data_type == FormView.DataType.Date)
+                        pvl = sf.format(UtilGen.getControlValue(flds[f].obj));
+                    if (UtilGen.nvl(pvl, "") != "")
+                        h2 += "<td class='paraLabel'>" + ReportView.getTitleFromField(flds[f]) + "</td>:<td class='paraText'>" + pvl + ", </td>";
+                }
+
+            ht += "<div class='paras'>" + h2 + "</div>";
+
+            for (var q in rep.db) {
+                if (rep.db[q].showType == FormView.QueryShowType.QUERYVIEW) {
+                    ht = ht + rep.db[q].obj.getHTMLTable(that.view, "para", false);
+                } else if (rep.db[q].showType == FormView.QueryShowType.FORM) {
+                    var flds = rep.db[q].fields;
+                    for (var f in flds) {
+                        if (flds[f].hasOwnProperty("onPrintField") && flds[f].onPrintField != undefined)
+                            ht = ht + flds[f].onPrintField();
+                        else
+                            ht = ht + "<b>" + flds[f].title + " : </b>" + " " + UtilGen.getControlValue(flds[f].obj) + "<br>";
+
+                    }
+                }
+            }
+
+            if (ht != "") {
+                // var newWin = window.open("");
+                var dir = UtilGen.DBView.sLangu == "AR" ? " dir='rtl' " : "";
+                // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/" + rep.printCSS + "\">";
+                // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"print2.css\">";
+                var hd = "";
+                $.ajax({
+                    url: "css/" + rep.printCSS,
+                    dataType: "text",
+                    async: false,
+                    success: function (cssText) {
+                        hd = cssText;
+                        hd = hd.replaceAll("^^orientation^^", Util.nvl(rep.printOrient, ""))
+                            .replaceAll("^^tdFontSize^^", Util.nvl(rep.printCellFontSize, ""))
+                            .replaceAll("^^tdPadding^^", Util.nvl(rep.printCellPadding, ""));
+
+                        hd = "<style>" + hd + "</style>";
+                        ht = "<html" + dir + ">" + "<head><title></title>" + hd + "</head><body>" + ht + ft + "</body></html>";
+
+                        html2pdf().from(ht).set({
+                            margin: 1,
+                            filename: 'example.pdf',
+                            html2canvas: { scale: 2 },
+                            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                        }).save();
+
+
+                        // window.jsPDF = window.jspdf.jsPDF;
+                        // const { jsPDF } = window.jspdf;
+
+
+                        // Source HTMLElement or a string containing HTML.
+                        // var elementHTML = document.querySelector("#contnet");
+
+                        // doc.html(ht, {
+                        //     callback: function(doc) {
+                        //         // Save the PDF
+                        //         doc.save('sample-document.pdf');
+                        //     },
+                        //     x: 10,
+                        //     y: 10,
+                        //     width: 170, //target width in the PDF document
+                        //     windowWidth: 650 //window width in CSS pixels
+                        // });
+
+                        // newWin.document.write(ht);
+                        // $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);
+                        // setTimeout(function () {
+                        //     newWin.print();
+                        // }, 1000);
+
+                        // printJS({
+                        //     printable: ht,
+                        //     type: "raw-html",
+                        //     style: UtilGen.DBView.sLangu == "AR" ? "body { direction: rtl;}" : "",
+                        //     header: "<div class='company'>" + sett["COMPANY_NAME"] + "</div>",
+                        //     footer: ft
+                        // });
+                    }
+                });
+            }
+
+        };
+
         ReportView.prototype.showXLS = function (pRptno) {
             var that = this;
             var saveData = (function () {

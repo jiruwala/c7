@@ -334,9 +334,9 @@ sap.ui.jsfragment("bin.forms.yd.rp", {
                             if (valx != accno) {
                                 FormView.err("Customer is not same as " + accno + " <> " + valx + " , Refresh data !");
                             }
-                            var vldtt = Util.getSQLValue("select nvl(count(*),0) from pur1 where c_cus_no = " + Util.quoted(valx));
+                            var vldtt = Util.getSQLValue("select nvl(count(*),0) from order1 where ord_ref = " + Util.quoted(valx));
                             if (Util.nvl(vldtt, 0) > 0) {
-                                FormView.err("Err ! , this customer have transaction in Purchase/Sales #" + vldtt);
+                                FormView.err("Err ! , this customer have subscriptions #" + vldtt);
                             }
                             var vldtt = Util.getSQLValue("select nvl(count(*),0) from acvoucher2 where cust_code = " + Util.quoted(valx));
                             if (Util.nvl(vldtt, 0) > 0) {

@@ -1747,7 +1747,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 if (sett["DEFAULT_CURRENCY"] == "INR")
                     return this.abbreviateNumberIndian(number);
 
-                const SI_SYMBOLS = ['', 'k', 'M', 'G', 'T', 'P', 'E'];
+                const SI_SYMBOLS = Util.getLangDescrAR(['', 'k', 'M', 'G', 'T', 'P', 'E'], ['', ' ألف', ' مليون', 'G', 'T', 'P', 'E']);
+
 
                 // Convert the number to absolute value
                 const absNumber = Math.abs(number);

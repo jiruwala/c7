@@ -879,6 +879,19 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
         // this.mainPage.addContent(sc);
 
     },
+    getWeekOfMonth: function (date) {
+        const target = new Date(date);
+        const startOfMonth = new Date(target.getFullYear(), target.getMonth(), 1);
+        const dayOfMonth = target.getDate();
+        const startDay = startOfMonth.getDay(); // Day of the week the month starts on
+        const adjustedDate = dayOfMonth + startDay; // Adjust the date to the nearest Monday
+        const weekNumber = Math.ceil(adjustedDate / 7);
+        return weekNumber;
+    },
+    getDayOfWeek(date) {
+        const target = new Date(date);
+        return target.getDay(); // 0 for Sunday, 1 for Monday, etc.
+    },
     generateDaysSql: function () {
         var that = this;
         var thatForm = this;
@@ -918,13 +931,15 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
         if (doff.indexOf(dt.getDay()) > -1)
             FormView.err("From date is day off , cant calculate to date !");
         var getSql = function (pDt, pWkno, pdn) {
+            var nwk = that.getWeekOfMonth(pDt);
+            var ndy = that.getDayOfWeek(pDt);
             var sq = "insert into order_cust_plan " +
                 " ( KEYFLD, ORD_NO, DELIVERY_DATE, WEEK_NO, DAY_NO, DELIVERY_BY, FLAG, DELIVER_TIME, ORDERED_BY, POSNO ) values " +
                 " ( (select nvl(max(keyfld),0)+1 from order_cust_plan ) , :ORD_NO , :DELIVERY_DATE, :WEEK_NO, :DAY_NO, :DELIVERY_BY, 1, SYSDATE, :ORDERED_BY,0 ) ";
             sq = sq.replaceAll(":ORD_NO", ":qry1.ord_no");
             sq = sq.replaceAll(":DELIVERY_DATE", Util.toOraDateString(pDt));
-            sq = sq.replaceAll(":WEEK_NO", pWkno);
-            sq = sq.replaceAll(":DAY_NO", pdn);
+            sq = sq.replaceAll(":WEEK_NO", nwk);
+            sq = sq.replaceAll(":DAY_NO", ndy);
             sq = sq.replaceAll(":DELIVERY_BY", Util.quoted(sett["LOGON_USER"]));
             sq = sq.replaceAll(":ORDERED_BY", Util.quoted(sett["LOGON_USER"]));
             return sq;
@@ -955,6 +970,7 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
         return sql;
 
     },
+
     checkFromDate: function () {
         var that = this;
         var doff = []; // days off 

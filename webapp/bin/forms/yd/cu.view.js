@@ -256,85 +256,42 @@ sap.ui.jsview("bin.forms.yd.cu", {
             that.joApp.toDetail(that.pgBasicData, "slide");
             that.showViewBasicData();
         });
-        //week 1
-        this.week1 = new sap.m.Text({
-            text: "الأسبوع الأول",
-            width: "100%"
+        var addWeeks = function () {
+            var arbWks = ["الأسبوع الأول", "الأسبوع الثاني", "الأسبوع الثالث", "الأسبوع الرابع", "الأسبوع الخامس", "الأسبوع السادس"];
+            var sq = "select distinct  to_char(delivery_date,'rrrr/mm')||','||week_no code,to_char(delivery_date,'rrrr/mm')||',Week-'||(week_no) name from order_cust_plan where ord_no=" + that.ord_data[0].ORD_NO+ " order by 1";
+            var dt = Util.execSQL(sq);
+            if (dt.ret != "SUCCESS") return;
+            var dtx = JSON.parse("{" + dt.data + "}").data;
+            for (var di in dtx) {
+                var w = parseInt(dtx[di].CODE.split(",")[1]);
+                var m = dtx[di].CODE.split(",")[0];
 
-        }).addStyleClass("masterMenu");
+                var week = new sap.m.Text({
+                    text:" شهر "+ m.split("/")[1] + " - " + arbWks[w - 1],
+                    width: "100%",
+                    customData: [{ key: dtx[di].CODE }]
+                }).addStyleClass("masterMenu");
+                week.attachBrowserEvent("click", function (e) {
+                    var js = this.getCustomData()[0].getKey();
+                    var wkno = parseInt(js.split(",")[1]);
+                    var mnth = js.split(",")[0];
+                    that.joApp.hideMaster();
+                    that.joApp.toDetail(that.pgBasicData, "slide");
+                    Util.doSpin();
+                    that.weekno = wkno;
+                    that.mnth = mnth;
+                    that.showWeekPage();
+                    setTimeout(function () {
+                        Util.stopSpin();
+                    });
+                    
+                });
+                that.pgMaster.addContent(week);
+            }
 
-        this.week1.attachBrowserEvent("click", function (e) {
-            that.joApp.hideMaster();
-            that.joApp.toDetail(that.pgBasicData, "slide");
-            Util.doSpin();
-            that.weekno = 1;
-            that.showWeekPage();
-            setTimeout(function () {
-                Util.stopSpin();
-            });
-
-        });
-        //week 2
-        this.week2 = new sap.m.Text({
-            text: "الأسبوع الثاني",
-            width: "100%"
-
-        }).addStyleClass("masterMenu");
-
-        this.week2.attachBrowserEvent("click", function (e) {
-            that.joApp.hideMaster();
-            that.joApp.toDetail(that.pgBasicData, "slide");
-            that.weekno = 2;
-            Util.doSpin();
-            that.showWeekPage();
-            setTimeout(function () {
-                Util.stopSpin();
-            });
-        });
-
-        //week 3
-        this.week3 = new sap.m.Text({
-            text: "الأسبوع الثالث",
-            width: "100%"
-
-        }).addStyleClass("masterMenu");
-
-        this.week3.attachBrowserEvent("click", function (e) {
-            that.joApp.hideMaster();
-            that.joApp.toDetail(that.pgBasicData, "slide");
-            that.weekno = 3;
-            Util.doSpin();
-            that.showWeekPage();
-            setTimeout(function () {
-                Util.stopSpin();
-            });
-        });
-
-        //week 4
-        this.week4 = new sap.m.Text({
-            text: "الأسبوع الرابع",
-            width: "100%"
-
-        }).addStyleClass("masterMenu");
-
-        this.week4.attachBrowserEvent("click", function (e) {
-            that.joApp.hideMaster();
-            that.joApp.toDetail(that.pgBasicData, "slide");
-            that.weekno = 4;
-            that.showWeekPage();
-            Util.doSpin();
-            setTimeout(function () {
-                Util.stopSpin();
-            });
-
-        });
-
+        }
         this.pgMaster.addContent(this.mnuBasic);
-        this.pgMaster.addContent(this.week1);
-        this.pgMaster.addContent(this.week2);
-        this.pgMaster.addContent(this.week3);
-        this.pgMaster.addContent(this.week4);
-
+        addWeeks();
 
 
     },
@@ -435,6 +392,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
         var Util = this.Util;
         var profile = 'GENERAL';
         var wkno = this.weekno;
+        var mnth = this.mnth;
         var sett = sap.ui.getCore().getModel("settings").getData();
         var sf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " E");
         this.oController.clearPage(this.pgBasicData);
@@ -494,8 +452,12 @@ sap.ui.jsview("bin.forms.yd.cu", {
             }).addStyleClass("toolBarBackgroundColor1");
         };
         var initData = function () {
-            var sq = "select op.* from order_plan op where profile_item=" + Util.quoted(that.selectedGroup) +
-                " and  week_no=" + wkno + " and profile=" + Util.quoted(profile) + " order by day_no,posno";
+            var minDayNo = Util.getSQLValue("select min(day_no)  from order_cust_plan where to_char(delivery_date,'rrrr/mm')='" + mnth + "' and week_no=" + wkno + " and ord_no=" + that.ord_data[0].ORD_NO);
+            var maxDayNo = Util.getSQLValue("select max(day_no)  from order_cust_plan where to_char(delivery_date,'rrrr/mm')='" + mnth + "' and week_no=" + wkno + " and ord_no=" + that.ord_data[0].ORD_NO);
+            var sq = "select op.* from order_plan op where day_no>=" + minDayNo + " and day_no<=" + maxDayNo + " and profile_item=" + Util.quoted(that.selectedGroup) +
+                " and  week_no=" + (parseInt(wkno)) + " and profile=" + Util.quoted(profile) + " order by day_no,posno";
+            // var sq = "select op.* from order_plan op where profile_item=" + Util.quoted(that.selectedGroup) +
+            //     " and  week_no=" + wkno + " and profile=" + Util.quoted(profile) + " order by day_no,posno";
             var dt = Util.execSQL(sq);
 
 
@@ -549,7 +511,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
                 }
             }
 
-            var dt = Util.execSQL("select day_no,DELIVERY_DATE,RFR_BREAKFAST, RFR_LUNCH, RFR_DINNER, RFR_SALAD, RFR_SNACK, RFR_SOUP from order_cust_plan WHERE ORD_NO=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " order by day_no");
+            var dt = Util.execSQL("select day_no,DELIVERY_DATE,RFR_BREAKFAST, RFR_LUNCH, RFR_DINNER, RFR_SALAD, RFR_SNACK, RFR_SOUP from order_cust_plan WHERE to_char(delivery_date,'rrrr/mm')='"+mnth+"' and ORD_NO=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " order by day_no");
             that.custplan = [];
             if (dt.ret == "SUCCESS") {
                 var dtx = JSON.parse("{" + dt.data + "}").data;
@@ -598,10 +560,11 @@ sap.ui.jsview("bin.forms.yd.cu", {
                     var dy = cd.split("%%")[1];
                     var cod = cd.split("%%")[2];
                     var wkno = that.weekno;
+                    var mnth = that.mnth;
                     for (var c in cnt)
                         if (cnt[c] instanceof sap.m.CheckBox) cnt[c].setSelected(false);
                     var sq = "update order_cust_plan  set  rfr_" + cd.split("%%")[0] + "=" + Util.quoted(cod) + ", ORDERED_BY=" + Util.quoted(that.ord_data[0].ORD_REF) +
-                        " where ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " and day_no=" + dy;
+                        " where to_char(delivery_date,'rrrr/mm')='"+mnth+"' and ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " and day_no=" + dy;
                     var dt = Util.execSQL(sq);
                     if (dt.ret == "SUCCESS") {
                         sap.m.MessageToast.show("Succesfully recorded for " + cd.split("%%")[0] + " , day " + dy + " Week " + wkno);
@@ -670,7 +633,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Salad - سلطة", "salad%%" + i),
+                        headerToolbar: new_tb("Snack 1- سناك", "salad%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,
@@ -685,7 +648,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Snack - سناك", "snack%%" + i),
+                        headerToolbar: new_tb("Snack 2- سناك", "snack%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,
@@ -700,7 +663,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Soup - شوربة ", "soup%%" + i),
+                        headerToolbar: new_tb("Snack 3- سناك", "soup%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,

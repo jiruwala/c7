@@ -30,6 +30,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
         var sett = sap.ui.getCore().getModel("settings").getData();
         var that2 = this;
         var thatForm = this;
+        var repCode = "R001";
         var view = this.view;
         var fullSpan = "XL8 L8 M8 S12";
         var colSpan = "XL2 L2 M2 S12";
@@ -137,6 +138,61 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            pcust: {
+                                colname: "pcust",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"txtCust\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.pcust", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
+                                        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            pcustname: {
+                                colname: "pcustname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
 
                         },
                         print_templates: [
@@ -154,7 +210,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 disp_class: "reportTable2",
                                 dispRecords: { "S": 10, "M": 16, "L": 20 },
                                 execOnShow: false,
-                                dml: "select a.*,decode(type,1,'Bank',2,'Cash') rec_type from ACC_TRANSACTION a where a.vou_code in (2,3) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by keyfld",
+                                dml: "select a.*,decode(type,1,'Bank',2,'Cash') rec_type from ACC_TRANSACTION_up a where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and  a.vou_code in (2,3) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by keyfld",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -178,6 +234,23 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
 
                                 },
                                 fields: {
+                                    credit: {
+                                        colname: "credit",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Amount",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "color:maroon;",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        summary: "SUM",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
                                     rec_type: {
                                         colname: "rec_type",
                                         data_type: FormView.DataType.String,
@@ -279,23 +352,23 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
-                                    credit: {
-                                        colname: "credit",
-                                        data_type: FormView.DataType.Number,
+                                    descr: {
+                                        colname: "descr",
+                                        data_type: FormView.DataType.String,
                                         class_name: FormView.ClassTypes.LABEL,
-                                        title: "Amount",
+                                        title: "Descr",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "color:maroon;",
-                                        display_format: "MONEY_FORMAT",
+                                        display_width: "375",
+                                        display_align: "ALIGN_LEFT",
+                                        display_style: "",
+                                        display_format: "",
                                         default_value: "",
-                                        summary: "SUM",
+                                        display_type: "NONE",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
-                                    },
+                                    }
                                 }
                             }
                         ]

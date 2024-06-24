@@ -117,10 +117,18 @@ sap.ui.jsfragment("bin.forms.yd.dl", {
             },
             layoutData: new sap.ui.layout.GridData({ span: "XL2 L2 M2 S12" })
         });
+        this.o1._cmdReport2 = new sap.m.Button({
+            text: "Summary Report", press: function () {
+                that.printReport2();
+            },
+            layoutData: new sap.ui.layout.GridData({ span: "XL2 L2 M2 S12" })
+        });
+
 
         fe.push(this.o1._cmdExe);
         fe.push(this.o1._cmdPrint);
         fe.push(this.o1._cmdReport);
+        fe.push(this.o1._cmdReport2);
 
         return UtilGen.formCreate("", true, fe, undefined, undefined, [1, 1, 1]);
 
@@ -208,7 +216,83 @@ sap.ui.jsfragment("bin.forms.yd.dl", {
                 report_other: "Date : " + fr
             },
         };
-        that.qv.printHtml(that.view, "");
+        // that.qv.printHtml(that.view, "");
+        var ht = "<div class='reportTitle'>" + "Delivery Daily : " + fr + "</div > ";
+        ht += "<header><div class='company'>" + sett["COMPANY_NAME"] + "</div> " + (ht) + "</header>";
+        var ft = "<footer><div class='footerText'> Printed by : " + sett["LOGON_USER"] + "</div></footer>";
+        ht += that.qv.getHTMLTable(that.view, "para", false);
+
+        var newWin = window.open("");
+        newWin.document.write(ht);
+        $("<link>", { rel: "stylesheet", href: "css/print.css" }).appendTo(newWin.document.head);
+        setTimeout(function () {
+            newWin.print();
+        }, 1000);
+
+    },
+    printReport2: function () {
+        var that = this;
+        that.view.colData = {};
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+        var fr = sdf.format(UtilGen.getControlValue(this.o1.fromdate));
+        that.view.reportsData = {
+            report_info: {
+                report_name: "Summary Delivery",
+                report_other: "Date : " + fr
+            },
+        };
+        var items = {};
+        that.loadData();
+        var ld = that.qv.mLctb;
+        if (ld.rows.length == 0) FormView.err("Err ! No data found ");
+        // DES_BREAKFAST, DES_LUNCH, DES_DINNER, DES_SALAD, DES_SNACK, DES_SOUP
+        for (var l = 0; l < ld.rows.length; l++)
+            for (var l1 = 0; l1 < ld.cols.length; l1++) {
+                var des = "";
+                if (ld.cols[l1].mColName.startsWith("DES_"))
+                    des = ld.getFieldValue(l, ld.cols[l1].mColName);
+                if (Util.nvl(des, "") == "") continue;
+                if (items[des] != undefined)
+                    items[des]++;
+                else
+                    items[des] = 1;
+            }
+        if (items.length <= 0) FormView.err("No  items selected !");
+        var sq = "select '' item_descr, 0 counts from dual where 1=2";
+        var qv2 = new QueryView("tbl_sum");
+        qv2.getControl().setEditable(false);
+        var ld2 = qv2.mLctb;
+        var dt = Util.execSQL(sq);
+        if (dt.ret == "SUCCESS") {
+            qv2.setJsonStrMetaData("{" + dt.data + "}");
+            ld2.cols[ld2.getColPos("COUNTS")].mUIHelper.display_align = "center";
+            qv2.mLctb.parse("{" + dt.data + "}", true);
+            qv2.loadData();
+            var keys = Object.keys(items);
+            for (var k in keys) {
+                var n = ld2.addRow();
+                ld2.setFieldValue(n, "ITEM_DESCR", keys[k]);
+                ld2.setFieldValue(n, "COUNTS", items[keys[k]]);
+            }
+            qv2.updateDataToControl();
+            if (qv2.mLctb.rows.length <= 0) FormView.err("No  items selected !");
+
+            var ht = "<div class='reportTitle'>" + "Delivery Summary : " + fr + "</div > ";
+            ht += "<header><div class='company'>" + sett["COMPANY_NAME"] + "</div> " + (ht) + "</header>";
+            var ft = "<footer><div class='footerText'> Printed by : " + sett["LOGON_USER"] + "</div></footer>";
+            ht += qv2.getHTMLTable(that.view, "para", false);
+
+            var newWin = window.open("");
+            newWin.document.write(ht);
+            $("<link>", { rel: "stylesheet", href: "css/print.css" }).appendTo(newWin.document.head);
+            setTimeout(function () {
+                newWin.print();
+            }, 1000);
+
+
+        }
+
     },
     showDelivery: function () {
         var kflds = "";

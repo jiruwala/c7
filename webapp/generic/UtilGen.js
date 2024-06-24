@@ -1918,7 +1918,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // }
                     // var control = this;
                     var sq = pSq;
-                    Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
+                    Util.show_list(sq, ["CODE", "TITLE", "NAME"], "", function (data) {
                         UtilGen.setControlValue(control, data.CODE, data.CODE, true);
                         if (titObj != undefined)
                             UtilGen.setControlValue(titObj, data.TITLE, data.TITLE, true);
@@ -2972,7 +2972,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (dat.ret == "SUCCESS" && dat.data.length > 0) {
                     var dtx = JSON.parse("{" + dat.data + "}").data;
                     var tot = 0;
-                    var dtstr = (dt != undefined ? " and vou_date<=" + Util.toOraDateString(dt) : "");
+                    var dtstr = (dt != undefined ? " and vou_date<=" + Util.toOraDateString(dt) : " and vou_date<=" + Util.toOraDateString(UtilGen.DBView.today_date.getDateValue()));
                     for (var i in dtx)
                         tot += Util.getSQLValue("select nvl(sum(debit-credit),0) from acc_transaction_up where path like '" + dtx[i].PATH + "%' " + dtstr);
                     return tot;
@@ -3104,9 +3104,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         hCol += cs[x];
 
 
-                    hCol = "<tr>" + hCol + "</tr>";
-                    h = "<thead " + tblHeadStyle + ">" + (hasSpan ? hCol : "") +
-                        "<tr>" + h + "</tr></thead>";
+                    hCol = "<tr " + tblHeadStyle + ">" + hCol + "</tr>";
+                    var spacerAdd = "<tr><td class=\"page-header-space\"><div></div></td></tr>";
+                    var spacerAddFooter = "<tfoot><tr><td class=\"page-footer-space\"><div></div></td></tr></tfoot>";
+
+                    h = "<thead>" + spacerAdd + (hasSpan ? hCol : "") +
+                        "<tr " + tblHeadStyle + ">" + h + "</tr></thead>";
 
                     for (var i = 0; i < oData.length; i++) {
                         rs = _getRowData2(i, oData);
@@ -3114,7 +3117,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }
                     dt = "<tbody " + tblDetailStyle + ">" + dt + "</tbody>";
                     var tblClass = Util.nvl(that.tableClass, "");
-                    h = "<table " + tblClass + ">" + h + dt + "</table>";
+                    h = "<table " + tblClass + ">" + h + dt + spacerAddFooter + "</table>";
                     return h;
                 }
                 var _getRowData2 = function (i, oData) {

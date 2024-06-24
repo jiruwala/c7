@@ -56,7 +56,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
+        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + that.vars.vou_code + " ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
@@ -311,7 +311,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                         var rfr = ld.getFieldValue(rowno, "ORD_SHIP");
                         var pos = ld.getFieldValue(rowno, "ORD_POS");
                         var dt = Util.execSQLWithData("select packd,unitd,pack from items where reference='" + rfr + "'", "Item # " + rfr + " not a valid !");
-                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd' where keyfld=:kf and ord_pos=:pos "
+                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', tqty=ord_pkqty*:pack where keyfld=:kf and ord_pos=:pos "
                             .replaceAll(":pkd", dt[0].PACKD)
                             .replaceAll(":unitd", dt[0].UNITD)
                             .replaceAll(":pack", dt[0].PACK)
@@ -832,7 +832,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             var objBal = thatForm.frm.objs["qry1.txt_balance"].obj;
 
                             var dtxM = Util.execSQLWithData("select nvl(sum(debit-credit),0) bal from acvoucher2 where cust_code=" + Util.quoted(objCd.getValue()));
-                            var dt2 = Util.getSQLValue("select sum(sale_price*tqty) from c_order1 where saleinv is null and  ord_ref=" + Util.quoted(objCd.getValue()));
+                            var dt2 = Util.getSQLValue("select sum(sale_price*ord_pkqty) from c_order1 where saleinv is null and  ord_ref=" + Util.quoted(objCd.getValue()));
                             var bl = dtxM[0]["BAL"] + dt2;
                             UtilGen.setControlValue(objBal, bl, bl, true);
 
@@ -1774,7 +1774,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
-                var qty = ld.getFieldValue(i, "TQTY");
+                var qty = ld.getFieldValue(i, "ORD_PKQTY");
                 var pr = ld.getFieldValue(i, "SALE_PRICE");
                 if (dup[rfr] != undefined)
                     FormView.err("Save Denied : Duplicate item entry # " + rfr);
