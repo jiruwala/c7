@@ -820,19 +820,23 @@ th {
 }
 
 .db2RepSelected {
-    color: black !important;
-    padding: 10px;
-    font-size: 18px;
+    color: darkgreen !important;
+    font-size: .75rem;
     text-decoration: underline;
+    font-weight: bold;
 }
 
 .db2Rep {
     color: black !important;
-    padding: 10px;
-    font-size: 18px;
+    font-size: .75rem;
 }
 
+.db2Rep:hover {
+    color: hotpink !important;
+    cursor: pointer !important;
+    text-decoration: underline;
 
+}
 .paddingTinyBot {
     padding-bottom: .2rem !important;
 }

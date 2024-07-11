@@ -243,7 +243,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
 
         var ton = (that.chkTonOnly.getSelected() ? "Y" : "N");
         var sq = "SELECT  QTY_2, PRICE_2,'طن' packd_2, C.ORD_SHIP, I.DESCR ITEMNAME, " +
-            " C.QTYX ,C.PACKDX,C.ORD_NO, attn, L.NAME LOCATION_NAME, " +
+            " C.ORD_PKQTY ,C.PACKDX,C.ORD_NO, attn, L.NAME LOCATION_NAME, " +
             " ( select NVL(max(PRICEU),0)  from c_contract_items " +
             " where cust_code=c.ord_ref and branch_no=c.ord_discamt and c.ORD_SHIP=refer " +
             " and c.ord_date>=startdate and PRICEU>0) price_u, " +
@@ -279,7 +279,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
             qv.mLctb.cols[qv.mLctb.getColPos("PACKD_2")].mTitle = Util.getLangText("Ton");
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_SHIP")].mTitle = Util.getLangText("itemCode");
             qv.mLctb.cols[qv.mLctb.getColPos("ITEMNAME")].mTitle = Util.getLangText("itemDescr");
-            qv.mLctb.cols[qv.mLctb.getColPos("QTYX")].mTitle = Util.getLangText("dlvQty");
+            qv.mLctb.cols[qv.mLctb.getColPos("ORD_PKQTY")].mTitle = Util.getLangText("dlvQty");
             qv.mLctb.cols[qv.mLctb.getColPos("PACKDX")].mTitle = Util.getLangText("itemPackD");
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].mTitle = Util.getLangText("noTxt");
             qv.mLctb.cols[qv.mLctb.getColPos("ATTN")].mTitle = Util.getLangText("branchNmTxt");
@@ -298,7 +298,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
             qv.mLctb.cols[qv.mLctb.getColPos("PACKD_2")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_SHIP")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("ITEMNAME")].getMUIHelper().display_width = 150;
-            qv.mLctb.cols[qv.mLctb.getColPos("QTYX")].getMUIHelper().display_width = 80;
+            qv.mLctb.cols[qv.mLctb.getColPos("ORD_PKQTY")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("PACKDX")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("ATTN")].getMUIHelper().display_width = 120;
@@ -350,6 +350,20 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
         var qt = 0; pr = 0;
         var sqs = "";
         var sqUpd1 = "update c_order1 set qty_2=:qty2 , price_2=:price2 where keyfld=:keyfld and ord_pos=:ordpos and saleinv is null;";
+        var kfs = {};
+        for (var i = 0; i < ld.rows.length; i++) {
+            if (ton != 'Y' && ld.getFieldValue(i, "QTY_2") > 0)
+                kfs[ld.getFieldValue(i, "KEYFLD")] = ld.getFieldValue(i, "ORD_NO");
+            if (ton == 'Y' && ld.getFieldValue(i, "QTY_2") == 0)
+                kfs[ld.getFieldValue(i, "KEYFLD")] = ld.getFieldValue(i, "ORD_NO");
+        }
+        var kys = Object.keys(kfs);
+        for (var i = 0; i < ld.rows.length; i++) {
+            if (ton != "Y" && kfs[ld.getFieldValue(i, "KEYFLD")] != undefined && ld.getFieldValue(i, "QTY_2") == 0)
+                FormView.err("Ord No " + kfs[ld.getFieldValue(i, "KEYFLD")] + " must enter qty to all !");
+            if (ton == "Y" && kfs[ld.getFieldValue(i, "KEYFLD")] != undefined && ld.getFieldValue(i, "QTY_2") > 0)
+                FormView.err("Ord No " + kfs[ld.getFieldValue(i, "KEYFLD")] + " must zero to TON to all !");
+        }
         for (var i = 0; i < ld.rows.length; i++) {
             var qt2 = ld.getFieldValue(i, "QTY_2");
             var p2 = Util.extractNumber(ld.getFieldValue(i, "PRICE_2"));
@@ -376,6 +390,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
             if (dt.ret == "SUCCESS") {
                 FormView.msgSuccess(Util.getLangText("msgSaved"));
                 that.loadData();
+            } else {
+                FormView.err("Err !, contact provider or administration !");
             }
         }
 

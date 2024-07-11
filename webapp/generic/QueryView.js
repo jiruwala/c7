@@ -1436,6 +1436,10 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
             var cnt = 0;
             var grp = "";
+            var nogU = {};
+            var noU = {};
+            var nog = {};
+            var nor = {};
             var t;
             var sett = sap.ui.getCore().getModel("settings").getData();
             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
@@ -1471,12 +1475,15 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             o.splice(i, 0, headerg);
                             ++i;
                         }
+
                         continue;
                     }
+
                     if (footerg[v] == undefined)
                         footerg[v] = null;
                     if (footer[v] == undefined)
                         footer[v] = null;
+
                     if (typeof (o[i][v]) == "number") {
                         if (this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).mSummary == "SUM") {
                             footerg[v] = (Util.nvl(footerg[v], 0) == 0 ? 0 : Util.nvl(footerg[v], 0)) + Util.nvl(o[i][v], 0);
@@ -1484,6 +1491,24 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         } else if (this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).mSummary == "LAST") {
                             footerg[v] = o[i][v];
                             footer[v] = o[i][v];
+                        } else if (Util.nvl(o[i][v], '') != '' && this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).mSummary == "COUNT") {
+                            nog[v] = Util.nvl(nog[v], 0) + 1;
+                            nor[v] = Util.nvl(nor[v], 0) + 1;;
+                            footerg[v] = Util.getLangText("txtNoOf") + " # " + nog[v];
+                            footer[v] = Util.getLangText("txtNoOf") + " # " + nor[v];
+                        } else if
+                            (Util.nvl(o[i][v], '') != '' && this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).mSummary == "COUNT_UNIQUE") {
+                            if (Util.nvl(nogU[o[i][v]], '') == '') {
+                                nog[v] = Util.nvl(nog[v], 0) + 1;
+                                nogU[o[i][v]] = "1";
+                            }
+                            if (Util.nvl(noU[o[i][v]], '') == '') {
+                                nor[v] = Util.nvl(nor[v], 0) + 1;
+                                noU[o[i][v]] = "1";
+                            }
+                            var lbl = Util.getLangText(this.mLctb.getColByName(vv).count_unique_label, this.mLctb.getColByName(vv).mTitle);
+                            footerg[v] = nog[v] + " # " + lbl;
+                            footer[v] = nor[v] + " # " + lbl;
                         }
                         else {
                             footerg[v] = null;
@@ -1511,6 +1536,25 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     else {
                         // footer[v] = null;
                         // footerg[v] = null;
+                        if (Util.nvl(o[i][v], '') != '' && this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).mSummary == "COUNT") {
+                            nog[v] = Util.nvl(nog[v], 0) + 1;
+                            nor[v] = Util.nvl(nor[v], 0) + 1;;
+                            footerg[v] = Util.getLangText("txtNoOf") + " : " + nog[v];
+                            footer[v] = Util.getLangText("txtNoOf") + " : " + nor[v];
+                        } else if
+                            (Util.nvl(o[i][v], '') != '' && this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).mSummary == "COUNT_UNIQUE") {
+                            if (Util.nvl(nogU[o[i][v]], '') == '') {
+                                nog[v] = Util.nvl(nog[v], 0) + 1;
+                                nogU[o[i][v]] = "1";
+                            }
+                            if (Util.nvl(noU[o[i][v]], '') == '') {
+                                nor[v] = Util.nvl(nor[v], 0) + 1;
+                                noU[o[i][v]] = "1";
+                            }
+                            var lbl = Util.getLangText(this.mLctb.getColByName(vv).count_unique_label, this.mLctb.getColByName(vv).mTitle);
+                            footerg[v] = nog[v] + " # " + lbl;
+                            footer[v] = nor[v] + " # " + lbl;
+                        }
                         if (v != "_rowid" &&
                             this.mLctb.getColByName(vv) != undefined &&
                             this.mLctb.getColByName(vv).getMUIHelper().display_format === "SHORT_DATE_FORMAT") {
@@ -1537,13 +1581,12 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 }
 
                 if (grouped && i > o.length - 2) {
-                    for (var fv in footerg)  // formating...
+                    for (var fv in footerg) { // formating...
                         if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "MONEY_FORMAT")
                             footerg[fv] = df.format(footerg[fv]);
-                    if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "QTY_FORMAT")
-                        footerg[fv] = dfq.format(footerg[fv]);
-
-
+                        if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "QTY_FORMAT")
+                            footerg[fv] = dfq.format(footerg[fv]);
+                    }
                     o.splice(i + 1, 0, footerg);
                     grp = o[i][t];
                     t = null;
@@ -1566,16 +1609,18 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         nxt = dfq.format(o[i + 1][t]);
 
                     if (grp != nxt) {
-                        for (var fv in footerg)  // formating...
+                        for (var fv in footerg) {// formating...
                             if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "MONEY_FORMAT")
                                 footerg[fv] = df.format(footerg[fv]);
-                        if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "QTY_FORMAT")
-                            footerg[fv] = dfq.format(footerg[fv]);
-
+                            if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "QTY_FORMAT")
+                                footerg[fv] = dfq.format(footerg[fv]);
+                        }
                         o.splice(i + 1, 0, footerg);
                         grp = nxt;
                         //t = null;
                         ++i;
+                        nog = {};
+                        nogU = {};
                         footerg = {};
                         headerg = {};
                         headerg[t] = String.fromCharCode(4094);
@@ -2915,34 +2960,41 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     continue;
                 (view.byId("txtflt" + i) != undefined ? view.byId("txtflt" + i).destroy() : null);
                 var t = new sap.m.Input(view.createId("txtflt" + i), {
-                    width: "100%",
+                    width: "60%",
                     placeholder: "Filter for field # " + Util.getLangCaption(qv.mLctb.cols[i].mTitle),
                     value: Util.nvl(view.filterData[qv.mLctb.cols[i].mColName], "")
                 });
+                txts.push(Util.getLabelTxt(qv.mLctb.cols[i].mTitle, "40%"));
                 txts.push(t);
             }
 
 
-            var flexOther = new sap.m.FlexBox(view.createId("flxOtherFilter"), {
-                width: "100%",
-                height: "100%",
-                direction: sap.m.FlexDirection.Row,
-                justifyContent: sap.m.FlexJustifyContent.Center,
-                items: []
+            // var flexMain = new sap.m.FlexBox({
+            //     width: "100%",
+            //     height: "100%",
+            //     direction: sap.m.FlexDirection.Column,
+            //     justifyContent: sap.m.FlexJustifyContent.Start,
+            //     alignItems: sap.m.FlexAlignItems.Start,
+            //     items: txts
+            // });
+            var flexMain = UtilGen.formCreate2("", true, txts, undefined, sap.m.ScrollContainer, {
+                vertical: true,
+                width: "350px",
+                cssText: [
+                    "padding-left:10px;" +
+                    "padding-top:20px;" +
+                    "padding-right:10px;"
+                ]
+            }, undefined);
+            var vb = new sap.m.VBox({
+                height: "300px",
+                items: [flexMain]
             });
-
-            var flexMain = new sap.m.FlexBox({
-                width: "100%",
-                height: "100%",
-                direction: sap.m.FlexDirection.Column,
-                justifyContent: sap.m.FlexJustifyContent.Start,
-                alignItems: sap.m.FlexAlignItems.Start,
-                items: txts
-            });
-
             var dlg = new sap.m.Dialog({
                 title: "Filtering data..",
-                content: [flexMain],
+                content: [vb],
+                contentWidth: "400px",
+                contentHeight: "300px",
                 buttons: [new sap.m.Button({
                     text: "Filter",
                     press: function () {

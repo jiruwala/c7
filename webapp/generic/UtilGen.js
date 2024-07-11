@@ -395,7 +395,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             var dttt = { CODE: "", NAME: "" };
                             var sx = spt[i1].split("/");
                             dttt.CODE = "" + sx[0];
-                            dttt.NAME = "" + sx[1];
+                            dttt.NAME = "" + Util.getLangText(sx[1]);
                             dtxx.push(dttt);
                         }
                         if (Util.nvl(cbModel, "") != "") {
@@ -589,7 +589,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         console.log("DEVICE " + newr + " -width=" + sap.ui.Device.resize.width + " records=" + contSetting.width);
                     }
                 }
+
                 var sc = new classCont(Util.nvl(contSetting, {})).addStyleClass(cc);
+                if (contSetting != undefined && contSetting.hasOwnProperty("height"))
+                    sc.setHeight(contSetting.height);
+
                 if (Util.nvl(contSetting, {}).hasOwnProperty("cssText")) {
                     setTimeout(function () {
                         var ar = [].concat(contSetting["cssText"]);

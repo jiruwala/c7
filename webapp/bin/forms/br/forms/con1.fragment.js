@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.br.kha.forms.con", {
+sap.ui.jsfragment("bin.forms.br.forms.con1", {
 
     createContent: function (oController) {
         var that = this;
@@ -233,7 +233,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con", {
                         showType: FormView.QueryShowType.QUERYVIEW,
                         applyCol: "C7.BRCUSTITEMS",
                         addRowOnEmpty: true,
-                        dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY,c.priceu, C.PACKD, C.UNITD, C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
+                        dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY, C.PACKD, C.UNITD, C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
+                        // dml: "select *from c_custitems where startdate=" + Util.nvl(Util.toOraDateString(that2.qrDate), 'null') + " and keyfld=':keyfld' order by refer ",
                         dispRecords: { "S": 5, "M": 7, "L": 8, "XL": 14, "XXL": 25 },
                         edit_allowed: true,
                         insert_allowed: true,
@@ -800,8 +801,6 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con", {
                 var rfr = ld.getFieldValue(i, "REFER");
                 var pr = ld.getFieldValue(i, "PRICE");
                 var prb = ld.getFieldValue(i, "PRICE_BUY");
-                var pru = ld.getFieldValue(i, "PRICEU");
-
                 if (dup[rfr] != undefined)
                     FormView.err("Save Denied : Duplicate item entry # " + rfr);
                 dup[rfr] = rfr;
@@ -813,12 +812,11 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con", {
                     FormView.err("Save Denied: Item " + rfr + " is invalid entry !");
                 if (pr < 0 || prb < 0)
                     FormView.err("Save Denied: PRICE invalid value !");
-                if (pr == 0 && prb == 0 && pru==0)
-                    FormView.err("Save Denied: PRICE / PRICE buy / Price TON must have vaue !");
-                if (pru < 0 || Util.nvl(pru, undefined) == undefined)
-                    FormView.err("Save Denied: Check Price for TON !");
+                if (pr == 0 && prb == 0)
+                    FormView.err("Save Denied: PRICE or PRICE buy must have vaue !");
+
             }
-        }, 
+        },
         deleteDate: function () {
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();

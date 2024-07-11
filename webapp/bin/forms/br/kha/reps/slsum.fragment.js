@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.br.rep.pursum", {
+sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -72,20 +72,21 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("titlePursum"),
+            title: Util.getLangText("titleSlsum"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "SLSUM01",
-                    name: Util.getLangText("titlePursum"),
-                    descr: Util.getLangText("titlePursum"),
+                    name: Util.getLangText("titleSlsum"),
+                    descr: Util.getLangText("titleSlsum"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    printOrient: "",
                     showCustomPara: function (vbPara, rep) {
 
                     },
@@ -109,10 +110,10 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                     rep: {
                         parameters: thatForm.helperFunc.getParas("SLSUM01"),
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
+                            // {
+                            //     title: "Jasper Template ",
+                            //     reportFile: "trans_1",
+                            // }
                         ],
                         canvas: [],
                         db: [
@@ -131,7 +132,7 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: [],
+                                filterCols: ["GROSSAT", "ADDAMT", "DISCAMT", "NETAMT", "C_CUS_NO", "ORD_REFNM","BRANCH_NAME"],
                                 canvasType: ReportView.CanvasType.SCROLLCONTAINER,
                                 eventAfterQV: function (qryObj) {
                                 },
@@ -181,7 +182,7 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                                             var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
                                             qr.getControl().setVisibleRowCount(r);
                                             qr.getControl().setRowHeight(20);
-                                            qr.filterCols = ["DESCR", "INV_REFNM", "REFER", "LOCATION_NAME", "SLSMN_NAME", "MONTH"];
+                                            qr.filterCols = ["GROSSAT", "ADDAMT", "DISCAMT", "NETAMT", "C_CUS_NO", "INV_REFNM","BRANCHNAME"];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
                                                 // EVENT ON APPLY PERSONALIZATION
                                                 function (prsn, qv) {
@@ -235,6 +236,16 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                         exp: "",
                         mGrouped: true,
                         _grpBy: true,
+                    }
+
+                ],
+                "invoices": [
+                    {
+                        disp: "invoice_no",
+                        exp: "",
+                        mGrouped: true,
+                        _grpBy: true,
+                        _ordBy: "ASC"
                     }
 
                 ],
@@ -352,25 +363,53 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                     },
                     {
                         disp: "avg_price",
-                        exp: "getavgprice(nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
+                        exp: "getavgprice(nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
                     },
+                ],
+                "invoices": [
+                    {
+                        disp: "invoice_date",
+                        exp: "invoice_date ",
+                        _grpBy: true
+                    },
+                    {
+                        disp: "c_cus_no",
+                        exp: "c_cus_no ",
+                        _grpBy: true
+                    },
+                    {
+                        disp: "inv_refnm",
+                        exp: "inv_refnm ",
+                        _grpBy: true
+                    },
+                    {
+                        disp: "branch_no",
+                        exp: "branch_no ",
+                        _grpBy: true
+                    },
+                    {
+                        disp: "branch_name",
+                        exp: "branch_name ",
+                        _grpBy: true
+                    },
+
                 ],
                 "all": [
                     {
-                        disp: "amt",
-                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
+                        disp: "grossamt",
+                        exp: "nvl(SUM((((PRICE) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
                     },
                     {
-                        disp: "cost",
-                        exp: "nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
+                        disp: "addamt",
+                        exp: "nvl(SUM((((ADD_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)",
                     },
                     {
-                        disp: "profitamt",
-                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
+                        disp: "discamt",
+                        exp: "nvl(SUM((((DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
                     },
                     {
-                        disp: "profitmargin",
-                        exp: "round(getavgprice( nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
+                        disp: "netamt",
+                        exp: "nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
                     },
 
 
@@ -380,17 +419,63 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
             this.otherProps = {
                 "customers": {
                     "c_cus_no": {
-                        "mTitle": "txtSupplier",
+                        "mTitle": "txtCust",
                         "mUIHelper": {
                             "display_format": 60
                         }
                     },
                     "inv_refnm": {
-                        "mTitle": "txtSupplier",
+                        "mTitle": "txtCust",
                         "mUIHelper": {
                             "display_format": 120
                         }
                     }
+                },
+                "invoices": {
+                    "invoice_no": {
+                        "mTitle": "txtInvNo",
+                        "mUIHelper": {
+                            "display_width": 70,
+                            "display_align": "ALIGN_CENTER"
+                        }
+                    },
+                    "invoice_date": {
+                        "mTitle": "txtInvDate",
+                        "mSummary": "COUNT_UNIQUE",
+                        "count_unique_label": "txtCountDate",
+                        "mUIHelper": {
+                            "display_width": 100,
+                            "display_align": "ALIGN_CENTER",
+                            "display_format": "SHORT_DATE_FORMAT"
+                        }
+                    },
+                    "c_cus_no": {
+                        "mTitle": "txtCode",
+                        "mUIHelper": {
+                            "display_width": 60
+                        }
+                    },
+                    "inv_refnm": {
+                        "mTitle": "txtCust",
+                        "mSummary": "COUNT_UNIQUE",
+                        "count_unique_label": "txtCountCust",
+                        "mUIHelper": {
+                            "display_width": 150
+                        }
+                    },
+                    "branch_no": {
+                        "mTitle": "branchNoTxt",
+                        "mUIHelper": {
+                            "display_width": 50
+                        }
+                    },
+                    "branch_name": {
+                        "mTitle": "branchNmTxt",
+                        "mUIHelper": {
+                            "display_width": 150
+                        }
+                    }
+
                 },
                 "items": {
                     "avg_price": {
@@ -434,32 +519,32 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                     }
                 },
                 "all": {
-                    "cost": {
-                        "mTitle": "Cost Amt",
+                    "grossamt": {
+                        "mTitle": "txtGrossAmt",
                         "mSummary": "SUM",
                         "mUIHelper": {
                             "display_format": "MONEY_FORMAT",
                             "display_width": 90
                         }
                     },
-                    "amt": {
-                        "mTitle": "Amount",
+                    "addamt": {
+                        "mTitle": "txtAddAmt",
                         "mSummary": "SUM",
                         "mUIHelper": {
                             "display_format": "MONEY_FORMAT",
                             "display_width": 90
                         }
                     },
-                    "profitamt": {
-                        "mTitle": "Profit Amt",
+                    "discamt": {
+                        "mTitle": "txtDisc",
                         "mSummary": "SUM",
                         "mUIHelper": {
                             "display_format": "MONEY_FORMAT",
                             "display_width": 90
                         }
                     },
-                    "profitmargin": {
-                        "mTitle": "Profit Amt",
+                    "netamt": {
+                        "mTitle": "txtNetAmt",
                         "mSummary": "SUM",
                         "mUIHelper": {
                             "display_format": "MONEY_FORMAT",
@@ -471,7 +556,8 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
         },
         getParas: function (repCode) {
             var colSpan = "XL2 L2 M2 S12";
-            var strLst = "@customers/Suppliers,month/Monthly,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
+            var thatForm = this.thatForm;
+            var strLst = "@customers/Customers,month/Monthly,invoices/Invoices,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
             return {
                 fromdate: {
                     colname: "fromdate",
@@ -530,7 +616,7 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
 
                         },
                         valueHelpRequest: function (event) {
-                            var sq = "select code,name from c_ycust where issupp='Y' and childcount=0 order by path";
+                            var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
                             Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
@@ -607,7 +693,7 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "customers",
+                        selectedKey: "invoices",
                     },
                     list: strLst,
                     edit_allowed: true,
@@ -648,9 +734,9 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
             var sql = "select :grpCols from joined where " +
                 " invoice_date>=:parameter.fromdate and " +
                 " invoice_date<=:parameter.todate and " +
+                " (c_cus_no=':parameter.pcust' or ':parameter.pcust' is null )   and " +
                 " (location_code=':parameter.ploc' or ':parameter.ploc'='ALL') " +
-                " (c_cus_no=':parameter.pcust' or ':parameter.pcust' is null )   and " +                
-                " and invoice_code in (11,22) group by :grpByCols ";
+                " and invoice_code in (21,12) group by :grpByCols ";
             var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
             var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");
             if (eq == "" || eq == seq)
@@ -658,13 +744,16 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
             var strCol = "";
             var grpCol = "";
             var ordCol = "";
+            var colsx = {};
             var fnaddCols = function (cols) {
                 for (var s in cols) {
+                    if (Util.nvl(colsx[cols[s].disp.toUpperCase()], "") != "") continue;
                     strCol += (strCol.length > 0 ? "," : "") + (cols[s].exp != "" ? cols[s].exp + " \"" + cols[s].disp.toUpperCase() + "\"" : cols[s].disp);
                     if (Util.nvl(cols[s]._grpBy, false))
                         grpCol += (grpCol.length > 0 ? "," : "") + Util.nvl(cols[s].exp, cols[s].disp);
                     if (Util.nvl(cols[s]._ordBy, "") != "")
                         ordCol += (ordCol.length > 0 ? "," : "") + Util.nvl(cols[s].exp, cols[s].disp) + " " + cols[s]._ordBy;
+                    colsx[cols[s].disp.toUpperCase()] = Util.nvl(cols[s].exp, "--");
                 }
             };
             fnaddCols(this.sqlCols[eq]);
@@ -716,8 +805,6 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                     var ld = thatForm.qr.mLctb;
                     var qr = thatForm.qr;
                     qr.setJsonStrMetaData("{" + dt.data + "}");
-                    ld.cols[ld.getColPos("AMT")].mSummary = "SUM";
-                    ld.cols[ld.getColPos("AMT")].mUIHelper.display_format = "MONEY_FORMAT";
                     var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
                     var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");
                     var cols = that.sqlCols[eq];

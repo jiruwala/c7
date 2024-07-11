@@ -15,6 +15,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
         // };
 
         // this.pgDetail = new sap.m.Page({showHeader: false});
+        this.offDayInWeek = [];
         this.weekEngDays = ['Sunday',
             'Monday',
             'Tuesday',
@@ -175,7 +176,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
             new sap.m.Input({ value: that.ord_data[0].SUB_MOBILENO, width: "75%", editable: true }),
 
         ];
-        var ldt = Util.execSQL("select DELIVER_TIME,DRIVER_NO,cust_remarks from order_cust_plan where keyfld=" + kfld);
+        var ldt = Util.execSQL("select DELIVER_TIME,DRIVER_NO,nvl(cust_remarks,(select remarks from order1 where ord_no='" + that.ord_data[0].ORD_NO + "')) cust_remarks from order_cust_plan where keyfld=" + kfld);
         if (ldt.ret == "SUCCESS") {
             var ldtx = JSON.parse("{" + ldt.data + "}").data;
             var ddat = new Date(ldtx[0].DELIVER_TIME.replaceAll(".", ":"));
@@ -214,8 +215,8 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                         su = su.replaceAll(":DRIVER_NO", UtilGen.getControlValue(fe[5]));
                         su = su.replaceAll(":SUB_ADDRESS", fe[7].getValue());
                         su = su.replaceAll(":ORD_NO", that.ord_data[0].ORD_NO);
-                        su = su.replaceAll(":REMARKS", UtilGen.getControlValue(fe[9]));
-                        su = su.replaceAll(":MOBILENO", UtilGen.getControlValue(fe[11]));
+                        su = su.replaceAll(":REMARKS", fe[9].getValue());
+                        su = su.replaceAll(":MOBILENO", fe[11].getValue());
                         var dtu = Util.execSQL(su);
                         if (dtu.ret == "SUCCESS") {
                             sap.m.MessageToast.show("Updated Delivery !");
@@ -299,7 +300,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
                             var s1 = ky.split("%%")[0];
                             var s2 = ky.split("%%")[1];
                             var wkno = UtilGen.getControlValue(that.cbWeek).split(",")[1];
-                            var mnth = UtilGen.getControlValue(that.cbWeek).split(",")[0];        
+                            var mnth = UtilGen.getControlValue(that.cbWeek).split(",")[0];
                             var profile = "GENERAL";
                             var sq = "update order_cust_plan " +
                                 " set RFR_" + s1.toUpperCase() + " = null " +
@@ -444,6 +445,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
         }
         initData();
         for (var i = 0; i < this.weekdays; i++) {
+            if (this.offDayInWeek.indexOf(i) >= 0) continue;
             var day = {
                 breakfast: new sap.m.Panel(
                     {
@@ -538,7 +540,7 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
 
             }
 
-            that.pnlDays.push(day);
+            that.pnlDays[i] = day;
         }
         for (var p in this.pnlDays) {
             if (that.custplan[p] == undefined) continue;
@@ -595,13 +597,25 @@ sap.ui.jsfragment("bin.forms.yd.cp", {
         this.txtCustPeriod.setText("Period : " + this.ord_data[0].SUB_FROMDATE + "-" + this.ord_data[0].SUB_TODATE);
         this.selectedGroup = this.ord_data[0].SUB_GROUP_ITEM;
         this.weekdays = 0;
-        this.weekdays += (this.ord_data[0].SUB_SUN == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_MON == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_TUE == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_WED == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_THU == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_FRI == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_SAT == "Y" ? 1 : 0);
+        this.offDayInWeek = [];
+
+        // this.weekdays += (this.ord_data[0].SUB_SUN == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_MON == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_TUE == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_WED == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_THU == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_FRI == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_SAT == "Y" ? 1 : 0);
+        this.weekdays = 7;
+        this.ord_data[0].SUB_SUN != "Y" ? this.offDayInWeek.push(0) : '';
+        this.ord_data[0].SUB_MON != "Y" ? this.offDayInWeek.push(1) : '';
+        this.ord_data[0].SUB_TUE != "Y" ? this.offDayInWeek.push(2) : '';
+        this.ord_data[0].SUB_WED != "Y" ? this.offDayInWeek.push(3) : '';
+        this.ord_data[0].SUB_THU != "Y" ? this.offDayInWeek.push(4) : '';
+        this.ord_data[0].SUB_FRI != "Y" ? this.offDayInWeek.push(5) : '';
+        this.ord_data[0].SUB_SAT != "Y" ? this.offDayInWeek.push(6) : '';
+
+
         that.show_menu_items();
 
     }

@@ -443,7 +443,7 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
                                 },
                                 edit_allowed: false,
                                 insert_allowed: false,
-                                require: true
+                                require: false
                             },
                             ord_ship: {
                                 colname: "ord_ship",
@@ -495,7 +495,7 @@ sap.ui.jsfragment("bin.forms.yd.sl", {
                                 },
                                 edit_allowed: false,
                                 insert_allowed: false,
-                                require: true
+                                require: false
                             },
                             sub_tot_amt: {
                                 colname: "sub_tot_amt",

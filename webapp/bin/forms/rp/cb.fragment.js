@@ -50,7 +50,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                 customData: { key: ac },
                 press: function () {
                     var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 para_PARAFORM=false para_EXEC_REP=true fromacc=" + accno + " toacc=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 para_PARAFORM=false para_EXEC_REP=true pref=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
                 }
             }));
             mnu.addItem(new sap.m.MenuItem({
@@ -58,7 +58,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                 customData: { key: ac },
                 press: function () {
                     var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view accno=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    UtilGen.execCmd("bin.forms.gl.rp formType=dialog formSize=650px,300px status=view code=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
                 }
             }));
             mnu.openBy(obj);

@@ -257,7 +257,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             "               NVL (SUM (OP_NO * TQTY), 0) ADD_AMT," +
             "               GETSUMPRICEDLV(o.keyfld,'N') AMOUNT," +
             "               GETSUMPRICEDLV_TON(o.keyfld,'N') AMOUNT_TON," +
-            "               SUM(SALE_PRICE*TQTY) +NVL (SUM (OP_NO * TQTY), 0) NET_AMT, " +
+            "               SUM(SALE_PRICE*ord_pkqty) +NVL (SUM (OP_NO * ord_pkqty), 0) NET_AMT, " +
             "               o.ord_discamt," +
             "               cbranch.b_name branchname," +
             "               GETAVGPRICEDLV(o.keyfld) PRICE2 ," +
@@ -826,15 +826,19 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             "                 RECIEVED_KEYFLD, FREE_ALLQTY,costcent,size_of_descr,recipt_date )" +
             "                 values (" +
             "                 pcode, ploc, pinvno, " +
-            "                 21, ptype, posx, x.ord_ship, nvl(x.strb,x.stra) , pr*x.pack_x ,  x.pkaver ," +
+            "                 21, ptype, posx, x.ord_ship, nvl(x.strb,x.stra) , pr ,  x.pkaver ," +
             "                 0, x.pack_x, x.packd_x, x.unitd, pdate," +
-            "                 0, x.qty_x / x.pack_x, 0, 0," +
-            "                 x.qty_x, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
-            "                 kfld , 1, 'KWD', SYSDATE, X.ord_pos, X.qty_x, 0, 0, x.ORD_EMPNO," +
+            "                 0, x.qty_x, 0, 0," +
+            "                 x.qty_x*x.pack_x , x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
+            "                 kfld , 1, 'KWD', SYSDATE, X.ord_pos, 0, x.qty_x*x.pack_x, 0, x.ORD_EMPNO," +
             "                 null, 0,'',x.PAYTERM, x.ord_date ) ;" +
             "     totamt:= totamt + ((x.qty_x) * (pr) ); " +
             " " +
-            "   update C_ORDER1 set sale_price=pr*x.pack_x,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
+            "  if x.pack_x=1 then " +
+            "   update C_ORDER1 set price_2=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
+            " else " +
+            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
+            " end if;" +
             "   update ORDER1 set SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
             " " +
             " end loop;" +

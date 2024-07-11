@@ -291,6 +291,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         fd.bat7OnSetFieldAddQry = Util.nvl(met[f].bat7OnSetFieldAddQry, undefined);
                         fd.bat7OnSetFieldGetData = Util.nvl(met[f].bat7OnSetFieldGetData, undefined);
                         fd.onTemplField = Util.nvl(met[f].onTemplField, undefined);
+                        fd.count_unique_label = Util.nvl(met[f].count_unique_label, undefined);
                         fd.rep = rps[r];
                         qr.fields[met[f].colname] = fd;
                         this.objs[rps[r].code + "@" + fd.name] = fd;
@@ -2848,7 +2849,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             var ps = "";
             for (var i in rep.parameters) {
                 var s = UtilGen.getControlValue(rep.parameters[i].obj);
-                var k = "_para_ `" + rep.parameters[i].colname;
+                var k = "_para_" + rep.parameters[i].colname;
                 var s = k + "=" + s;
                 if (rep.parameters[i].data_type == FormView.DataType.Date)
                     s = k + "=@" + sdf.format(UtilGen.getControlValue(rep.parameters[i].obj));
@@ -2931,6 +2932,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 cx.mTitle = Util.nvl(dtx[col].title, dtx[col].colname);
                 cx.mTitleParent = Util.nvl(dtx[col].parentTitle, "");
                 cx.mTitleParentSpan = Util.nvl(dtx[col].parentSpan, 1);
+                cx.count_unique_label = Util.nvl(dtx[col].count_unique_label, "");
                 cx.commandLink = Util.nvl(dtx[col].commandLink, "");
                 cx.valOnZero = dtx[col].valOnZero;
                 cx.commandLinkClick2 = dtx[col].commandLinkClick;

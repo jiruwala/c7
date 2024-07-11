@@ -77,7 +77,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
     },
     loginToDB: function () {
         var that = this;
-        var pth = "login?user=P&password=P&file=YD.ini&language=EN";
+        var pth = "login?user=P&password=M123&file=YD.ini&language=EN";
         var dt = null;
         this.oController.doAjaxGet(pth, "", false).done(function (data) {
             dt = JSON.parse(data);
@@ -136,14 +136,25 @@ sap.ui.jsview("bin.forms.yd.cu", {
             }, 500);
             return;
         }
+        this.offDayInWeek = [];
+
         this.weekdays = 0;
-        this.weekdays += (this.ord_data[0].SUB_SUN == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_MON == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_TUE == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_WED == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_THU == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_FRI == "Y" ? 1 : 0);
-        this.weekdays += (this.ord_data[0].SUB_SAT == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_SUN == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_MON == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_TUE == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_WED == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_THU == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_FRI == "Y" ? 1 : 0);
+        // this.weekdays += (this.ord_data[0].SUB_SAT == "Y" ? 1 : 0);
+        this.weekdays = 7;
+
+        this.ord_data[0].SUB_SUN != "Y" ? this.offDayInWeek.push(0) : '';
+        this.ord_data[0].SUB_MON != "Y" ? this.offDayInWeek.push(1) : '';
+        this.ord_data[0].SUB_TUE != "Y" ? this.offDayInWeek.push(2) : '';
+        this.ord_data[0].SUB_WED != "Y" ? this.offDayInWeek.push(3) : '';
+        this.ord_data[0].SUB_THU != "Y" ? this.offDayInWeek.push(4) : '';
+        this.ord_data[0].SUB_FRI != "Y" ? this.offDayInWeek.push(5) : '';
+        this.ord_data[0].SUB_SAT != "Y" ? this.offDayInWeek.push(6) : '';
 
         var cnt = that.helperFunctions.getInfoContent("logon");
         cnt.addContent(new sap.m.VBox({ height: "25px" }));
@@ -258,7 +269,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
         });
         var addWeeks = function () {
             var arbWks = ["الأسبوع الأول", "الأسبوع الثاني", "الأسبوع الثالث", "الأسبوع الرابع", "الأسبوع الخامس", "الأسبوع السادس"];
-            var sq = "select distinct  to_char(delivery_date,'rrrr/mm')||','||week_no code,to_char(delivery_date,'rrrr/mm')||',Week-'||(week_no) name from order_cust_plan where ord_no=" + that.ord_data[0].ORD_NO+ " order by 1";
+            var sq = "select distinct  to_char(delivery_date,'rrrr/mm')||','||week_no code,to_char(delivery_date,'rrrr/mm')||',Week-'||(week_no) name from order_cust_plan where ord_no=" + that.ord_data[0].ORD_NO + " order by 1";
             var dt = Util.execSQL(sq);
             if (dt.ret != "SUCCESS") return;
             var dtx = JSON.parse("{" + dt.data + "}").data;
@@ -267,7 +278,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
                 var m = dtx[di].CODE.split(",")[0];
 
                 var week = new sap.m.Text({
-                    text:" شهر "+ m.split("/")[1] + " - " + arbWks[w - 1],
+                    text: " شهر " + m.split("/")[1] + " - " + arbWks[w - 1],
                     width: "100%",
                     customData: [{ key: dtx[di].CODE }]
                 }).addStyleClass("masterMenu");
@@ -284,7 +295,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
                     setTimeout(function () {
                         Util.stopSpin();
                     });
-                    
+
                 });
                 that.pgMaster.addContent(week);
             }
@@ -511,7 +522,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
                 }
             }
 
-            var dt = Util.execSQL("select day_no,DELIVERY_DATE,RFR_BREAKFAST, RFR_LUNCH, RFR_DINNER, RFR_SALAD, RFR_SNACK, RFR_SOUP from order_cust_plan WHERE to_char(delivery_date,'rrrr/mm')='"+mnth+"' and ORD_NO=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " order by day_no");
+            var dt = Util.execSQL("select day_no,DELIVERY_DATE,RFR_BREAKFAST, RFR_LUNCH, RFR_DINNER, RFR_SALAD, RFR_SNACK, RFR_SOUP from order_cust_plan WHERE to_char(delivery_date,'rrrr/mm')='" + mnth + "' and ORD_NO=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " order by day_no");
             that.custplan = [];
             if (dt.ret == "SUCCESS") {
                 var dtx = JSON.parse("{" + dt.data + "}").data;
@@ -564,7 +575,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
                     for (var c in cnt)
                         if (cnt[c] instanceof sap.m.CheckBox) cnt[c].setSelected(false);
                     var sq = "update order_cust_plan  set  rfr_" + cd.split("%%")[0] + "=" + Util.quoted(cod) + ", ORDERED_BY=" + Util.quoted(that.ord_data[0].ORD_REF) +
-                        " where to_char(delivery_date,'rrrr/mm')='"+mnth+"' and ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " and day_no=" + dy;
+                        " where to_char(delivery_date,'rrrr/mm')='" + mnth + "' and ord_no=" + that.ord_data[0].ORD_NO + " and week_no=" + wkno + " and day_no=" + dy;
                     var dt = Util.execSQL(sq);
                     if (dt.ret == "SUCCESS") {
                         sap.m.MessageToast.show("Succesfully recorded for " + cd.split("%%")[0] + " , day " + dy + " Week " + wkno);
@@ -583,6 +594,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
         clear_menu_items();
         initData();
         for (var i = 0; i < that.weekdays; i++) {
+            if (this.offDayInWeek.indexOf(i) >= 0) continue;
             var day = {
                 breakfast: new sap.m.Panel(
                     {
@@ -677,7 +689,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
 
             }
 
-            that.pnlDays.push(day);
+            that.pnlDays[i] = day;
         }
 
         for (var p in that.pnlDays) {

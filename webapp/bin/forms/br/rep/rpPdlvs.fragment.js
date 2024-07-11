@@ -133,6 +133,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=11 " +
                                         " AND SALEINV=INVOICE1.KEYFLD (+) " +
+                                        " and (invoice1.invoice_no=':parameter.pinvoice_no' or ':parameter.pinvoice_no' is null)  " +
                                         " AND ORD_DATE>=:parameter.fromdate " +
                                         " AND ORD_DATE<=:parameter.todate  " +
                                         "  )" +
@@ -351,6 +352,24 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     list: undefined,
                     edit_allowed: false,
                     insert_allowed: false,
+                    require: false,
+                    dispInPara: true,
+                },
+                pinvoice_no: {
+                    colname: "pinvoice_no",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtInvNo\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
                     require: false,
                     dispInPara: true,
                 },

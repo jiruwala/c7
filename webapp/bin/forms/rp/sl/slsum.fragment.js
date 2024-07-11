@@ -239,6 +239,16 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     }
 
                 ],
+                "invoices": [
+                    {
+                        disp: "invoice_no",
+                        exp: "",
+                        mGrouped: true,
+                        _grpBy: true,
+                        _ordBy: "ASC"
+                    }
+
+                ],
                 "types": [
                     {
                         disp: "type",
@@ -356,6 +366,23 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         exp: "getavgprice(nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
                     },
                 ],
+                "invoices": [
+                    {
+                        disp: "invoice_date",
+                        exp: "invoice_date ",
+                        _grpBy: true
+                    },
+                    {
+                        disp: "c_cus_no",
+                        exp: "c_cus_no ",
+                        _grpBy: true
+                    },
+                    {
+                        disp: "inv_refnm",
+                        exp: "inv_refnm ",
+                        _grpBy: true
+                    },
+                ],
                 "all": [
                     {
                         disp: "amt",
@@ -385,9 +412,45 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         "mUIHelper": {
                             "display_format": 60
                         }
+
                     },
                     "inv_refnm": {
                         "mTitle": "txtCust",
+                        "mUIHelper": {
+                            "display_format": 120
+                        }
+                    }
+                },
+                "invoices": {
+                    "invoice_no": {
+                        "mTitle": "txtInvNo",
+                        "mSummary": "COUNT_UNIQUE",
+                        "count_unique_label": "txtCountInvs",
+                        "mUIHelper": {
+                            "display_width": 70,
+                            "display_align": "ALIGN_CENTER"
+                        }
+                    },
+                    "invoice_date": {
+                        "mTitle": "txtInvDate",
+                        "mSummary": "COUNT_UNIQUE",
+                        "count_unique_label": "txtCountDate",
+                        "mUIHelper": {
+                            "display_width": 70,
+                            "display_align": "ALIGN_CENTER",
+                            "display_format": "SHORT_DATE_FORMAT"
+                        }
+                    },
+                    "c_cus_no": {
+                        "mTitle": "txtCust",
+                        "mUIHelper": {
+                            "display_format": 60
+                        }
+                    },
+                    "inv_refnm": {
+                        "mTitle": "txtCust",
+                        "mSummary": "COUNT_UNIQUE",
+                        "count_unique_label": "txtCountDate",
                         "mUIHelper": {
                             "display_format": 120
                         }
@@ -473,7 +536,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
         getParas: function (repCode) {
             var colSpan = "XL2 L2 M2 S12";
             var thatForm = this.thatForm;
-            var strLst = "@customers/Customers,month/Monthly,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
+            var strLst = "@customers/Customers,month/Monthly,invoices/Invoices,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
             return {
                 fromdate: {
                     colname: "fromdate",
@@ -660,13 +723,16 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
             var strCol = "";
             var grpCol = "";
             var ordCol = "";
+            var colsx = {};
             var fnaddCols = function (cols) {
                 for (var s in cols) {
+                    if (Util.nvl(colsx[cols[s].disp.toUpperCase()], "") != "") continue;
                     strCol += (strCol.length > 0 ? "," : "") + (cols[s].exp != "" ? cols[s].exp + " \"" + cols[s].disp.toUpperCase() + "\"" : cols[s].disp);
                     if (Util.nvl(cols[s]._grpBy, false))
                         grpCol += (grpCol.length > 0 ? "," : "") + Util.nvl(cols[s].exp, cols[s].disp);
                     if (Util.nvl(cols[s]._ordBy, "") != "")
                         ordCol += (ordCol.length > 0 ? "," : "") + Util.nvl(cols[s].exp, cols[s].disp) + " " + cols[s]._ordBy;
+                    colsx[cols[s].disp.toUpperCase()] = Util.nvl(cols[s].exp, "--");
                 }
             };
             fnaddCols(this.sqlCols[eq]);

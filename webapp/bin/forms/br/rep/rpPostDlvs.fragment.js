@@ -126,7 +126,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME"],
+                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -153,8 +153,9 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                     var eq = thatForm.frm.getFieldValue("RPPD1@parameter.grpby");
                                     var sq = "SELECT ORD_REF, ORD_REFNM, SALEINV," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT," +
-                                        " SUM(TQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT, INVOICE1.INVOICE_NO," +
-                                        " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts" +
+                                        " SUM(qty_x/pack_x) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT, INVOICE1.INVOICE_NO," +
+                                        " SUM(((price_x)/pack_x)*(qty_x*pack_x))/ SUM(qty_x/pack_x) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts, " +
+                                        " packd_x " +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=9 " +
@@ -168,8 +169,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                         " GROUP BY " +
                                         " ORD_REF, ORD_REFNM,saleinv," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
-                                        " SALE_PRICE,item_descr, BRANCH_NAME," +
-                                        " INVOICE_NO " +
+                                        " price_x,item_descr, BRANCH_NAME," +
+                                        " INVOICE_NO,packd_x " +
                                         " ORDER BY ORD_REFNM ";
                                     return thatForm.frm.parseString(sq);
                                 },
@@ -437,7 +438,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_format: "SHORT_DATE_FORMAT",
                     default_value: "",
                     other_settings: {},
-                    
+
                 },
                 invoice_no: {
                     colname: "invoice_no",
@@ -470,7 +471,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
-                    other_settings: {},                
+                    other_settings: {},
                 },
                 ord_refnm: {
                     colname: "ord_refnm",
@@ -487,7 +488,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_format: "",
                     default_value: "",
                     other_settings: {},
-                    
+
                 },
                 totalqty: {
                     colname: "totalqty",
@@ -503,7 +504,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
-                    other_settings: {},                    
+                    other_settings: {},
+                },
+                packd_x: {
+                    colname: "packd_x",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "itemPackD",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
                 },
                 item_descr: {
                     colname: "item_descr",
@@ -520,7 +537,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_format: "",
                     default_value: "",
                     other_settings: {},
-                    
+
                 },
                 pricex: {
                     colname: "pricex",
@@ -536,7 +553,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_style: "",
                     display_format: "MONEY_FORMAT",
                     default_value: "",
-                    other_settings: {},                  
+                    other_settings: {},
                 },
                 branch_name: {
                     colname: "branch_name",
@@ -553,7 +570,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_format: "",
                     default_value: "",
                     other_settings: {},
-                    
+
                 },
                 amount: {
                     colname: "amount",
@@ -571,7 +588,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     default_value: "",
                     other_settings: {},
                     summary: "SUM",
-                    
+
                 },
                 saleinv: {
                     colname: "saleinv",
@@ -588,7 +605,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_format: "",
                     default_value: "",
                     other_settings: {},
-                    
+
                 },
             }
             return flds;
