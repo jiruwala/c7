@@ -123,18 +123,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sa", {
                     onSubTitHTML: function () {
                         return "";
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin-left: 10%;" +
-                            "margin-right: 10%;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {

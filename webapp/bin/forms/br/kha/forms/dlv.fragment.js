@@ -153,8 +153,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             "LOCATION_CODE": ":qry1.location_code",
                             "ORD_NO": ":qry1.ord_no",
                             "ORD_CODE": thatForm.vars.vou_code,
-                            "ORD_REF": ":qry1.ord_ref",
                             "ORD_REFNM": ":qry1.ord_refnm",
+                            "ORD_REF": ":qry1.ord_ref",
                             "ORD_DISCAMT": ":qry1.ord_discamt",
                             "ORD_DATE": ":qry1.ord_date",
                             "ORD_EMPNO": ":qry1.ord_empno",
@@ -310,13 +310,15 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                         var ld = qry.obj.mLctb;
                         var rfr = ld.getFieldValue(rowno, "ORD_SHIP");
                         var pos = ld.getFieldValue(rowno, "ORD_POS");
+                        var rfnm = ld.getFieldValue(rowno, "ORD_REFNM");
                         var dt = Util.execSQLWithData("select packd,unitd,pack from items where reference='" + rfr + "'", "Item # " + rfr + " not a valid !");
-                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', tqty=ord_pkqty*:pack where keyfld=:kf and ord_pos=:pos "
+                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', ord_refnm=':rfnm', tqty=ord_pkqty*:pack where keyfld=:kf and ord_pos=:pos "
                             .replaceAll(":pkd", dt[0].PACKD)
                             .replaceAll(":unitd", dt[0].UNITD)
                             .replaceAll(":pack", dt[0].PACK)
                             .replaceAll(":kf", kf)
-                            .replaceAll(":pos", pos);
+                            .replaceAll(":pos", pos)
+                            .replaceAll(":rfnm", rfnm);
                         return sqlRow + ";" + sq;
                     }
                     return "";
@@ -360,7 +362,6 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     }
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
-
                 },
                 afterDelRow: function (qry, ld, data) {
                     // var delAdd = "";
@@ -375,6 +376,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                                 qry.formview.setFormReadOnly();
                                 FormView.err("This Delivery is posted to invoice !");
                             }
+                            var geniasm = Util.nvl(sett["BR_GEN_IASM_ON_DELIVERY"], 'FALSE');
+                            return geniasm == "TRUE" ? "c7_generate_iasm_from_dlv(" + kf + ",'Y');" : "";
                         }
                     }
 
@@ -682,7 +685,12 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "20%" },
+                    other_settings: {
+                        editable: true, width: "20%",
+                        change: function () {
+                            thatForm.helperFunc.fetchItem(false);
+                        }
+                    },
                     edit_allowed: false,
                     insert_allowed: true,
                     require: true
@@ -1014,8 +1022,10 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
-                        ") where (rownum <=^^list_key or ^^list_key=-1)  order by ord_date desc,ord_no desc",
+                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,keyfld,location_code from order1 o1 where " +
+                        " location_code=':qry1.location_code' and " +
+                        " ord_code =" + that2.vars.vou_code +
+                        " order by ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1)",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -1659,7 +1669,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 var brnam = thatForm.frm.getFieldValue("qry1.branchname");
                 var ordno = thatForm.frm.getFieldValue("qry1.ord_no");
                 var fromdate = sdf.format(thatForm.frm.getFieldValue("qry1.ord_date"));
-                var str = "bin.forms.br.forms.wzd formType=dialog formSize=900px,430px formTitle=Sales_Wizard pcust=:pcust fromdate=:fromdate todate=:todate ordno=:ordno";
+                var str = "bin.forms.br.kha.forms.wzd formType=dialog formSize=900px,430px formTitle=Sales_Wizard pcust=:pcust fromdate=:fromdate todate=:todate ordno=:ordno";
                 str = str.replaceAll(":pcust", cod)
                     .replaceAll(":fromdate", fromdate)
                     .replaceAll(":todate", fromdate)
@@ -1791,6 +1801,29 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     FormView.err("Save Denied: QTY invalid value !");
             }
 
+        }
+        ,
+        fetchItem: function () {
+            var rfrFld = "ord_no";
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                return;
+            setTimeout(function () {
+                var rfr = thatForm.frm.getFieldValue("qry1." + rfrFld);
+                var loc = thatForm.frm.getFieldValue("qry1.location_code");
+                var qr = Util.execSQLWithData("select keyfld,ord_refnm from order1 where " + rfrFld + "='" + rfr + "' and location_code='" + loc + "'");
+                if (Util.nvl(qr, "") == "" || qr.length == 0)
+                    return;
+                var rfrx = qr[0].KEYFLD;
+                var desx = qr[0].ORD_DESCR;
+
+                Util.simpleConfirmDialog("Delivery existed for client :" + desx + " fetch data ?", function (oAction) {
+                    thatForm.frm.setFieldValue('pac', rfrx);
+                    thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                    thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+
+                }, undefined, undefined, "OK");
+            });
         }
     }
     ,

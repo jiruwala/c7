@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
+sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -40,14 +40,14 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Report Title",
+            title: Util.getLangText("titDriverTrips"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
-                    code: "RPPDLV1",
-                    name: Util.getLangText("namePdlvDetails"),
-                    descr: Util.getLangText("descrPdlvDetails"),
+                    code: "RPDRIVER1",
+                    name: Util.getLangText("titDriverTrips"),
+                    descr: Util.getLangText("titDriverTrips"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -55,7 +55,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     showFilterCols: true,
                     showDispCols: true,
                     onSubTitHTML: function () {
-                        var tbstr = Util.getLangText("titPdlvDetails");
+                        var tbstr = Util.getLangText("titDriverTrips");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
 
@@ -65,7 +65,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     },
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
-                        parameters: thatForm.helperFunc.getParas("RPPDLV1"),
+                        parameters: thatForm.helperFunc.getParas("RPDRIVER1"),
                         print_templates: [
                         ],
                         canvas: [],
@@ -85,7 +85,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY"],
+                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -112,42 +112,37 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                 bat7CustomAddQry: function (qryObj, ps) {
                                 },
                                 beforeLoadQry: function (sql) {
-                                    var eq = thatForm.frm.getFieldValue("RPPDLV1@parameter.grpby");
-                                    var sq = "SELECT ORD_REF, ORD_REFNM," +
-                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
-                                        " SUM(TQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT," +
-                                        " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
-                                        " JOINED_CORDER.ORD_NO," +
-                                        " ORD_POS " +
+                                    var oy = thatForm.frm.getFieldValue("RPDRIVER1@parameter.showTruck");
+                                    var tr = oy == "Y" ? ",NVL(JOINED_CORDER.payterm,vehicleno) vehicleno, haddr ,JOINED_CORDER.location_name" : "";
+                                    var tr1 = oy == "Y" ? ",NVL(JOINED_CORDER.payterm,vehicleno), haddr,JOINED_CORDER.location_name " : "";
+                                    var sq = "SELECT " +
+                                        " SUM(qty_x/pack_x) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT," +
+                                        " count(*) counts,ord_empno,driver_name " + tr +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
-                                        " WHERE ( ORD_CODE=11 " +
+                                        " WHERE ( ORD_CODE=9 " +
                                         " AND SALEINV=INVOICE1.KEYFLD (+) " +
-                                        " and (invoice1.invoice_no=':parameter.pinvoice_no' or ':parameter.pinvoice_no' is null)  " +
                                         " AND ORD_DATE>=:parameter.fromdate " +
                                         " AND ORD_DATE<=:parameter.todate  " +
                                         "  )" +
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
-                                        " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
-                                        " GROUP BY " +
-                                        " ORD_REF, ORD_REFNM," +
-                                        " JOINED_CORDER.ORD_NO," +
-                                        " ORD_POS," +
-                                        " DRIVER_NAME ,TEL,TRUCKNO," +
-                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
-                                        " SALE_PRICE,item_descr, BRANCH_NAME , saleinv " +
-                                        " ORDER BY ord_date,ord_no ";
+                                        " AND (JOINED_CORDER.location_code=':parameter.ploc' or NVL(':parameter.ploc','ALL') ='ALL') " +
+                                        " GROUP BY ord_empno," +
+                                        " DRIVER_NAME" + tr1 +
+                                        " ORDER BY ord_empno ";
                                     return thatForm.frm.parseString(sq);
                                 },
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
-                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_REFNM")].mGrouped = iq == "customers";
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ITEM_DESCR")].mGrouped = iq == "items";
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mGrouped = iq == "drivers";
+                                        var iq = thatForm.frm.getFieldValue("parameter.showTruck");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mGrouped = iq == "Y";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_EMPNO")].mGrouped = iq == "Y";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("VEHICLENO")].mHideCol = iq != "Y";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("HADDR")].mHideCol = iq != "Y";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mHideCol = iq != "Y";
                                     }
                                 },
-                                fields: thatForm.helperFunc.getFields("RPPDLV1")
+                                fields: thatForm.helperFunc.getFields("RPDRIVER1")
 
                             }
                         ]
@@ -241,7 +236,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     colname: "pcust",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"txtSupplier\",\"width\":\"15%\","textAlign":"End"}',
+                    title: '{\"text\":\"txtCust\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
                     display_align: "ALIGN_RIGHT",
@@ -291,103 +286,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     require: false,
                     dispInPara: true,
                 },
-                rmix: {
-                    colname: "rmix",
+                showTruck: {
+                    colname: "showTruck",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"itemTxt\",\"width\":\"15%\","textAlign":"End"}',
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"txtShowTrucks\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
+                    display_align: "ALIGN_LEFT",
                     display_style: "",
                     display_format: "",
-                    default_value: "",
-                    other_settings: {
-                        showValueHelp: true,
-                        change: function (e) {
-                            var vl = e.oSource.getValue();
-                            thatForm.frm.setFieldValue(repCode + "@parameter.rmix", vl, vl, false);
-                            var vlnm = Util.getSQLValue("select descr name from items where reference =" + Util.quoted(vl));
-                            thatForm.frm.setFieldValue(repCode + "@parameter.rmixname", vlnm, vlnm, false);
-
-                        },
-                        valueHelpRequest: function (event) {
-                            var sq = "select reference code,descr name from items where childcounts=0 order by descr2";
-                            Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
-                                thatForm.frm.setFieldValue(repCode + "@parameter.rmix", data.CODE, data.CODE, true);
-                                thatForm.frm.setFieldValue(repCode + "@parameter.rmixname", data.NAME, data.NAME, true);
-                                return true;
-                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
-                        },
-                        width: "35%"
-                    },
-                    list: undefined,
+                    default_value: "Y",
+                    other_settings: { selected: false, width: "20%", trueValues: ["Y", "N"] },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false,
                     dispInPara: true,
-                },
-                rmixname: {
-                    colname: "rmixname",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: { width: "49%", editable: false },
-                    list: undefined,
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: false,
-                    dispInPara: true,
-                },
-                pinvoice_no: {
-                    colname: "pinvoice_no",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"txtInvNo\",\"width\":\"15%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: { width: "35%" },
-                    list: undefined,
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: false,
-                    dispInPara: true,
-                },
-                grpby: {
-                    colname: "grpby",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '{\"text\":\"grpByTxt\",\"width\":\"15%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {
-                        width: "35%",
-                        items: {
-                            path: "/",
-                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                            templateShareable: true
-                        },
-                        selectedKey: "customers",
-                    },
-                    list: "@none/None,customers/Suppliers,items/Items,drivers/Drivers",
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true,
-                    dispInPara: true,
+                    trueValues: ["Y", "N"]
                 },
             };
             return para;
@@ -403,118 +318,19 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                 var tbl = obj.getParent().getParent();
                 var rr = tbl.getRows().indexOf(obj.getParent());
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "SALEINV")].getText());
-                UtilGen.execCmd("bin.forms.br.forms.pdlv formType=dialog formSize=900px,400px status=view keyfld=" + kfld, thatForm.view, obj, undefined);
+                UtilGen.execCmd("bin.forms.br.forms.dlv formType=dialog formSize=900px,400px status=view keyfld=" + kfld, thatForm.view, obj, undefined);
             };
             var flds = {
-                ord_no: {
-                    colname: "ord_no",
-                    data_type: FormView.DataType.Number,
+                ord_empno: {
+                    colname: "ord_empno",
+                    data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
                     title: "txtNo",
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "50",
-                    display_align: "ALIGN_CENTER",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {},
-                },
-                ord_date: {
-                    colname: "ord_date",
-                    data_type: FormView.DataType.Date,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "ordDate",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
                     display_width: "100",
                     display_align: "ALIGN_CENTER",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "SHORT_DATE_FORMAT",
-                    default_value: "",
-                    other_settings: {},
-
-                },
-                ord_refnm: {
-                    colname: "ord_refnm",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "txtSupplier",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "150",
-                    display_align: "ALIGN_BEGIN",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {},
-
-                },
-                totalqty: {
-                    colname: "totalqty",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "totalQty",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "80",
-                    display_align: "ALIGN_CENTER",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {},
-                },
-                item_descr: {
-                    colname: "item_descr",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "itemDescr",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "200",
-                    display_align: "ALIGN_BEGIN",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {},
-
-                },
-                pricex: {
-                    colname: "pricex",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "txtPrice",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "100",
-                    display_align: "ALIGN_END",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "MONEY_FORMAT",
-                    default_value: "",
-                    other_settings: {},
-                },
-                branch_name: {
-                    colname: "branch_name",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "branchNmTxt",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "120",
-                    display_align: "ALIGN_BEGIN",
                     grouped: false,
                     display_style: "",
                     display_format: "",
@@ -530,76 +346,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "120",
-                    display_align: "ALIGN_BEGIN",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {},
-
-                },
-                truckno: {
-                    colname: "truckno",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "truckNo",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "80",
-                    display_align: "ALIGN_BEGIN",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {},
-
-                },
-                tel: {
-                    colname: "tel",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "txtTel",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "50",
-                    display_align: "ALIGN_BEGIN",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {},
-
-                },
-                amount: {
-                    colname: "amount",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "amountTxt",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "100",
-                    display_align: "ALIGN_END",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "MONEY_FORMAT",
-                    default_value: "",
-                    other_settings: {},
-                    summary: "SUM",
-
-                },
-                saleinv: {
-                    colname: "saleinv",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "keyfld",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "0",
+                    display_width: "300",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
@@ -607,6 +354,91 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     default_value: "",
                     other_settings: {},
 
+                },
+                vehicleno: {
+                    colname: "vehicleno",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "truckNo",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "150",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                haddr: {
+                    colname: "haddr",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "truckSize",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "150",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                location_name: {
+                    colname: "location_name",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "locationTxt",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "200",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                counts: {
+                    colname: "counts",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtCountsTrips",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    summary: "SUM",
+                    other_settings: {},
+                },
+                totalqty: {
+                    colname: "totalqty",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "m3Qty",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "120",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "QTY_FORMAT",
+                    default_value: "",
+                    summary: "SUM",
+                    other_settings: {},
                 },
             }
             return flds;

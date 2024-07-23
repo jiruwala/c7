@@ -87,7 +87,7 @@ sap.ui.jsfragment("bin.forms.yd.pl", {
             selectionChange: function (event) {
                 that.clear_menu_items();
             }
-        }, "string", undefined, undefined, "@1/Week1,2/Week2,3/Week 3,4/Week 4");
+        }, "string", undefined, undefined, "@1/Week1,2/Week2,3/Week 3,4/Week 4,5/Week 5,6/Week 6");
         this.cbProfile = UtilGen.createControl(sap.m.ComboBox, this.view, "cbProfile", {
             customData: [{ key: "" }],
             items: {
@@ -370,7 +370,7 @@ sap.ui.jsfragment("bin.forms.yd.pl", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Salad", "salad%%" + i),
+                        headerToolbar: new_tb("Snack 1", "salad%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,
@@ -385,7 +385,7 @@ sap.ui.jsfragment("bin.forms.yd.pl", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Snack", "snack%%" + i),
+                        headerToolbar: new_tb("Snack 2", "snack%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,
@@ -400,7 +400,7 @@ sap.ui.jsfragment("bin.forms.yd.pl", {
                     {
                         expanded: false,
                         height: heightPanle,
-                        headerToolbar: new_tb("Soup", "soup%%" + i),
+                        headerToolbar: new_tb("Snack 3", "soup%%" + i),
                         content: new sap.m.VBox({
                             alignItems: sap.m.FlexAlignItems.Start,
                             alignContent: sap.m.FlexAlignContent.Start,
@@ -431,7 +431,7 @@ sap.ui.jsfragment("bin.forms.yd.pl", {
         var that = this;
         var sett = sap.ui.getCore().getModel("settings").getData();
         this.tbl = new LocalTableData();
-        var sq = "select reference ,descr from items where reference like '09%' and childcounts=0 order by descr2";
+        var sq = "select reference ,descr from items where reference like '09%' and childcounts=0 and flag=1 order by descr2";
         var dt = Util.execSQL(sq);
         if (dt.ret = "SUCCESS" && dt.data.length > 0)
             this.tbl.parse("{" + dt.data + "}", false);
@@ -456,7 +456,7 @@ sap.ui.jsfragment("bin.forms.yd.pl", {
                     expanded: false,
                     height: "50px",
                     content: [
-                        new sap.m.Text({ text: this.tbl.getFieldValue(r, "DESCR") }).addStyleClass("")
+                        new sap.m.Text({ tooltip: this.tbl.getFieldValue(r, "REFERENCE"), text: this.tbl.getFieldValue(r, "DESCR") }).addStyleClass("")
                     ],
                     customData: [{ key: this.tbl.getFieldValue(r, "REFERENCE") }],
                     layoutData: new sap.ui.layout.GridData({

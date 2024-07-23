@@ -106,20 +106,20 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         var thatForm = this;
         this.qc = new QueryView("qvUp" + thatForm.timeInLong);
         var tb = new sap.m.Toolbar();
-        tb.addContent(new sap.m.Button({
-            text: Util.getLangText("addDlvToInv"),
-            icon: "sap-icon://add",
-            press: function () {
-                that.addDlvToInv();
-            }
-        }));
-        tb.addContent(new sap.m.Button({
-            text: Util.getLangText("removeDlvToInv"),
-            press: function () {
-                that.removeDlvToInv();
+        // tb.addContent(new sap.m.Button({
+        //     text: Util.getLangText("addDlvToInv"),
+        //     icon: "sap-icon://add",
+        //     press: function () {
+        //         that.addDlvToInv();
+        //     }
+        // }));
+        // tb.addContent(new sap.m.Button({
+        //     text: Util.getLangText("removeDlvToInv"),
+        //     press: function () {
+        //         that.removeDlvToInv();
 
-            }
-        }));
+        //     }
+        // }));
 
         that.qc.getControl().setEditable(false);
         this.qc.getControl().view = that.view;

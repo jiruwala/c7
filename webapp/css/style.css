@@ -5,6 +5,7 @@ body {
     /* Hide horizontal scrollbar */
 }
 
+
 .colorBlack {
     color: black !important;
 }
@@ -13,32 +14,53 @@ body {
     background-color: #b9f2ff !important;
     font-weight: bold;
 }
-.db1LabelsBlue{
+
+.db1LabelsBlue {
     font-size: .875rem;
-    font-family: "72","72full",Arial,Helvetica,sans-serif;
-    color:blue
+    font-family: "72", "72full", Arial, Helvetica, sans-serif;
+    color: blue
 }
 
-.db1LabelsBlueAr{
+.db1LabelsBlueAr {
     font-size: 1rem;
-    font-family: "72","72full",Arial,Helvetica,sans-serif;
-    color:blue
+    font-family: "72", "72full", Arial, Helvetica, sans-serif;
+    color: blue
 }
 
-.db1Labels{
+.db1Reports {
+    border-right: groove;
+    border-left: groove;
+    border-bottom: groove;
+    border-top: groove;
+    border-radius: 25px;
+    padding: 10px;
+    margin: 2px;
+}
+
+.db1Labels {
     font-size: .875rem;
-    font-family: "72","72full",Arial,Helvetica,sans-serif;
+    font-family: "72", "72full", Arial, Helvetica, sans-serif;
 }
 
-.db1LabelsAr{
+.db1LabelsAr {
     font-size: 1.1rem;
-    font-family: "72","72full",Arial,Helvetica,sans-serif;
+    font-family: "72", "72full", Arial, Helvetica, sans-serif;
 }
 
 .highContrastPage {
     background-color: black !important;
     color: white !important;
     font-family: "72", Arial, Helvetica, sans-serif !important;
+}
+
+.mainParaForm {
+    padding-left: 50px;
+    padding-top: 20px;
+    border-style: groove;
+    margin: 10px;
+    border-radius: 15px;
+    background-color: #d8e4bc;
+    padding-bottom: 20px;
 }
 
 .alignMiddle25Top {
@@ -83,6 +105,7 @@ body {
     text-align: center !important;
     font-weight: bold !important;
 }
+
 .titleFontWithoutPad2 {
     font-size: 1.4rem !important;
     text-align: center !important;
@@ -536,6 +559,7 @@ th {
 .yellow {
     background-color: yellow !important;
 }
+
 .lightblueBG {
     background-color: lightblue !important;
 }
@@ -612,6 +636,8 @@ th {
 .linkLabel:hover {
     color: hotpink !important;
     cursor: pointer !important;
+    text-decoration: underline;
+
 }
 
 .dbTile .sapMGT:hover:not(.sapMGTPressActive) {
@@ -790,6 +816,37 @@ th {
 
 .darkBlueText {
     color: #0854a0 !important;
+}
+
+.db2darkBlueText {
+    color: #0854a0 !important;
+    padding: 10px;
+    font-size: .85rem;
+}
+
+.db2darkBlueTextAr {
+    color: #0854a0 !important;
+    padding: 10px;
+    font-size: 1.1rem;
+}
+
+.db2RepSelected {
+    color: darkgreen !important;
+    font-size: .75rem;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.db2Rep {
+    color: black !important;
+    font-size: .75rem;
+}
+
+.db2Rep:hover {
+    color: hotpink !important;
+    cursor: pointer !important;
+    text-decoration: underline;
+
 }
 
 .paddingTinyBot {

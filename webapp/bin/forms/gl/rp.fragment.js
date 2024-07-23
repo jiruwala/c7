@@ -169,6 +169,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("btBranch" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("btci" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("btCont" + thatForm.timeInLong, thatForm.view);
+
 
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "0.000" }));
@@ -186,8 +188,23 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             thatForm.showCustItems();
                         }
                     });
+                    var btCustContract = new sap.m.Button(thatForm.view.createId("btCont" + thatForm.timeInLong), {
+                        text: Util.getLangText("custContract"),
+                        press: function () {
+
+                            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                                that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                Util.simpleConfirmDialog(Util.getLangText("msgSaveFormData"), function (oAction) {
+                                    that.frm.cmdButtons.cmdSave.firePress();
+                                    thatForm.showCustContract();
+                                });
+                            } else
+                                thatForm.showCustContract();
+                        }
+                    });
+
                     var hb = new sap.m.Toolbar({
-                        content: [btBranch, btCustItems, txt, new sap.m.ToolbarSpacer(), txtMsg]
+                        content: [btBranch, btCustItems, btCustContract, txt, new sap.m.ToolbarSpacer(), txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
@@ -1277,6 +1294,18 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         }
         sqls = "delete from cbranch where code=':qry1.code';" + sqls;
         return sqls;
+    },
+    showCustContract: function () {
+        var that2 = this;
+        if (that2.frm.objs["qry1"].status != FormView.RecordStatus.VIEW)
+            FormView.err("Form must be in VIEW mode !");
+        var locval = that2.frm.getFieldValue("qry1.code");
+        UtilGen.Search.do_quick_search_simple("select brno code,b_name  title,AREA from cbranch where code=':locationx' order by brno ".replaceAll(":locationx", locval),
+            ["CODE", "TITLE", "AREA"], function (data) {
+                var bn = data.CODE;
+                UtilGen.execCmd("bin.forms.br.kha.forms.con1 formType=dialog formSize=80%,80% status=new code=" + locval + " branch=" + bn, UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                });
+            });
     },
     showCustItems: function () {
         var that2 = this;

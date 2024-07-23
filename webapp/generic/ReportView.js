@@ -5,7 +5,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
         function ReportView(pg, pRepClsId) {
             this.pg = pg;
             this.objs = {};
-            this.savedParas = {};
+            // this.savedParas = {};
             this.selectedRep = "";
             this.repStr = "";
             // this.rep = {};
@@ -20,7 +20,14 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             this.repClassID = "";
             this.initHelperFunctions();
         };
-
+        ReportView.getDefaultParaFormCSS = (pClass, pWidth) => {
+            return {
+                class: Util.nvl(pClass, "mainParaForm"),
+                width: Util.nvl(pWidth, ((sap.ui.Device.resize.width - 500) > 900 ? 900 : (sap.ui.Device.resize.width - 500)) + "px"),
+                cssText: [
+                ]
+            };
+        };
         ReportView.getTitleFromField = function (fld) {
             var tit = fld.title;
             if (tit.startsWith("@") || tit.startsWith("#"))
@@ -35,6 +42,8 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 tit = Util.getLangText(tit);
             return tit;
         };
+
+        ReportView.savedParas = {};
 
         ReportView.ObjTypes = {
             PARAMETER: "parameter",
@@ -123,6 +132,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 rep.descrAR = Util.nvl(rps[r].descrAR, rps[r].descr);
                 rep.code = rps[r].code;
                 rep.printCSS = Util.nvl(rps[r].printCSS, "print.css");
+                rep.showPDFDirect = Util.nvl(rps[r].showPDFDirect, "N");
                 rep.printOrient = Util.nvl(rps[r].printOrient, "");
                 rep.printCellFontSize = Util.nvl(rps[r].printCellFontSize, "font-size:12px;");
                 rep.printCellPadding = Util.nvl(rps[r].printCellPadding, "padding:5px;");
@@ -182,6 +192,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 for (var i in pls) {
                     var pt = {};
                     pt.title = pls[i].title;
+                    pt.icon = Util.nvl(pls[i].icon, "");
                     pt.reportFile = pls[i].reportFile;
                     pt.beforeExec = Util.nvl(pls[i].beforeExec, undefined);
                     rep.print_templates.push(pt);
@@ -290,6 +301,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         fd.bat7OnSetFieldAddQry = Util.nvl(met[f].bat7OnSetFieldAddQry, undefined);
                         fd.bat7OnSetFieldGetData = Util.nvl(met[f].bat7OnSetFieldGetData, undefined);
                         fd.onTemplField = Util.nvl(met[f].onTemplField, undefined);
+                        fd.count_unique_label = Util.nvl(met[f].count_unique_label, undefined);
                         fd.rep = rps[r];
                         qr.fields[met[f].colname] = fd;
                         this.objs[rps[r].code + "@" + fd.name] = fd;
@@ -655,7 +667,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         else qr = qryName;
                         var pars = Util.nvl(thatRV.reports[rptNo].parameters, []);
                         for (var p in pars)
-                            thatRV.savedParas[pars[p].colname] = UtilGen.getControlValue(pars[p].obj);
+                            ReportView.savedParas[pars[p].colname] = UtilGen.getControlValue(pars[p].obj);
 
                     },
                     setReport: function (rptno) {
@@ -807,11 +819,11 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             ]
                         }).addStyleClass("reportMainPageToolbar");
                         this.pg.addContent(tb);
-                        this.pg.addContent(new sap.m.Title({ text: Util.getLangText("reportCaption1") + " " + Util.getLangDescrAR(thatRV.title, thatRV.title2) }).addStyleClass("sapUiMediumMarginTop sapUiLargeMarginBegin"));
+                        this.pg.addContent(new sap.m.Title({ text: Util.getLangDescrAR(thatRV.title, thatRV.title2) }).addStyleClass("titleFont violetText"));
                         this.pg.addContent(this.lstRep);
                         if (this.lstRepTbl.mLctb.rows.length > 1)
                             this.pg.addContent(this.lstRepTbl.getControl());
-                        this.pg.addContent(new sap.m.Title({ text: "Parameters:" }).addStyleClass("sapUiLargeMarginBegin"));
+                        // this.pg.addContent(new sap.m.Title({ text: "Parameters:" }).addStyleClass("sapUiLargeMarginBegin"));
                         this.pg.addContent(this.vbPara);
                         var rptNo = Util.nvl(pRptNo, UtilGen.getControlValue(thatRV.lstRep));
                         var rep = thatRV.reports[rptNo];
@@ -905,7 +917,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         var rs = [];
                         for (var i in ms) {
                             rs.push(new sap.m.Button({
-                                icon: "sap-icon://pdf-attachment",
+                                icon: Util.nvl(ms[i].icon, "sap-icon://pdf-attachment"),
                                 text: ms[i].title,
                                 customData: [{ key: ms[i].reportFile }, { key: i }],
                                 press: function () {
@@ -931,8 +943,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                     */
                                     var exe = { reportFile: cd };
                                     if (thatForm.reportMenus[idx].beforeExec != undefined)
-                                        exe = Util.nvl(thatForm.reportMenus[idx].beforeExec(idx, cd), exe);
-                                    thatForm.printReport(exe.reportFile, undefined, Util.nvl(exe.paras, ""));
+                                        exe = Util.nvl(thatForm.reportMenus[idx].beforeExec(idx, cd), "");
+                                    if (Util.nvl(exe, "") != "")
+                                        thatForm.printReport(exe.reportFile, undefined, Util.nvl(exe.paras, ""));
                                 }
                             }));
                         }
@@ -1181,14 +1194,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                 obj.addStyleClass(flds[f].display_style);
 
-                                if (thatForm.savedParas[flds[f].colname] != undefined) {
-                                    try {
-                                        thatForm.setFieldValue(flds[f], thatForm.savedParas[flds[f].colname], thatForm.savedParas[flds[f].colname], true);
-                                    } catch (e) {
-                                    }
-                                }
-
-                                else if (Util.nvl(flds[f].default_value, "") != "") {
+                                if (Util.nvl(flds[f].default_value, "") != "") {
                                     var vl = Util.nvl(UtilGen.parseDefaultValue(flds[f].default_value), '');
                                     thatForm.setFieldValue(flds[f], vl, vl, true);
                                 }
@@ -1205,6 +1211,22 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                 }
                             }
+                        setTimeout(() => {
+                            if (Util.nvl(thatForm.frag.oController.para_EXEC_REP, false))
+                                return;
+                            for (var f in flds) {
+                                if (ReportView.savedParas[flds[f].colname] != undefined) {
+                                    try {
+                                        thatForm.setFieldValue(flds[f], ReportView.savedParas[flds[f].colname], ReportView.savedParas[flds[f].colname], true);
+                                    } catch (e) {
+                                    }
+                                }
+                                else if (Util.nvl(flds[f].default_value, "") != "") {
+                                    var vl = Util.nvl(UtilGen.parseDefaultValue(flds[f].default_value), '');
+                                    thatForm.setFieldValue(flds[f], vl, vl, true);
+                                }
+                            }
+                        });
 
                     }
                     ,
@@ -1359,7 +1381,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 qr.obj.getControl().view = thatRV.view;
                                 qr.obj.getControl().addStyleClass("sapUiSizeCondensed " + rep.db[q].disp_class);
                                 qr.obj.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
-                                qr.obj.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
+                                qr.obj.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                                 qr.obj.getControl().setAlternateRowColors(false);
                                 qr.obj.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
                                 qr.obj.getControl().setRowHeight(qr.rowHeight);
@@ -1528,7 +1550,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             if (this.scrollObjs[i] instanceof sap.ui.core.Control)
                                 thatRV.pg.addContent(this.scrollObjs[i]);
 
-                        thatRV.pg.addContent(new sap.m.VBox({ height: "150px" }));
+                        thatRV.pg.addContent(new sap.m.VBox({ height: "20px" }));
 
                         Util.navEnter(Object.keys(rep.dispCanvases)[0], function (lastObj) {
                             thatRV.firstObj.focus();
@@ -2170,6 +2192,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     if (sap.m.MessageBox == undefined)
                         jQuery.sap.require("sap.m.MessageBox");
                     var fnRetrieveData = function () {
+                        thatRV.totRecordsFetched = 0;
                         var qryObj;
                         var qrys = rep.db;
                         for (var o in qrys) {
@@ -2194,6 +2217,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                             var dtx = JSON.parse("{" + data.data + "}");
                                             thatRV.helperFunctions.load._loadDataFromJson(qryObj, dtx.data[0], true);
+                                            thatRV.totRecordsFetched++;
                                         }
 
                                     });
@@ -2228,6 +2252,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                             qryObj.masterTable.parse("{" + data.data + "}", false);
                                             qryObj.masterTable.cursorNo = 0;
                                             thatRV.helperFunctions.masterDetails.loadMasterRecordDataFromCursor(qryObj);
+                                            thatRV.totRecordsFetched++;
                                         }
 
                                     });
@@ -2318,6 +2343,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                         qryObj.obj.mLctb.updateRecStatus(LocalTableData.RowStatus.QUERY);
                                         qryObj.obj.loadData();
+                                        thatRV.totRecordsFetched += qryObj.obj.mLctb.rows.length;
                                     } else {
                                         thatRV.ERROR_ON_RCV_DATA = true;
                                     }
@@ -2377,6 +2403,24 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         fnRetrieveData();
                         this.initV = false;
                         thatRV.navApp.to(thatRV.frag.joApp);
+                        if (Util.nvl(thatRV.frag.oController.para_showPDF, 'false') == 'true')
+                            setTimeout(function () {
+                                thatRV.showHTML();
+
+                            });
+                        if (Util.nvl(thatRV.frag.oController.para_showTemplateNo, '') != '')
+                            setTimeout(function () {
+                                var idx = thatRV.frag.oController.para_showTemplate;
+                                var cd = rep.print_templates[idx].reportFile;
+                                var exe = { reportFile: cd };
+                                if (thatRV.reportMenus[idx].beforeExec != undefined)
+                                    exe = Util.nvl(thatRV.reportMenus[idx].beforeExec(idx, cd), "");
+                                if (Util.nvl(exe, "") != "")
+                                    thatRV.printReport(exe.reportFile, undefined, exe.paras);
+
+                            });
+
+
                     }
 
                 } // if "END"
@@ -2563,8 +2607,9 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 thatRV.helperFunctions.reports.saveReport();
                                 var exe = { reportFile: cd };
                                 if (thatRV.reportMenus[idx].beforeExec != undefined)
-                                    exe = Util.nvl(thatRV.reportMenus[idx].beforeExec(idx, cd), exe);
-                                thatRV.printReport(exe.reportFile, undefined, exe.paras);
+                                    exe = Util.nvl(thatRV.reportMenus[idx].beforeExec(idx, cd), "");
+                                if (Util.nvl(exe, "") != "")
+                                    thatRV.printReport(exe.reportFile, undefined, exe.paras);
                             }
                         })
                     );
@@ -2673,8 +2718,11 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 // }
                                 var exe = { reportFile: cd };
                                 if (thatRV.reportMenus[idx].beforeExec != undefined)
-                                    exe = Util.nvl(thatRV.reportMenus[idx].beforeExec(idx, cd), exe);
-                                thatRV.printReport(exe.reportFile, undefined, exe.paras);
+                                    exe = Util.nvl(thatRV.reportMenus[idx].beforeExec(idx, cd), "");
+                                if (Util.nvl(exe, "") != "")
+                                    thatRV.printReport(exe.reportFile, undefined, exe.paras);
+
+                                // thatRV.printReport(exe.reportFile, undefined, exe.paras);
                                 // thatRV.printReport(cd, undefined);
                             }
                         }));
@@ -2920,6 +2968,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 cx.mTitle = Util.nvl(dtx[col].title, dtx[col].colname);
                 cx.mTitleParent = Util.nvl(dtx[col].parentTitle, "");
                 cx.mTitleParentSpan = Util.nvl(dtx[col].parentSpan, 1);
+                cx.count_unique_label = Util.nvl(dtx[col].count_unique_label, "");
                 cx.commandLink = Util.nvl(dtx[col].commandLink, "");
                 cx.valOnZero = dtx[col].valOnZero;
                 cx.commandLinkClick2 = dtx[col].commandLinkClick;
@@ -3181,8 +3230,6 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             return this.getText();
                         }
                     }
-
-
                 }
 
 
@@ -3635,6 +3682,117 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             }
 
         };
+
+        ReportView.prototype.showHTMLPDF = function (pRptno) {
+            var that = this;
+            var rptNo = Util.nvl(pRptno, UtilGen.getControlValue(this.lstRep));
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var rep = this.reports[rptNo];
+            var sf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+            var html = "";
+            that.view.colData = {};
+            that.view.reportsData = {
+                report_info: { report_name: Util.nvl(Util.getLangDescrAR(rep.title, rep.title2), "Query") }
+            };
+            // var ht = "<div class='company'>" + sett["COMPANY_NAME"] + "</div> " + rep.onSubTitHTML(rep);
+            var ht = "<header><div class='company'>" + sett["COMPANY_NAME"] + "</div> " + (rep.onSubTitHTML != undefined ? rep.onSubTitHTML(rep) : "") + "</header>";
+            var ft = "<footer><div class='footerText'> Printed by : " + sett["LOGON_USER"] + "</div></footer>";
+            var h2 = "";
+            var pvl = "";
+            var flds = rep.parameters;
+            for (var f in flds)
+                if (Util.nvl(flds[f].showInPreview, true)) {
+                    pvl = (flds[f].obj instanceof sap.m.CheckBox) ?
+                        (flds[f].obj.getSelected() ?
+                            flds[f].obj.trueValues[0] : flds[f].obj.trueValues[1])
+                        : flds[f].obj.getValue();
+                    if (flds[f].data_type == FormView.DataType.Date)
+                        pvl = sf.format(UtilGen.getControlValue(flds[f].obj));
+                    if (UtilGen.nvl(pvl, "") != "")
+                        h2 += "<td class='paraLabel'>" + ReportView.getTitleFromField(flds[f]) + "</td>:<td class='paraText'>" + pvl + ", </td>";
+                }
+
+            ht += "<div class='paras'>" + h2 + "</div>";
+
+            for (var q in rep.db) {
+                if (rep.db[q].showType == FormView.QueryShowType.QUERYVIEW) {
+                    ht = ht + rep.db[q].obj.getHTMLTable(that.view, "para", false);
+                } else if (rep.db[q].showType == FormView.QueryShowType.FORM) {
+                    var flds = rep.db[q].fields;
+                    for (var f in flds) {
+                        if (flds[f].hasOwnProperty("onPrintField") && flds[f].onPrintField != undefined)
+                            ht = ht + flds[f].onPrintField();
+                        else
+                            ht = ht + "<b>" + flds[f].title + " : </b>" + " " + UtilGen.getControlValue(flds[f].obj) + "<br>";
+
+                    }
+                }
+            }
+
+            if (ht != "") {
+                // var newWin = window.open("");
+                var dir = UtilGen.DBView.sLangu == "AR" ? " dir='rtl' " : "";
+                // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/" + rep.printCSS + "\">";
+                // var hd = "<link rel=\"stylesheet\" type=\"text/css\" href=\"print2.css\">";
+                var hd = "";
+                $.ajax({
+                    url: "css/" + rep.printCSS,
+                    dataType: "text",
+                    async: false,
+                    success: function (cssText) {
+                        hd = cssText;
+                        hd = hd.replaceAll("^^orientation^^", Util.nvl(rep.printOrient, ""))
+                            .replaceAll("^^tdFontSize^^", Util.nvl(rep.printCellFontSize, ""))
+                            .replaceAll("^^tdPadding^^", Util.nvl(rep.printCellPadding, ""));
+
+                        hd = "<style>" + hd + "</style>";
+                        ht = "<html" + dir + ">" + "<head><title></title>" + hd + "</head><body>" + ht + ft + "</body></html>";
+
+                        html2pdf().from(ht).set({
+                            margin: 1,
+                            filename: 'example.pdf',
+                            html2canvas: { scale: 2 },
+                            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                        }).save();
+
+
+                        // window.jsPDF = window.jspdf.jsPDF;
+                        // const { jsPDF } = window.jspdf;
+
+
+                        // Source HTMLElement or a string containing HTML.
+                        // var elementHTML = document.querySelector("#contnet");
+
+                        // doc.html(ht, {
+                        //     callback: function(doc) {
+                        //         // Save the PDF
+                        //         doc.save('sample-document.pdf');
+                        //     },
+                        //     x: 10,
+                        //     y: 10,
+                        //     width: 170, //target width in the PDF document
+                        //     windowWidth: 650 //window width in CSS pixels
+                        // });
+
+                        // newWin.document.write(ht);
+                        // $("<link>", { rel: "stylesheet", href: "css/" + rep.printCSS }).appendTo(newWin.document.head);
+                        // setTimeout(function () {
+                        //     newWin.print();
+                        // }, 1000);
+
+                        // printJS({
+                        //     printable: ht,
+                        //     type: "raw-html",
+                        //     style: UtilGen.DBView.sLangu == "AR" ? "body { direction: rtl;}" : "",
+                        //     header: "<div class='company'>" + sett["COMPANY_NAME"] + "</div>",
+                        //     footer: ft
+                        // });
+                    }
+                });
+            }
+
+        };
+
         ReportView.prototype.showXLS = function (pRptno) {
             var that = this;
             var saveData = (function () {
@@ -3764,7 +3922,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     }
                     if (parType == FormView.DataType.Number)
                         vl = new parseFloat(vl);
-                    this.savedParas[pr] = vl;
+                    ReportView.savedParas[pr] = vl;
                     this.setFieldValue(rptCode + "@" + pr, vl, vl, true);
                 } else if (this.getFieldValue(rptCode + "@parameter." + pr) != undefined) {
                     this.setFieldValue(rptCode + "@parameter." + pr, vl, vl, true);

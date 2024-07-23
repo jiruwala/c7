@@ -248,7 +248,6 @@ sap.ui.jsfragment("bin.forms.rm.su", {
             var view = this.thatForm.view;
             var colSpan = "XL2 L2 M2 S12";
             var sumSpan = "XL2 L2 M2 S12";
-
             var para = {
                 fromdate: {
                     colname: "fromdate",

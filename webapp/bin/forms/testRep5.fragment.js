@@ -173,17 +173,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                         });
                         vbPara.addItem(vb);
                     },
-                    mainParaContainerSetting: {
-                        width: { "S": 400, "M": 500, "L": 650 },
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {
@@ -383,8 +373,8 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
-                                default_value: "Y",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                default_value: "N",
+                                other_settings: { selected: false, width: "20%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -906,16 +896,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                     showDispCols: true,
                     clearCatchReportImmediate: false,
                     saveReportBeforeClear: true,
-                    mainParaContainerSetting: {
-                        width: { "S": 400, "M": 500, "L": 650 },
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {
@@ -1527,6 +1508,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
     ,
     save_soa: function () {
         var thatForm = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
         var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
         var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
         var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
@@ -1591,11 +1573,15 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         paras += "todt date := :parameter.todate;";
         paras += "pincup varchar2(255) := ':parameter.inclUnpost';";
         paras += "toacc varchar2(100) := ':parameter.paccno'; ";
+        paras += "pbrno varchar2(100) := '';";
         paras += "cstcent varchar2(100) := ':parameter.pcc';";
         paras += "pcust varchar2(100) := ':parameter.pref';";
         paras += "PAGEING varchar2(100) := ':parameter.pageing';";
         paras += "TYPEX varchar2(100) := 'ALL';";
         paras += "DEL_OLD_DATA boolean := true;";
+        paras += "ses_id varchar2(200) :='" + sett["SESSION_ID"] + "';";
+        paras += "logon_user varchar2(200) :='" + sett["LOGON_USER"] + "';";
+
 
         sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2,CC VARCHAR2) IS " + sqls + " ORDER BY vou_date; ";
         var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992.1");

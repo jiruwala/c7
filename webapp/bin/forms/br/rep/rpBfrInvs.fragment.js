@@ -40,14 +40,14 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Report Title",
+            title: Util.getLangText("titDlvBeforeInvs"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "RPBINV1",
-                    name: Util.getLangText("nameDlvBeforeInvs"),
-                    descr: Util.getLangText("descrDlvBeforeInvs"),
+                    name: Util.getLangText("titDlvBeforeInvs"),
+                    descr: Util.getLangText("titDlvBeforeInvs"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -63,17 +63,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("RPBINV1"),
                         print_templates: [
@@ -95,7 +85,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME"],
+                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -125,8 +115,9 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                                     var eq = thatForm.frm.getFieldValue("RPBINV1@parameter.grpby");
                                     var sq = "SELECT ORD_REF, ORD_REFNM," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
-                                        " SUM(TQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT," +
-                                        " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts" +
+                                        " SUM(qty_x/pack_x) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT," +
+                                        " SUM(((price_x)/pack_x)*(qty_x*pack_x))/ SUM(qty_x/pack_x)  PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts , " +
+                                        " packd_x " +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=9 " +
@@ -134,12 +125,12 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                                         " AND ORD_DATE>=:parameter.fromdate " +
                                         " AND ORD_DATE<=:parameter.todate  " +
                                         "  )" +
-                                        " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
+                                        " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
                                         " GROUP BY " +
                                         " ORD_REF, ORD_REFNM," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
-                                        " SALE_PRICE,item_descr, BRANCH_NAME , saleinv " +
+                                        " price_x,item_descr, BRANCH_NAME , saleinv ,packd_x " +
                                         " ORDER BY ord_date ";
                                     return thatForm.frm.parseString(sq);
                                 },
@@ -441,6 +432,22 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     other_settings: {},
 
                 },
+                packd_x: {
+                    colname: "packd_x",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "itemPackD",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                },
                 totalqty: {
                     colname: "totalqty",
                     data_type: FormView.DataType.Number,
@@ -453,9 +460,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
-                    display_format: "",
+                    display_format: "QTY_FORMAT",
                     default_value: "",
                     other_settings: {},
+                    summary:"SUM",
                 },
                 item_descr: {
                     colname: "item_descr",

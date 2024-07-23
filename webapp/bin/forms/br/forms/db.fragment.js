@@ -39,7 +39,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
 
 
         setTimeout(function () {
-
+            
         }, 10);
 
         // UtilGen.setFormTitle(this.oController.getForm(), "Journal Voucher", this.mainPage);

@@ -93,17 +93,7 @@ sap.ui.jsfragment("bin.forms.rp.in.mcl", {
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             showlastactive: {
@@ -379,17 +369,7 @@ sap.ui.jsfragment("bin.forms.rp.in.mcl", {
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             showlastactive: {

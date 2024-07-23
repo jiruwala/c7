@@ -395,7 +395,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             var dttt = { CODE: "", NAME: "" };
                             var sx = spt[i1].split("/");
                             dttt.CODE = "" + sx[0];
-                            dttt.NAME = "" + sx[1];
+                            dttt.NAME = "" + Util.getLangText(sx[1]);
                             dtxx.push(dttt);
                         }
                         if (Util.nvl(cbModel, "") != "") {
@@ -416,6 +416,15 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 c.setModel(new sap.ui.model.json.JSONModel(dtx));
                         }
                     }
+                    c.attachSelectionChange(function (oEvent) {
+                        var _oInput = oEvent.getSource();
+                        var val = _oInput.getSelectedKey();
+                        if (_oInput.getCustomData().length == 0)
+                            _oInput.addCustomData(new sap.ui.core.CustomData({ key: val }))
+                        else
+                            _oInput.getCustomData()[0].setKey(val);
+
+                    });
                 }
                 if (c instanceof sap.m.ListBase && sqlStr != undefined) {
                     if (sqlStr.startsWith("@")) {
@@ -576,6 +585,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             },
             formCreate2: function (title, editable, content, pHbSet, classCont, contSetting, contCssClass, lastAddVB) {
                 var cc = Util.nvl(contCssClass, "");
+                cc = contSetting != undefined ? Util.nvl(contSetting["class"], cc) : cc;
                 if (contSetting != undefined && contSetting.hasOwnProperty("width")) {
                     if (typeof contSetting.width == "object") {
                         var newr = "L";
@@ -589,7 +599,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         console.log("DEVICE " + newr + " -width=" + sap.ui.Device.resize.width + " records=" + contSetting.width);
                     }
                 }
+
                 var sc = new classCont(Util.nvl(contSetting, {})).addStyleClass(cc);
+                if (contSetting != undefined && contSetting.hasOwnProperty("height"))
+                    sc.setHeight(contSetting.height);
+
                 if (Util.nvl(contSetting, {}).hasOwnProperty("cssText")) {
                     setTimeout(function () {
                         var ar = [].concat(contSetting["cssText"]);
@@ -1555,8 +1569,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (tokens[i].split("=")[0] == "formTitle")
                             formtit = tokens[i].split("=")[1];
 
-                        if (tokens[i].split("=")[0] == "openNew" && tokens[i].split("=")[1] == "true")
+                        if ((tokens[i].split("=")[0] == "openNew" && tokens[i].split("=")[1] == "true")
+                            || (tokens[i].split("=")[0] == "formType" && tokens[i].split("=")[1].toLowerCase() != "page"))
                             openNew = true;
+
                     }
                     if (openNew)
                         UtilGen.cmdOpenForm(txt2, view, obj, pg1, pOnWndClose);
@@ -1564,6 +1580,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (UtilGen.getIndexByKey(view.lstPgs, formnm) != undefined || UtilGen.getIndexByKey(view.lstPgs, "bin.forms." + formnm) != undefined) {
                             if (formnm == UtilGen.getControlValue(view.lstPgs))
                                 return;
+                            UtilGen.setControlValue(view.lstPgs, formnm);
+                            view.lstPgs.fireSelectionChange();
+                            /*
                             if (sap.m.MessageBox == undefined)
                                 jQuery.sap.require("sap.m.MessageBox");
                             sap.m.MessageBox.confirm("Already form is opened, Open new " + Util.nvl(formtit, formnm) + " again ?  ", {
@@ -1583,6 +1602,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 initialFocus: sap.m.MessageBox.Action.NO, // default
                                 textDirection: sap.ui.core.TextDirection.Inherit     // default
                             });
+                            */
                         } else
                             UtilGen.cmdOpenForm(txt2, view, obj, pg1, pOnWndClose);
                     }
@@ -1918,7 +1938,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // }
                     // var control = this;
                     var sq = pSq;
-                    Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
+                    Util.show_list(sq, ["CODE", "TITLE", "NAME"], "", function (data) {
                         UtilGen.setControlValue(control, data.CODE, data.CODE, true);
                         if (titObj != undefined)
                             UtilGen.setControlValue(titObj, data.TITLE, data.TITLE, true);
@@ -1948,17 +1968,19 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         return true;
                     }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
 
+                },
+                
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns) {
+                    var points = Util.nvl(pPoints, {});
+                    var sq = pSq;
+                    Util.show_list(sq, Util.nvl(cols, []), "", function (data) {
+                        if (eventAfterSelect != undefined)
+                            eventAfterSelect(data);
+                        return true;
+                    }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
 
-                    // Util.showSearchList(sq, "TITLE", "CODE", function (valx, val) {
-                    //     if (titObj == undefined)
-                    //         UtilGen.setControlValue(control, val, valx, false);
-                    //     else {
-                    //         UtilGen.setControlValue(control, valx, valx, false);
-                    //         UtilGen.setControlValue(titObj, val, val, false);
-                    //     }
 
 
-                    // });
                 },
                 getLOVSearchField: function (sql, control, nullValid, titObj) {
                     var vl = control.getValue();
@@ -2972,7 +2994,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (dat.ret == "SUCCESS" && dat.data.length > 0) {
                     var dtx = JSON.parse("{" + dat.data + "}").data;
                     var tot = 0;
-                    var dtstr = (dt != undefined ? " and vou_date<=" + Util.toOraDateString(dt) : "");
+                    var dtstr = (dt != undefined ? " and vou_date<=" + Util.toOraDateString(dt) : " and vou_date<=" + Util.toOraDateString(UtilGen.DBView.today_date.getDateValue()));
                     for (var i in dtx)
                         tot += Util.getSQLValue("select nvl(sum(debit-credit),0) from acc_transaction_up where path like '" + dtx[i].PATH + "%' " + dtstr);
                     return tot;

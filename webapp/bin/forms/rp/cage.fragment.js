@@ -95,17 +95,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             todate: {
@@ -483,7 +473,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
-                                        summary:"SUM",
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     }
 
@@ -593,7 +583,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
 
         var paras = "rep_type varchar2(100) :='R';";
         paras += " todate date := :parameter.todate;";
-        paras += "fromcust varchar2(100) := ':parameter.from_cust';";
+        paras += " fromcust varchar2(100) := ':parameter.from_cust';";
         paras += " tocust varchar2(100) := ':parameter.to_cust'; ";
         paras += " parent_cust varchar2(255) := ':parameter.pcust'; ";
         paras += " pstatus varchar2(255) := ':parameter.pstatus'; ";

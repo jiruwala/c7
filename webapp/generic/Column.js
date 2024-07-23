@@ -55,6 +55,7 @@ sap.ui.define(["./DataCell"], function (DataCell) {
         this.ct_val = "N";
         this.btnsx = undefined;
         this.trueValues = []; //["Y", "N"] if check box
+        this.count_unique_label = "";
 
     }
 

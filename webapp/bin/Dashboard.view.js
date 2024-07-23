@@ -1203,16 +1203,28 @@ sap.ui.jsview('bin.Dashboard', {
 
         //chatgpt helped
         var rowsUpdated = function () {
-            var aRows = that.mv.getControl().getRows();
-            aRows.forEach(function (oRow) {
-                var oContext = oRow.getBindingContext();
-                if (Util.nvl(oContext, undefined) != undefined) {
-                    var sStatus = oContext.getProperty("EXPAND_NODE");
-                    if (sStatus == "Y")
-                        oRow.expand();
+            setTimeout(() => {
+                var aRows = that.mv.getControl().getRows();
+                for (var i = aRows.length-1; i >= 0; i--) {
+                    var oRow = aRows[i];
+                    var oContext = oRow.getBindingContext();
+                    if (Util.nvl(oContext, undefined) != undefined) {
+                        var sStatus = oContext.getProperty("EXPAND_NODE");
+                        if (sStatus == "Y")
+                            oRow.expand();
+                    }
                 }
+
+                // aRows.forEach(function (oRow) {
+                //     var oContext = oRow.getBindingContext();
+                //     if (Util.nvl(oContext, undefined) != undefined) {
+                //         var sStatus = oContext.getProperty("EXPAND_NODE");
+                //         if (sStatus == "Y")
+                //             oRow.expand();
+                //     }
+                // });
+                mv.getControl().detachRowsUpdated(rowsUpdated);
             });
-            mv.getControl().detachRowsUpdated(rowsUpdated);
         };
         mv.getControl().collapseAll();
         mv.getControl().attachRowsUpdated(rowsUpdated);
@@ -1357,7 +1369,7 @@ sap.ui.jsview('bin.Dashboard', {
                 var dtx = JSON.parse("{" + dt.data + "}").data;
                 for (var di in dtx) {
                     var code = txtToC.getValue() + dtx[di].MENU_CODE;
-                    var grp_code = txtToG.getValue();                                        
+                    var grp_code = txtToG.getValue();
                     var tit = dtx[di].MENU_TITLE;
                     var tit2 = dtx[di].MENU_TITLEA;
                     var menupath = txtFromC.getValue() == dtx[di].PARENT_MENUCODE ? getmenupath.replaceAll(":menu_code", txtToC.getValue())
