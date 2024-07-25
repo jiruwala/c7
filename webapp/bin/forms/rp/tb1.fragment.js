@@ -123,18 +123,7 @@ sap.ui.jsfragment("bin.forms.rp.tb1", {
                         return ht;
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin-left: 10%;" +
-                            "margin-right: 10%;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {
@@ -628,18 +617,7 @@ sap.ui.jsfragment("bin.forms.rp.tb1", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        css: {
-                            "padding-left": "50px",
-                            // "padding-top:20px;",
-                            "border-style": "inset",
-                            // "margin-left: 10%;",
-                            // "margin-right: 10%;",
-                            // "border-radius:25px;",
-                            "background-color": "#dcdcdc"
-                        }
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {
@@ -1062,18 +1040,7 @@ sap.ui.jsfragment("bin.forms.rp.tb1", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin-left: 10%;" +
-                            "margin-right: 10%;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {

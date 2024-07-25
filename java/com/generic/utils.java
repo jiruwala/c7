@@ -1322,7 +1322,7 @@ public class utils {
 		return b4_str + str_insert + str.substring(b4_str.length() + 1, str.length());
 	}
 
-	public static double insertNotify(Connection con, String usr, String type_of, String descr, String cmd)
+	public static double insertNotify(Connection con, String usr, String type_of, String descr, String cmd,String postedUser)
 			throws Exception {
 		String sq = "insert into c7_notify (keyfld,type_of,posted_by,touser,descr,posted_time,cmd) "
 				+ " values (:keyfld , :type_of , :posted_by , :touser ,:descr,:posted_time,:cmd) ";
@@ -1330,7 +1330,7 @@ public class utils {
 		QueryExe qe = new QueryExe(sq, con);
 		qe.setParaValue("keyfld", kf);
 		qe.setParaValue("type_of", type_of);
-		qe.setParaValue("posted_by", usr);
+		qe.setParaValue("posted_by", postedUser);
 		qe.setParaValue("touser", usr);
 		qe.setParaValue("descr", descr);
 		qe.setParaValue("cmd", cmd);

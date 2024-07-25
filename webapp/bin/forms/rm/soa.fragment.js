@@ -111,17 +111,7 @@ sap.ui.jsfragment("bin.forms.rm.soa", {
                         });
                         vbPara.addItem(vb);
                     },
-                    mainParaContainerSetting: {
-                        width: { "S": 400, "M": 500, "L": 650 },
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("RMSOA1"),
                         print_templates: [

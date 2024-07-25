@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
+sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -70,14 +70,14 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("titDailyItemSales"),
+            title: Util.getLangText("nameCustItemSales"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
-                    code: "IDS01", // Items Daily Sales
-                    name: Util.getLangText("nameDailyItemSales"),
-                    descr: Util.getLangText("nameDailyItemSales"),
+                    code: "ICS01", // Items Daily Sales
+                    name: Util.getLangText("nameCustItemSales"),
+                    descr: Util.getLangText("nameCustItemSales"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -86,16 +86,17 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                     showDispCols: true,
                     // printCSS: "print2.css",
                     onSubTitHTML: function () {
-                        var tbstr = Util.getLangText("nameDailyItemSales");
+                        var tbstr = Util.getLangText("nameCustItemSales");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
+
                     },
                     showCustomPara: function (vbPara, rep) {
 
                     },
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
-                        parameters: thatForm.helperFunc.getParas("IDS01"),
+                        parameters: thatForm.helperFunc.getParas("ICS01"),
                         print_templates: [
                         ],
                         canvas: [],
@@ -168,7 +169,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
-                                            return thatForm.helperFunc.addQry(qryObj, ps, "IDS01");
+                                            return thatForm.helperFunc.addQry(qryObj, ps, "ICS01");
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQry(qryObj);
@@ -354,16 +355,16 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
             var rt = thatForm.frm.getFieldValue("parameter.reptype");
             var rtypecol = rt == "QTY" ? "ORD_PKQTY" : "(ORD_PKQTY*SALE_PRICE)";
             var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
-            var sq = "select location_code,location_name,ord_date,ord_ship item,sum(:RTYPECOL) :REPCOLNAME , " +
-                " TO_CHAR(ord_date,'DD/MM/RRRR') DAT,ord_ship||'__:REPCOLNAME' ITEM_BAL " +
+            var sq = "select location_code,location_name,ord_ref,ord_ship item,sum(:RTYPECOL) :REPCOLNAME , " +
+                " ord_ref||'-'||ord_refnm CUST,ord_ship||'__:REPCOLNAME' ITEM_BAL " +
                 " from joined_corder where " +
                 " ORD_DATE>=:parameter.fromdate " +
                 " AND ORD_DATE<=:parameter.todate  " +
                 " AND (JOINED_CORDER.location_code=':parameter.ploc' or NVL(':parameter.ploc','ALL') ='ALL') " +
                 " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
-                " group by  location_code,location_name,ord_date ,ord_ship, " +
-                " TO_CHAR(ord_date,'DD/MM/RRRR') ,ord_ship||'__:REPCOLNAME'" +
-                " order by location_code,ord_date,ord_ship";
+                " group by  location_code,location_name,ord_ref ,ord_ship, " +
+                " ord_ref||'-'||ord_refnm , ord_ship||'__:REPCOLNAME'" +
+                " order by location_code,ord_ref,ord_ship";
             sq = sq.replaceAll(":RTYPECOL", rtypecol)
                 .replaceAll(":REPCOLNAME", repcolname);
             sq = thatForm.frm.parseString(sq);
@@ -421,10 +422,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                     ld.cols[ld.getColPos("LOCATION_CODE")].ct_row = "Y";
                     ld.cols[ld.getColPos("LOCATION_NAME")].ct_row = "Y";
 
-                    ld.cols[ld.getColPos("DAT")].ct_row = "Y";
+                    ld.cols[ld.getColPos("CUST")].ct_row = "Y";
                     // ld.cols[ld.getColPos("ORD_DATE")].ct_row = "Y";
-                    ld.cols[ld.getColPos("ORD_DATE")].mHideCol = true;
-                    ld.cols[ld.getColPos("DAT")].mUIHelper.display_width = "100";
+                    ld.cols[ld.getColPos("ORD_REF")].mHideCol = true;
+                    ld.cols[ld.getColPos("CUST")].mUIHelper.display_width = "100";
 
                     ld.cols[ld.getColPos("ITEM_BAL")].ct_col = "Y";
 
@@ -465,7 +466,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                     var ditm = Util.execSQLWithData("select reference,descr from items order by reference");
                     for (var di in ditm)
                         itms[ditm[di].REFERENCE] = ditm[di].DESCR;
-                    var fltcols = ["DAT", "tot__" + repcolname];
+                    var fltcols = ["CUST", "tot__" + repcolname];
                     for (var li = 0; li < ld2.cols.length; li++)
                         if (ld2.cols[li].mColName.endsWith("__" + repcolname)) {
                             var cn = ld2.cols[li].mColName.replaceAll("__" + repcolname, "");
@@ -477,13 +478,13 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                             ld2.cols[li].mSummary = "SUM";
                             fltcols.push(ld2.cols[li].mColName);
                         }
-                    ld2.cols[ld2.getColPos("DAT")].mSummary = "COUNT_UNIQUE";
-                    ld2.cols[ld2.getColPos("DAT")].count_unique_label = "txtCountDate";
+                    ld2.cols[ld2.getColPos("CUST")].mSummary = "COUNT_UNIQUE";
+                    ld2.cols[ld2.getColPos("CUST")].count_unique_label = "txtCountCust";
                     ld2.cols[ld2.getColPos("LOCATION_CODE")].mGrouped = true;
                     ld2.cols[ld2.getColPos("LOCATION_NAME")].mGrouped = true;
                     ld2.cols[ld2.getColPos("tot__" + repcolname)].mTitle = Util.getLangText(rt == "QTY" ? "totalQty" : "amountTxt");
                     ld2.cols[ld2.getColPos("tot__" + repcolname)].valOnZero = "";
-                    thatForm.frm.objs["IDS01@qry2"].filterCols = fltcols;
+                    thatForm.frm.objs["ICS01@qry2"].filterCols = fltcols;
                     qr.showToolbar.filterCols = fltcols;
                     qr.mLctb.parse(dt2, true);
                     qr.loadData();

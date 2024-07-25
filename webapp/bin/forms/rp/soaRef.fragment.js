@@ -43,7 +43,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Vouchers",
+            title: Util.getLangText("titCSOA"),
             title2: "",
             show_para_pop: false,
             reports: [
@@ -61,11 +61,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                     showQueryPage: false,
                     showCustomPara: function (vbPara, rep) {
                     },
-                    mainParaContainerSetting: {
-                        width: "450px",
-                        cssText: [
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(undefined, "400px"),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("SOAREF1"),
                         print_templates: [
@@ -80,6 +76,8 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                     paras["pbranch"] = thatForm.frm.objs[repCode + "@parameter.pbranch"].obj.mainObj;
                                     paras["pfromdate"] = thatForm.frm.objs[repCode + "@parameter.fromdate"].obj.mainObj;
                                     paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
+                                    paras["inclUnpost"] = thatForm.frm.objs[repCode + "@parameter.inclUnpost"].obj.mainObj;
+                                    // paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
                                     for (var fld in paras) {
                                         var vl = UtilGen.getControlValue(paras[fld]);
                                         var parent = thatForm.view.byId("rep" + rptNo + "_parameter" + fld + thatForm.frm.timeInLong);
@@ -95,6 +93,32 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                     var rpt = rptName;
                                     thatForm.helperFunc.save_soa();
                                     return { reportFile: rpt, paras: "" };
+                                }
+                            },
+                            {
+                                title: "Query",
+                                icon: "sap-icon://details",
+                                reportFile: "soaRef1",
+
+                                beforeExec: function (idx, rptName) {
+                                    var repCode = "SOAREF1";
+                                    var paras = {};
+                                    var rptNo = idx;
+                                    var sdf = new simpleDateFormat("MM/dd/yyyy");
+                                    var pcust = thatForm.frm.objs[repCode + "@parameter.pcust"].obj.mainObj;
+                                    var pbranch = thatForm.frm.objs[repCode + "@parameter.pbranch"].obj.mainObj;
+                                    var fromdt = thatForm.frm.objs[repCode + "@parameter.fromdate"].obj.mainObj;
+                                    var todt = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
+                                    var unpost = thatForm.frm.objs[repCode + "@parameter.inclUnpost"].obj.mainObj;
+                                    // paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
+
+                                    UtilGen.execCmd("testRep5 formType=dialog repno=0 para_PARAFORM=false para_EXEC_REP=true " +
+                                        "pref=" + pcust.getValue() +
+                                        " fromdate=@" + sdf.format(fromdt.getDateValue()) +
+                                        " todate=@" + sdf.format(todt.getDateValue()) +
+                                        " inclUnpost=" + UtilGen.getControlValue(unpost)
+                                        , UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                                    return "";
                                 }
                             }
                         ],
@@ -317,6 +341,24 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                     require: false,
                     dispInPara: true,
                 },
+                inclUnpost: {
+                    colname: "inclUnpost",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"paraInclUnpost\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "Y",
+                    other_settings: { selected: true, width: "10%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
             };
             return para;
         },
@@ -393,7 +435,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
 
             var paras = "fromdt date := :parameter.fromdate;";
             paras += "todt date := :parameter.todate;";
-            paras += "pincup varchar2(255) := 'Y'; ";
+            paras += "pincup varchar2(255) := ':parameter.inclUnpost'; ";
             paras += "toacc varchar2(100) := ''; ";
             paras += "cstcent varchar2(100) := ''; ";
             paras += "pcust varchar2(100) := ':parameter.pcust';";

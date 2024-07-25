@@ -465,13 +465,22 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con1", {
     }
     ,
     loadData: function () {
-        // if (Util.nvl(this.oController.accno, "") != "" &&
-        //     Util.nvl(this.oController.status, "view") == FormView.RecordStatus.VIEW) {
-        //     this.frm.setFieldValue("pac", this.oController.accno, this.oController.accno, true);
-        //     this.frm.loadData(undefined, FormView.RecordStatus.VIEW);
-        //     this.oController.accno = "";
-        //     return;
+        if (Util.nvl(this.oController.code, "") != "") {
+            this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
+            var kf = Util.execSQLWithData("select keyfld from c_contract where cust_code='" +
+                this.oController.code + "' and branch_no='" + Util.nvl(this.oController.branch, "") + "'");
+            if (kf != undefined && kf.length > 0) {
+                // this.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                this.frm.setFieldValue("pac", kf[0].KEYFLD, kf[0].KEYFLD, true);
+                this.frm.loadData(undefined, FormView.RecordStatus.VIEW);
 
+            } else {
+                UtilGen.setControlValue(this.frm.objs["qry1.cust_code"].obj, this.oController.code, this.oController.code, true);
+                if (Util.nvl(this.oController.branch, "") != "")
+                    UtilGen.setControlValue(this.frm.objs["qry1.branch_no"].obj, Util.nvl(this.oController.branch, ""), Util.nvl(this.oController.branch, ""), true);
+            }
+            return;
+        }
         // }
         this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
     },
@@ -813,12 +822,12 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con1", {
                     FormView.err("Save Denied: Item " + rfr + " is invalid entry !");
                 if (pr < 0 || prb < 0)
                     FormView.err("Save Denied: PRICE invalid value !");
-                if (pr == 0 && prb == 0 && pru==0)
+                if (pr == 0 && prb == 0 && pru == 0)
                     FormView.err("Save Denied: PRICE / PRICE buy / Price TON must have vaue !");
                 if (pru < 0 || Util.nvl(pru, undefined) == undefined)
                     FormView.err("Save Denied: Check Price for TON !");
             }
-        }, 
+        },
         deleteDate: function () {
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();

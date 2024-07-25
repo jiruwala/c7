@@ -1550,7 +1550,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     if (this.notTable.rows.length <= 0)
                         return;
 
-                    var lsgrp = new sap.m.NotificationListGroup({ title: "Reports" });
+                    var lsgrp = new sap.m.NotificationListGroup({ title: "Reports Fetched", collapsed: true });
                     for (var i = 0; i < this.notTable.rows.length; i++) {
                         var des = this.notTable.getFieldValue(i, "DESCR");
                         var cmd = this.notTable.getFieldValue(i, "CMD");

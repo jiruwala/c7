@@ -40,14 +40,14 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Report Title",
+            title: Util.getLangText("titDlvBeforeInvs"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "RPBINV1",
-                    name: Util.getLangText("nameDlvBeforeInvs"),
-                    descr: Util.getLangText("descrDlvBeforeInvs"),
+                    name: Util.getLangText("titDlvBeforeInvs"),
+                    descr: Util.getLangText("titDlvBeforeInvs"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -63,17 +63,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("RPBINV1"),
                         print_templates: [
@@ -470,9 +460,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
-                    display_format: "",
+                    display_format: "QTY_FORMAT",
                     default_value: "",
                     other_settings: {},
+                    summary:"SUM",
                 },
                 item_descr: {
                     colname: "item_descr",

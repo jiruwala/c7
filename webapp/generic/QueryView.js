@@ -208,6 +208,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             setTimeout(function () {
                 // sap.ui.getCore().byId(that.tableId + "txtSearch").fireLiveChange();
                 neQr.loadData();
+                neQr.getControl().setFirstVisibleRow(0);
             }, 100);
         };
         QueryView.prototype.createToolbar = function (addClass, filterCols, prsnEventAfterApply, prsnEventAfterRevert) {
@@ -752,6 +753,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
         QueryView.prototype.loadData = function (noDestroy) {
             //resetingg,
             var that = this;
+
             var sett = sap.ui.getCore().getModel("settings").getData();
 
             if (this.queryType == "list") {
@@ -2238,7 +2240,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     //  this.getControl().getRows()[i].getCells()[1].$().parent().parent().attr("colspan", (this.mLctb.cols.length-cellAdd) + ""); 
                     for (var k = 1; k < this.mLctb.cols.length - cellAdd; k++) {
                         // this.getControl().getRows()[i].getCells()[k ].$().parent().parent().attr("width", "0px");
-                        this.getControl().getRows()[i].getCells()[k].$().parent().parent().hide();
+                        if (this.getControl().getRows()[i].getCells()[k] != undefined)
+                            this.getControl().getRows()[i].getCells()[k].$().parent().parent().hide();
                     }
                     // this.getControl().getRows()[i].removeCell(this.getControl().getRows()[i].getCells().length - 1);
 
@@ -2748,7 +2751,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 if (Util.nvl(cellValue + "", "").trim().length > 0 && Util.nvlObjToStr(oData[i][t], "").startsWith(String.fromCharCode(4095))) {
                     classadd += "yellow "
                 }
-                if (grouped && cellValue != undefined && oData[i][t].startsWith(String.fromCharCode(4094))) {
+                if (grouped && cellValue != undefined && (oData[i][t] + "").startsWith(String.fromCharCode(4094))) {
                     classadd += "qrGroup ";
                     grptext = true;
                     tmpv2 = this.getControl().getColumns().length + "";

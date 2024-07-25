@@ -84,7 +84,7 @@ public class RepBatch7 {
 				if (!this.notified)
 					this.notification_kfld = utils.insertNotify(this.instanceInfo.getmDbc().getDbConnection(),
 							this.instanceInfo.getmLoginUser(), "END_OF_REPORT",
-							this.reportTitle + "  ended successfully ", this.cmd);
+							this.reportTitle + "  ended successfully ", this.cmd,this.instanceInfo.getmLoginUser());
 				this.notified = true;
 
 				System.out.println("Fetched : , status :" + this.status);

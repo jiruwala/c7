@@ -95,17 +95,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             todate: {
@@ -483,7 +473,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
-                                        summary:"SUM",
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     }
 

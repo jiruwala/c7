@@ -40,14 +40,14 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Report Title",
+            title: Util.getLangText("descrDlvDetailsTon"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "RPDLV2",
-                    name: Util.getLangText("nameDlvDetails"),
-                    descr: Util.getLangText("descrDlvDetails"),
+                    name: Util.getLangText("nameDlvDetailsTon"),
+                    descr: Util.getLangText("descrDlvDetailsTon"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -55,7 +55,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                     showFilterCols: true,
                     showDispCols: true,
                     onSubTitHTML: function () {
-                        var tbstr = Util.getLangText("titDlvDetails");
+                        var tbstr = Util.getLangText("titDlvDetailsTon");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
 
@@ -63,17 +63,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("RPDLV2"),
                         print_templates: [
@@ -673,10 +663,12 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                     display_width: "80",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
-                    display_style: "background-color:khaki;",
+                    display_style: "",
                     display_format: "QTY_FORMAT",
                     default_value: "",
                     other_settings: {},
+                    summary: "SUM",
+                    valOnZero: "",
                 },
                 ton_qty: {
                     colname: "ton_qty",
@@ -689,10 +681,13 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                     display_width: "80",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
-                    display_style: "background-color:yellow;",
-                    display_format: "",
+                    display_style: "",
+                    display_format: "QTY_FORMAT",
                     default_value: "",
                     other_settings: {},
+                    summary: "SUM",
+                    valOnZero: "",
+
                 },
 
                 saleinv: {

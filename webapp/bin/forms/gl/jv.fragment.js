@@ -216,6 +216,11 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
                         UtilGen.Vouchers.onCellRender(qry, rowno, colno, currentRowContext);
                     },
+                    beforeExeSql: function (frm, sq) {
+
+                        var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1");
+                        return sq + sqLog;
+                    },
                     beforePrint: function (rptName, params) {
                         return params + "&_para_VOU_TITLE=Journal Voucher";
                     }

@@ -40,7 +40,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Report Title",
+            title: Util.getLangText("nameDlvDetails"),
             title2: "",
             show_para_pop: false,
             reports: [
@@ -63,17 +63,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("RPDLV1"),
                         print_templates: [

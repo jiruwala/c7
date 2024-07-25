@@ -416,6 +416,15 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 c.setModel(new sap.ui.model.json.JSONModel(dtx));
                         }
                     }
+                    c.attachSelectionChange(function (oEvent) {
+                        var _oInput = oEvent.getSource();
+                        var val = _oInput.getSelectedKey();
+                        if (_oInput.getCustomData().length == 0)
+                            _oInput.addCustomData(new sap.ui.core.CustomData({ key: val }))
+                        else
+                            _oInput.getCustomData()[0].setKey(val);
+
+                    });
                 }
                 if (c instanceof sap.m.ListBase && sqlStr != undefined) {
                     if (sqlStr.startsWith("@")) {
@@ -576,6 +585,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             },
             formCreate2: function (title, editable, content, pHbSet, classCont, contSetting, contCssClass, lastAddVB) {
                 var cc = Util.nvl(contCssClass, "");
+                cc = contSetting != undefined ? Util.nvl(contSetting["class"], cc) : cc;
                 if (contSetting != undefined && contSetting.hasOwnProperty("width")) {
                     if (typeof contSetting.width == "object") {
                         var newr = "L";
@@ -1559,8 +1569,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (tokens[i].split("=")[0] == "formTitle")
                             formtit = tokens[i].split("=")[1];
 
-                        if (tokens[i].split("=")[0] == "openNew" && tokens[i].split("=")[1] == "true")
+                        if ((tokens[i].split("=")[0] == "openNew" && tokens[i].split("=")[1] == "true")
+                            || (tokens[i].split("=")[0] == "formType" && tokens[i].split("=")[1].toLowerCase() != "page"))
                             openNew = true;
+
                     }
                     if (openNew)
                         UtilGen.cmdOpenForm(txt2, view, obj, pg1, pOnWndClose);
@@ -1568,6 +1580,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (UtilGen.getIndexByKey(view.lstPgs, formnm) != undefined || UtilGen.getIndexByKey(view.lstPgs, "bin.forms." + formnm) != undefined) {
                             if (formnm == UtilGen.getControlValue(view.lstPgs))
                                 return;
+                            UtilGen.setControlValue(view.lstPgs, formnm);
+                            view.lstPgs.fireSelectionChange();
+                            /*
                             if (sap.m.MessageBox == undefined)
                                 jQuery.sap.require("sap.m.MessageBox");
                             sap.m.MessageBox.confirm("Already form is opened, Open new " + Util.nvl(formtit, formnm) + " again ?  ", {
@@ -1587,6 +1602,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 initialFocus: sap.m.MessageBox.Action.NO, // default
                                 textDirection: sap.ui.core.TextDirection.Inherit     // default
                             });
+                            */
                         } else
                             UtilGen.cmdOpenForm(txt2, view, obj, pg1, pOnWndClose);
                     }
@@ -1691,6 +1707,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             sp.onWndClose();
                         if (pOnWndClose != undefined)
                             pOnWndClose();
+                        sp.destroy();
                         // that.loadData();
                         if (view.lstPgs.getItems().length == 1)
                             that.show_main_menus();
@@ -1711,6 +1728,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     sp.onWndClose();
                                 if (pOnWndClose != undefined)
                                     pOnWndClose();
+                                sp.destroy();
                                 sap.m.MessageToast.show("Removing this page..");
                                 view.app.toDetail(view.pg, "show");
                                 // view.loadData();
@@ -1729,6 +1747,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 sp.backFunction = function () {
                                     view.destroyPage(pgx);
                                     sap.m.MessageToast.show("Removing this page..");
+                                    sp.destroy();
                                     view.app.toDetail(view.pg, "show");
                                     // view.loadData();
                                     if (view.lstPgs.getItems().length == 1)
@@ -1751,6 +1770,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 sp.onWndClose();
                             if (pOnWndClose != undefined)
                                 pOnWndClose();
+                            sp.destroy();
                             // UtilGen.DBView.autoShowHideMenu(true);
                         })
                     }
@@ -1952,17 +1972,19 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         return true;
                     }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
 
+                },
 
-                    // Util.showSearchList(sq, "TITLE", "CODE", function (valx, val) {
-                    //     if (titObj == undefined)
-                    //         UtilGen.setControlValue(control, val, valx, false);
-                    //     else {
-                    //         UtilGen.setControlValue(control, valx, valx, false);
-                    //         UtilGen.setControlValue(titObj, val, val, false);
-                    //     }
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns) {
+                    var points = Util.nvl(pPoints, {});
+                    var sq = pSq;
+                    Util.show_list(sq, Util.nvl(cols, []), "", function (data) {
+                        if (eventAfterSelect != undefined)
+                            eventAfterSelect(data);
+                        return true;
+                    }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
 
 
-                    // });
+
                 },
                 getLOVSearchField: function (sql, control, nullValid, titObj) {
                     var vl = control.getValue();
@@ -2076,6 +2098,34 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 FormView.err(ld.getFieldValue(rowno, "COSTCENT") + " not a valid COST CENTER ! ");
                         }
                     }
+                },
+                getInsertLogFuncStr: function (frag, grpname, vou_code, type, tablename) {
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var frm = frag.frm;
+                    var kf = frm.getFieldValue("keyfld");
+                    // if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT ||
+                    //     that2.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                    //     return;
+                    var stat = frm.objs["qry1"].status != FormView.RecordStatus.EDIT ?
+                        "INSERT" : "UPDATE";
+                    var stat2 = frm.objs["qry1"].status != FormView.RecordStatus.EDIT ?
+                        "inserted" : "upedated";
+                    var vono = frm.getFieldValue("qry1.no");
+                    var kfld = frm.getFieldValue("qry1.keyfld");
+                    var insq = "c7_insert_log_proc(':GRPNAME'," +
+                        "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT2 '" +
+                        ",:KEYFLD,'VOU_CODE='||:VOU_CODE||',TYPE='||:VOU_TYPE,:JVNO); ";
+                    insq = insq.replaceAll(":REC_STAT2", stat2)
+                        .replaceAll(":REC_STAT", stat)
+                        .replaceAll(":USERNAME", sett["LOGON_USER"])
+                        .replaceAll(":GRPNAME", Util.nvl(grpname, "JV"))
+                        .replaceAll(":JVNO", vono)
+                        .replaceAll(":KEYFLD", kfld)
+                        .replaceAll(":VOU_CODE", vou_code)
+                        .replaceAll(":VOU_TYPE", type)
+                        .replaceAll(":TABLENAME", Util.nvl(tablename, "ACVOUCHER1"));
+                    insq = frm.parseString(insq);
+                    return insq;
                 },
                 formLoadData: function (frag) {
 

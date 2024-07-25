@@ -93,10 +93,11 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
                 },
                 selectionChange: function (ev) {
                 },
-                value: "-1"
+                selectedKey: "-1"
             });
         Util.fillCombo(this.txtLocations, "select '-1' code,'ALL' from dual union all select code,name from locations  order by 1 ");
-        this.txtLocations.setSelectedItem(Util.findComboItem(this.txtLocations, sett["DEFAULT_LOCATION"]));
+        // this.txtLocations.setSelectedItem(Util.findComboItem(this.txtLocations, sett["DEFAULT_LOCATION"]));
+        // this.txtLocations = new sap.m.Input({ editable: true });
 
         this.txtFromDate = new sap.m.DatePicker({ width: "50%" });
         this.txtToDate = new sap.m.DatePicker({ width: "50%" });
@@ -106,17 +107,32 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             valueHelpRequest: function (e) {
                 var fromdt = UtilGen.getControlValue(that.txtFromDate);
                 var todt = UtilGen.getControlValue(that.txtToDate);
-                Util.showSearchList("select code,name from c_ycust where code in " +
-                    "(select distinct ord_ref from c_order1 where ord_code=9 and saleinv is null and (location_code='" +
+
+                var sqDlvCounts = "(select count(*)  from c_order1 where c_ycust.code=c_order1.ord_ref and ord_code=9 and saleinv is null and (location_code='" +
+                UtilGen.getControlValue(that.txtLocations) +
+                "' or '" + UtilGen.getControlValue(that.txtLocations) + "' = '-1') and " +                    
+                    " ord_date>=" + Util.toOraDateString(fromdt) +
+                    " and ord_date<=" + Util.toOraDateString(todt) + ")";
+
+                var sqWhere = "(select distinct ord_ref from c_order1 where ord_code=9 and saleinv is null and (location_code='" +
                     UtilGen.getControlValue(that.txtLocations) +
                     "' or '" + UtilGen.getControlValue(that.txtLocations) + "' = '-1') and " +
                     " ord_date>=" + Util.toOraDateString(fromdt) +
-                    " and ord_date<=" + Util.toOraDateString(todt) + ") and " +
-                    " childcount=0 order by path ",
-                    "NAME", "CODE", function (valx, val) {
-                        that.txtRef.setValue(valx);
-                        that.txtRefName.setValue(val);
-                    });
+                    " and ord_date<=" + Util.toOraDateString(todt) + ")";
+                var sq = "select code,name from c_ycust where code in " + sqWhere +
+                    " and " +
+                    " childcount=0 order by path ";
+
+
+                var sq = "select code,name," + sqDlvCounts + " deliveries from c_ycust where code in " + sqWhere +
+                    " and " +
+                    " childcount=0 order by path ";
+
+
+
+                UtilGen.Search.do_quick_search(e, this,
+                    sq,
+                    "select code,name title from c_ycust where code=:CODE", that.txtRefName, undefined, undefined, undefined);
             },
             change: function (e) {
                 var vl = Util.getSQLValue("select name from c_ycust where code=" + Util.quoted(that.txtRef.getValue()));
@@ -240,14 +256,15 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.txtTotalDlv.setValue(0);
 
         var sq = "SELECT   o.periodcode," +
-            "               '001' location_code," +
+            "               o.location_code," +
+            "               locations.name location_name," +
             "               o.ORD_NO," +
             "               o.ord_ref," +
             "               ord_code," +
             "               TRIM (o.ord_refnm) ORD_REFNM," +
             "               o.ord_date," +
             "               COUNT (o.ord_no) counting," +
-            "               sum(tqty) tqty , " +
+            "               sum(tqty/ord_pack) tqty , " +
             "               sum(qty_2) qty_ton," +
             "               'طن' PACKD_ton, " +
             "               1 PACK_ton, " +
@@ -267,8 +284,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             "               o.KEYFLD" +
             "        FROM   c_order1 o , " +
             "               items ," +
-            "               cbranch " +
-            "        WHERE o.saleinv IS NULL" +
+            "               cbranch , " +
+            "               LOCATIONS " +
+            "        WHERE locations.code=o.location_code and o.saleinv IS NULL" +
             "                      AND (o.ord_discamt = cbranch.brno " +
             "                    AND o.ord_ref = cbranch.code) " +
             "               AND ( (items.REFERENCE = o.ord_ship))" +
@@ -281,7 +299,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             " and (  ord_discamt=" + Util.quoted(that.txtBranch.getValue()) +
             " or " + Util.quoted(that.txtBranch.getValue()) + " is null )" +
             "    GROUP BY   o.periodcode," +
-            "               '001'," +
+            "               locations.name,o.location_code ," +
             "               o.ord_ref, " +
             "               TRIM (o.ord_refnm)," +
             "               o.ord_date ," +
@@ -306,7 +324,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             qv.setJsonStrMetaData("{" + dt.data + "}");
             qv.mLctb.getColByName("KEYFLD").getMUIHelper().display_width = 0;
             qv.mLctb.getColByName("ORD_DISCAMT").mTitle = "Branch";
-            qv.mLctb.getColByName("LOCATION_CODE").mHideCol = true;
+            // qv.mLctb.getColByName("LOCATION_CODE").mHideCol = true;
             qv.mLctb.getColByName("ORD_CODE").mHideCol = true;
             qv.mLctb.getColByName("PERIODCODE").mHideCol = true;
             qv.mLctb.getColByName("ORD_REF").mHideCol = true;
@@ -323,6 +341,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
 
 
             qv.mLctb.getColByName("ORD_DATE").getMUIHelper().display_format = "SHORT_DATE_FORMAT";
+            qv.mLctb.getColByName("LOCATION_CODE").getMUIHelper().display_width = 50;
+            qv.mLctb.getColByName("LOCATION_NAME").getMUIHelper().display_width = 80;
             qv.mLctb.getColByName("ORD_DATE").getMUIHelper().display_width = 90;
             qv.mLctb.getColByName("ORD_NO").getMUIHelper().display_width = 80;
             qv.mLctb.getColByName("TQTY").getMUIHelper().display_width = 60;
@@ -573,10 +593,18 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.MultiToggle);
         this.qv.getControl().setAlternateRowColors(true);
         this.qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-        that.qv.getControl().setVisibleRowCount(7);
+        that.qv.getControl().setVisibleRowCount(5);
         this.qv.getControl().setFixedBottomRowCount(0);
+        UtilGen.createDefaultToolbar1(this.qv, ["ORD_NO", "ORD_DATE"], true);
 
-        var sc = new sap.m.ScrollContainer({ width: "100%", height: "100%", vertical: true, content: this.qv.getControl() });
+        var sc = new sap.m.ScrollContainer({
+            width: "100%", height: "100%",
+            vertical: true,
+            content: [
+                this.qv.showToolbar.toolbar,
+                this.qv.getControl()
+            ]
+        });
 
         this.detailPage.addContent(sc);
         var refName = that.txtRefName.getValue() + " - " + that.txtRef.getValue();
@@ -914,7 +942,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         if (dt.length > 0) {
             var invn = dt[0].INVOICE_NO;
             var loc = dt[0].LOCATION_CODE;
-            Util.printServerReport("br/brsale", "_para_pfromno=" +
+            Util.printServerReport("br/kha/brsale", "_para_pfromno=" +
                 invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
         }
     },

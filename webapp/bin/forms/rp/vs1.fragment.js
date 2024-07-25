@@ -63,17 +63,7 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                     showQueryPage: false,
                     showCustomPara: function (vbPara, rep) {
                     },
-                    mainParaContainerSetting: {
-                        width: { "S": 400, "M": 500, "L": 650 },
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("VS101"),
                         print_templates: [

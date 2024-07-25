@@ -71,14 +71,14 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Report Title",
+            title: Util.getLangText("titDlvAfterInvs"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "RPPD1",
-                    name: Util.getLangText("nameDlvAfterInvs"),
-                    descr: Util.getLangText("descrDlvAfterInvs"),
+                    name: Util.getLangText("titDlvAfterInvs"),
+                    descr: Util.getLangText("titDlvAfterInvs"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -94,17 +94,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("RPPD1"),
                         print_templates: [
@@ -502,9 +492,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
-                    display_format: "",
+                    display_format: "QTY_FORMAT",
                     default_value: "",
                     other_settings: {},
+                    summary:"SUM",
                 },
                 packd_x: {
                     colname: "packd_x",

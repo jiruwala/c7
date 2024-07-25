@@ -40,14 +40,14 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Report Title",
+            title: Util.getLangText("titDriverTrips"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "RPDRIVER1",
-                    name: Util.getLangText("nameDlvDetails"),
-                    descr: Util.getLangText("descrDlvDetails"),
+                    name: Util.getLangText("titDriverTrips"),
+                    descr: Util.getLangText("titDriverTrips"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -55,7 +55,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     showFilterCols: true,
                     showDispCols: true,
                     onSubTitHTML: function () {
-                        var tbstr = Util.getLangText("titDlvDetails");
+                        var tbstr = Util.getLangText("titDriverTrips");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
 
@@ -63,17 +63,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("RPDRIVER1"),
                         print_templates: [

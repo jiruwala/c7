@@ -96,17 +96,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin: 10px;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("SLSUM01"),
                         print_templates: [
@@ -536,7 +526,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
         getParas: function (repCode) {
             var colSpan = "XL2 L2 M2 S12";
             var thatForm = this.thatForm;
-            var strLst = "@customers/Customers,month/Monthly,invoices/Invoices,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
+            var strLst = "@-1/None,customers/Customers,month/Monthly,invoices/Invoices,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
             return {
                 fromdate: {
                     colname: "fromdate",
@@ -698,7 +688,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "",
+                        selectedKey: "-1",
                     },
                     list: strLst,
                     edit_allowed: true,
@@ -718,6 +708,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                 " and invoice_code in (21,12) group by :grpByCols ";
             var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
             var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");
+            seq = (seq == "-1" ? "" : seq);
             if (eq == "" || eq == seq)
                 FormView.err("Cant group and sub group be same !");
             var strCol = "";
@@ -788,6 +779,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     ld.cols[ld.getColPos("AMT")].mUIHelper.display_format = "MONEY_FORMAT";
                     var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
                     var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");
+                    seq = (seq == "-1" ? "" : seq);
                     var cols = that.sqlCols[eq];
 
 

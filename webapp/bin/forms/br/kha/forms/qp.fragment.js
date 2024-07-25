@@ -82,10 +82,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
         var sett = sap.ui.getCore().getModel("settings").getData();
         this.cust_code = '';
 
-        var frm =
-
-
-            Util.destroyID("txtTit" + this.timeInLong, this.view);
+        Util.destroyID("txtTit" + this.timeInLong, this.view);
         Util.destroyID("txtName" + this.timeInLong, this.view);
         Util.destroyID("txtCust" + this.timeInLong, this.view);
         Util.destroyID("txtFromDate" + this.timeInLong, this.view);
@@ -237,7 +234,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
         var fromd = that.fromDate.getDateValue();
         var todt = that.todate.getDateValue();
         var cc = that.txtCust.getValue();
-        var lo = that.txtLoc.getValue();
+        var lo = UtilGen.getControlValue(that.txtLoc);
         var br = that.txtBr.getValue();
         var qv = this.qr;
 
@@ -251,7 +248,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
             " ORD_REF, ORD_DISCAMT " +
             " FROM C_ORDER1 C, ITEMS I, LOCATIONS L " +
             " WHERE C.ORD_SHIP = I.REFERENCE AND L.CODE = C.LOCATION_CODE AND C.SALEINV IS NULL " +
-            " AND C.PACKDX != 'طن' " +
+            // " AND C.PACKDX != 'طن' " +
             " AND C.ORD_DATE >=:fromdate AND C.ORD_DATE <=:todate " +
             " AND C.ORD_REF =':cust_code' " +
             " and (c.location_code =':locations' or ':locations' = 'ALL') " +
