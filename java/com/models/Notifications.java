@@ -1,6 +1,7 @@
 package com.models;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -33,6 +34,7 @@ public class Notifications {
 		private String mOwner = "";
 		private String mOwnerPassword = "";
 		private String mOwnerDBUrl = "";
+		private String mRunNotification = "N";
 
 		private String mLoginFile = "";
 		private DBClass mDbc = null;
@@ -48,6 +50,9 @@ public class Notifications {
 				mOwner = mMapVars.get("ini_owner") + "";
 				mOwnerPassword = mMapVars.get("ini_password") + "";
 				mOwnerDBUrl = mMapVars.get("ini_dburl") + "";
+				mRunNotification = utils.nvl(mMapVars.get("ini_notify"), "N") + "";
+				if (!mRunNotification.equals("Y"))
+					return;
 				mDbc = new DBClass(mOwnerDBUrl, mOwner, mOwnerPassword);
 				mLctb.createDBClassFromConnection(this.mDbc.getDbConnection());
 				logTb.createDBClassFromConnection(this.mDbc.getDbConnection());
@@ -60,6 +65,9 @@ public class Notifications {
 		@Override
 		public void run() {
 			String sq1 = "select *from c7_logs where LOGGED_TIME>?" + " order by keyfld";
+			if (!mRunNotification.equals("Y"))
+				return;
+
 			try {
 				logTb.parseSQL(sq1);
 			} catch (SQLException ex) {
@@ -78,23 +86,24 @@ public class Notifications {
 					for (int i = 0; i < this.mLctb.getRowCount(); i++) {
 						Timestamp ln = new Timestamp(
 								((Date) this.mLctb.getFieldValue(i, "LAST_NOTIFIED_TIME")).getTime());
-						if (ln.before(low))
+						if (ln.after(low))
 							low.setTime(ln.getTime());
 					}
 
 					logTb.getDbclass().getStatment().setTimestamp(1, low);
-					logTb.executeQuery(sq1, true,true);
+					logTb.executeQuery(sq1, true, true);
 					if (logTb.getRowCount() <= 0)
 						continue;
 					this.mDbc.getDbConnection().setAutoCommit(false);
 					for (int i = 0; i < this.mLctb.getRowCount(); i++) {
 						String st = this.mLctb.getFieldValue(i, "SETUP_TYPE").toString();
-						if (st.startsWith("ACACCOUNT")) {
-							_checkAccount(i, logTb);
-						}
-						if (st.startsWith("JV")) {
-							_checkNewJV(i, st, logTb);
-						}
+						generateNotify(i, st, logTb);
+//						if (st.startsWith("ACACCOUNT")) {
+//							_checkAccount(i, logTb);
+//						}
+//						if (st.startsWith("JV")) {
+//							_checkNewJV(i, st, logTb);
+//						}
 						this.mDbc.getDbConnection().commit();
 						Thread.sleep(1000);
 					}
@@ -108,10 +117,74 @@ public class Notifications {
 
 		}
 
+		public void generateNotify(int i, String st, localTableModel logTb) throws Exception {
+			String un = this.mLctb.getFieldValue(i, "USERNM").toString();
+			String kf = this.mLctb.getFieldValue(i, "KEYFLD").toString();
+			String cs = this.mLctb.getFieldValue(i, "CONDITION_STR").toString();
+			String cmd = this.mLctb.getFieldValue(i, "CMD").toString();
+			String dclk = this.mLctb.getFieldValue(i, "DEL_ON_CLICK").toString();
+			String descr = this.mLctb.getFieldValue(i, "DESCR_STR").toString();
+			String descra = this.mLctb.getFieldValue(i, "DESCR_STRA").toString();
+			String tit = this.mLctb.getFieldValue(i, "TITLE_STR").toString();
+			String tita = this.mLctb.getFieldValue(i, "TITLE_STRA").toString();
+
+			Timestamp ln = new Timestamp(((Date) this.mLctb.getFieldValue(i, "LAST_NOTIFIED_TIME")).getTime());
+			double firstid = -1;
+			for (int j = 0; j < logTb.getRowCount(); j++) {
+				double logkf = Double.parseDouble(logTb.getFieldValue(j, "KEYFLD").toString());
+				String notifyType = logTb.getFieldValue(j, "NOTIFY_TYPE").toString();
+				String transType = logTb.getFieldValue(j, "TRANS_TYPE").toString();
+				String usernm = logTb.getFieldValue(j, "USERNM").toString();
+				String tableName = logTb.getFieldValue(j, "TABLE_NAME").toString();
+				String valPara1 = logTb.getFieldValue(j, "VAL_PARA_1").toString();
+				String valPara2 = logTb.getFieldValue(j, "VAL_PARA_2").toString();
+				String valPara3 = logTb.getFieldValue(j, "VAL_PARA_3").toString();
+				Timestamp loggedTime = new Timestamp(((Date) logTb.getFieldValue(j, "LOGGED_TIME")).getTime());
+
+				String cmdx = cmd.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String titx = tit.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String titax = tita.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String descrx = descr.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String descrax = descra.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				// new jv
+
+				if (((firstid != -1 && logkf>firstid ) || loggedTime.after(ln) )
+						&& st.equals(notifyType) && valPara2.equals(cs)) {
+					ln.setTime(loggedTime.getTime());
+					String d1 = utils.nvl(descrx,
+							"USER #" + usernm + ", " + notifyType + "  # " + valPara2 + " !, time : " + ln);
+					utils.insertNotify(this.mDbc.getDbConnection(), un, notifyType, d1, cmdx, usernm, dclk, titx, titax,
+							descrax);
+					this.mLctb.setFieldValue(i, "LAST_NOTIFIED_TIME", ln);
+					QueryExe.execute("update c7_notify_setup set LAST_NOTIFIED_TIME=:LN where keyfld=" + kf,
+							this.mDbc.getDbConnection(), new Parameter("LN", ln));
+					firstid = logkf;
+				} else firstid=-1;
+			}
+
+		}
+
 		public void _checkNewJV(int i, String st, localTableModel logTb) throws Exception {
 			String un = this.mLctb.getFieldValue(i, "USERNM").toString();
 			String kf = this.mLctb.getFieldValue(i, "KEYFLD").toString();
 			String cs = this.mLctb.getFieldValue(i, "CONDITION_STR").toString();
+			String cmd = this.mLctb.getFieldValue(i, "CMD").toString();
+			String dclk = this.mLctb.getFieldValue(i, "DEL_ON_CLICK").toString();
+			String descr = this.mLctb.getFieldValue(i, "DESCR_STR").toString();
+			String descra = this.mLctb.getFieldValue(i, "DESCR_STRA").toString();
+			String tit = this.mLctb.getFieldValue(i, "TITLE_STR").toString();
+			String tita = this.mLctb.getFieldValue(i, "TITLE_STRA").toString();
+
 			Timestamp ln = new Timestamp(((Date) this.mLctb.getFieldValue(i, "LAST_NOTIFIED_TIME")).getTime());
 
 			for (int j = 0; j < logTb.getRowCount(); j++) {
@@ -123,12 +196,28 @@ public class Notifications {
 				String valPara3 = logTb.getFieldValue(j, "VAL_PARA_3").toString();
 				Timestamp loggedTime = new Timestamp(((Date) logTb.getFieldValue(j, "LOGGED_TIME")).getTime());
 
+				String cmdx = cmd.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String titx = tit.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String titax = tita.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String descrx = descr.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String descrax = descra.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
 				// new jv
 				if (loggedTime.after(ln) && st.equals("JV_NEW") && tableName.equals("ACVOUCHER1")
 						&& transType.equals("INSERT") && valPara2.equals(cs)) {
 					ln.setTime(loggedTime.getTime());
-					utils.insertNotify(this.mDbc.getDbConnection(), un, "JV_NEW",
-							"USER #" + usernm + ", NEW JV # " + valPara3 + " !, time : " + ln, "");
+					String d1 = utils.nvl(descrx, "USER #" + usernm + ", NEW JV # " + valPara3 + " !, time : " + ln);
+					utils.insertNotify(this.mDbc.getDbConnection(), un, "JV_NEW", d1, cmdx, usernm, dclk, titx, titax,
+							descrax);
 					this.mLctb.setFieldValue(i, "LAST_NOTIFIED_TIME", ln);
 					QueryExe.execute("update c7_notify_setup set LAST_NOTIFIED_TIME=:LN where keyfld=" + kf,
 							this.mDbc.getDbConnection(), new Parameter("LN", ln));
@@ -138,8 +227,9 @@ public class Notifications {
 				if (loggedTime.after(ln) && st.equals("JV_POSTED") && tableName.equals("ACVOUCHER1")
 						&& transType.equals("POSTED") && valPara1.equals(cs)) {
 					ln.setTime(loggedTime.getTime());
-					utils.insertNotify(this.mDbc.getDbConnection(), un, "JV_POSTED",
-							"USER #" + usernm + ", POSTED JV # " + valPara3 + " !, time : " + ln, "");
+					String d1 = utils.nvl(descrx, "USER #" + usernm + ", POSTED JV # " + valPara3 + " !, time : " + ln);
+					utils.insertNotify(this.mDbc.getDbConnection(), un, "JV_POSTED", d1, "", usernm, dclk, titx, titax,
+							descrax);
 					this.mLctb.setFieldValue(i, "LAST_NOTIFIED_TIME", ln);
 					QueryExe.execute("update c7_notify_setup set LAST_NOTIFIED_TIME=:LN where keyfld=" + kf,
 							this.mDbc.getDbConnection(), new Parameter("LN", ln));
@@ -154,6 +244,13 @@ public class Notifications {
 			String un = this.mLctb.getFieldValue(i, "USERNM").toString();
 			String kf = this.mLctb.getFieldValue(i, "KEYFLD").toString();
 			String cs = this.mLctb.getFieldValue(i, "CONDITION_STR").toString();
+			String cmd = this.mLctb.getFieldValue(i, "CMD").toString();
+			String dclk = this.mLctb.getFieldValue(i, "DEL_ON_CLICK").toString();
+			String descr = this.mLctb.getFieldValue(i, "DESCR_STR").toString();
+			String descra = this.mLctb.getFieldValue(i, "DESCR_STRA").toString();
+			String tit = this.mLctb.getFieldValue(i, "TITLE_STR").toString();
+			String tita = this.mLctb.getFieldValue(i, "TITLE_STRA").toString();
+
 			Timestamp ln = new Timestamp(((Date) this.mLctb.getFieldValue(i, "LAST_NOTIFIED_TIME")).getTime());
 
 			for (int j = 0; j < logTb.getRowCount(); j++) {
@@ -163,11 +260,29 @@ public class Notifications {
 				String valPara1 = logTb.getFieldValue(j, "VAL_PARA_1").toString();
 				String valPara2 = logTb.getFieldValue(j, "VAL_PARA_2").toString();
 				String valPara3 = logTb.getFieldValue(j, "VAL_PARA_3").toString();
+
+				String cmdx = cmd.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String titx = tit.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String titax = tita.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String descrx = descr.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
+				String descrax = descra.replaceAll("VAR_PARA_1", valPara1).replaceAll("VAR_PARA_2", valPara2)
+						.replaceAll("VAR_PARA_3", valPara3);
+
 				Timestamp loggedTime = new Timestamp(((Date) logTb.getFieldValue(j, "LOGGED_TIME")).getTime());
 				if (loggedTime.after(ln) && tableName.equals("ACACCOUNT") && valPara1.equals(cs)) {
 					ln.setTime(loggedTime.getTime());
-					utils.insertNotify(this.mDbc.getDbConnection(), un, "ACACCOUNT",
-							"USER #" + usernm + ", Account # " + cs + " have " + transType + " !, time : " + ln, "");
+					String d1 = utils.nvl(descrx,
+							"USER #" + usernm + ", Account # " + cs + " have " + transType + " !, time : " + ln);
+					utils.insertNotify(this.mDbc.getDbConnection(), un, "ACACCOUNT", d1, cmdx, usernm, dclk, titx,
+							titax, descrax);
 					this.mLctb.setFieldValue(i, "LAST_NOTIFIED_TIME", ln);
 					QueryExe.execute("update c7_notify_setup set LAST_NOTIFIED_TIME=:LN where keyfld=" + kf,
 							this.mDbc.getDbConnection(), new Parameter("LN", ln));

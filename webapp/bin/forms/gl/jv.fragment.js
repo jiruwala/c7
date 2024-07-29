@@ -206,8 +206,11 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                     },
                     afterDelRow: function (qry, ld, data) {
                         var delAdd = "";
-                        if (qry.name == "qry1")
+                        if (qry.name == "qry1") {
                             delAdd += "delete from c7_attach where kind_of='VOU'and refer=:qry1.keyfld ;";
+                            var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1", "DELETED");
+                            delAdd = delAdd + sqLog;
+                        }
 
                         if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                             qry.obj.addRow();
@@ -215,6 +218,10 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                     },
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
                         UtilGen.Vouchers.onCellRender(qry, rowno, colno, currentRowContext);
+                    },
+                    beforeExeSql: function (frm, sq) {                        
+                        var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1");
+                        return sq + sqLog;
                     },
                     beforePrint: function (rptName, params) {
                         return params + "&_para_VOU_TITLE=Journal Voucher";

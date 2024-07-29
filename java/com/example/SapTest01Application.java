@@ -35,7 +35,7 @@ public class SapTest01Application extends SpringBootServletInitializer {
 	}
 
 	public static void main(String[] args) {
-		System.out.println("Working Directory = " + System.getProperty("user.dir"));
+		System.out.println("Working Directory = " + System.getProperty("user.dir"));		
 		SpringApplication.run(SapTest01Application.class, args);
 	}
 
@@ -58,7 +58,11 @@ public class SapTest01Application extends SpringBootServletInitializer {
 	public RepBatch7 getRepBat7() {
 		return repBat7;
 	}
-
+	
+	public SapTest01Application() {
+		notifications=new Notifications();
+	}
+	
 	public TomcatEmbeddedServletContainerFactory tomcatEmbedded() {
 
 		TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
@@ -69,7 +73,7 @@ public class SapTest01Application extends SpringBootServletInitializer {
 				((AbstractHttp11Protocol<?>) connector.getProtocolHandler()).setMaxSwallowSize(-1);
 			}
 		});
-		notifications=new Notifications();
+//		notifications=new Notifications();
 		return tomcat;
 
 	}

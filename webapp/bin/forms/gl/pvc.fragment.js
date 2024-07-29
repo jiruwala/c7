@@ -265,7 +265,8 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                             }
                         );
                         insq = frm.parseString(insq);
-                        return sql + dsq + ";" + insq + ";";
+                        var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "PVC", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1");
+                        return sql + dsq + ";" + insq + ";" + sqLog;
                     }
 
 

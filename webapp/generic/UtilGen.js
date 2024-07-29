@@ -1707,6 +1707,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             sp.onWndClose();
                         if (pOnWndClose != undefined)
                             pOnWndClose();
+                        sp.destroy();
                         // that.loadData();
                         if (view.lstPgs.getItems().length == 1)
                             that.show_main_menus();
@@ -1727,6 +1728,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     sp.onWndClose();
                                 if (pOnWndClose != undefined)
                                     pOnWndClose();
+                                sp.destroy();
                                 sap.m.MessageToast.show("Removing this page..");
                                 view.app.toDetail(view.pg, "show");
                                 // view.loadData();
@@ -1745,6 +1747,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 sp.backFunction = function () {
                                     view.destroyPage(pgx);
                                     sap.m.MessageToast.show("Removing this page..");
+                                    sp.destroy();
                                     view.app.toDetail(view.pg, "show");
                                     // view.loadData();
                                     if (view.lstPgs.getItems().length == 1)
@@ -1767,6 +1770,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 sp.onWndClose();
                             if (pOnWndClose != undefined)
                                 pOnWndClose();
+                            sp.destroy();
                             // UtilGen.DBView.autoShowHideMenu(true);
                         })
                     }
@@ -1969,7 +1973,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
 
                 },
-                
+
                 do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns) {
                     var points = Util.nvl(pPoints, {});
                     var sq = pSq;
@@ -2094,6 +2098,54 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 FormView.err(ld.getFieldValue(rowno, "COSTCENT") + " not a valid COST CENTER ! ");
                         }
                     }
+                },
+                getInsertLogFuncStr: function (frag, grpname, vou_code, type, tablename, pNotify) {
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var frm = frag.frm;
+                    var kf = frm.getFieldValue("keyfld");
+                    var insq = "";
+                    var getSq = function () {
+                        var sqx = "c7_insert_log_proc(':GRPNAME'," +
+                            "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT '" +
+                            ",:KEYFLD,':PVAR2',:JVNO,':NOTIFY_TYPE'); ";
+                        sqx = sqx.replaceAll(":REC_STAT", stat)
+                            .replaceAll(":USERNAME", sett["LOGON_USER"])
+                            .replaceAll(":GRPNAME", Util.nvl(grpname, "JV"))
+                            .replaceAll(":JVNO", vono)
+                            .replaceAll(":KEYFLD", kfld)
+                            .replaceAll(":PVAR2", pv2)
+                            .replaceAll(":TABLENAME", Util.nvl(tablename, "ACVOUCHER1"))
+                            .replaceAll(":NOTIFY_TYPE", Util.nvl(notifyType, ""));
+                        return sqx;
+                    }
+
+                    var stat = frm.objs["qry1"].status != FormView.RecordStatus.EDIT ?
+                        "INSERTED" : "UPDATED";
+                    stat = Util.nvl(pNotify, stat);
+                    var notifyType = grpname + "_" + stat;
+                    var vono = frm.getFieldValue("qry1.no");
+                    var kfld = frm.getFieldValue("qry1.keyfld");
+                    var pv2 = "VOU_CODE=" + vou_code + ",TYPE=" + type;
+                    insq = getSq();
+
+
+                    // checking other JV_KF_UPDATED, JV_KF_INSERTED, JV_KF_DELETED for notifications
+                    var styp = "JV_KF_" + stat;
+                    var sqN = "select *from C7_NOTIFY_SETUP where usernm='" + sett["LOGON_USER"] + "' and setup_type='" + styp + "' and CONDITION_STR='" + kfld + "'";
+                    var dtx = Util.execSQLWithData(sqN);
+                    if (dtx != undefined && dtx.length > 0) {
+                        notifyType = styp;
+                        pv2 = kfld;
+                        var sq = getSq();
+                        insq += sq;
+                    }
+                    insq = frm.parseString(insq);
+                    // checking more if acc transaction                   
+                    styp = "ACC_TRANS";
+                    var sqN = "select  *from C7_NOTIFY_SETUP where usernm='" + sett["LOGON_USER"] + "' and setup_type='" + styp + "' and CONDITION_STR=':ACCNO'";
+                    var qr2 = frm.objs["qry2"].obj;                
+                    var ld2 = qr2.mLctb;
+                    return insq;
                 },
                 formLoadData: function (frag) {
 

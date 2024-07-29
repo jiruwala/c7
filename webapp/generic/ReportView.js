@@ -455,8 +455,10 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         if (!Util.nvl(thatRV.ERROR_ON_RCV_DATA, false))
                             thatRV.rcv_data_timer = setInterval(function () {
                                 thatRV._rcvData(rep.code, rptNo);
-                                if (thatRV.ERROR_ON_RCV_DATA == true)
+                                if (thatRV.ERROR_ON_RCV_DATA == true || thatRV.frag.jp.isDestroyed()) {
+                                    UtilGen.closeWorking();
                                     clearInterval(thatRV.rcv_data_timer);
+                                }
                             }, 1000);
 
                     },
@@ -1613,7 +1615,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             command: "",
                             scheduledAt: "",
                             p1: rep.name,
-                            p2: "testRep5 repno=" + rptNo,
+                            p2: thatRV.frag.getFragmentName() + " formType=dialog para_PARAFORM=false repno=" + rptNo,
                             whereClause: UtilGen.getControlValue(thatRV.txtSQLWhere)
 
                         }, false).done(function (data) {
@@ -2179,7 +2181,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     thatRV.txtMsg.addStyleClass("blinking");
                     thatRV.helperFunctions.mainPop.txtMsg.addStyleClass("blinking");
                     // Util.doWorking("Working..");
-                    UtilGen.showWorking(thatRV.pg, "Executing");
+                    UtilGen.showWorking(thatRV.pg, Util.getLangText("msgFetching"));
                     return;
                 }
                 if (stat == "END") {
@@ -2379,7 +2381,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         if (thatRV.rcv_data_timer != undefined)
                             clearInterval(thatRV.rcv_data_timer);
                     }
-                    if (thatRV.initV && Util.nvl(thatRV.frag.oController.para_EXEC_REP, 'false') != 'true') {
+                    if (thatRV.initV && Util.nvl(thatRV.frag.oController.para_EXEC_REP, 'false') != 'true' &&  Util.nvl(thatRV.frag.oController.para_PARAFORM, 'true') != 'false') {
                         sap.m.MessageBox.confirm(Util.getLangText("msgLastRepSaved"), {
                             title: "Confirm",                                    // default
                             onClose: function (oAction) {
