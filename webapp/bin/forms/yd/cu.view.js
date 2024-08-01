@@ -77,7 +77,7 @@ sap.ui.jsview("bin.forms.yd.cu", {
     },
     loginToDB: function () {
         var that = this;
-        var pth = "login?user=P&password=M123&file=YD.ini&language=EN";
+        var pth = "login?user=B&password=B1&file=YD.ini&language=EN";
         var dt = null;
         this.oController.doAjaxGet(pth, "", false).done(function (data) {
             dt = JSON.parse(data);

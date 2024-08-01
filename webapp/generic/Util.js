@@ -1528,11 +1528,15 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 getNotificationData: function () {
                     var that = this;
                     var sett = sap.ui.getCore().getModel("settings").getData();
-                    var dt = Util.execSQL("select *from c7_notify where flag=1 and keyfld>" +
-                        that.lastKeyfldRead +
-                        " and touser=" + Util.quoted(sett["LOGON_USER"]) +
-                        " order by keyfld desc"
-                    );
+                    var sq = "select *from c7_notify where flag=1 and keyfld>:LASTKF " +
+                        " and touser=:USER union all " +
+                        " select * from (select *from c7_notify where flag=3 and keyfld>:LASTKF " +
+                        " and touser=:USER order by keyfld desc ) where rownum <50 " +
+                        " order by 1 desc ";
+                    sq = sq.replaceAll(":LASTKF", that.lastKeyfldRead).
+                        replaceAll(":USER", Util.quoted(sett["LOGON_USER"]));
+
+                    var dt = Util.execSQL(sq);
 
                     if (dt.ret == "SUCCESS" && dt.data.length > 0) {
 
@@ -1545,47 +1549,72 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 showList: function (event, obj) {
                     var that = this;
 
-                    if (this.notTable == undefined)
-                        return;
-                    if (this.notTable.rows.length <= 0)
+                    // if (this.notTable == undefined || this.notTable.rows.length <= 0)
+                    that.getNotificationData();
+
+                    if (this.notTable == undefined || this.notTable.rows.length <= 0)
                         return;
 
-                    var lsgrp = new sap.m.NotificationListGroup({ title: "Reports Fetched", collapsed: true });
-                    for (var i = 0; i < this.notTable.rows.length; i++) {
-                        var des = this.notTable.getFieldValue(i, "DESCR");
-                        var cmd = this.notTable.getFieldValue(i, "CMD");
+                    var addNItme = function (i) {
+
+                        var des = that.notTable.getFieldValue(i, Util.getLangDescrAR("DESCR", "DESCR_STRA"));
+                        var tit = that.notTable.getFieldValue(i, Util.getLangDescrAR("TITLE_STR", "TITLE_STRA"));
+                        var dlk = that.notTable.getFieldValue(i, "DEL_ON_CLICK");
+                        var cmd = that.notTable.getFieldValue(i, "CMD");
+                        var flg = that.notTable.getFieldValue(i, "FLAG");
+                        var tof = that.notTable.getFieldValue(i, "TYPE_OF");
+                        var author = that.notTable.getFieldValue(i, "POSTED_BY");
+                        var dtm = that.notTable.getFieldValue(i, "POSTED_TIME");
+
                         var si = new sap.m.NotificationListItem(
                             {
-                                description: des + ",  " + cmd,
+                                description: des,
+                                title: tit,
                                 customData: { key: i },
+                                unread: (flg == 1),
+                                authorName: author,
+                                datetime: dtm,
                                 tap: function (event) {
                                     // sap.m.MessageToast.show("Cliked");
                                     var rn = this.getCustomData()[0].getKey();
                                     var cmd = that.notTable.getFieldValue(rn, "CMD");
                                     UtilGen.execCmd(cmd, that.view, that.view.txtExeCmd);
+                                    var kf = that.notTable.getFieldValue(rn, "KEYFLD");
+                                    if (dlk == "Y")
+                                        Util.execSQL("update c7_notify set flag=2 where keyfld=" + kf);
+                                    else
+                                        Util.execSQL("update c7_notify set flag=3 where keyfld=" + kf);
                                 },
                                 close: function (oEvent) {
                                     var oItem = oEvent.getSource(),
                                         oList = oItem.getParent();
 
                                     oList.removeItem(oItem);
-
                                     var rn = this.getCustomData()[0].getKey();
                                     var kf = that.notTable.getFieldValue(rn, "KEYFLD");
                                     Util.execSQL("update c7_notify set flag=2 where keyfld=" + kf);
                                 }
                             });
-                        lsgrp.addItem(si);
+                        return si;
                     }
-                    var vb = new sap.m.VBox({ items: [lsgrp] });
+                    var lsgrp = new sap.m.NotificationListGroup({ title: "Un Read", collapsed: false, showCloseButton: false });
+                    var lsgrp2 = new sap.m.NotificationListGroup({ title: "Read", collapsed: true, showCloseButton: false });
+                    for (var i = 0; i < this.notTable.rows.length; i++) {
+                        var flg = this.notTable.getFieldValue(i, "FLAG");
+                        if (flg == 1)
+                            lsgrp.addItem(addNItme(i));
+                        else
+                            lsgrp2.addItem(addNItme(i));
+                    }
+                    var vb = new sap.m.VBox({ items: [lsgrp, lsgrp2] });
                     var oPopover = new sap.m.Popover({
                         title: "Parameters",
                         showHeader: true,
                         content: [vb],
                         modal: false,
                         footer: [],
-                        contentHeight: "350px",
-                        contentWidth: "350px",
+                        // contentHeight: "",
+                        contentWidth: "50%",
                         placement: sap.m.PlacementType.Auto
                     }).addStyleClass("sapUiSizeCompact");
                     oPopover.openBy(obj);

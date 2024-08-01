@@ -1083,7 +1083,7 @@ public class utils {
 			return "";
 		String ret = "", met = "";
 		String tmp1 = "", cn = "";
-		SimpleDateFormat ssf=new SimpleDateFormat("MM/dd/yyyy hh.mm.ss");
+		SimpleDateFormat ssf = new SimpleDateFormat("MM/dd/yyyy hh.mm.ss");
 		ResultSetMetaData rsm = rs.getMetaData();
 		for (int i = 0; i < rsm.getColumnCount(); i++) {
 			tmp1 = getJSONStr("colname", rsm.getColumnName(i + 1), false);
@@ -1105,9 +1105,12 @@ public class utils {
 			tmp1 = "";
 			for (int i = 0; i < rsm.getColumnCount(); i++) {
 				cn = rsm.getColumnName(i + 1);
-				
-				Object vl = (rs.getObject(cn)!=null && isNumber(rsm.getColumnType(i + 1)) ? Double.valueOf(rs.getDouble(cn)) : 
-					rs.getObject(cn)!=null && isDateTime(rsm.getColumnType(i + 1))?ssf.format(rs.getTimestamp(cn)):rs.getString(cn));
+
+				Object vl = (rs.getObject(cn) != null && isNumber(rsm.getColumnType(i + 1))
+						? Double.valueOf(rs.getDouble(cn))
+						: rs.getObject(cn) != null && isDateTime(rsm.getColumnType(i + 1))
+								? ssf.format(rs.getTimestamp(cn))
+								: rs.getString(cn));
 //					rs.getString(cn));
 				tmp1 += (tmp1.length() == 0 ? "" : ",") + getJSONStr(cn, vl, false);
 			}
@@ -1132,7 +1135,7 @@ public class utils {
 		return false;
 
 	}
-	
+
 	public static boolean isDateTime(int datatype) {
 		if (datatype == 91 || datatype == 92 || datatype == 93) {
 			return true;
@@ -1322,10 +1325,13 @@ public class utils {
 		return b4_str + str_insert + str.substring(b4_str.length() + 1, str.length());
 	}
 
-	public static double insertNotify(Connection con, String usr, String type_of, String descr, String cmd,String postedUser)
-			throws Exception {
-		String sq = "insert into c7_notify (keyfld,type_of,posted_by,touser,descr,posted_time,cmd) "
-				+ " values (:keyfld , :type_of , :posted_by , :touser ,:descr,:posted_time,:cmd) ";
+	public static double insertNotify(Connection con, String usr, String type_of, String descr, String cmd,
+			String postedUser, String del_click, String title, String title_a, String descr_a) throws Exception {
+		System.out.println("notification inserted : " + descr + " " + usr + " ...");
+		String sq = "insert into c7_notify (keyfld,type_of,posted_by,touser,descr,"
+				+ " posted_time,cmd, del_on_click, descr_stra, title_str,title_stra) "
+				+ " values (:keyfld , :type_of , :posted_by , :touser ,:descr,:posted_time,:cmd,"
+				+ " :del_on_click, :descr_stra, :title_str, :title_stra ) ";
 		String kf = utils.getSqlValue("select nvl(max(keyfld),0)+1 from c7_notify ", con);
 		QueryExe qe = new QueryExe(sq, con);
 		qe.setParaValue("keyfld", kf);
@@ -1334,16 +1340,25 @@ public class utils {
 		qe.setParaValue("touser", usr);
 		qe.setParaValue("descr", descr);
 		qe.setParaValue("cmd", cmd);
-		qe.setParaValue("posted_time", new Date(System.currentTimeMillis()));
+		qe.setParaValue("posted_time", new Timestamp(System.currentTimeMillis()));
+		qe.setParaValue("del_on_click", del_click);
+		qe.setParaValue("descr_stra", descr_a);
+		qe.setParaValue("title_str", title);
+		qe.setParaValue("title_stra", title_a);
+
 		qe.execute();
 		qe.close();
+		System.out.println("Notification inserted !,  " + usr + " " + type_of + " " + descr + "   ..."
+				+ new Date(System.currentTimeMillis()));
 		return Double.parseDouble(kf);
+
 	}
+
 	public static void readNotify(Connection con, double kfld) throws SQLException {
-		String sq="update c7_notify set flag=2 where keyfld="+kfld;
+		String sq = "update c7_notify set flag=2 where keyfld=" + kfld;
 		con.setAutoCommit(false);
 		utils.execSql(sq, con);
-		con.commit();		
+		con.commit();
 	}
 
 }

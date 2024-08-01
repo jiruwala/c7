@@ -27,7 +27,7 @@ public class SapTest01Application extends SpringBootServletInitializer {
 
 	private com.models.RepBatch7 repBat7 = new RepBatch7();
 
-	private com.models.Notifications notifications = null;//new Notifications();
+	private com.models.Notifications notifications = new Notifications();
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
@@ -35,7 +35,7 @@ public class SapTest01Application extends SpringBootServletInitializer {
 	}
 
 	public static void main(String[] args) {
-		System.out.println("Working Directory = " + System.getProperty("user.dir"));		
+		System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		SpringApplication.run(SapTest01Application.class, args);
 	}
 
@@ -58,11 +58,11 @@ public class SapTest01Application extends SpringBootServletInitializer {
 	public RepBatch7 getRepBat7() {
 		return repBat7;
 	}
-	
+
 	public SapTest01Application() {
-		notifications=new Notifications();
+//		notifications=new Notifications();
 	}
-	
+
 	public TomcatEmbeddedServletContainerFactory tomcatEmbedded() {
 
 		TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();

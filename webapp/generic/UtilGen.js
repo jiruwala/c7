@@ -2099,32 +2099,70 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }
                     }
                 },
-                getInsertLogFuncStr: function (frag, grpname, vou_code, type, tablename) {
+                getInsertLogFuncStr: function (frag, grpname, vou_code, type, tablename, pNotify) {
                     var sett = sap.ui.getCore().getModel("settings").getData();
                     var frm = frag.frm;
                     var kf = frm.getFieldValue("keyfld");
-                    // if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT ||
-                    //     that2.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
-                    //     return;
+                    var insq = "";
+                    var getSq = function () {
+                        var sqx = "c7_insert_log_proc(':GRPNAME'," +
+                            "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT '" +
+                            ",:KEYFLD,':PVAR2',:JVNO,':PVAR4',':PVAR5',':NOTIFY_TYPE'); ";
+                        sqx = sqx.replaceAll(":REC_STAT", stat)
+                            .replaceAll(":USERNAME", sett["LOGON_USER"])
+                            .replaceAll(":GRPNAME", Util.nvl(grpname, "JV"))
+                            .replaceAll(":JVNO", vono)
+                            .replaceAll(":KEYFLD", kfld)
+                            .replaceAll(":PVAR2", pv2)
+                            .replaceAll(":PVAR4", pv4)
+                            .replaceAll(":PVAR5", pv5)
+                            .replaceAll(":TABLENAME", Util.nvl(tablename, "ACVOUCHER1"))
+                            .replaceAll(":NOTIFY_TYPE", Util.nvl(notifyType, ""));
+                        return sqx;
+                    }
+
                     var stat = frm.objs["qry1"].status != FormView.RecordStatus.EDIT ?
-                        "INSERT" : "UPDATE";
-                    var stat2 = frm.objs["qry1"].status != FormView.RecordStatus.EDIT ?
-                        "inserted" : "upedated";
+                        "INSERTED" : "UPDATED";
+                    stat = Util.nvl(pNotify, stat);
+                    var notifyType = grpname + "_" + stat;
                     var vono = frm.getFieldValue("qry1.no");
                     var kfld = frm.getFieldValue("qry1.keyfld");
-                    var insq = "c7_insert_log_proc(':GRPNAME'," +
-                        "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT2 '" +
-                        ",:KEYFLD,'VOU_CODE='||:VOU_CODE||',TYPE='||:VOU_TYPE,:JVNO); ";
-                    insq = insq.replaceAll(":REC_STAT2", stat2)
-                        .replaceAll(":REC_STAT", stat)
-                        .replaceAll(":USERNAME", sett["LOGON_USER"])
-                        .replaceAll(":GRPNAME", Util.nvl(grpname, "JV"))
-                        .replaceAll(":JVNO", vono)
-                        .replaceAll(":KEYFLD", kfld)
-                        .replaceAll(":VOU_CODE", vou_code)
-                        .replaceAll(":VOU_TYPE", type)
-                        .replaceAll(":TABLENAME", Util.nvl(tablename, "ACVOUCHER1"));
+                    var pv5 = "";
+                    var pv4 = "";
+                    var pv2 = "VOU_CODE=" + vou_code + ",TYPE=" + type;
+                    insq = getSq();
+
+
+                    // checking other JV_KF_UPDATED, JV_KF_INSERTED, JV_KF_DELETED for notifications
+                    var styp = "JV_KF_" + stat;
+                    var sqN = "select *from C7_NOTIFY_SETUP where usernm='" + sett["LOGON_USER"] + "' and setup_type='" + styp + "' and CONDITION_STR='" + kfld + "'";
+                    var dtx = Util.execSQLWithData(sqN);
+                    if (dtx != undefined && dtx.length > 0) {
+                        notifyType = styp;
+                        pv2 = kfld;
+                        var sq = getSq();
+                        insq += sq;
+                    }
                     insq = frm.parseString(insq);
+                    // checking more if acc transaction                   
+                    styp = "ACC_TRANS";
+                    var sqN = "select  *from C7_NOTIFY_SETUP where usernm='" + sett["LOGON_USER"] + "' and setup_type='" + styp + "' and ':ACCNO' like '%\"'||CONDITION_STR||'\"%' ";
+                    var qr2 = frm.objs["qry2"].obj;
+                    var ld = qr2.mLctb;
+                    for (var i = 0; i < ld.rows.length; i++)
+                        frag.qryAccs[ld.getFieldValue(i, "ACCNO")] = ld.getFieldValue(i, "ACNAME");
+                    var kys = Object.keys(frag.qryAccs);
+                    var acns = "";
+                    for (var k in kys)
+                        acns += (acns.length > 0 ? "," : "") + "\"" + kys[k] + "\" ";
+                    var dtx = Util.execSQLWithData(sqN.replaceAll(":ACCNO", acns));
+                    for (var di = 0; di < dtx.length; di++) {
+                        notifyType = styp;
+                        pv2 = dtx[0].CONDITION_STR;
+                        pv4 = frag.qryAccs[dtx[0].CONDITION_STR];
+                        var sq = getSq();
+                        insq += sq;
+                    }
                     return insq;
                 },
                 formLoadData: function (frag) {

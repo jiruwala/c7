@@ -84,9 +84,9 @@ public class RepBatch7 {
 				if (!this.notified)
 					this.notification_kfld = utils.insertNotify(this.instanceInfo.getmDbc().getDbConnection(),
 							this.instanceInfo.getmLoginUser(), "END_OF_REPORT",
-							this.reportTitle + "  ended successfully ", this.cmd,this.instanceInfo.getmLoginUser());
+							this.reportTitle+" report generated in server cache memory.", this.cmd, this.instanceInfo.getmLoginUser(), "Y",
+							"Report is ready to check !", "التقرير جاهز للتحقق! ", this.reportTitle+ "تم إنشاء هذا التقرير في ذاكرة التخزين المؤقت للخادم . ");
 				this.notified = true;
-
 				System.out.println("Fetched : , status :" + this.status);
 			} catch (Exception e) {
 				e.printStackTrace();

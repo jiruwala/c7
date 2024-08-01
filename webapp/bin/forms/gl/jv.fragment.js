@@ -88,6 +88,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                     afterLoadQry: function (qry) {
                         qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                         if (qry.name == "qry1") {
+                            thatForm.qryAccs = {};
                             thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                             var kf = qry.formview.getFieldValue("keyfld");
                             var dt = Util.execSQL("select flag,USERNM,CREATDT,POSTED_BY,POSTED_DATE from acvoucher1 where keyfld=" + kf);
@@ -120,6 +121,13 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                     qry.obj.getControl().setFirstVisibleRow(rn);
                             }
                         }
+                        if (qry.name == "qry2") {
+                            var ld = qry.obj.mLctb;
+                            for (var i = 0; i < ld.rows.length; i++)
+                                thatForm.qryAccs[ld.getFieldValue(i, "ACCNO")] = ld.getFieldValue(i, "ACNAME");
+
+                        }
+
                     },
                     beforeLoadQry: function (qry, sql) {
                         return sql;
@@ -132,7 +140,12 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         frm.setQueryStatus(undefined, Util.nvl(nxtStatus, FormView.RecordStatus.NEW));
                         setTimeout(function () {
                             thatForm.fileUpload = undefined;
+
                         }, 400);
+                        thatForm.qryAccs = {};
+                        var ld = qry.obj.mLctb;
+                        for (var i = 0; i < ld.rows.length; i++)
+                            thatForm.qryAccs[ld.getFieldValue(i, "ACCNO")] = ld.getFieldValue(i, "ACNAME");
 
                     },
                     beforeSaveQry: function (qry, sqlRow, rowno) {
@@ -175,6 +188,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         }
                         if (qry.name == "qry1") {
                             that2.fileUpload = undefined;
+                            thatForm.qryAccs = {};
                             var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from acvoucher1");
                             qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
 
@@ -206,8 +220,11 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                     },
                     afterDelRow: function (qry, ld, data) {
                         var delAdd = "";
-                        if (qry.name == "qry1")
+                        if (qry.name == "qry1") {
                             delAdd += "delete from c7_attach where kind_of='VOU'and refer=:qry1.keyfld ;";
+                            var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1", "DELETED");
+                            delAdd = delAdd + sqLog;
+                        }
 
                         if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                             qry.obj.addRow();
@@ -217,7 +234,6 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         UtilGen.Vouchers.onCellRender(qry, rowno, colno, currentRowContext);
                     },
                     beforeExeSql: function (frm, sq) {
-
                         var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1");
                         return sq + sqLog;
                     },
