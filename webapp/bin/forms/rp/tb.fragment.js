@@ -436,7 +436,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                 " to_number(FIELD16) levelno , to_number(field18) childcount " +
                 " from temporary " +
                 " where idno=66601 " +
-                (ez == "Y" ? " and to_number(field7)-to_number(field8)!=0  " : "") +
+                (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
                 " and usernm='01' order by field17 ";
             sq = thatForm.frm.parseString(sq);
             var pars = Util.nvl(qryObj.rep.parameters, []);

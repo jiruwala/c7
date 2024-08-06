@@ -50,7 +50,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                 customData: { key: ac },
                 press: function () {
                     var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 para_PARAFORM=false para_EXEC_REP=true pref=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
                 }
             }));
             mnu.addItem(new sap.m.MenuItem({
@@ -189,7 +189,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 dml: "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ," +
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL," +
                                     " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance," +
-                                    " (select nvl(sum((sale_price+op_no)*tqty),0) from c_order1 " +
+                                    " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
                                     " where ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
                                     " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code " +
                                     " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
@@ -202,7 +202,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["CODE", "NAME", "SLSNAME", "TEL"],
+                                filterCols: ["CODE", "NAME", "SLSNAME", "TEL","ALLBALANCE","UNPOST_BAL"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();

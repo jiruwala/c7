@@ -22,7 +22,7 @@ and pur2.ordwas=o.keyfld and o.ord_pos=orderno
  AND  (ITEMS.REFERENCE=PUR2.REFER)
  and pur2.keyfld=$P{KEYFLD}
  group by pur2.refer,pur2.type,pur2.invoice_no,items.descr,pur2.packd,pur2.price,pur2.pack,o.attn
-ORDER BY PUR2.refer]]>
+ORDER BY PUR2.price]]>
 	</queryString>
 	<field name="REFER" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="REFER"/>

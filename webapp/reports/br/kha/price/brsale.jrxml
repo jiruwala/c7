@@ -145,10 +145,10 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 	<variable name="NET_AMT2" class="java.lang.Double">
 		<variableExpression><![CDATA[($F{INV_AMT2}+$F{ADD_AMT}) -$F{DISC_AMT}]]></variableExpression>
 	</variable>
-	<group name="vou" isResetPageNumber="true" isReprintHeaderOnEachPage="true" keepTogether="true">
+	<group name="vou" isStartNewPage="true" isResetPageNumber="true" isReprintHeaderOnEachPage="true" keepTogether="true">
 		<groupExpression><![CDATA[$F{KEYFLD}]]></groupExpression>
 		<groupHeader>
-			<band height="265">
+			<band height="270">
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<textField pattern="dd/MM/yyyy">
 					<reportElement style="strHeader" x="100" y="161" width="121" height="20" uuid="d219fe6c-5256-494a-adf1-3f02b3f7ef6c"/>
@@ -274,7 +274,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 			</band>
 		</groupHeader>
 		<groupFooter>
-			<band height="244">
+			<band height="133">
 				<textField>
 					<reportElement style="strHeader" x="470" y="10" width="104" height="20" uuid="68e33dfe-6e2b-4e96-bcad-c14b6bea1cde">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -378,73 +378,6 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{CTG}]]></textFieldExpression>
 				</textField>
-				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="450" y="128" width="90" height="20" uuid="d617bb96-4d54-49c4-ac14-6bf307658bdf"/>
-					<box>
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Right" verticalAlignment="Bottom">
-						<font fontName="DejaVu Sans" size="12" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA["المحاسب"]]></textFieldExpression>
-				</textField>
-				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="242" y="128" width="120" height="20" uuid="c3919884-b9c3-4203-94e3-d39d502af497"/>
-					<box>
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Center" verticalAlignment="Bottom">
-						<font fontName="DejaVu Sans" size="12" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA["رئيس الحسابات"]]></textFieldExpression>
-				</textField>
-				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="40" y="128" width="90" height="20" uuid="97bb001f-f73d-4cdb-99c3-5866678a377c"/>
-					<box>
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Center" verticalAlignment="Bottom">
-						<font fontName="DejaVu Sans" size="12" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA["المدير"]]></textFieldExpression>
-				</textField>
-				<line>
-					<reportElement x="460" y="185" width="90" height="1" uuid="d885a431-388f-4aee-b150-8aa429934a49">
-						<property name="com.jaspersoft.studio.unit.height" value="px"/>
-					</reportElement>
-				</line>
-				<line>
-					<reportElement x="30" y="185" width="90" height="1" uuid="296af3c9-edf4-43a5-9f31-0560ae0f16dd">
-						<property name="com.jaspersoft.studio.unit.height" value="px"/>
-					</reportElement>
-				</line>
-				<line>
-					<reportElement x="256" y="185" width="90" height="1" uuid="c9f84ffd-15c2-4e86-a199-9d21196e00ad">
-						<property name="com.jaspersoft.studio.unit.height" value="px"/>
-					</reportElement>
-				</line>
-				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="10" y="210" width="564" height="20" uuid="026b9586-e3e0-46d8-bd3a-b493e5c700e7"/>
-					<box>
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Right" verticalAlignment="Bottom">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA["تعتبر البيانات الواردة فى الفاتورة صحيحة مالم يرد اى استفسار من قبلكم خلال 15 يوم من تاريخ استلام الفاتورة"]]></textFieldExpression>
-				</textField>
 			</band>
 		</groupFooter>
 	</group>
@@ -452,10 +385,10 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 		<band splitType="Stretch"/>
 	</background>
 	<detail>
-		<band height="325" splitType="Immediate">
+		<band height="427" splitType="Immediate">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<subreport overflowType="NoStretch">
-				<reportElement stretchType="ElementGroupBottom" x="1" y="2" width="593" height="323" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
+				<reportElement stretchType="ElementGroupBottom" x="1" y="8" width="593" height="412" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>

@@ -1327,6 +1327,7 @@ public class utils {
 
 	public static double insertNotify(Connection con, String usr, String type_of, String descr, String cmd,
 			String postedUser, String del_click, String title, String title_a, String descr_a) throws Exception {
+		System.out.println("notification inserted : " + descr + " " + usr + " ...");
 		String sq = "insert into c7_notify (keyfld,type_of,posted_by,touser,descr,"
 				+ " posted_time,cmd, del_on_click, descr_stra, title_str,title_stra) "
 				+ " values (:keyfld , :type_of , :posted_by , :touser ,:descr,:posted_time,:cmd,"
@@ -1347,7 +1348,10 @@ public class utils {
 
 		qe.execute();
 		qe.close();
+		System.out.println("Notification inserted !,  " + usr + " " + type_of + " " + descr + "   ..."
+				+ new Date(System.currentTimeMillis()));
 		return Double.parseDouble(kf);
+
 	}
 
 	public static void readNotify(Connection con, double kfld) throws SQLException {

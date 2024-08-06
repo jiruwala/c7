@@ -31,7 +31,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
         FormView.err = function (msg) {
             sap.m.MessageToast.show(msg, {
                 my: sap.ui.core.Popup.Dock.RightBottom,
-                at: sap.ui.core.Popup.Dock.RightBottom
+                at: sap.ui.core.Popup.Dock.RightBottom,
+                duraiton:10000
             });
             var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
             oMessageToastDOM.css('color', "red");

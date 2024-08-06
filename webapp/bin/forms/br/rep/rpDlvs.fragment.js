@@ -85,7 +85,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO"],
+                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO","PRICEX"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -117,8 +117,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                     var ordby = oy == "ord_no" ? " ORDER BY JOINED_CORDER.ord_date,JOINED_CORDER.ord_no " : " order by JOINED_CORDER." + oy;
                                     var sq = "SELECT ORD_REF, ORD_REFNM," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
-                                        " SUM(qty_x) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT," +
-                                        " SUM(((price_x)/pack_x)*(qty_x*pack_x))/ SUM(qty_x/pack_x) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
+                                        " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT," +
+                                        " SUM(((price_x))*(qty_x))/ SUM(qty_x) PRICEX,ITEM_DESCR, ITEM_DESCR ITEM_DESCR2 ,BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS, " +
                                         " INVOICE1.invoice_no ," +
@@ -135,6 +135,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                         " AND ORD_DATE<=:parameter.todate  " +
                                         "  )" +
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
+                                        " AND (ORD_DISCAMT=':parameter.psite' OR RTRIM(':parameter.psite') IS NULL)" +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
                                         " AND (JOINED_CORDER.location_code=':parameter.ploc' or NVL(':parameter.ploc','ALL') ='ALL') " +
                                         " GROUP BY " +
@@ -302,6 +303,65 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     require: false,
                     dispInPara: true,
                 },
+                psite: {
+                    colname: "psite",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtBranch\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        showValueHelp: true,
+                        change: function (e) {
+                            var vl = e.oSource.getValue();
+                            var cust = thatForm.frm.getFieldValue(repCode + "@parameter.pcust");
+                            thatForm.frm.setFieldValue(repCode + "@parameter.psite", vl, vl, false);
+                            var vlnm = Util.getSQLValue("select b_name from cbranch where code ='" + cust + "' and brno=" + Util.quoted(vl));
+                            thatForm.frm.setFieldValue(repCode + "@parameter.psitename", vlnm, vlnm, false);
+
+                        },
+                        valueHelpRequest: function (event) {
+                            var cust = thatForm.frm.getFieldValue(repCode + "@parameter.pcust");
+                            var sq = "select brno code,b_name name from cbranch where code='" + cust + "' order by brno";
+                            Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.psite", data.CODE, data.CODE, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.psitename", data.NAME, data.NAME, true);
+                                return true;
+                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                        },
+                        width: "35%"
+                    },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
+                psitename: {
+                    colname: "psitename",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        width: "49%",
+                        editable: false
+                    },
+                    list: undefined,
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false,
+                    dispInPara: true,
+                },
                 rmix: {
                     colname: "rmix",
                     data_type: FormView.DataType.String,
@@ -392,7 +452,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "none",
+                        selectedKey: "items",
                     },
                     list: "@none/None,customers/Customers,items/Items,drivers/Drivers",
                     edit_allowed: true,
@@ -549,39 +609,6 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     other_settings: {},
 
                 },
-                totalqty: {
-                    colname: "totalqty",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "totalQty",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "80",
-                    display_align: "ALIGN_CENTER",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "QTY_FORMAT",
-                    default_value: "",
-                    summary: "SUM",
-                    other_settings: {},
-                },
-                packd_x: {
-                    colname: "packd_x",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "itemPackD",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "60",
-                    display_align: "ALIGN_CENTER",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: {},
-                },
                 item_descr: {
                     colname: "item_descr",
                     data_type: FormView.DataType.String,
@@ -598,22 +625,6 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     default_value: "",
                     other_settings: {},
 
-                },
-                pricex: {
-                    colname: "pricex",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "txtPrice",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "80",
-                    display_align: "ALIGN_END",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "MONEY_FORMAT",
-                    default_value: "",
-                    other_settings: {},
                 },
                 branch_name: {
                     colname: "branch_name",
@@ -666,15 +677,15 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     other_settings: {},
 
                 },
-                tel: {
-                    colname: "tel",
+                item_descr2: {
+                    colname: "item_descr2",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
-                    title: "txtTel",
+                    title: "itemDescr",
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "100",
+                    display_width: "200",
                     display_align: "ALIGN_BEGIN",
                     grouped: false,
                     display_style: "",
@@ -682,6 +693,55 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     default_value: "",
                     other_settings: {},
 
+                },
+                packd_x: {
+                    colname: "packd_x",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "itemPackD",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "60",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                },
+                totalqty: {
+                    colname: "totalqty",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "totalQty",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "120",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "QTY_FORMAT",
+                    default_value: "",
+                    summary: "SUM",
+                    other_settings: {},
+                },
+                pricex: {
+                    colname: "pricex",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtPrice",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_END",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "MONEY_FORMAT",
+                    default_value: "",
+                    other_settings: {},
                 },
                 amount: {
                     colname: "amount",

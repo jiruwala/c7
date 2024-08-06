@@ -1552,7 +1552,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             if (this.scrollObjs[i] instanceof sap.ui.core.Control)
                                 thatRV.pg.addContent(this.scrollObjs[i]);
 
-                        thatRV.pg.addContent(new sap.m.VBox({ height: "20px" }));
+                        thatRV.pg.addContent(new sap.m.VBox({ height: "110px" }));
 
                         Util.navEnter(Object.keys(rep.dispCanvases)[0], function (lastObj) {
                             thatRV.firstObj.focus();

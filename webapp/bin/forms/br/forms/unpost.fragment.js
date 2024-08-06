@@ -50,9 +50,16 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
                 }).addStyleClass("redTextBtn"),
                 new sap.m.Button({
                     width: "150px",
-                    text: Util.getLangText("printRec"),
+                    text: Util.getLangText("Print - Items"),
                     press: function () {
                         that.printInv();
+                    }
+                }),
+                new sap.m.Button({
+                    width: "150px",
+                    text: Util.getLangText("Print - Price"),
+                    press: function () {
+                        that.printInv("price/");
                     }
                 }),
                 new sap.m.Button({
@@ -201,8 +208,8 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         this.disc_amt = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "24%", editable: true, change: calcChange });
         this.net_amt = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "24%", editable: false }).addStyleClass("yellow");
 
-        this.memo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
-        this.ctg = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
+        this.memo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "75%", editable: true });
+        this.ctg = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "75%", editable: true });
 
         var fe = [
             Util.getLabelTxt("", "100%", "#"),
@@ -226,8 +233,8 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             Util.getLabelTxt("", "1%", "@", "", "Center"), this.disc_amt,
             Util.getLabelTxt("", "1%", "@", "", "Center"), this.net_amt,
             // Util.getLabelTxt("", "100%", "#"),
-            Util.getLabelTxt("txtAddAmtDescr", "25%", ""), this.ctg,
-            Util.getLabelTxt("txtDiscAmtDescr", "25%", "@"), this.memo
+            Util.getLabelTxt("txtAddAmtDescr", "25%", ""), this.memo,
+            Util.getLabelTxt("txtDiscAmtDescr", "25%", ""), this.ctg
         ];
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
             width: { "S": 380, "M": 580, "L": 580 },
@@ -395,16 +402,16 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
 
         }
         if ((add > 0 || disc > 0) && addDisc) {
-            if (askBfrAddDisc)
-                Util.simpleConfirmDialog("Do you want to change ADDITION AND DISCOUNT AMOUNT ? ", function (oAction) {
-                    changeAmt();
-                    calcAmts();
-                }, function () { calcAmts(); });
-            else {
-                changeAmt();
-                calcAmts();
-            }
-
+            // if (askBfrAddDisc)
+            //     Util.simpleConfirmDialog("Do you want to change ADDITION AND DISCOUNT AMOUNT ? ", function (oAction) {
+            //         changeAmt();
+            //         calcAmts();
+            //     }, function () { calcAmts(); });
+            // else {
+            //     changeAmt();
+            //     calcAmts();
+            // }
+            calcAmts();
         } else {
             calcAmts();
         }
@@ -654,8 +661,11 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
 
         var dt = Util.execSQL(sqRec);
         if (dt.ret == "SUCCESS") {
-            sap.m.MessageToast.show("Update done ! ");
+            // sap.m.MessageToast.show("Update done ! ");
+            FormView.msgSuccess(Util.getLangText("msgSaved"));
+            that.printInv();
             dlg.close();
+
             that.loadData(true);
 
         }
@@ -717,7 +727,7 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         });
 
     },
-    printInv: function () {
+    printInv: function (addStr) {
         var that = this;
         that.loadData(false);
         var kfld = this.keyfld.getValue();
@@ -725,7 +735,7 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
 
         var invn = this.invoice_no.getValue();
         var loc = UtilGen.getControlValue(this.location_code);
-        Util.printServerReport("br/kha/brsale", "_para_pfromno=" +
+        Util.printServerReport("br/kha/" + Util.nvl(addStr, "") + "brsale", "_para_pfromno=" +
             invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
     }
 

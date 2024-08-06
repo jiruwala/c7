@@ -1932,7 +1932,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
             },
             Search: {
-                do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect, pPoints, btns) {
+                do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect, pPoints, btns, pMulteSelect) {
                     var points = Util.nvl(pPoints, {});
                     // if (e.getParameters().clearButtonPressed || e.getParameters().refreshButtonPressed) {
                     UtilGen.setControlValue(control, "", "", false);
@@ -1942,46 +1942,58 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // }
                     // var control = this;
                     var sq = pSq;
+                    var multiSelect = Util.nvl(pMulteSelect, false);
                     Util.show_list(sq, ["CODE", "TITLE", "NAME"], "", function (data) {
-                        UtilGen.setControlValue(control, data.CODE, data.CODE, true);
+                        var code = "";
+                        if (multiSelect) {
+                            for (var li = 0; li < data.length; li++)
+                                code += "\"" + data[li].CODE + "\"";
+                        } else
+                            code = data.CODE;
+
+                        UtilGen.setControlValue(control, code, code, true);
                         if (titObj != undefined)
                             UtilGen.setControlValue(titObj, data.TITLE, data.TITLE, true);
-                        else {
-                            UtilGen.setControlValue(control, data.CODE, data.CODE, false);
-                            UtilGen.setControlValue(titObj, data.TITLE, data.TITLE, false);
-                        }
+                        // else 
+                        // {
+                        //     UtilGen.setControlValue(control, data.CODE, data.CODE, false);
+                        //     UtilGen.setControlValue(titObj, data.TITLE, data.TITLE, false);
+                        // }
+                        if (!multiSelect) {
+                            var vldtt = Util.execSQL(pSqGetTitle.replaceAll(":CODE", Util.quoted(data.CODE)));
+                            if (vldtt.ret != "SUCCESS") {
+                                UtilGen.setControlValue(control, "", "", false);
+                                if (titObj != undefined)
+                                    UtilGen.setControlValue(titObj, "", "", false);
+                                return;
+                            }
+                            var vldt = JSON.parse("{" + vldtt.data + "}").data;
+                            var acn = vldt[0].CODE;
+                            var nm = vldt[0].TITLE;
 
-                        var vldtt = Util.execSQL(pSqGetTitle.replaceAll(":CODE", Util.quoted(data.CODE)));
-                        if (vldtt.ret != "SUCCESS") {
-                            UtilGen.setControlValue(control, "", "", false);
-                            if (titObj != undefined)
-                                UtilGen.setControlValue(titObj, "", "", false);
-                            return;
-                        }
-                        var vldt = JSON.parse("{" + vldtt.data + "}").data;
-                        var acn = vldt[0].CODE;
-                        var nm = vldt[0].TITLE;
-                        if (titObj == undefined)
-                            UtilGen.setControlValue(control, acn, acn, true);
-                        else {
-                            UtilGen.setControlValue(control, acn, acn, true);
-                            UtilGen.setControlValue(titObj, nm, nm, false);
+                            if (titObj == undefined)
+                                UtilGen.setControlValue(control, acn, acn, true);
+                            else {
+                                UtilGen.setControlValue(control, acn, acn, true);
+                                UtilGen.setControlValue(titObj, nm, nm, false);
+                            }
                         }
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(acn, nm);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns);
 
                 },
 
-                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns) {
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect) {
                     var points = Util.nvl(pPoints, {});
                     var sq = pSq;
+                    var multiSelect = Util.nvl(pMultiSelect, false);
                     Util.show_list(sq, Util.nvl(cols, []), "", function (data) {
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(data);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, false, undefined, undefined, undefined, undefined, pPoints, btns);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns);
 
 
 
@@ -2107,13 +2119,15 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var getSq = function () {
                         var sqx = "c7_insert_log_proc(':GRPNAME'," +
                             "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT '" +
-                            ",:KEYFLD,':PVAR2',:JVNO,':NOTIFY_TYPE'); ";
+                            ",:KEYFLD,':PVAR2',:JVNO,':PVAR4',':PVAR5',':NOTIFY_TYPE'); ";
                         sqx = sqx.replaceAll(":REC_STAT", stat)
                             .replaceAll(":USERNAME", sett["LOGON_USER"])
                             .replaceAll(":GRPNAME", Util.nvl(grpname, "JV"))
                             .replaceAll(":JVNO", vono)
                             .replaceAll(":KEYFLD", kfld)
                             .replaceAll(":PVAR2", pv2)
+                            .replaceAll(":PVAR4", pv4)
+                            .replaceAll(":PVAR5", pv5)
                             .replaceAll(":TABLENAME", Util.nvl(tablename, "ACVOUCHER1"))
                             .replaceAll(":NOTIFY_TYPE", Util.nvl(notifyType, ""));
                         return sqx;
@@ -2125,6 +2139,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var notifyType = grpname + "_" + stat;
                     var vono = frm.getFieldValue("qry1.no");
                     var kfld = frm.getFieldValue("qry1.keyfld");
+                    var pv5 = "";
+                    var pv4 = "";
                     var pv2 = "VOU_CODE=" + vou_code + ",TYPE=" + type;
                     insq = getSq();
 
@@ -2142,9 +2158,23 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     insq = frm.parseString(insq);
                     // checking more if acc transaction                   
                     styp = "ACC_TRANS";
-                    var sqN = "select  *from C7_NOTIFY_SETUP where usernm='" + sett["LOGON_USER"] + "' and setup_type='" + styp + "' and CONDITION_STR=':ACCNO'";
-                    var qr2 = frm.objs["qry2"].obj;                
-                    var ld2 = qr2.mLctb;
+                    var sqN = "select  *from C7_NOTIFY_SETUP where usernm='" + sett["LOGON_USER"] + "' and setup_type='" + styp + "' and ':ACCNO' like '%\"'||CONDITION_STR||'\"%' ";
+                    var qr2 = frm.objs["qry2"].obj;
+                    var ld = qr2.mLctb;
+                    for (var i = 0; i < ld.rows.length; i++)
+                        frag.qryAccs[ld.getFieldValue(i, "ACCNO")] = ld.getFieldValue(i, "ACNAME");
+                    var kys = Object.keys(frag.qryAccs);
+                    var acns = "";
+                    for (var k in kys)
+                        acns += (acns.length > 0 ? "," : "") + "\"" + kys[k] + "\" ";
+                    var dtx = Util.execSQLWithData(sqN.replaceAll(":ACCNO", acns));
+                    for (var di = 0; di < dtx.length; di++) {
+                        notifyType = styp;
+                        pv2 = dtx[0].CONDITION_STR;
+                        pv4 = frag.qryAccs[dtx[0].CONDITION_STR];
+                        var sq = getSq();
+                        insq += sq;
+                    }
                     return insq;
                 },
                 formLoadData: function (frag) {
@@ -3532,7 +3562,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            createDefaultToolbar1: function (qrj, findCols, addSpace) {
+            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd) {
                 qrj.createToolbar("", [],
                     // EVENT ON APPLY PERSONALIZATION
                     function (prsn, qv) {
@@ -3570,33 +3600,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     icon: "sap-icon://sys-minus",
                     tooltip: "select and delete a row ",
                 });
-                btDelRow.attachBrowserEvent("mousedown", function () {
-
-                    var rowno = -1;
-                    var colno = -1;
-                    if (qrj.getControl().getSelectedIndices().length == 0) {
-                        const currentFocusedControlId = sap.ui.getCore().getCurrentFocusedControlId();
-                        var _input = sap.ui.getCore().byId(currentFocusedControlId);
-                        // if (_input != undefined || (!_input.getParent() instanceof sap.ui.table.Row)) return;
-                        rowno = qrj.getControl().indexOfRow(_input.getParent());
-                        colno = _input.getParent().indexOfCell(_input);
-                        qrj.getControl().setSelectedIndex(rowno);
-                    }
-
-                    if (qrj.getControl().getSelectedIndices().length == 0) {
-                        sap.m.MessageToast.show("Must select a row !");
-                        return;
-                    }
-
-                    var sl = qrj.getControl().getSelectedIndices();
-                    for (var s = sl.length - 1; s >= -1; s--)
-                        qrj.deleteRow(sl[s]);
-                });
-                var btAddRow = new sap.m.Button({
-                    icon: "sap-icon://sys-add",
-                    tooltip: "select add a row ",
-                });
-                btAddRow.attachBrowserEvent("mousedown", function () {
+                var onAdd = function () {
 
                     var rowno = -1;
                     var colno = -1;
@@ -3611,12 +3615,53 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }
                         catch (e) { };
                     var sl = qrj.getControl().getSelectedIndices()[0];
-                    if (Util.nvl(sl, -1) != -1)
-                        qrj.insertRow(sl);
-                    else qrj.addRow();
 
-                }
-                );
+                    if (pOnAdd != undefined)
+                        pOnAdd(sl);
+                    else {
+                        if (Util.nvl(sl, -1) != -1)
+                            qrj.insertRow(sl);
+                        else qrj.addRow();
+                    }
+                };
+                var onDel = function () {
+
+                    var rowno = -1;
+                    var colno = -1;
+                    if (qrj.getControl().getSelectedIndices().length == 0) {
+                        const currentFocusedControlId = sap.ui.getCore().getCurrentFocusedControlId();
+                        if (Util.nvl(currentFocusedControlId, "") == "" ||
+                            sap.ui.getCore().byId(currentFocusedControlId) == undefined ||
+                            sap.ui.getCore().byId(currentFocusedControlId).indexOfRow == undefined
+                        ) setTimeout(function () {
+                            FormView.err("Selection may invalid !");
+                        });
+                        var _input = sap.ui.getCore().byId(currentFocusedControlId);
+                        // if (_input != undefined || (!_input.getParent() instanceof sap.ui.table.Row)) return;
+                        rowno = qrj.getControl().indexOfRow(_input.getParent());
+                        colno = _input.getParent().indexOfCell(_input);
+                        qrj.getControl().setSelectedIndex(rowno);
+                    }
+
+                    if (qrj.getControl().getSelectedIndices().length == 0) {
+                        sap.m.MessageToast.show("Must select a row !");
+                        return;
+                    }
+
+                    var sl = qrj.getControl().getSelectedIndices();
+                    if (pOnDel != undefined)
+                        pOnDel(sl);
+                    else
+                        for (var s = sl.length - 1; s >= -1; s--)
+                            qrj.deleteRow(sl[s]);
+                };
+
+                btDelRow.attachBrowserEvent("mousedown", onDel);
+                var btAddRow = new sap.m.Button({
+                    icon: "sap-icon://sys-add",
+                    tooltip: "select add a row ",
+                });
+                btAddRow.attachBrowserEvent("mousedown", onAdd);
                 qrj.showToolbar.toolbar.removeAllContent();
                 qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
                 qrj.showToolbar.toolbar.addContent(btAddRow);
@@ -3628,7 +3673,27 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(btf);
                 }
 
+            },
+            createDefaultToolbar2: function (qrj, findCols, addSpace) {
+                if (Util.nvl(findCols, []).length > 0) {
+                    qrj.showToolbar.filterCols = findCols;
+                    qrj.showToolbar.showFilter = true;
+                    qrj.showToolbar.showSearch = false;
+                }
+                if (Util.nvl(addSpace, false))
+                    qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
+                qrj.showToolbar.showPersonalization = false;
+                qrj.createToolbar("", qrj.showToolbar.filterCols,
+                    // EVENT ON APPLY PERSONALIZATION
+                    function (prsn, qv) {
+                    },
+                    // EVENT ON REVERT PERSONALIZATION TO ORIGINAL
+                    function (qv) {
+                    }
+                );
+                qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
             }
+
         };
 
         return UtilGen;
