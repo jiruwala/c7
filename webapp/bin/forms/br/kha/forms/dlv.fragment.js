@@ -161,6 +161,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": ":qry1.stra",
                             "STRB": Util.nvl(sett["BR_DLV_STRB"], ":qry1.stra"),
+                            "ATTN": ":qry1.branchname",
                             // "ORD_PACKD": "(select max(packd) from items where reference=ord_ship)",
                             // "ORD_UNITD": "(select max(unitd) from items where reference=ord_ship)",
                             // "ORD_PACK": "(select max(PACK) from items where reference=ord_ship)"

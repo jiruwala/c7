@@ -65,7 +65,8 @@ if (dt.ret == "SUCCESS") {
     var c = qv.mLctb.getColPos("DEBIT");
     qv.mLctb.cols[c].getMUIHelper().display_format = "MONEY_FORMAT";
     qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].mHideCol = true;
-    qv.mLctb.cols[qv.mLctb.getColPos("NO")].getMUIHelper().display_width = 80;
+    qv.mLctb.cols[qv.mLctb.getColPos("USERNM")].getMUIHelper().display_width = 80;
+    qv.mLctb.cols[qv.mLctb.getColPos("SETUP_TYPE")].getMUIHelper().display_width = 80;
     qv.mLctb.parse("{" + dt.data + "}", true);
     qv.loadData();
 }

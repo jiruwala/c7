@@ -39,7 +39,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
 
 
         setTimeout(function () {
-            
+
         }, 10);
 
         // UtilGen.setFormTitle(this.oController.getForm(), "Journal Voucher", this.mainPage);
@@ -58,17 +58,19 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         var recs = UtilGen.dispTblRecsByDevice({ "S": 6, "M": 10, "L": 12, "XL": 18 });
         var qr = new QueryView("qryInvs" + that2.timeInLong);
         qr.getControl().setEditable(true);
-        qr.getControl().view = that2;
+        qr.getControl().view = view;
+        qr.view = view;
         qr.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
         qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
         qr.getControl().setFixedBottomRowCount(0);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(recs);
+        var filtercol = ["INVOICE_NO", "C_CUS_NO", "INV_REFNM", "ADD_AMT", "DISC_AMT", "INV_AMT", "NET_AMT"]
+        UtilGen.createDefaultToolbar2(qr, filtercol, false);
         qr.insertable = false;
         qr.deletable = false;
         this.qr = qr;
-
-
+        this.mainPage.addContent(this.qr.showToolbar.toolbar);
         this.mainPage.addContent(this.qr.getControl());
 
         this.loadData();
@@ -206,13 +208,16 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         var knd = Util.nvl(UtilGen.getControlValue(kind), 21);
         var cst = txtCust.getValue();
 
-        var dt = Util.execSQL("select *from (select INVOICE_NO,INVOICE_DATE,C_CUS_NO,INV_REFNM, " +
-            "  INV_AMT,DEPTNO ADD_AMT,DISC_AMT,(INV_AMT+DEPTNO)-DISC_AMT NET_AMT,keyfld FROM PUR1 " +
-            " WHERE INVOICE_CODE=" + knd + " order by invoice_date desc ) i1  where (rownum<=" +
+        var dt = Util.execSQL("select *from (select p.INVOICE_NO,p.INVOICE_DATE,p.C_CUS_NO,p.INV_REFNM, " +
+            "  p.INV_AMT,p.DEPTNO ADD_AMT,p.DISC_AMT,(p.INV_AMT+p.DEPTNO)-p.DISC_AMT NET_AMT,p.location_code,l.name location_name, p.keyfld FROM PUR1 p,locations l " +
+            " WHERE p.location_code=l.code and p.INVOICE_CODE=" + knd + " order by p.invoice_date desc ) i1  where (rownum<=" +
             dys + " or " + dys + "=-1 ) and (c_cus_no='" + cst + "' or '" + cst + "' is null) ");
 
         if (dt.ret == "SUCCESS") {
             qv.setJsonStrMetaData("{" + dt.data + "}");
+            qv.mLctb.cols[qv.mLctb.getColPos("LOCATION_CODE")].mTitle = Util.getLangText("txtCode");
+            qv.mLctb.cols[qv.mLctb.getColPos("LOCATION_CODE")].mTitle = Util.getLangText("locationTxt");
+            qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_NO")].mTitle = Util.getLangText("txtInvNo");
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_NO")].mTitle = Util.getLangText("txtInvNo");
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_DATE")].mTitle = Util.getLangText("txtInvDate");
             qv.mLctb.cols[qv.mLctb.getColPos("C_CUS_NO")].mTitle = Util.getLangText("refCode");

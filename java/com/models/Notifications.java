@@ -340,7 +340,7 @@ public class Notifications {
 			if (vl != null && !vl.equals("")) {
 				SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:m:s");
 				Date ldt = sdf.parse(vl);
-				if (this.lastSetupData == null || ldt.after(this.lastSetupData)) {
+				if (this.lastSetupData == null || !ldt.equals(this.lastSetupData)) {
 					mLctb.clearALl();
 					mLctb.executeQuery("select *from c7_notify_setup order by keyfld", true);
 					System.out.println("Refreshed all c7_notify_setup table # " + (countRun) + "...."

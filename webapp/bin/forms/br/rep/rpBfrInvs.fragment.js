@@ -115,8 +115,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                                     var eq = thatForm.frm.getFieldValue("RPBINV1@parameter.grpby");
                                     var sq = "SELECT ORD_REF, ORD_REFNM," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
-                                        " SUM(qty_x/pack_x) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT," +
-                                        " SUM(((price_x)/pack_x)*(qty_x*pack_x))/ SUM(qty_x/pack_x)  PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts , " +
+                                        " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT," +
+                                        " SUM(((price_x))*(qty_x))/ SUM(qty_x)  PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts , " +
                                         " packd_x " +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
@@ -423,7 +423,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "150",
+                    display_width: "250",
                     display_align: "ALIGN_BEGIN",
                     grouped: false,
                     display_style: "",

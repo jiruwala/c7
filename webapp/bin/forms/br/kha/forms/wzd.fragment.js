@@ -82,23 +82,39 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             ]
         };
         this.tit = new sap.m.Text({ height: "25px", width: "100%", text: Util.getLangText("titSalWzd") }).addStyleClass("titleFontWithoutPad");
-        this.txtLocations = new sap.m.ComboBox(
-            {
-                width: "50%",
-                customData: [{ key: "" }],
-                items: {
-                    path: "/",
-                    template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                    templateShareable: true
-                },
-                selectionChange: function (ev) {
-                },
-                selectedKey: "-1"
-            });
-        Util.fillCombo(this.txtLocations, "select '-1' code,'ALL' from dual union all select code,name from locations  order by 1 ");
+        // this.txtLocations = new sap.m.ComboBox(
+        //     {
+        //         width: "50%",
+        //         customData: [{ key: "" }],
+        //         items: {
+        //             path: "/",
+        //             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+        //             templateShareable: true
+        //         },
+        //         selectionChange: function (ev) {
+        //         },
+        //         selectedKey: "-1"
+        //     });
+        // Util.fillCombo(this.txtLocations, "select '-1' code,'ALL' from dual union all select code,name from locations  order by 1 ");
         // this.txtLocations.setSelectedItem(Util.findComboItem(this.txtLocations, sett["DEFAULT_LOCATION"]));
-        // this.txtLocations = new sap.m.Input({ editable: true });
-
+        this.txtLocations = new sap.m.Input({
+            editable: true,
+            showValueHelp: true,
+            width: "60%",
+            valueHelpRequest: function (e) {
+                var sq = "select code,name title from locations order by code";
+                UtilGen.Search.do_quick_search(e, this,
+                    sq,
+                    "select code,name title from c_ycust where code=:CODE", that.txtRefName, function (dt) {
+                        console.log(dt);
+                    }, undefined, undefined, true);
+            }
+        });
+        var dt = Util.execSQLWithData("select code from locations order by code");
+        var loc = "";
+        for (var li = 0; li < dt.length; li++)
+            loc += " \"" + dt[li].CODE + "\"";
+        this.txtLocations.setValue(loc);
         this.txtFromDate = new sap.m.DatePicker({ width: "50%" });
         this.txtToDate = new sap.m.DatePicker({ width: "50%" });
 
@@ -107,17 +123,16 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             valueHelpRequest: function (e) {
                 var fromdt = UtilGen.getControlValue(that.txtFromDate);
                 var todt = UtilGen.getControlValue(that.txtToDate);
-
-                var sqDlvCounts = "(select count(*)  from c_order1 where c_ycust.code=c_order1.ord_ref and ord_code=9 and saleinv is null and (location_code='" +
-                UtilGen.getControlValue(that.txtLocations) +
-                "' or '" + UtilGen.getControlValue(that.txtLocations) + "' = '-1') and " +                    
-                    " ord_date>=" + Util.toOraDateString(fromdt) +
+                var loc = that.txtLocations.getValue();
+                var locWhere = " ('" + loc + "' like '%\"'||LOCATION_CODE ||'\"%' )";
+                var sqDlvCounts = "(select count(*)  from c_order1 where c_ycust.code=c_order1.ord_ref and ord_code=9 and saleinv is null and " +
+                    locWhere +
+                    " and ord_date>=" + Util.toOraDateString(fromdt) +
                     " and ord_date<=" + Util.toOraDateString(todt) + ")";
 
-                var sqWhere = "(select distinct ord_ref from c_order1 where ord_code=9 and saleinv is null and (location_code='" +
-                    UtilGen.getControlValue(that.txtLocations) +
-                    "' or '" + UtilGen.getControlValue(that.txtLocations) + "' = '-1') and " +
-                    " ord_date>=" + Util.toOraDateString(fromdt) +
+                var sqWhere = "(select distinct ord_ref from c_order1 where ord_code=9 and saleinv is null and " +
+                    locWhere +
+                    " and ord_date>=" + Util.toOraDateString(fromdt) +
                     " and ord_date<=" + Util.toOraDateString(todt) + ")";
                 var sq = "select code,name from c_ycust where code in " + sqWhere +
                     " and " +
@@ -132,7 +147,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
 
                 UtilGen.Search.do_quick_search(e, this,
                     sq,
-                    "select code,name title from c_ycust where code=:CODE", that.txtRefName, undefined, undefined, undefined);
+                    "select code,name title from c_ycust where code=:CODE", that.txtRefName, undefined, undefined, undefined, false);
             },
             change: function (e) {
                 var vl = Util.getSQLValue("select name from c_ycust where code=" + Util.quoted(that.txtRef.getValue()));
@@ -148,13 +163,14 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             valueHelpRequest: function (e) {
                 var fromdt = UtilGen.getControlValue(that.txtFromDate);
                 var todt = UtilGen.getControlValue(that.txtToDate);
+                var loc = that.txtLocations.getValue();
+                var locWhere = " ('" + loc + "' like '%\"'||LOCATION_CODE ||'\"%' )";
 
                 Util.showSearchList("select brno code,b_name name from cbranch where brno in " +
                     " (select distinct ORD_DISCAMT from C_ORDER1 where ord_code=9 and SALEINV is null and " +
                     " ord_date>=" + Util.toOraDateString(fromdt) +
                     " and ord_date<=" + Util.toOraDateString(todt) + " and " +
-                    "( location_code='" + UtilGen.getControlValue(that.txtLocations) + "' OR '" +
-                    UtilGen.getControlValue(that.txtLocations) + "' = '-1' ) " +
+                    locWhere +
                     " and  ORD_REF=" + Util.quoted(that.txtRef.getValue()) +
                     ") and  code=" + Util.quoted(that.txtRef.getValue()) +
                     " order by brno", "NAME", "CODE", function (valx, val) {
@@ -255,6 +271,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.txtTotalAmount.setValue(0);
         this.txtTotalDlv.setValue(0);
 
+        var loc = that.txtLocations.getValue();
+        var locWhere = " ('" + loc + "' like '%\"'||LOCATION_CODE ||'\"%' )";
+
         var sq = "SELECT   o.periodcode," +
             "               o.location_code," +
             "               locations.name location_name," +
@@ -293,8 +312,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             " and o.ord_code=9 " +
             " and o.ord_date>=" + Util.toOraDateString(fromdt) +
             " and o.ord_date<=" + Util.toOraDateString(todt) +
-            " and (o.location_code=" + Util.quoted(UtilGen.getControlValue(that.txtLocations)) +
-            " or " + Util.quoted(UtilGen.getControlValue(that.txtLocations)) + "='-1' ) " +
+            " and " + locWhere +
             " and ord_ref=" + Util.quoted(that.txtRef.getValue()) +
             " and (  ord_discamt=" + Util.quoted(that.txtBranch.getValue()) +
             " or " + Util.quoted(that.txtBranch.getValue()) + " is null )" +
@@ -698,7 +716,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.infoPage.removeAllHeaderContent();
         this.infoPage.addHeaderContent(new sap.m.Title({ text: Util.getLangText("titSalWzd") + " / " + refName + " / " + bName }).addStyleClass("redText boldText"));
 
-        var loc = UtilGen.getControlValue(that.txtLocations);
+        var loc = UtilGen.getControlValue(sett["DEFAULT_LOCATION"]);
         UtilGen.setControlValue(that.txtInfoLocations, "-", "-", true);
         UtilGen.setControlValue(that.txtInfoLocations, loc, loc, true);
         that.txtInfoLocations.fireSelectionChange();
@@ -767,7 +785,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         var sett = sap.ui.getCore().getModel("settings").getData();
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var rfresh = Util.nvl(pRfresh, false);
-        var rfreshAdd = Util.nvl(pRfresh, false);
+        var rfreshAdd = Util.nvl(pRefreshAdd, false);
         if (rfresh) {
             var kfldStr = "";
             var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
@@ -863,7 +881,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             "     totamt:= totamt + ((x.qty_x) * (pr) ); " +
             " " +
             "  if x.pack_x=1 then " +
-            "   update C_ORDER1 set price_2=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
+            "   update C_ORDER1 set price_2=pr, SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
             " else " +
             "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
             " end if;" +
