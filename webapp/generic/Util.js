@@ -1837,7 +1837,22 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     textDirection: sap.ui.core.TextDirection.Inherit     // default
                 });
             },
-
+            simpleConfirmDialog1: function (msg, title, fnOnClose, actions) {
+                if (sap.m.MessageBox == undefined)
+                    jQuery.sap.require("sap.m.MessageBox");
+                var ea = Util.nvl(actions, [sap.m.MessageBox.Action.CLOSE]);
+                sap.m.MessageBox.confirm(msg, {
+                    title: Util.nvl(title, "Confirm") ,                                   // default
+                    emphasizedAction: ea,
+                    actions: ea,
+                    onClose: function (oAction) {
+                        if (fnOnClose != undefined)
+                            fnOnClose(oAction);
+                    },                                       // default
+                    styleClass: "",                                      // default
+                    textDirection: sap.ui.core.TextDirection.Inherit     // default
+                });
+            },
             getDefaultColumn: function () {
                 var col = {
                     "mColpos": 1,

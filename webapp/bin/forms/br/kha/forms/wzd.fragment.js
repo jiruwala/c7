@@ -516,6 +516,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             value: ""
         });
         var endAlign = sap.ui.core.TextAlign.End;
+        var beginAlign = sap.ui.core.TextAlign.Begin;
         this.txtInfoInvNo = new sap.m.Input({ width: "35%" });
         this.txtInfoInvDate = new sap.m.DatePicker({ width: "25%" });
         this.txtInfoRef = new sap.m.Input({ width: "25%", editable: false });
@@ -525,8 +526,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.txtInfoGross = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass();
         this.txtInfoDisc = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: true }).addStyleClass();
         this.txtInfoAdd = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: true }).addStyleClass();
-        this.txtInfoAddRemarks = new sap.m.Input({ textAlign: endAlign, width: "54%", editable: true }).addStyleClass();
-        this.txtInfoDiscRemarks = new sap.m.Input({ textAlign: endAlign, width: "54%", editable: true }).addStyleClass();
+        this.txtInfoAddRemarks = new sap.m.Input({ textAlign: beginAlign, width: "54%", editable: true }).addStyleClass();
+        this.txtInfoDiscRemarks = new sap.m.Input({ textAlign: beginAlign, width: "54%", editable: true }).addStyleClass();
         this.txtInfoAmount = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass("yellow");
         this.txtInfoDescr = new sap.m.Input({ width: "80%" });
 
@@ -956,13 +957,23 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         var that = this;
         that.loadData(true);
         if (Util.nvl(kfld, "") == "") FormView.err("No Invoice selected !");
-        var dt = Util.execSQLWithData("select location_code,invoice_no from pur1 where keyfld=" + kfld);
-        if (dt.length > 0) {
-            var invn = dt[0].INVOICE_NO;
-            var loc = dt[0].LOCATION_CODE;
-            Util.printServerReport("br/kha/brsale", "_para_pfromno=" +
-                invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
-        }
+        Util.simpleConfirmDialog1(Util.getLangText("msgPrintOptions1"),"Printing Invoice",
+            function (oAction) {
+                var addStr = "";
+                if (oAction == "PRICE") addStr = "price/";
+                var dt = Util.execSQLWithData("select location_code,invoice_no from pur1 where keyfld=" + kfld);
+                if (dt.length > 0) {
+                    var invn = dt[0].INVOICE_NO;
+                    var loc = dt[0].LOCATION_CODE;
+                    Util.printServerReport("br/kha/" + Util.nvl(addStr, "") + "brsale", "_para_pfromno=" +
+                        invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
+                }
+            }, ["PRICE", "ITEMS"]
+
+        );
+
+
+
     },
     validateSave: function () {
 

@@ -65,7 +65,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         qr.getControl().setFixedBottomRowCount(0);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(recs);
-        var filtercol = ["INVOICE_NO", "C_CUS_NO", "INV_REFNM", "ADD_AMT", "DISC_AMT", "INV_AMT", "NET_AMT"]
+        var filtercol = ["INVOICE_NO", "TYPEDESCR","C_CUS_NO", "INV_REFNM", "ADD_AMT", "DISC_AMT", "INV_AMT", "NET_AMT"]
         UtilGen.createDefaultToolbar2(qr, filtercol, false);
         qr.insertable = false;
         qr.deletable = false;
@@ -208,9 +208,9 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         var knd = Util.nvl(UtilGen.getControlValue(kind), 21);
         var cst = txtCust.getValue();
 
-        var dt = Util.execSQL("select *from (select p.INVOICE_NO,p.INVOICE_DATE,p.C_CUS_NO,p.INV_REFNM, " +
-            "  p.INV_AMT,p.DEPTNO ADD_AMT,p.DISC_AMT,(p.INV_AMT+p.DEPTNO)-p.DISC_AMT NET_AMT,p.location_code,l.name location_name, p.keyfld FROM PUR1 p,locations l " +
-            " WHERE p.location_code=l.code and p.INVOICE_CODE=" + knd + " order by p.invoice_date desc ) i1  where (rownum<=" +
+        var dt = Util.execSQL("select *from (select p.INVOICE_NO,I.DESCR TYPEDESCR,p.INVOICE_DATE,p.C_CUS_NO,p.INV_REFNM, " +
+            "  p.INV_AMT,p.DEPTNO ADD_AMT,p.DISC_AMT,(p.INV_AMT+p.DEPTNO)-p.DISC_AMT NET_AMT,p.location_code,l.name location_name, p.keyfld FROM PUR1 p,locations l,invoicetype i " +
+            " WHERE p.location_code=l.code and i.location_code=p.location_code and i.no=p.type and p.INVOICE_CODE=" + knd + " order by p.CREATDT desc ) i1  where (rownum<=" +
             dys + " or " + dys + "=-1 ) and (c_cus_no='" + cst + "' or '" + cst + "' is null) ");
 
         if (dt.ret == "SUCCESS") {
@@ -226,6 +226,8 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
             qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].mTitle = Util.getLangText("txtAddAmt");
             qv.mLctb.cols[qv.mLctb.getColPos("DISC_AMT")].mTitle = Util.getLangText("txtDisc");
             qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].mTitle = Util.getLangText("txtNetAmt");
+            qv.mLctb.cols[qv.mLctb.getColPos("TYPEDESCR")].mTitle = Util.getLangText("vouType");
+            
 
             qv.mLctb.cols[qv.mLctb.getColPos("KEYFLD")].getMUIHelper().display_width = 0;
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_NO")].getMUIHelper().display_width = 80;
@@ -237,6 +239,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
             qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_DATE")].getMUIHelper().display_width = 100;
+            qv.mLctb.cols[qv.mLctb.getColPos("TYPEDESCR")].getMUIHelper().display_width = 70;
 
             qv.mLctb.cols[qv.mLctb.getColPos("INV_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
             qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";

@@ -864,6 +864,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             Util.printServerReport("br/brsale", "_para_pfromno=" +
                 invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
         }
+
     },
     validateSave: function () {
 
