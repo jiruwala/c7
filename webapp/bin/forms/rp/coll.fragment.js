@@ -86,6 +86,12 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    onSubTitHTML: function () {
+                        var tbstr = Util.getLangText("titDlvDetails");
+                        var ht = "<div class='reportTitle'>Periodic cash & Cheque collection report</div > ";
+                        return ht;
+
+                    },
                     showCustomPara: function (vbPara, rep) {
 
                     },
@@ -186,10 +192,6 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
 
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [

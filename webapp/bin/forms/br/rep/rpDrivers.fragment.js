@@ -113,10 +113,17 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                 },
                                 beforeLoadQry: function (sql) {
                                     var oy = thatForm.frm.getFieldValue("RPDRIVER1@parameter.showTruck");
-                                    var tr = oy == "Y" ? ",NVL(JOINED_CORDER.payterm,vehicleno) vehicleno, haddr ,JOINED_CORDER.location_name" : "";
-                                    var tr1 = oy == "Y" ? ",NVL(JOINED_CORDER.payterm,vehicleno), haddr,JOINED_CORDER.location_name " : "";
+                                    var cold = {
+                                        "details": ",NVL(JOINED_CORDER.payterm,vehicleno) vehicleno, haddr ,JOINED_CORDER.location_name, JOINED_CORDER.BRANCH_NAME ",
+                                        "detailsGrp": ",NVL(JOINED_CORDER.payterm,vehicleno), haddr,JOINED_CORDER.location_name , JOINED_CORDER.BRANCH_NAME ",
+                                        "summarysite": ", JOINED_CORDER.BRANCH_NAME ",
+                                        "summarysiteGrp": ", JOINED_CORDER.BRANCH_NAME ",
+                                    }
+                                    var tr = Util.nvl(cold[oy], "");
+                                    var tr1 = Util.nvl(cold[oy + "Grp"], "");
+
                                     var sq = "SELECT " +
-                                        " SUM(qty_x/pack_x) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT," +
+                                        " SUM(qty_x/pack_x) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT , " +
                                         " count(*) counts,ord_empno,driver_name " + tr +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
@@ -126,7 +133,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                         " AND ORD_DATE<=:parameter.todate  " +
                                         "  )" +
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
-                                        " AND (JOINED_CORDER.location_code=':parameter.ploc' or NVL(':parameter.ploc','ALL') ='ALL') " +
+                                        " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
+                                        " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                                         " GROUP BY ord_empno," +
                                         " DRIVER_NAME" + tr1 +
                                         " ORDER BY ord_empno ";
@@ -135,11 +143,12 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
                                         var iq = thatForm.frm.getFieldValue("parameter.showTruck");
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mGrouped = iq == "Y";
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_EMPNO")].mGrouped = iq == "Y";
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("VEHICLENO")].mHideCol = iq != "Y";
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("HADDR")].mHideCol = iq != "Y";
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mHideCol = iq != "Y";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mGrouped = iq == "details";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_EMPNO")].mGrouped = iq == "details";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("VEHICLENO")].mHideCol = iq != "details";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("HADDR")].mHideCol = iq != "details";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mHideCol = iq != "details";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BRANCH_NAME")].mHideCol = (iq != "details" && iq != "summarysite");
                                     }
                                 },
                                 fields: thatForm.helperFunc.getFields("RPDRIVER1")
@@ -209,7 +218,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                 ploc: {
                     colname: "ploc",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
                     title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
@@ -224,9 +233,11 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "ALL",
+                        showSelectAll: true,
+                        selectedKeys: Util.getSQLColArray("select code from locations order by code")
+
                     },
-                    list: "select 'ALL' code,'ALL' name from dual union all select code,name from locations order by code",
+                    list: "select code,name from locations order by code",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -286,23 +297,49 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     require: false,
                     dispInPara: true,
                 },
+                ptype: {
+                    colname: "ptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtOrdType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "1",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
                 showTruck: {
                     colname: "showTruck",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.CHECKBOX,
-                    title: '{\"text\":\"txtShowTrucks\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"reportType\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     display_width: colSpan,
                     display_align: "ALIGN_LEFT",
                     display_style: "",
                     display_format: "",
                     default_value: "Y",
-                    other_settings: { selected: false, width: "20%", trueValues: ["Y", "N"] },
+                    other_settings: {
+                        selected: false, width: "20%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "details",
+                    },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false,
                     dispInPara: true,
-                    trueValues: ["Y", "N"]
+                    list: "@summary/txtSummary,details/txtDriverWithTruckSite,summarysite/txtSummarySite",
                 },
             };
             return para;
@@ -406,6 +443,24 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     other_settings: {},
 
                 },
+                branch_name: {
+                    colname: "branch_name",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtBranches",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "200",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+
                 counts: {
                     colname: "counts",
                     data_type: FormView.DataType.Number,

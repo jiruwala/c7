@@ -1398,9 +1398,11 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             var headerg = {};
             var grpCol = "";
             var grouped = false;
+
+            // checking if number format is following 
+            var numberFormats = { "NONE": "NONE", "QTY_FORMAAT": "QTY_FORMAT", "MONEY_FORMAT": "MONEY_FORMAT" };
+
             // merging first and second column
-
-
             if (this.colMerged == false &&
                 this.mLctb.cols[0].mGrouped &&
                 this.mLctb.cols.length > 1
@@ -1466,10 +1468,16 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                                     grp = sf.format(dt);
                                 }
                             }
+                            var fmt = this.mLctb.getColByName(vv).getMUIHelper().display_format
                             if (this.mLctb.getColByName(vv).getMUIHelper().display_format === "MONEY_FORMAT")
                                 grp = df.format(o[i][v]);
                             if (this.mLctb.getColByName(vv).getMUIHelper().display_format === "QTY_FORMAT")
                                 o[i][v] = dfq.format(o[i][v]);
+                            if (this.mLctb.getColByName(vv).getMUIHelper().display_format != "" && typeof (o[i][v]) == "number"
+                                && numberFormats[fmt] == undefined) {
+                                var dfx = new DecimalFormat(this.mLctb.getColByName(vv).getMUIHelper().display_format);
+                                o[i][v] = dfx.format(o[i][v]);
+                            }
 
                             headerg = {};
                             headerg[t] = String.fromCharCode(4094);
@@ -1516,23 +1524,31 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             footerg[v] = null;
                             footer[v] = null;
                         }
+                        if (this.mLctb.getColByName(vv) != undefined) {
+                            var fmt = this.mLctb.getColByName(vv).getMUIHelper().display_format;
+                            if (this.mLctb.getColByName(vv) != undefined &&
+                                this.mLctb.getColByName(vv).valOnZero != undefined &&
+                                o[i][v] == 0)
+                                o[i][v] = this.mLctb.getColByName(vv).valOnZero;
+                            else if (this.mLctb.getColByName(vv) != undefined && fmt === "MONEY_FORMAT")
+                                o[i][v] = df.format(o[i][v]);
+                            else if (this.mLctb.getColByName(vv) != undefined && fmt === "QTY_FORMAT")
+                                o[i][v] = dfq.format(o[i][v]);
+                            else if (this.mLctb.getColByName(vv) != undefined &&
+                                typeof (o[i][v]) == "number" &&
+                                Util.nvl(fmt, "") != "" &&
+                                numberFormats[fmt] == undefined) {
+                                var dfx = new DecimalFormat(fmt);
+                                o[i][v] = dfx.format(o[i][v]);
+                            }
 
-                        if (this.mLctb.getColByName(vv) != undefined &&
-                            this.mLctb.getColByName(vv).valOnZero != undefined &&
-                            o[i][v] == 0)
-                            o[i][v] = this.mLctb.getColByName(vv).valOnZero;
-                        else if (this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).getMUIHelper().display_format === "MONEY_FORMAT")
-                            o[i][v] = df.format(o[i][v]);
-                        else if (this.mLctb.getColByName(vv) != undefined && this.mLctb.getColByName(vv).getMUIHelper().display_format === "QTY_FORMAT")
-                            o[i][v] = dfq.format(o[i][v]);
-
-                        // adding trueValues in case check box
-                        if (this.mLctb.getColByName(vv) != undefined &&
-                            this.mLctb.getColByName(vv).trueValues != undefined &&
-                            this.mLctb.getColByName(vv).trueValues.length > 1) {
-                            o[i][v] = (o[i][v] == this.mLctb.getColByName(vv).trueValues[0]);
+                            // adding trueValues in case check box
+                            if (this.mLctb.getColByName(vv) != undefined &&
+                                this.mLctb.getColByName(vv).trueValues != undefined &&
+                                this.mLctb.getColByName(vv).trueValues.length > 1) {
+                                o[i][v] = (o[i][v] == this.mLctb.getColByName(vv).trueValues[0]);
+                            }
                         }
-
 
                     }
                     else {
@@ -1584,10 +1600,21 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
                 if (grouped && i > o.length - 2) {
                     for (var fv in footerg) { // formating...
-                        if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "MONEY_FORMAT")
+                        if (fv == "_rowid" ||
+                            this.mLctb.getColByName(fv.replace(/___/g, "/")) == undefined)
+                            continue;
+                        var fmt = this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format;
+                        if (fv != "_rowid" && fmt === "MONEY_FORMAT")
                             footerg[fv] = df.format(footerg[fv]);
-                        if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "QTY_FORMAT")
+                        if (fv != "_rowid" && fmt === "QTY_FORMAT")
                             footerg[fv] = dfq.format(footerg[fv]);
+                        if (fv != "_rowid" && Util.nvl(fmt, "") != "" &&
+                            numberFormats[fmt] == undefined &&
+                            typeof footerg[fv] == "number") {
+                            var dfx = new DecimalFormat(this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format);
+                            footerg[fv] = dfx.format(footerg[fv]);
+                        }
+
                     }
                     o.splice(i + 1, 0, footerg);
                     grp = o[i][t];
@@ -1599,23 +1626,43 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 // checking for next record is different group...
                 if (grouped && t != undefined && i + 1 < o.length) {
                     var nxt = o[i + 1][t];
+
                     if (t != undefined && this.mLctb.getColByName(t).getMUIHelper().display_format === "SHORT_DATE_FORMAT") {
                         if (Util.nvl(o[i][t], "").length > 0) {
                             var dt = new Date(Util.nvl(o[i + 1][t], "").replaceAll(".", ":"));
                             nxt = sf.format(dt);
                         }
                     }
-                    if (t != undefined && this.mLctb.getColByName(t).getMUIHelper().display_format === "MONEY_FORMAT")
-                        nxt = df.format(o[i + 1][t]);
-                    if (t != undefined && this.mLctb.getColByName(t).getMUIHelper().display_format === "QTY_FORMAT")
-                        nxt = dfq.format(o[i + 1][t]);
+                    if (this.mLctb.getColByName(t) != undefined) {
+                        var fmt = this.mLctb.getColByName(t).getMUIHelper().display_format
 
+                        if (t != undefined && fmt === "MONEY_FORMAT")
+                            nxt = df.format(o[i + 1][t]);
+                        if (t != undefined && fmt === "QTY_FORMAT")
+                            nxt = dfq.format(o[i + 1][t]);
+                        if (t != undefined &&
+                            Util.nvl(fmt, "") != "" && numberFormats[fmt] == undefined && typeof o[i + 1][t] == "number") {
+                            var dfx = new DecimalFormat(fmt);
+                            nxt = dfx.format(o[i + 1][t]);
+                        }
+                    }
                     if (grp != nxt) {
                         for (var fv in footerg) {// formating...
-                            if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "MONEY_FORMAT")
+                            if (fv == "_rowid" ||
+                                this.mLctb.getColByName(fv.replace(/___/g, "/")) == undefined)
+                                continue;
+                            var fmt = this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format;
+                            if (fv != "_rowid" && fmt === "MONEY_FORMAT")
                                 footerg[fv] = df.format(footerg[fv]);
-                            if (fv != "_rowid" && this.mLctb.getColByName(fv.replace(/___/g, "/")).getMUIHelper().display_format === "QTY_FORMAT")
+                            if (fv != "_rowid" && fmt === "QTY_FORMAT")
                                 footerg[fv] = dfq.format(footerg[fv]);
+                            if (fv != "_rowid" &&
+                                Util.nvl(fmt, "") != "" && numberFormats[fmt] == undefined && typeof footerg[fv] == "number") {
+                                var dfx = new DecimalFormat(fmt);
+                                footerg[fv] = dfx.format(footerg[fv]);
+                            }
+
+
                         }
                         o.splice(i + 1, 0, footerg);
                         grp = nxt;
@@ -1634,11 +1681,22 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             }
             for (var fv in footer)  // formating...
             {
+
                 var fvv = fv.replace("___", "/");
-                if (fv != "_rowid" && this.mLctb.getColByName(fvv) != undefined && this.mLctb.getColByName(fvv).getMUIHelper().display_format === "MONEY_FORMAT")
+                if (fv == "_rowid" ||
+                    this.mLctb.getColByName(fvv) == undefined)
+                    continue;
+
+                var fmt = this.mLctb.getColByName(fvv) != undefined && this.mLctb.getColByName(fvv).getMUIHelper().display_format;
+                if (fv != "_rowid" && fmt === "MONEY_FORMAT")
                     footer[fv] = df.format(footer[fv]);
-                if (fv != "_rowid" && this.mLctb.getColByName(fvv) != undefined && this.mLctb.getColByName(fvv).getMUIHelper().display_format === "QTY_FORMAT")
+                if (fv != "_rowid" && fmt === "QTY_FORMAT")
                     footer[fv] = dfq.format(footer[fv]);
+                if (fv != "_rowid" &&
+                    Util.nvl(fmt, "") != "" && numberFormats[fmt] == undefined && typeof footer[fv] == "number") {
+                    var dfx = new DecimalFormat(fmt);
+                    footer[fv] = dfx.format(footer[fv]);
+                }
 
             }
 

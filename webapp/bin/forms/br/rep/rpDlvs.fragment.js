@@ -130,14 +130,16 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=9 " +
                                         " AND SALEINV=INVOICE1.KEYFLD (+) " +
-                                        " and (invoice1.invoice_no=':parameter.pinvoice_no' or ':parameter.pinvoice_no' is null)  " +
+                                        " and (invoice1.invoice_no=':parameter.pinvoice_no' or ':parameter.pinvoice_no' is null)  " +                                        
                                         " AND ORD_DATE>=:parameter.fromdate " +
                                         " AND ORD_DATE<=:parameter.todate  " +
                                         "  )" +
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
                                         " AND (ORD_DISCAMT=':parameter.psite' OR RTRIM(':parameter.psite') IS NULL)" +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
-                                        " AND (JOINED_CORDER.location_code=':parameter.ploc' or NVL(':parameter.ploc','ALL') ='ALL') " +
+                                        // " AND (JOINED_CORDER.location_code=':parameter.ploc' or NVL(':parameter.ploc','ALL') ='ALL') " +
+                                        " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +                                        
+                                        " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                                         " GROUP BY " +
                                         " ORD_REF, ORD_REFNM," +
                                         " JOINED_CORDER.location_code, " +
@@ -226,7 +228,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                 ploc: {
                     colname: "ploc",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
                     title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
@@ -241,9 +243,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "ALL",
+                        showSelectAll: true,
+                        selectedKeys: Util.getSQLColArray("select code from locations order by code")
                     },
-                    list: "select 'ALL' code,'ALL' name from dual union all select code,name from locations order by code",
+                    list: "select code,name from locations order by code",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -416,6 +419,24 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     require: false,
                     dispInPara: true,
                 },
+                ptype: {
+                    colname: "ptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtOrdType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "1",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
                 pinvoice_no: {
                     colname: "pinvoice_no",
                     data_type: FormView.DataType.String,
@@ -480,7 +501,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                         },
                         selectedKey: "ord_no",
                     },
-                    list: "@ord_no/txtByOrdNo,ord_date/txtByDate,ord_ref/txtByCust",
+                    list: "@ord_no/txtByOrdNo,ord_date/txtByDate,ord_ref/txtByCust,ord_discamt/Branch",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,

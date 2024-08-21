@@ -156,6 +156,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                         "  )" +
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
+                                        " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
+                                        " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                                         " GROUP BY " +
                                         " ORD_REF, ORD_REFNM,saleinv," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
@@ -239,7 +241,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                 ploc: {
                     colname: "ploc",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
                     title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
@@ -254,9 +256,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "ALL",
+                        showSelectAll: true,
+                        // selectedKeys: Util.getSQLColArray("select code from locations order by code")
                     },
-                    list: "select 'ALL' code,'ALL' name from dual union all select code,name from locations order by code",
+                    list: "select code,name from locations order by code",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -367,6 +370,24 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     list: undefined,
                     edit_allowed: false,
                     insert_allowed: false,
+                    require: false,
+                    dispInPara: true,
+                },
+                ptype: {
+                    colname: "ptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtOrdType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "1",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
                     require: false,
                     dispInPara: true,
                 },
@@ -495,7 +516,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_format: "QTY_FORMAT",
                     default_value: "",
                     other_settings: {},
-                    summary:"SUM",
+                    summary: "SUM",
                 },
                 packd_x: {
                     colname: "packd_x",

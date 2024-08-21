@@ -158,7 +158,9 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 disp_class: "reportTable2",
                                 dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 25 },
                                 execOnShow: false,
-                                dml: "SELECT   REFER, nvl(descr,descra) DESCRA, ITPACKD," +
+                                dml: "SELECT   REFER, nvl(descr,descra) DESCRA, ITPACKD, " +
+                                    "NVL (SUM (ROUND ( (qtyin ), 3) / PACK), 0) qtyin ," +
+                                    "NVL (SUM (ROUND ( (qtyout ), 3) / PACK), 0) qtyout ," +
                                     "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0) qtyx, MAX(0) PACK_COST," +
                                     "PKAVER, NVL (SUM ( (pkcost / itpack) * (qtyin - qtyout)), 0) costamt, descr2," +
                                     "PARENTITEM , PARENTITEMDESCR " +
@@ -251,11 +253,11 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
-                                    qtyx: {
-                                        colname: "qtyx",
+                                    qtyin: {
+                                        colname: "qtyin",
                                         data_type: FormView.DataType.Number,
                                         class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemPackQty",
+                                        title: "qtyIn",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
@@ -263,7 +265,41 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    qtyout: {
+                                        colname: "qtyout",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "qtyOut",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "90",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    qtyx: {
+                                        colname: "qtyx",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "balanceTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "90",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
                                         commandLinkClick: cmdLink

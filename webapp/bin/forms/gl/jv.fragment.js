@@ -128,6 +128,15 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
 
                         }
 
+                        // if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
+                        //     qry.obj.mLctb.getColByName("ORD_SHIP").beforeSearchEvent = function (sq, ctx, model) {
+                        //         qry.obj.mLctb.getColByName("ACCNO").btnsx = [];
+                        //         if (Util.nvl(sett["JV_INCLUDE_CUSTOMERS_IN_LIST"], "FALSE") == "TRUE") {                                                                    
+                        //             return thatForm.frm.parseString(sq);
+                        //         }
+                        //         return thatForm.frm.parseString(sq);
+                        //     };
+
                     },
                     beforeLoadQry: function (qry, sql) {
                         return sql;

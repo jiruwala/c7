@@ -621,6 +621,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                     require: false,
                     dispInPara: true,
                 },
+
                 pcustname: {
                     colname: "pcustname",
                     data_type: FormView.DataType.String,
@@ -663,6 +664,24 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
+                    dispInPara: true,
+                },
+                ptype: {
+                    colname: "ptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtOrdType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "1",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
                     dispInPara: true,
                 },
                 grpby: {
@@ -726,6 +745,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                 " invoice_date<=:parameter.todate and " +
                 " (c_cus_no=':parameter.pcust' or ':parameter.pcust' is null )   and " +
                 " (location_code=':parameter.ploc' or ':parameter.ploc'='ALL') " +
+                " AND (type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                 " and invoice_code in (21,12) group by :grpByCols ";
             var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
             var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");

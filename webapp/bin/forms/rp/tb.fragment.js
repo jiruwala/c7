@@ -44,14 +44,14 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("finStat"),
+            title: Util.getLangText("tbName1"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "TB001",
                     name: Util.getLangText("tbName1"),
-                    descr: Util.getLangText("tbTit1"),
+                    descr: Util.getLangText("tbName1"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -74,14 +74,10 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: ReportUtils.Report.getMainParaContainerSettings(),
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("TB001"),
                         print_templates: [
-                            {
-                                title: "PL Report",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -182,7 +178,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
             var view = this.thatForm.view;
             var colSpan = "XL2 L2 M2 S12";
             var sumSpan = "XL2 L2 M2 S12";
-
+            var strLst = "@trans/repTBTrans,balance/repTBBal";
             var para = {
                 fromdate: {
                     colname: "fromdate",
@@ -348,6 +344,32 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     require: true,
                     dispInPara: true,
                 },
+                reportType: {
+                    colname: "reportType",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"reportType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "balance",
+                    },
+                    list: strLst,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
                 unposted: {
                     colname: "unposted",
                     data_type: FormView.DataType.String,
@@ -507,6 +529,15 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     ld.getColByName("ACCNO").mTitle = Util.getLangText("accNo");
                     ld.getColByName("NAME").mTitle = Util.getLangText("titleTxt");
 
+                    var rt = thatForm.frm.getFieldValue("TB001@parameter.reportType");
+                    if (rt == "balance") {
+
+                        ld.getColByName("BDEB").mHideCol = true;
+                        ld.getColByName("BCRD").mHideCol = true;
+                        ld.getColByName("TDEB").mHideCol = true;
+                        ld.getColByName("TCRD").mHideCol = true;
+
+                    }
 
 
 

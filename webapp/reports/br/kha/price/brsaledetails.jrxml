@@ -22,7 +22,7 @@ and pur2.ordwas=o.keyfld and o.ord_pos=orderno
  AND  (ITEMS.REFERENCE=PUR2.REFER)
  and pur2.keyfld=$P{KEYFLD}
  group by pur2.refer,pur2.type,pur2.invoice_no,items.descr,pur2.packd,pur2.price,pur2.pack,o.attn
-ORDER BY PUR2.price]]>
+ORDER BY PUR2.PRICE]]>
 	</queryString>
 	<field name="REFER" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="REFER"/>
@@ -126,8 +126,7 @@ ORDER BY PUR2.price]]>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
 						<font fontName="DejaVu Sans" size="10" isBold="true"/>
 					</textElement>
-					<text><![CDATA[Pack D
-الشد]]></text>
+					<text><![CDATA[Unit وحدة]]></text>
 				</staticText>
 				<staticText>
 					<reportElement mode="Opaque" x="391" y="0" width="60" height="29" backcolor="rgba(45, 127, 237, 0.0)" uuid="38699a36-d4cf-4f60-b205-16abf5c437c4">

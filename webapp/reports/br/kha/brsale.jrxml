@@ -37,7 +37,7 @@
 	<queryString>
 		<![CDATA[SELECT ALL pur1.keyfld,PUR1.INVOICE_NO, PUR1.INVOICE_DATE, 
 DECODE(TYPE,1,'CREDIT',2,'CASH',3,'CHEQUE',4,'K-NET') TYPEE,CTG,
-PUR1.SLSMN, lpno,duedate,PUR1.memo,c_cus_no,
+PUR1.SLSMN, lpno,duedate,PUR1.memo,c_cus_no,pur1.reference_information,
 PUR1.INV_REF, PUR1.INV_REFNM, PUR1.STRA, PUR1.DISC_AMT,TYPE,DEPTNO,c_branch_no,
 pur1.inv_amt ,pur1.deptno add_amt,(pur1.inv_amt+pur1.deptno)-pur1.disc_amt net_amt,
 (
@@ -90,6 +90,10 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 		<property name="com.jaspersoft.studio.field.name" value="C_CUS_NO"/>
 		<property name="com.jaspersoft.studio.field.label" value="C_CUS_NO"/>
 	</field>
+	<field name="REFERENCE_INFORMATION" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="REFERENCE_INFORMATION"/>
+		<property name="com.jaspersoft.studio.field.label" value="REFERENCE_INFORMATION"/>
+	</field>
 	<field name="INV_REF" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="INV_REF"/>
 		<property name="com.jaspersoft.studio.field.label" value="INV_REF"/>
@@ -126,7 +130,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 		<property name="com.jaspersoft.studio.field.name" value="ADD_AMT"/>
 		<property name="com.jaspersoft.studio.field.label" value="ADD_AMT"/>
 	</field>
-	<field name="NET_AMT" class="java.lang.Double">
+	<field name="NET_AMT" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.name" value="NET_AMT"/>
 		<property name="com.jaspersoft.studio.field.label" value="NET_AMT"/>
 	</field>
@@ -179,7 +183,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					<textFieldExpression><![CDATA[$F{INVOICE_NO}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="100" y="237" width="467" height="20" uuid="86f2c0e9-2b8d-48f3-bb04-89f2d5fb076a"/>
+					<reportElement style="strHeader" x="100" y="237" width="310" height="20" uuid="86f2c0e9-2b8d-48f3-bb04-89f2d5fb076a"/>
 					<box>
 						<pen lineWidth="0.25" lineStyle="Dashed"/>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -271,6 +275,33 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					</textElement>
 					<text><![CDATA[Site:]]></text>
 				</staticText>
+				<staticText>
+					<reportElement style="labelHeader" x="405" y="237" width="36" height="20" uuid="9bc97fff-e67f-4675-b686-9c26fe23d1b2"/>
+					<box leftPadding="2" rightPadding="1">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[PO]]></text>
+				</staticText>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="450" y="237" width="123" height="20" uuid="a69f063d-a839-4fa4-8b09-70d5b456009c"/>
+					<box>
+						<pen lineWidth="0.25" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{REFERENCE_INFORMATION}]]></textFieldExpression>
+				</textField>
 			</band>
 		</groupHeader>
 		<groupFooter>
@@ -444,6 +475,19 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 						<font fontName="DejaVu Sans" size="10" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA["تعتبر البيانات الواردة فى الفاتورة صحيحة مالم يرد اى استفسار من قبلكم خلال 15 يوم من تاريخ استلام الفاتورة"]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="70" y="10" width="390" height="20" uuid="8e9f5947-216f-4e97-b723-20789ff333bd"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["إجمالي"]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupFooter>

@@ -1094,7 +1094,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                 pvl = (flds[f].obj instanceof sap.m.CheckBox) ?
                                     (flds[f].obj.getSelected() ?
                                         flds[f].obj.trueValues[0] : flds[f].obj.trueValues[1])
-                                    : flds[f].obj.getValue();
+                                    : UtilGen.getControlValue(flds[f].obj);
                                 if (flds[f].data_type == FormView.DataType.Date)
                                     pvl = sf.format(UtilGen.getControlValue(flds[f].obj));
                                 if (UtilGen.nvl(pvl, "") != "")
@@ -2162,7 +2162,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     }
 
                 });
-
+                thatRV.cmdExe.setEnabled(true);
                 thatRV.status_of_rep = stat;
                 thatRV.helperFunctions.mainPop.cmdExe.setEnabled(true);
                 if (thatRV.helperFunctions.mainPop.cmdExe != undefined)
@@ -2173,6 +2173,10 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     if (thatRV.rcv_data_timer != undefined)
                         clearInterval(thatRV.rcv_data_timer);
                 if (stat == "START") {
+                    thatRV.cmdExe.setEnabled(false);
+                    if (thatRV.helperFunctions.mainPop.cmdExe != undefined)
+                        thatRV.helperFunctions.mainPop.cmdExe.setEnabled(false);
+
                     thatRV.bat7GetParas(rep.code, rptNo);
                     thatRV.txtMsg.setText("Executing..");
                     thatRV.helperFunctions.mainPop.txtMsg.setText("Executing..");
@@ -2185,6 +2189,10 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     return;
                 }
                 if (stat == "END") {
+                    thatRV.cmdExe.setEnabled(true);
+                    if (thatRV.helperFunctions.mainPop.cmdExe != undefined)
+                        thatRV.helperFunctions.mainPop.cmdExe.setEnabled(true);
+
                     if (thatRV.txtMsg2 != undefined)
                         thatRV.txtMsg2.removeStyleClass("blinking");
                     if (thatRV.txtMsg != undefined)
@@ -2381,7 +2389,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                         if (thatRV.rcv_data_timer != undefined)
                             clearInterval(thatRV.rcv_data_timer);
                     }
-                    if (thatRV.initV && Util.nvl(thatRV.frag.oController.para_EXEC_REP, 'false') != 'true' &&  Util.nvl(thatRV.frag.oController.para_PARAFORM, 'true') != 'false') {
+                    if (thatRV.initV && Util.nvl(thatRV.frag.oController.para_EXEC_REP, 'false') != 'true' && Util.nvl(thatRV.frag.oController.para_PARAFORM, 'true') != 'false') {
                         sap.m.MessageBox.confirm(Util.getLangText("msgLastRepSaved"), {
                             title: "Confirm",                                    // default
                             onClose: function (oAction) {
@@ -2430,6 +2438,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 if (stat == "ERROR") {
                     thatRV.createView(true);
                     thatRV.showDispInMaster(rptNo);
+                    thatRV.cmdExe.setEnabled(true);
                     thatRV.helperFunctions.mainPop.showDispInMaster(rptNo);
                     if (thatRV.rcv_data_timer != undefined)
                         clearInterval(thatRV.rcv_data_timer);
@@ -2497,6 +2506,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
                 if (data.ret == "SUCCESS") {
                     // thatRV.cmdExe.setEnabled(false);
+                    // thatRV.cmdExe.setEnabled(true);
                     thatRV.cmdClr.setEnabled(true);
                     // if (thatRV.helperFunctions.mainPop.cmdExe != undefined)
                     //     thatRV.helperFunctions.mainPop.cmdExe.setEnabled(false);
@@ -3625,7 +3635,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     pvl = (flds[f].obj instanceof sap.m.CheckBox) ?
                         (flds[f].obj.getSelected() ?
                             flds[f].obj.trueValues[0] : flds[f].obj.trueValues[1])
-                        : flds[f].obj.getValue();
+                        : UtilGen.getControlValue(flds[f].obj);//flds[f].obj.getValue();
                     if (flds[f].data_type == FormView.DataType.Date)
                         pvl = sf.format(UtilGen.getControlValue(flds[f].obj));
                     if (UtilGen.nvl(pvl, "") != "")
@@ -3707,7 +3717,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     pvl = (flds[f].obj instanceof sap.m.CheckBox) ?
                         (flds[f].obj.getSelected() ?
                             flds[f].obj.trueValues[0] : flds[f].obj.trueValues[1])
-                        : flds[f].obj.getValue();
+                        : UtilGen.getControlValue(flds[f].obj);//flds[f].obj.getValue();
                     if (flds[f].data_type == FormView.DataType.Date)
                         pvl = sf.format(UtilGen.getControlValue(flds[f].obj));
                     if (UtilGen.nvl(pvl, "") != "")

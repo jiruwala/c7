@@ -74,9 +74,10 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                     var rptNo = idx;
                                     paras["pcust"] = thatForm.frm.objs[repCode + "@parameter.pcust"].obj.mainObj;
                                     paras["pbranch"] = thatForm.frm.objs[repCode + "@parameter.pbranch"].obj.mainObj;
-                                    paras["pfromdate"] = thatForm.frm.objs[repCode + "@parameter.fromdate"].obj.mainObj;
-                                    paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
+                                    paras["fromdate"] = thatForm.frm.objs[repCode + "@parameter.fromdate"].obj.mainObj;
+                                    paras["todate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
                                     paras["inclUnpost"] = thatForm.frm.objs[repCode + "@parameter.inclUnpost"].obj.mainObj;
+                                    paras["inclUnpostDlv"] = thatForm.frm.objs[repCode + "@parameter.inclUnpostDlv"].obj.mainObj;
                                     // paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
                                     for (var fld in paras) {
                                         var vl = UtilGen.getControlValue(paras[fld]);
@@ -345,7 +346,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                     colname: "inclUnpost",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.CHECKBOX,
-                    title: '{\"text\":\"paraInclUnpost\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                    title: '{\"text\":\"paraInclUnpost\",\"width\":\"40%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     display_width: colSpan,
                     display_align: "ALIGN_LEFT",
@@ -353,6 +354,24 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                     display_format: "",
                     default_value: "Y",
                     other_settings: { selected: true, width: "10%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
+                inclUnpostDlv: {
+                    colname: "inclUnpostDlv",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '@{\"text\":\"paraInclUnpostDlv\",\"width\":\"40%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "N",
+                    other_settings: { selected: false, width: "10%", trueValues: ["Y", "N"] },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false,
@@ -372,6 +391,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
             var sett = sap.ui.getCore().getModel("settings").getData();
             var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
             var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
+            var incUnpostDlv = thatForm.frm.getFieldValue("parameter.inclUnpostDlv");
             var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
             // if (bk.length > 0) {
             var plsql = "declare ";
@@ -435,6 +455,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
 
             var paras = "fromdt date := :parameter.fromdate;";
             paras += "todt date := :parameter.todate;";
+            paras += "pincup_dlv varchar2(255) := ':parameter.inclUnpostDlv'; ";
             paras += "pincup varchar2(255) := ':parameter.inclUnpost'; ";
             paras += "toacc varchar2(100) := ''; ";
             paras += "cstcent varchar2(100) := ''; ";

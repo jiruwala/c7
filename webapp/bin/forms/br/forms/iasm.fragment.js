@@ -782,13 +782,13 @@ sap.ui.jsfragment("bin.forms.br.forms.iasm", {
                     list_type: "sql",
                     cols: [
                         {
-                            colname: "ORD_NO",
+                            colname: "INVOICE_NO",
                         },
                         {
-                            colname: "ORD_REF",
+                            colname: "MEMO",
                         },
                         {
-                            colname: "ORD_REFNM"
+                            colname: "INVOICE_DATE"
                         },
                         {
                             colname: 'KEYFLD',

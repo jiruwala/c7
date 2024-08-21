@@ -1842,7 +1842,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     jQuery.sap.require("sap.m.MessageBox");
                 var ea = Util.nvl(actions, [sap.m.MessageBox.Action.CLOSE]);
                 sap.m.MessageBox.confirm(msg, {
-                    title: Util.nvl(title, "Confirm") ,                                   // default
+                    title: Util.nvl(title, "Confirm"),                                   // default
                     emphasizedAction: ea,
                     actions: ea,
                     onClose: function (oAction) {
@@ -1852,6 +1852,32 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     styleClass: "",                                      // default
                     textDirection: sap.ui.core.TextDirection.Inherit     // default
                 });
+            },
+            extractQuotedStrings: function (input) {
+                // Regular expression to find all substrings within double quotes
+                const regex = /"(.*?)"/g;
+                let matches = [];
+                let match;
+
+                // Loop through all matches and add them to the result array
+                while ((match = regex.exec(input)) !== null) {
+                    matches.push(match[1]);
+                }
+
+                return matches;
+            },
+            getSQLColArray: function (sql, pcolname) {
+                var dt = Util.execSQLWithData(sql);
+                var ar = [];
+                if (dt.length == 0) return ar;
+                var colname = pcolname;
+                if (colname == undefined) {
+                    var ky = Object.keys(dt[0]);
+                    colname = ky[0];
+                }
+                for (var i = 0; i < dt.length; i++)
+                    ar.push(dt[i][colname]);
+                return ar;
             },
             getDefaultColumn: function () {
                 var col = {
