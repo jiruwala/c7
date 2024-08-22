@@ -63,7 +63,8 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
             }));
             mnu.openBy(obj);
 
-        }
+        };
+        cmdLink=undefined;
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};
         var fe = [];
@@ -149,10 +150,12 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
 
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select accno,name from acaccount where actype=0 and childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("VO001@parameter.accno", valx, valx, true);
-                                            thatForm.frm.setFieldValue("VO001@parameter.acname", val, val, true);
-                                        });
+                                        var sq = "select accno CODE,name from acaccount where actype=0 and childcount=0 order by path";
+                                        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                            thatForm.frm.setFieldValue("VO001@parameter.accno", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue("VO001@parameter.acname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
 
                                     },
                                     width: "35%"
@@ -196,16 +199,16 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                     showValueHelp: true,
                                     change: function (e) {
                                         var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue(repCode + "@parameter.pcust", vl, vl, false);
+                                        thatForm.frm.setFieldValue("VO001@parameter.pcust", vl, vl, false);
                                         var vlnm = Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", vlnm, vlnm, false);
-            
+                                        thatForm.frm.setFieldValue("VO001@parameter.pcustname", vlnm, vlnm, false);
+
                                     },
                                     valueHelpRequest: function (event) {
                                         var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
                                         Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
-                                            thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
-                                            thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
+                                            thatForm.frm.setFieldValue("VO001@parameter.pcust", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue("VO001@parameter.pcustname", data.NAME, data.NAME, true);
                                             return true;
                                         }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
                                     },
@@ -255,7 +258,7 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                     },
                                     selectedKey: "all",
                                 },
-                                list: "@all/txtShowBalance,ord_date/txtByDate,ord_ref/txtByCust,ord_discamt/Branch",
+                                list: "@all/txtShowAllBal,debit/txtShowDebit,credit/txtShowCredit",
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true,
@@ -263,10 +266,6 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                             },
                         },
                         print_templates: [
-                            {
-                                title: "Vouchers",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -285,16 +284,30 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ACCNO", "DESCR2", "VOU_DATE"],
+                                filterCols: ["ACCNO", "DESCR2", "VOU_DATE", "CUST_CODE", "DESCR", "BRANCH_NO"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 beforeLoadQry: function (sql) {
-                                    var sq = "select *from ACC_TRANSACTION " +
-                                        " where vou_date>=:parameter.fromdate  and " +
+                                    var sb = thatForm.frm.getFieldValue("parameter.showBalance");
+                                    var crit = "";
+                                    if (sb == "debit")
+                                        crit = " and (debit>0 and credit=0 ) "
+                                    if (sb == "credit")
+                                        crit = " and (debit=0 and credit>0 ) "
+                                    var sq = "select *from ACC_TRANSACTION_UP " +
+                                        " where vou_date>=:parameter.fromdate   " +
                                         " and vou_date<=:parameter.todate " +
+                                        " and debit+credit!=0 " +
                                         " and (accno=':parameter.accno' or ':parameter.accno' is null )  " +
-                                        " and (cust_code=':parameter.pcust' or ':parameter.pcust' is null)  " +                                        
+                                        " and (cust_code=':parameter.pcust' or ':parameter.pcust' is null)  " +
+                                        crit +
                                         " order by keyfld";
+
                                     return sq;
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    var sb = thatForm.frm.getFieldValue("parameter.showBalance");
+                                    qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DEBIT")].mHideCol = sb == "credit";
+                                    qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CREDIT")].mHideCol = sb == "debit";
                                 },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                 },
@@ -302,78 +315,11 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
 
                                 },
                                 fields: {
-                                    grpname_a: {
-                                        colname: "grpname_a",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "Type",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "150",
-                                        display_align: "ALIGN_CENTER",
-                                        grouped: true,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    vou_date: {
-                                        colname: "vou_date",
-                                        data_type: FormView.DataType.Date,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "Vou Date",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "100",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "SHORT_DATE_FORMAT",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    accno: {
-                                        colname: "accno",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "Acc No",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-
-                                    },
-                                    descr2: {
-                                        colname: "descr2",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "Name",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "375",
-                                        display_align: "ALIGN_LEFT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        display_type: "NONE",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
                                     debit: {
                                         colname: "debit",
                                         data_type: FormView.DataType.Number,
                                         class_name: FormView.ClassTypes.LABEL,
-                                        title: "Debit",
+                                        title: "debitTxt",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
@@ -390,7 +336,7 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                         colname: "credit",
                                         data_type: FormView.DataType.Number,
                                         class_name: FormView.ClassTypes.LABEL,
-                                        title: "Credit",
+                                        title: "creditTxt",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
@@ -403,7 +349,158 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
+                                    vou_date: {
+                                        colname: "vou_date",
+                                        data_type: FormView.DataType.Date,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "dateTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "SHORT_DATE_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    no: {
+                                        colname: "no",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "noTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
 
+                                    },
+                                    descr: {
+                                        colname: "descr",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "descrTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "300",
+                                        display_align: "ALIGN_LEFT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        display_type: "NONE",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    descr2: {
+                                        colname: "descr2",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "titleTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "300",
+                                        display_align: "ALIGN_LEFT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        display_type: "NONE",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    grpname_a: {
+                                        colname: Util.getLangDescrAR("grpname_a", "grpname"),
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "vouType",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    vou_date: {
+                                        colname: "vou_date",
+                                        data_type: FormView.DataType.Date,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "vouDate",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "SHORT_DATE_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    accno: {
+                                        colname: "accno",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "accNo",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+
+                                    },
+
+                                    cust_code: {
+                                        colname: "cust_code",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "refCode",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "80",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+
+                                    },
+                                    branch_no: {
+                                        colname: "branch_no",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "branchNoTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "50",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+
+                                    },
                                 }
                             }
                         ]

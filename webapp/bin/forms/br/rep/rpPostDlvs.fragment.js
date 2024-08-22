@@ -257,7 +257,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                             templateShareable: true
                         },
                         showSelectAll: true,
-                        // selectedKeys: Util.getSQLColArray("select code from locations order by code")
+                        selectedKeys: Util.getSQLColArray("select code from locations order by code")
                     },
                     list: "select code,name from locations order by code",
                     edit_allowed: true,
