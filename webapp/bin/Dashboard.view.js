@@ -111,6 +111,7 @@ sap.ui.jsview('bin.Dashboard', {
                 ]
             })
         }).addStyleClass("sapFShellBar");
+
         this.txtExeCmd = new sap.m.TextArea({ height: "25px", width: "100%" });
         this.txtExeCmd.attachBrowserEvent("dblclick", function (e) {
             that.showPopCmd();
@@ -188,7 +189,7 @@ sap.ui.jsview('bin.Dashboard', {
         };
         // action side menu page.
         this.pgMain = new sap.m.Page({
-            showHeader: true,
+            showHeader: false,
             showFooter: true,
             enableScrolling: false,
             content: [],
@@ -929,6 +930,7 @@ sap.ui.jsview('bin.Dashboard', {
             //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "");
             // }, 1200);
             this.txt.setText(cmp);
+            that.sp.setTitle(cmp);
             for (var i in dtxM) {
                 if (!secs.hasOwnProperty(dtxM[i].MS_ID)) {
                     secs[dtxM[i].MS_ID] = {
@@ -1049,7 +1051,6 @@ sap.ui.jsview('bin.Dashboard', {
             icon: "sap-icon://drop-down-list",
             text: this.current_profile_name,
             width: "100%",
-
             press: function () {
                 if (sap.ui.getCore().getModel("profiles") == undefined) {
                     pth = "exe?command=get-profile-list";
@@ -1088,41 +1089,49 @@ sap.ui.jsview('bin.Dashboard', {
             }
         }).addStyleClass("profileMenus");
         var tb = new sap.m.Toolbar({
-            width: "100%",
             content: [
                 new sap.m.Button({
-                    icon: "sap-icon://action-settings", press: function () {
+                    icon: "sap-icon://action-settings",
+                    press: function () {
                         // that.do_log_out();   
                         var mnu = new sap.m.Menu();
                         var m1 = new sap.m.MenuItem({
-                            text: "Log Off",
+                            text: Util.getLangText("menuLogOff"),
                             icon: "sap-icon://log",
                             press: function () {
                                 that.do_log_out();
                             }
                         });
+                        var m11 = new sap.m.MenuItem({
+                            text: Util.getLangText("menuChangePassword"),
+                            icon: "sap-icon://key",
+                            press: function () {
+                                that.changeMyPassword();
+                            }
+                        });
                         var m2 = new sap.m.MenuItem({
                             icon: that.autoHideMenus ? "sap-icon://accept" : "",
-                            text: "Auto Hide Menus",
+                            text: Util.getLangText("menuAutoHide"),
                             press: function () {
                                 that.autoHideMenus = !that.autoHideMenus;
                             }
                         })
                         var m3 = new sap.m.MenuItem({
                             icon: "sap-icon://expand",
-                            text: "Expand All",
+                            text: Util.getLangText("menuExpandAll"),
                             press: function () {
                                 that.mv.getControl().expandToLevel(255);
                             }
                         })
                         var m4 = new sap.m.MenuItem({
                             icon: "sap-icon://collapse",
-                            text: "Collapse All",
+                            text: Util.getLangText("menuCollapseAll"),
                             press: function () {
                                 that.mv.getControl().collapseAll();
                             }
                         });
                         mnu.addItem(m1);
+                        mnu.addItem(m11);
                         if (!sap.ui.Device.system.phone)
                             mnu.addItem(m2);
                         mnu.addItem(m3);
@@ -1133,8 +1142,12 @@ sap.ui.jsview('bin.Dashboard', {
                 btnMnu
             ]
         }).addStyleClass("profileMenus");
-        this.pgMain.removeAllHeaderContent();
-        this.pgMain.addHeaderContent(tb);
+        // this.pgMain.removeAllHeaderContent();
+        // this.pgMain.addHeaderContent(tb);
+        this.pgMain.setSubHeader(tb);
+        this.pgMain.setShowSubHeader(true);
+
+
 
         // if (this.mv == undefined)
         this.mv = new QueryView("mainMenus");
@@ -1181,8 +1194,10 @@ sap.ui.jsview('bin.Dashboard', {
         mv.getControl().setFixedBottomRowCount(0);
         // mv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         // mv.getControl().setVisibleRowCount(100);
+        mv.resizableColumn = false;
         mv.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
-        mv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
+        mv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
+        mv.getControl().attachColumnResize(undefined,function (e) { e.preventDefault(); });
         mv.getControl().addStyleClass("sapUiSizeCondensed " + Util.getLangDescrAR("menuTable", "menuTableAR"));
         mv.getControl().attachRowSelectionChange(undefined, function () {
 
@@ -1195,7 +1210,7 @@ sap.ui.jsview('bin.Dashboard', {
                 var odata = mv.getControl().getContextByIndex(sl[0]);
                 var data = (odata.getProperty(odata.getPath()));
                 UtilGen.execCmd(data.JS_COMMAND, that, this, that.newPage);
-                mv.getControl().setSelectedIndex(-1);
+                // mv.getControl().setSelectedIndex(-1);
             }
 
         });
@@ -1205,7 +1220,7 @@ sap.ui.jsview('bin.Dashboard', {
         var rowsUpdated = function () {
             setTimeout(() => {
                 var aRows = that.mv.getControl().getRows();
-                for (var i = aRows.length-1; i >= 0; i--) {
+                for (var i = aRows.length - 1; i >= 0; i--) {
                     var oRow = aRows[i];
                     var oContext = oRow.getBindingContext();
                     if (Util.nvl(oContext, undefined) != undefined) {
@@ -1223,7 +1238,14 @@ sap.ui.jsview('bin.Dashboard', {
                 //             oRow.expand();
                 //     }
                 // });
+
                 mv.getControl().detachRowsUpdated(rowsUpdated);
+
+                // var wdPg = that.pgMain.$().width();
+                // mv.getControl().setWidth(wdPg + "px");
+                var wd = mv.getControl().$().width();
+                mv.getControl().getColumns()[1].setWidth(wd + "px");
+
             });
         };
         mv.getControl().collapseAll();
@@ -1732,6 +1754,62 @@ sap.ui.jsview('bin.Dashboard', {
 
     }
     ,
+    changeMyPassword: function () {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var op = new sap.m.Input({ type: sap.m.InputType.Password }); // Old Password
+        var np = new sap.m.Input({ type: sap.m.InputType.Password }); // New Password
+        var cp = new sap.m.Input({ type: sap.m.InputType.Password });// Confirm password..
+        var vb = new sap.m.VBox({
+            items: [
+                new sap.m.Text({ text: "Old Password " }),
+                op,
+                new sap.m.Text({ text: "New Password " }),
+                np,
+                new sap.m.Text({ text: "Confirm Password " }),
+                cp,
+            ]
+        }).addStyleClass("sapUiMediumMargin");
+        var dlg = new sap.m.Dialog({
+            title: Util.getLangText("menuChangePassword") + " : " + sett["LOGON_USER"],
+            buttons: [
+                new sap.m.Button({
+                    text: Util.getLangText("cmdClose"),
+                    icon: "sap-icon://decline",
+                    press: function () {
+                        dlg.close();
+                    }
+                }),
+                new sap.m.Button({
+                    text: Util.getLangText("cmdDone"),
+                    icon: "sap-icon://accept",
+                    press: function () {
+                        var usr = sett["LOGON_USER"];
+                        var sop = UtilGen.getControlValue(op);
+                        var snp = UtilGen.getControlValue(np);
+                        var scp = UtilGen.getControlValue(cp);
+                        if (snp != scp) {
+                            sap.m.MessageToast.show("new password not matched with confirm password !");
+                            return;
+                        }
+                        var dop = Util.getSQLValue("select password from cp_users where username=" + Util.quoted(usr));
+                        if (dop != sop) {
+                            sap.m.MessageToast.show("Invalid Password !");
+                            return;
+                        }
+
+                        var dt = Util.execSQL("update cp_users set password=" + Util.quoted(snp) + " where username=" + Util.quoted(usr));
+                        if (dt.ret == "SUCCESS") {
+                            sap.m.MessageToast.show("Password changed successfully !");
+                            dlg.close();
+                        }
+                    }
+                })
+            ],
+            content: [vb]
+        });
+        dlg.open();
+    },
     do_log_out: function () {
         var that = this;
         if (sap.m.MessageBox == undefined)

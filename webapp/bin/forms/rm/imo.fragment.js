@@ -74,7 +74,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Product Monthly Sales",
+            title: Util.getLangText("repImo1Descr"),
             title2: "",
             show_para_pop: false,
             reports: [
@@ -90,15 +90,12 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                     showDispCols: true,
                     printCSS: "print2.css",
                     onSubTitHTML: function () {
-                        // var up = thatForm.frm.getFieldValue("parameter.unposted");
-                        // var tbstr = Util.getLangText("finStat1") + ": " + thatForm.frm.getFieldValue("parameter.acname");
-                        // var ua = Util.getLangText("unAudited");
-                        // var cs = thatForm.frm.getFieldValue("parameter.costcent");
-                        // var csnm = thatForm.frm.getFieldValue("parameter.csname");
-                        // var ht = "<div class='reportTitle'>" + tbstr + (up == "Y" ? " (" + ua + ") " : "") + "</div > ";
+                        var ht = "<div class='reportTitle'>" + Util.getLangText("repImo1Descr") + "</div > ";
                         // if (cs != "")
-                        //     ht += "<div class='reportTitle2'>" + Util.getLangText("costCent") + " : " + cs + "-" + csnm + "</div > ";
-                        // return ht;
+                        //     ht += "<div class='reportTitle2'>" +"</div > ";
+                        return ht;
+
+
                     },
                     showCustomPara: function (vbPara, rep) {
 
@@ -107,10 +104,6 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                     rep: {
                         parameters: thatForm.helperFunc.getParas("IMO01"),
                         print_templates: [
-                            {
-                                title: "PL Report",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -150,7 +143,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                                         display_style: "",
                                         display_format: "",
                                         default_value: "",
-                                        other_settings: {},
+                                        other_settings: { vertical: true },
                                         onPrintField: function () {
                                             return thatForm.qr.getContent();
                                         },
@@ -158,7 +151,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                                             var showmonth = thatForm.frm.getFieldValue("parameter.showMonth");
                                             thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
                                             var vb = new sap.m.VBox({
-                                                width: "1500px", //(showmonth == "Y" ? "1500px" : "-1px"),
+                                                width: "-1px", //(showmonth == "Y" ? "1500px" : "-1px"),                                                
                                                 items: [thatForm.qr]
                                             }).addStyleClass("sapUiSmallMargin");
                                             // this.toolbar = that.getToolbar();
@@ -171,7 +164,8 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQryPL3(qryObj);
-
+                                            if (qryObj.rep.hideMainMenu)
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
                                         }
                                     },
                                 }
@@ -369,13 +363,15 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                     cx.mUIHelper.display_format = "";
                     cx.mUIHelper.display_width = 100;
                     cx.mUIHelper.display_style = "";
+                    cx.mTitleParent = Util.getLangText("summaryBalTxt");
                     cx.mTitle = Util.getLangText("txtAvg");
+
 
                     UtilGen.setAvg(ld, "QTY", "AGR", (rt != "QTY" ? sett['FORMAT_MONEY_1'] : undefined));
 
                     UtilGen.getMonthTitleCrossTable(ld);
                     var fntsize = Util.getLangDescrAR("14px", "16px");
-                    paras["tableClass"] = "class=\"tbl1 bottom_border\"";
+                    paras["tableClass"] = "class=\"tbl1\"";
                     paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
                     paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
                     paras["fnOnCellAddClass"] = function (oData, rowno, col) {
@@ -399,6 +395,9 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                         var st = "padding-left:10px;padding-right:10px;height:24px;";
                         if (oData[rowno]["DESCR"] == Util.getLangText("totalTxt"))
                             st += "vertical-align:center;font-weight:bold;border-top:groove;background-color:lightgrey;";
+
+                        if (oData[rowno]["LEVELNO"] == -1)
+                            st = "font-weight:bold;border-bottom:groove;background-color:lightgrey;";
                         return st;
                     }
                     paras["fnOnCellValue"] = function (oData, rowno, col, cellValue) {
@@ -416,6 +415,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                     paras["hideSubTotals"] = true;
                     paras["hideTotals"] = false; //(thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
                     paras["showFooter"] = true;
+
                     paras["fnOnAddTotalRow"] = function (footerNode_fg, mapNode_fg) {
                         // footerNode_fg["LEVELNO"] = mapNode_fg["LEVELNO"];
                     };
@@ -431,6 +431,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                         var avg = tot / cnt;
                         if (avg < 0) avg = dfq1.format(Math.abs(avg)); else avg = dfq1.format(avg);
                         footer["AGR"] = avg;
+                        footer["LEVELNO"] = -1;
                     };
 
                     var str = UtilGen.buildJSONTreeWithTotal(ld, paras);

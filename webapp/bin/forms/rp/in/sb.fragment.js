@@ -106,6 +106,24 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
+                            fromdate: {
+                                colname: "fromdate",
+                                data_type: FormView.DataType.Date,
+                                class_name: FormView.ClassTypes.DATEFIELD,
+                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "$FIRSTDATEOFYEAR",
+                                other_settings: { width: "35%" },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
                             todate: {
                                 colname: "todate",
                                 data_type: FormView.DataType.Date,
@@ -158,13 +176,18 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 disp_class: "reportTable2",
                                 dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 25 },
                                 execOnShow: false,
-                                dml: "SELECT   REFER, nvl(descr,descra) DESCRA, ITPACKD," +
-                                    "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0) qtyx, MAX(0) PACK_COST," +
+                                dml: "SELECT   JI.REFER, nvl(descr,descra) DESCRA, ITPACKD, max(ob1.BAL) qtybf ," +
+                                    "NVL (SUM (ROUND ( (qtyin ), 3) / PACK), 0) qtyin ," +
+                                    "NVL (SUM (ROUND ( (qtyout ), 3) / PACK), 0) qtyout ," +
+                                    "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) qtyx, MAX(0) PACK_COST," +
                                     "PKAVER, NVL (SUM ( (pkcost / itpack) * (qtyin - qtyout)), 0) costamt, descr2," +
                                     "PARENTITEM , PARENTITEMDESCR " +
-                                    " FROM   JOINED_INVOICE" +
-                                    " WHERE  ITPRICE4=0 and INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
-                                    " GROUP BY   REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR " +
+                                    " FROM   JOINED_INVOICE JI , " +
+                                    " (select refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3) / invoice2.PACK), 0) bal " +
+                                    " from invoice2 where  dat<:parameter.fromdate AND (invoice2.STRA = :parameter.strno or :parameter.strno=0 ) group by refer ) ob1  " +
+                                    " WHERE   ob1.refer(+)=ji.refer " +
+                                    " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
+                                    " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR " +
                                     " ORDER BY  descr2 ",
                                 parent: "",
                                 levelCol: "",
@@ -251,19 +274,70 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
+                                    qtybf: {
+                                        colname: "qtybf",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "B/F",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    qtyin: {
+                                        colname: "qtyin",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "qtyIn",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    qtyout: {
+                                        colname: "qtyout",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "qtyOut",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
                                     qtyx: {
                                         colname: "qtyx",
                                         data_type: FormView.DataType.Number,
                                         class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemPackQty",
+                                        title: "balanceTxt",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
-                                        display_width: "90",
+                                        display_width: "150",
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
                                         commandLinkClick: cmdLink

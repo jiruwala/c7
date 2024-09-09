@@ -324,7 +324,7 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                 var col = this.cols[this.getColPos(tmcl[ci].replaceAll("tot__", ""))].getClone();
                 col.mColName = tmcl[ci];
                 if (col.mColName.includes("__")) {
-                    col.mTitleParent = "summaryBalTxt";
+                    col.mTitleParent = Util.getLangText("summaryBalTxt");
                     col.mTitle = this.parsedLstCols.valCols[ci].split("__")[1];
                     col.mTitleParentSpan = this.parsedLstCols.valCols.length;
                 }

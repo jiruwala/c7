@@ -45,7 +45,7 @@ sap.ui.jsfragment("bin.forms.clinic.rp1", {
 
         // that.createScrollCmds(this.frm.getToolbar());
         this.qv = new QueryView("qryDaily");
-        this.qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
+        this.qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
         this.qv.getControl().setAlternateRowColors(false);
 
 

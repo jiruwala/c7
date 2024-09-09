@@ -112,7 +112,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.FORM,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: -1,// { "S": 10, "M": 16, "L": 20 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
@@ -165,13 +165,14 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                                             var qr = thatForm.qr;
                                             qr.getControl().view = thatForm.view;
                                             qr.getControl().addStyleClass("sapUiSizeCondensed reportTable2 ");
-                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
-                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
+                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
+                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                                             qr.getControl().setAlternateRowColors(false);
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-                                            var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
-                                            qr.getControl().setVisibleRowCount(r);
-                                            qr.getControl().setRowHeight(20);
+                                            // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
+                                            qr.getControl().setVisibleRowCount(10);
+                                            qr.setAutoDispRecords(thatForm.mainPage,{ "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.getControl().setRowHeight(18);
                                             qr.filterCols = ["GROSSAT", "ADDAMT", "DISCAMT", "NETAMT", "C_CUS_NO", "INV_REFNM", "BRANCHNAME"];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
                                                 // EVENT ON APPLY PERSONALIZATION
@@ -192,6 +193,9 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQry1(qryObj);
+                                            if (qryObj.rep.hideMainMenu)
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
+
 
                                         }
                                     },
@@ -621,6 +625,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                     require: false,
                     dispInPara: true,
                 },
+
                 pcustname: {
                     colname: "pcustname",
                     data_type: FormView.DataType.String,
@@ -642,7 +647,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                 ploc: {
                     colname: "ploc",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
                     title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
@@ -657,12 +662,31 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "ALL",
+                        showSelectAll: true,
+                        selectedKeys: Util.getSQLColArray("select code from locations order by code")
                     },
-                    list: "select 'ALL' code,'ALL' name from dual union all select code,name from locations order by code",
+                    list: "select code,name from locations order by code",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
+                    dispInPara: true,
+                },
+                ptype: {
+                    colname: "ptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtOrdType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "1",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
                     dispInPara: true,
                 },
                 grpby: {
@@ -724,8 +748,9 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
             var sql = "select :grpCols from joined where " +
                 " invoice_date>=:parameter.fromdate and " +
                 " invoice_date<=:parameter.todate and " +
-                " (c_cus_no=':parameter.pcust' or ':parameter.pcust' is null )   and " +
-                " (location_code=':parameter.ploc' or ':parameter.ploc'='ALL') " +
+                " (c_cus_no=':parameter.pcust' or ':parameter.pcust' is null )    " +
+                " and (':parameter.ploc' like '%\"'||joined.location_code||'\"%' ) " +
+                " AND (type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                 " and invoice_code in (21,12) group by :grpByCols ";
             var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
             var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");

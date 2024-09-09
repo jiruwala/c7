@@ -11,9 +11,10 @@ body {
 }
 
 .profileMenus {
-    background-color: #b9f2ff !important;
+    background-color: lightgreen !important;
     font-weight: bold;
 }
+
 
 .db1LabelsBlue {
     font-size: .875rem;
@@ -906,7 +907,10 @@ th {
 }
 
 .reportTable .sapUiTableHeaderRow {
-    background-color: #e8e8e8 !important;
+    background-color: yellow !important;
+    color:black;
+    font-weight: bold;
+    font-size: 16px;
 }
 
 .reportTable .sapUiTableRowSel {
@@ -914,7 +918,7 @@ th {
 }
 
 .reportTable .sapUiTableRowFirstFixedBottom {
-    background-color: #f9f9f9 !important;
+    background-color: yellow !important;
 }
 
 .reportTable .sapUiTableSelectAllCheckBox::after,
@@ -942,8 +946,12 @@ th {
     border-style: solid;
 }
 
-.reportTable2 .sapUiTableHeaderRow {
-    background-color: #e8e8e8 !important;
+.reportTable2 .sapUiTableHeaderCell {
+    background-color: #fcf75e !important;
+    color:black;
+    font-size: 16px !important;
+    font-weight: bold;
+
 }
 
 .reportTable2 .sapUiTableRowSel {
@@ -951,7 +959,7 @@ th {
 }
 
 .reportTable2 .sapUiTableRowFirstFixedBottom {
-    background-color: #f9f9f9 !important;
+    background-color: #fcf75e !important;
 }
 
 .reportTable2 .sapUiTableSelectAllCheckBox::after,
@@ -1072,8 +1080,8 @@ th {
 }
 
 .menuTable {
-    padding-left: 5%;
-    padding-right: 5%;
+    padding-left: 0px;
+    padding-right: 0px;
 }
 
 .menuTable .sapUiTableCell {
@@ -1108,6 +1116,10 @@ th {
     background-color: #f9f9f9 !important;
 }
 
+.menuTable .sapUiTableRowSel {
+    background-color: #87ceeb !important;
+}
+
 .menuTable .sapUiTableSelectAllCheckBox::after,
 .sapUiTableRowSelectionCell::after {
     border: 0 !important;
@@ -1115,7 +1127,7 @@ th {
 }
 
 .menuTableAR {
-    padding-left: 5%;
+    padding-left: 0px;
 }
 
 .menuTableAR .sapUiTableCell {
@@ -1148,6 +1160,9 @@ th {
 
 .menuTableAR .sapUiTableRowFirstFixedBottom {
     background-color: #f9f9f9 !important;
+}
+.menuTableAR .sapUiTableRowSel {
+    background-color: #87ceeb !important;
 }
 
 .menuTableAR .sapUiTableSelectAllCheckBox::after,

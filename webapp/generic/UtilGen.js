@@ -426,6 +426,45 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                     });
                 }
+                if (c instanceof sap.m.MultiComboBox && sqlStr != undefined) {
+                    if (sqlStr.startsWith("@")) {
+                        var dtxx = [];
+                        var spt = sqlStr.substring(1).split(",");
+                        for (var i1 in spt) {
+                            var dttt = { CODE: "", NAME: "" };
+                            var sx = spt[i1].split("/");
+                            dttt.CODE = "" + sx[0];
+                            dttt.NAME = "" + Util.getLangText(sx[1]);
+                            dtxx.push(dttt);
+                        }
+                        if (Util.nvl(cbModel, "") != "") {
+                            dtxx = { lists: dtxx };
+                            c.setModel(new sap.ui.model.json.JSONModel(dtxx), cbModel);
+                        }
+                        else
+                            c.setModel(new sap.ui.model.json.JSONModel(dtxx));
+                    } else {
+                        var dat = Util.execSQL(sqlStr);
+                        if (dat.ret == "SUCCESS" && dat.data.length > 0) {
+                            var dtx = JSON.parse("{" + dat.data + "}").data;
+                            if (Util.nvl(cbModel, "") != "") {
+                                dtx = { lists: dtx };
+                                c.setModel(new sap.ui.model.json.JSONModel(dtx), cbModel);
+                            }
+                            else
+                                c.setModel(new sap.ui.model.json.JSONModel(dtx));
+                        }
+                    }
+                    // c.attachSelectionChange(function (oEvent) {
+                    //     var _oInput = oEvent.getSource();
+                    //     var val = _oInput.getSelectedKey();
+                    //     if (_oInput.getCustomData().length == 0)
+                    //         _oInput.addCustomData(new sap.ui.core.CustomData({ key: val }))
+                    //     else
+                    //         _oInput.getCustomData()[0].setKey(val);
+
+                    // });
+                }
                 if (c instanceof sap.m.ListBase && sqlStr != undefined) {
                     if (sqlStr.startsWith("@")) {
                         var dtxx = [];
@@ -484,8 +523,16 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     return comp.getDateValue();
                 if (comp instanceof sap.m.DateTimePicker)
                     return comp.getDateValue();
-                if (comp instanceof sap.m.ComboBoxBase)
+                if (comp instanceof sap.m.ComboBox)
                     return this.nvl(comp.getSelectedKey(), comp.getValue());
+                if (comp instanceof sap.m.MultiComboBox) {
+                    var vl = "";
+                    var kys = comp.getSelectedKeys();
+                    // if (kys.length == 1) return kys[0];
+                    for (var k in kys)
+                        vl += "\"" + kys[k] + "\""
+                    return vl;
+                }
                 if (comp instanceof sap.m.ListBase)
                     return (Util.nvl(comp.getSelectedItem(), undefined) != undefined ?
                         this.nvl(comp.getSelectedItem().getCustomData()[0], "") : "");
@@ -519,7 +566,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     if (executeChange && comp.hasOwnProperty("fireChange"))
                         comp.fireChange();
                     // return;
-                } else if (comp instanceof sap.m.ComboBoxBase) {
+                } else if (comp instanceof sap.m.ComboBox) {
                     comp.setSelectedItem(this.getIndexByKey(comp, Util.nvl(pCustomVal, val)));
                     if (comp.getCustomData().length == 0)
                         comp.addCustomData(new sap.ui.core.CustomData({ key: customVal }))
@@ -528,6 +575,26 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                     if (executeChange)
                         comp.fireChange();
+
+                } else if (comp instanceof sap.m.MultiComboBox) {
+                    // console.log(Util.nvl(pCustomVal, val));
+                    var sp = Util.nvl(pCustomVal, val);
+                    var kys = Util.extractQuotedStrings(sp);
+                    comp.removeAllSelectedItems();
+                    comp.setSelectedKeys(kys);
+
+                    //for (var k in kys)
+
+
+
+                    // comp.setSelectedItem(this.getIndexByKey(comp, Util.nvl(pCustomVal, val)));
+                    // if (comp.getCustomData().length == 0)
+                    //     comp.addCustomData(new sap.ui.core.CustomData({ key: customVal }))
+                    // else
+                    //     comp.getCustomData()[0].setKey(customVal);
+
+                    // if (executeChange)
+                    //     comp.fireChange();
 
                 } else if (comp instanceof sap.m.ListBase) {
                     comp.setSelectedItem(this.getIndexByKey(comp, Util.nvl(pCustomVal, val)));
@@ -561,7 +628,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     if (executeChange)
                         comp.fireSelect();
 
-                } else if ((!(comp instanceof sap.m.ComboBox)) &&
+                } else if ((!(comp instanceof sap.m.ComboBoxBase)) &&
                     comp instanceof sap.m.InputBase || comp instanceof sap.m.SearchField
                 ) {
                     comp.setValue(val);
@@ -825,7 +892,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     })
                 });
             },
-            addControl(ar, lbl, cntClass, id, sett, dataType, fldFormat, view, fnchange, sqlStr) {
+            addControl:function(ar, lbl, cntClass, id, sett, dataType, fldFormat, view, fnchange, sqlStr) {
                 var setx = sett;
                 var idx = id;
                 if (Util.nvl(id, "") == "")
@@ -845,7 +912,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 return cnt;
             }
             ,
-            formAddItem(frm, label, controls) {
+            formAddItem:function(frm, label, controls) {
                 frm.addContent(new sap.m.Label({ text: label }));
                 if (controls instanceof Array)
                     for (var i in controls)
@@ -2116,6 +2183,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var frm = frag.frm;
                     var kf = frm.getFieldValue("keyfld");
                     var insq = "";
+                    if (frag.qryAccs==undefined) return "";
                     var getSq = function () {
                         var sqx = "c7_insert_log_proc(':GRPNAME'," +
                             "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT '" +
@@ -2193,6 +2261,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         frag.frm.cmdButtons.cmdNew.setVisible(false);
                         frag.frm.cmdButtons.cmdEdit.setVisible(false);
                         frag.frm.cmdButtons.cmdDel.setVisible(false);
+                        frag.frm.cmdButtons.cmdSave.setVisible(false);
                     }
 
                     if (frag.oController.status != FormView.RecordStatus.NEW) {

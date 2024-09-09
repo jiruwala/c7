@@ -112,10 +112,6 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
 
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [

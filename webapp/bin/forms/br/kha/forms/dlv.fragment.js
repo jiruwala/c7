@@ -327,6 +327,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
+                        var objTyp = thatForm.frm.objs["qry1.ord_type"].obj;
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
                         var dt = thatForm.view.today_date.getDateValue();
@@ -334,7 +335,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
 
                         UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
-
+                        UtilGen.setControlValue(objTyp, sett["DEFAULT_TYPE"], sett["DEFAULT_TYPE"], true);
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         qry.formview.setFieldValue("qry1.stra", sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
                         qry.formview.setFieldValue("qry1.ord_addamt", 0, 0, true);
@@ -620,6 +621,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
+                    default_value: "1",
                     other_settings: {
                         editable: true, width: "15%",
                         showValueHelp: true,
@@ -1004,7 +1006,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     list_type: "sql",
                     list_para: {
                         selectStr: "@100/Last 100,200/Last 200,1000/Last 1000,-1/All",
-                        defaultKey: "100",
+                        defaultKey: "-1",
                     },
                     cols: [
                         {
@@ -1025,6 +1027,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
                     sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,keyfld,location_code from order1 o1 where " +
                         " location_code=':qry1.location_code' and " +
+                        " ord_type=':qry1.ord_type' and " +
                         " ord_code =" + that2.vars.vou_code +
                         " order by ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1)",
                     afterSelect: function (data) {
@@ -1812,18 +1815,27 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             setTimeout(function () {
                 var rfr = thatForm.frm.getFieldValue("qry1." + rfrFld);
                 var loc = thatForm.frm.getFieldValue("qry1.location_code");
-                var qr = Util.execSQLWithData("select keyfld,ord_refnm from order1 where " + rfrFld + "='" + rfr + "' and location_code='" + loc + "'");
+                var qr = Util.execSQLWithData("select keyfld,ord_refnm from order1 where ORD_CODE=9 AND " + rfrFld + "='" + rfr + "'");
                 if (Util.nvl(qr, "") == "" || qr.length == 0)
                     return;
                 var rfrx = qr[0].KEYFLD;
                 var desx = qr[0].ORD_DESCR;
+                if (qr.length == 1)
+                    Util.simpleConfirmDialog("Delivery existed for client :" + desx + " fetch data ?", function (oAction) {
+                        thatForm.frm.setFieldValue('pac', rfrx);
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
 
-                Util.simpleConfirmDialog("Delivery existed for client :" + desx + " fetch data ?", function (oAction) {
-                    thatForm.frm.setFieldValue('pac', rfrx);
-                    thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
-                    thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                    }, undefined, undefined, "OK");
+                else
+                    UtilGen.Search.do_quick_search_simple("select O.location_code,L.NAME,it.DESCR typedescr, o.ord_no,o.ord_ref,o.ord_refnm, o.keyfld from order1 o,locations l,invoicetype it where o.ord_code=9 and it.location_code=o.location_code and l.code=o.location_code and it.no=o.ord_type and o." + rfrFld + " = '" + rfr + "' order by o.location_code,o.ord_no ",
+                        ["ORD_NO", "ORD_REFNM", "AREA"], function (data) {
+                            var bn = data.KEYFLD;
+                            thatForm.frm.setFieldValue('pac', bn);
+                            thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                            thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                        });
 
-                }, undefined, undefined, "OK");
             });
         }
     }
@@ -1831,10 +1843,12 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
 
     loadData: function () {
         var frag = this;
+        frag.frm.readonly = Util.nvl(frag.oController.readonly, false);
         if (Util.nvl(frag.oController.keyfld, "") != "") {
             frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
             frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+            UtilGen.Vouchers.formLoadData(this);
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }
@@ -1846,6 +1860,53 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         return true;
     }
     ,
+    getLogDlvCustAboveCredit: function (grpname) {
+        var frag = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var frm = frag.frm;
+        var cust = frm.getFieldValue("ord_ref");
+        var insq = "";
+        var inslog = false;
+        var cl = 0;
+
+        var getSq = function () {
+            var sqx = "c7_insert_log_proc(':GRPNAME'," +
+                "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT '" +
+                ",:KEYFLD,':PVAR2',:JVNO,':PVAR4',':PVAR5',':NOTIFY_TYPE'); ";
+            sqx = sqx.replaceAll(":REC_STAT", stat)
+                .replaceAll(":USERNAME", sett["LOGON_USER"])
+                .replaceAll(":GRPNAME", Util.nvl(grpname, "JV"))
+                .replaceAll(":JVNO", vono)
+                .replaceAll(":KEYFLD", kfld)
+                .replaceAll(":PVAR2", pv2)
+                .replaceAll(":PVAR4", pv4)
+                .replaceAll(":PVAR5", pv5)
+                .replaceAll(":TABLENAME", Util.nvl(tablename, "ACVOUCHER1"))
+                .replaceAll(":NOTIFY_TYPE", Util.nvl(notifyType, ""));
+            return sqx;
+        }
+        var chkAboveCl = function () {
+            if (Util.nvl(sett["DLV_CUST_ABOVE_CREDIT_NOTIFY"], "false") != "TRUE")
+                return false;
+            cl = Util.getSQLValue("select nvl(crd_limit,0) from c_ycust where code='" + cust + "'");
+            if (cl == 0) return false;
+            var totamt = frm.getFieldValue("totamt");
+            var bal = Util.getSQLValue("select c7_get_cb('" + vono + "' , 'Y','Y') from dual");
+        }
+        
+        var stat = frm.objs["qry1"].status != FormView.RecordStatus.EDIT ?
+            "INSERTED" : "UPDATED";
+
+        stat = Util.nvl(pNotify, stat);
+        var notifyType = grpname + "_" + stat;
+
+        var kfld = frm.getFieldValue("qry1.keyfld");
+        var pv5 = "";
+        var pv4 = "";
+        var pv2 = "";
+        insq = getSq();
+
+    },
     save_data: function () {
     }
     ,

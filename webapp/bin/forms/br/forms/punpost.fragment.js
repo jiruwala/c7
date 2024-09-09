@@ -302,7 +302,7 @@ sap.ui.jsfragment("bin.forms.br.forms.punpost", {
         var that = this;
         var dlg = that.oController.getForm().getParent();
         var that = this;
-        that.loadData(true);
+        //that.loadData(true);
         var kfld = Util.extractNumber(this.keyfld.getValue());
         if (Util.nvl(kfld, "") == "") FormView.err("No Invoice selected !");
 
@@ -420,7 +420,7 @@ sap.ui.jsfragment("bin.forms.br.forms.punpost", {
 
         var invn = this.invoice_no.getValue();
         var loc = UtilGen.getControlValue(this.location_code);
-        Util.printServerReport("br/brsale", "_para_pfromno=" +
+        Util.printServerReport("br/brpur", "_para_pfromno=" +
             invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
     }
 

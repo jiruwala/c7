@@ -74,13 +74,13 @@ sap.ui.jsfragment("bin.forms.rm.su", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "PL By Productions",
+            title: Util.getLangText("repMonthlySupDescr"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "SU001",
-                    name: Util.getLangText("repMonthlySup"),
+                    name: Util.getLangText("repMonthlySupDescr"),
                     descr: Util.getLangText("repMonthlySupDescr"),
                     paraColSpan: undefined,
                     hideAllPara: false,
@@ -90,6 +90,9 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                     showDispCols: true,
                     printCSS: "print2.css",
                     onSubTitHTML: function () {
+                        var tbstr = Util.getLangText("repMonthlySupDescr");
+                        var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
+                        return ht;
                         // var up = thatForm.frm.getFieldValue("parameter.unposted");
                         // var tbstr = Util.getLangText("finStat1") + ": " + thatForm.frm.getFieldValue("parameter.acname");
                         // var ua = Util.getLangText("unAudited");
@@ -107,10 +110,6 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                     rep: {
                         parameters: thatForm.helperFunc.getParas("RMPL01"),
                         print_templates: [
-                            {
-                                title: "PL Report",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -152,76 +151,56 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                                         default_value: "",
                                         other_settings: {},
                                         onPrintField: function () {
-                                            return thatForm.qr.getContent();
+                                            return thatForm.qr.getContent() + "<br><div>" + thatForm.qrC.$().outerHTML() + "</div>";
                                         },
                                         afterAddOBject: function () {
-                                            thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
-                                            var vb = new sap.m.VBox({
-                                                width: "1000px", //(showmonth == "Y" ? "1500px" : "-1px"),
-                                                items: [thatForm.qr]
-                                            }).addStyleClass("sapUiSmallMargin");
-                                            // this.toolbar = that.getToolbar();
-                                            this.obj.addContent(vb);
+                                            // thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
+                                            // var vb = new sap.m.VBox({
+                                            //     width: "1500px", //(showmonth == "Y" ? "1500px" : "-1px"),
+                                            //     items: [thatForm.qr]
+                                            // }).addStyleClass("sapUiSmallMargin");
+                                            // // this.toolbar = that.getToolbar();
+                                            // this.obj.addContent(vb);
+                                            this.obj.removeAllContent();
+                                            thatForm.qr = new sap.ui.core.HTML({ width: "125%" }).addStyleClass("sapUiSmallMargin");
+                                            // var vb = new sap.m.ScrollContainer({ height: "100%", width: "100%", content: [thatForm.qr] });
+                                            var vb = new sap.m.ScrollContainer({ vertical: true, width: "1500px", height: "-1px", content: [thatForm.qr] }).addStyleClass("sapUiSmallMargin");
 
-                                        },
-                                        bat7OnSetFieldAddQry: function (qryObj, ps) {
-                                            return thatForm.helperFunc.addQryPL3(qryObj, ps, "RMPL01");
-
-                                        },
-                                        bat7OnSetFieldGetData: function (qryObj) {
-                                            thatForm.helperFunc.getQryPL3(qryObj);
-
-                                        }
-                                    },
-                                    accno2: {
-                                        colname: "accno2",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.SCROLLCONTAINER,
-                                        title: '',
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "",
-                                        display_align: "ALIGN_RIGHT",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {
-                                        },
-                                        onPrintField: function () {
-                                            return thatForm.qrC.$().outerHTML();
-                                        },
-                                        afterAddOBject: function () {
                                             Util.destroyID("graphAccnoPop" + thatForm.timeInLong, view);
                                             Util.destroyID("graphAccno" + thatForm.timeInLong, view);
-                                            this.obj.removeAllContent();
+
 
                                             thatForm.qrC = new sap.viz.ui5.controls.VizFrame(view.createId("graphAccno" + thatForm.timeInLong), {
                                                 uiConfig: { applicationSet: 'fiori' },
                                                 vizType: "column",
-                                                height: "300px",
+                                                height: "400px",
                                                 width: "100%",
                                                 legendVisible: true
 
                                             });
-                                            var vb = new sap.m.VBox({
-                                                width: "-1px", //(showmonth == "Y" ? "1500px" : "-1px"),
+                                            vb.addContent(new sap.m.VBox({
+                                                height: "400px",
+                                                width: "100%",
                                                 items: [
                                                     new sap.viz.ui5.controls.Popover(view.createId("graphAccnoPop" + thatForm.timeInLong)),
                                                     thatForm.qrC
                                                 ]
-                                            }).addStyleClass("sapUiSmallMargin");
+                                            }
+                                            ));
                                             // this.toolbar = that.getToolbar();
-
                                             this.obj.addContent(vb);
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
+                                            thatForm.helperFunc.addQryPL3(qryObj, ps, "RMPL01");
                                             return thatForm.helperFunc.addQryGraph(qryObj, ps, "RMPL01");
+
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
+                                            thatForm.helperFunc.getQryPL3(qryObj);
                                             thatForm.helperFunc.getQryGraph(qryObj);
-
+                                            if (qryObj.rep.hideMainMenu)
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
                                         }
                                     },
                                 }
@@ -284,7 +263,33 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                     insert_allowed: true,
                     require: true,
                     dispInPara: true,
-                }
+                },
+                costby: {
+                    colname: "costby",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"costBy\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "acc",
+                    },
+                    list: "@pur/Purchase,acc/Accounts",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
             };
 
             return para;
@@ -293,15 +298,30 @@ sap.ui.jsfragment("bin.forms.rm.su", {
             var thatForm = this.thatForm;
             var fisc = sap.ui.getCore().getModel("fiscalData").getData();
             var ret = true;
+            var acs = Util.getSQLValue("select nvl(max(para_value),'202') from c7_rep_paras where repcode='" + repCode + "' and para_name=" + Util.quoted("SUPPLIER_ACC"));
+            acs = Util.nvl(acs, "202");
+
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
+            var cby = thatForm.frm.getFieldValue("parameter.costby");
             var bk = UtilGen.getBackYears(fromdt, todt);
 
             var sq = "SELECT C_CUS_NO CODE,INV_REFNM NAME,TO_CHAR(DAT,'RRRR/MM') MNTH, " +
                 " TO_CHAR(DAT,'RRRR_MM')||'__AMOUNT' MNTH_BAL,SUM(PKCOST*ALLQTY) AMOUNT, " +
                 " 1 levelno,'' parentacc ,0 childcount FROM JOINED_SIMPLE " +
-                " WHERE INVOICE_CODE=11 GROUP BY C_CUS_NO,INV_REFNM,TO_CHAR(DAT,'RRRR/MM'),TO_CHAR(DAT,'RRRR_MM')||'__AMOUNT' " +
-                " ORDER BY C_CUS_NO,MNTH";
+                " WHERE INVOICE_CODE=11 " +
+                " and dat>=:parameter.fromdate and dat<=:parameter.todate " +
+                " GROUP BY C_CUS_NO,INV_REFNM,TO_CHAR(DAT,'RRRR/MM'),TO_CHAR(DAT,'RRRR_MM')||'__AMOUNT' " +
+                " ORDER BY MNTH,C_CUS_NO ";
+            if (cby == "acc")
+                sq = ("SELECT ACCNO CODE,ACNAME NAME,TO_CHAR(VOU_DATE,'RRRR/MM') MNTH, " +
+                    " TO_CHAR(VOU_DATE,'RRRR_MM')||'__AMOUNT' MNTH_BAL,SUM(CREDIT) AMOUNT," +
+                    " 1 levelno,'' parentacc ,0 childcount FROM ACC_TRANSACTION_UP" +
+                    " WHERE PATH LIKE (SELECT PATH||'%' FROM ACACCOUNT WHERE ACCNO=':ACX_NO') " +
+                    " and keyfld!=-1 and vou_date>=:parameter.fromdate and vou_date<=:parameter.todate " +
+                    "  GROUP BY ACCNO,ACNAME,TO_CHAR(VOU_DATE,'RRRR/MM'),TO_CHAR(VOU_DATE,'RRRR_MM')||'__AMOUNT' " +
+                    " ORDER BY MNTH,ACCNO ").replaceAll(":ACX_NO", acs);
+            sq = thatForm.frm.parseString(sq);
             Util.doAjaxJson("bat7addQry?" + ps, {
                 sql: sq,
                 ret: "",
@@ -348,8 +368,8 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                     that.ld = new LocalTableData();
                     var ld = that.ld;
                     ld.parseCol("{" + dt.data + "}");
-                    ld.cols[ld.getColPos("CODE")].mUIHelper.display_width = "180";
-                    ld.cols[ld.getColPos("NAME")].mUIHelper.display_width = "400";
+                    ld.cols[ld.getColPos("CODE")].mUIHelper.display_width = "50";
+                    ld.cols[ld.getColPos("NAME")].mUIHelper.display_width = "600";
                     ld.cols[ld.getColPos("CODE")].ct_row = "Y";
                     ld.cols[ld.getColPos("CODE")].mTitle = Util.getLangText("txtCode");
                     ld.cols[ld.getColPos("NAME")].ct_row = "Y";
@@ -366,7 +386,7 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                     ld.cols[ld.getColPos("AMOUNT")].mSummary = "SUM";
                     ld.cols[ld.getColPos("AMOUNT")].data_type = "number";
                     ld.cols[ld.getColPos("AMOUNT")].mUIHelper.display_format = "MONEY_FORMAT";
-                    ld.cols[ld.getColPos("AMOUNT")].mUIHelper.display_width = "200";
+                    ld.cols[ld.getColPos("AMOUNT")].mUIHelper.display_width = "100";
 
                     ld.cols[ld.getColPos("PARENTACC")].mHideCol = true;
                     ld.cols[ld.getColPos("LEVELNO")].mHideCol = true;
@@ -384,7 +404,7 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                         }
                     }
                     var fntsize = Util.getLangDescrAR("14px", "16px");
-                    paras["tableClass"] = "class=\"tbl1 bottom_border\"";
+                    paras["tableClass"] = "class=\"tbl1\"";
                     paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
                     paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
                     paras["fnOnCellAddClass"] = function (oData, rowno, col) {
@@ -406,6 +426,9 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                         var st = "padding-left:10px;padding-right:10px;height:24px;";
                         if (oData[rowno]["NAME"].toUpperCase() == "TOTAL")
                             st += "vertical-align:center;font-weight:bold;border-top:groove;background-color:lightgrey;";
+                        if (oData[rowno]["LEVELNO"] == -1)
+                            st = "font-weight:bold;border-bottom:groove;background-color:lightgrey;";
+
                         return st;
                     }
                     paras["fnOnCellValue"] = function (oData, rowno, col, cellValue) {
@@ -425,6 +448,9 @@ sap.ui.jsfragment("bin.forms.rm.su", {
                     paras["showFooter"] = true;
                     paras["fnOnAddTotalRow"] = function (footerNode_fg, mapNode_fg) {
                         // footerNode_fg["LEVELNO"] = mapNode_fg["LEVELNO"];
+                    };
+                    paras["fnOnFooter"] = function (footer) {
+                        footer["LEVELNO"] = -1;
                     };
                     var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
                     thatForm.qr.setContent(str);

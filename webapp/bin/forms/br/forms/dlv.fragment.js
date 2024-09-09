@@ -375,6 +375,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                                 qry.formview.setFormReadOnly();
                                 FormView.err("This Delivery is posted to invoice !");
                             }
+                            var geniasm = Util.nvl(sett["BR_GEN_IASM_ON_DELIVERY"], 'FALSE');
+                            return geniasm == "TRUE" ? "c7_generate_iasm_from_dlv(" + kf + ",'Y');" : "";
                         }
                     }
 
@@ -1793,10 +1795,12 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
     loadData: function () {
         var frag = this;
+        frag.frm.readonly = Util.nvl(frag.oController.readonly, false);
         if (Util.nvl(frag.oController.keyfld, "") != "") {
             frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
             frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+            UtilGen.Vouchers.formLoadData(this);
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }

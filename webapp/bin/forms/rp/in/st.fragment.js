@@ -230,14 +230,14 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
 
                                     txtBfBal: {
                                         colname: "txtBfBal",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.LABEL,
                                         title: '{\"text\":\"B/F\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
                                         title2: "",
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "MONEY_FORMAT",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -249,14 +249,14 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                     },
                                     txtTotIn: {
                                         colname: "txtTotIn",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.LABEL,
                                         title: '@{\"text\":\"txtTotIn\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
                                         title2: "",
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: sett["FORMAT_QTY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -268,14 +268,14 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                     },
                                     txtTotOut: {
                                         colname: "txtTotOut",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.LABEL,
                                         title: '@{\"text\":\"txtTotOut\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
                                         title2: "",
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: sett["FORMAT_QTY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -287,14 +287,14 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                     },
                                     txtBal: {
                                         colname: "txtBal",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.LABEL,
                                         title: '@{\"text\":\"balanceTxt\",\"width\":\"20%\","textAlign":"End","styleClass":"redText"}',
                                         title2: "",
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: sett["FORMAT_MONEY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -306,14 +306,14 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                     },
                                     bfBal: {
                                         colname: "bfBal",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.TEXTFIELD,
                                         title: '{\"text\":\"\",\"width\":\"5%\","textAlign":"End","styleClass":""}',
                                         title2: "",
                                         display_width: colSpan,
                                         display_align: "ALIGN_CENTER",
                                         display_style: "",
-                                        display_format: "MONEY_FORMAT",
+                                        display_format: sett["FORMAT_MONEY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -325,14 +325,14 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                     },
                                     totIn: {
                                         colname: "totIn",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.TEXTFIELD,
                                         title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
                                         title2: "",
                                         display_width: colSpan,
                                         display_align: "ALIGN_CENTER",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format:  sett["FORMAT_QTY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -344,14 +344,14 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                     },
                                     totOut: {
                                         colname: "totOut",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.TEXTFIELD,
                                         title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
                                         title2: "",
                                         display_width: colSpan,
                                         display_align: "ALIGN_CENTER",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: sett["FORMAT_QTY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -363,14 +363,14 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                     },
                                     bal: {
                                         colname: "bal",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.TEXTFIELD,
                                         title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":"redText"}',
                                         title2: "",
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "redText",
-                                        display_format: "MONEY_FORMAT",
+                                        display_format: sett["FORMAT_QTY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -387,7 +387,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords:  { "S": 7, "M": 11, "L": 15, "XL": 18 },
+                                dispRecords: { "S": 7, "M": 11, "L": 15, "XL": 18 },
                                 execOnShow: false,
                                 dml: "SELECT -1 KEYFLD,(select nvl(max(DESCR2),'') from items where items.reference=':parameter.prefer' ) DESCR2," +
                                     "   '' PARENTITEM,0 INVOICE_NO,-1 INVOICE_KEYFLD,:parameter.fromdate DAT,1 INVOICE_CODE ," +
@@ -569,7 +569,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: UtilGen.DBView.style_debit_numbers + ";",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         summary: "SUM",
                                         other_settings: {},
@@ -587,7 +587,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: UtilGen.DBView.style_credit_numbers + ";",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         summary: "SUM",
                                         default_value: "",
                                         other_settings: {},
@@ -605,7 +605,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         summary: "LAST",
                                         other_settings: {},
@@ -1121,7 +1121,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "MONEY_FORMAT",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -1140,7 +1140,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -1159,7 +1159,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -1178,7 +1178,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -1197,7 +1197,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -1235,7 +1235,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_CENTER",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -1254,7 +1254,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_CENTER",
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -1273,7 +1273,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
-                                        display_format: "MONEY_FORMAT",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -1309,7 +1309,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords:  { "S": 7, "M": 11, "L": 15, "XL": 18 },
+                                dispRecords: { "S": 7, "M": 11, "L": 15, "XL": 18 },
                                 execOnShow: false,
                                 dml: "SELECT -1 KEYFLD,(select nvl(max(DESCR2),'') from items where items.reference=':parameter.prefer' ) DESCR2," +
                                     "   '' PARENTITEM,0 INVOICE_NO,-1 INVOICE_KEYFLD,:parameter.fromdate DAT,1 INVOICE_CODE ," +
@@ -1584,7 +1584,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: UtilGen.DBView.style_debit_numbers + ";",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         summary: "SUM",
                                         other_settings: {},
@@ -1602,7 +1602,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: UtilGen.DBView.style_credit_numbers + ";",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         summary: "SUM",
                                         default_value: "",
                                         other_settings: {},
@@ -1620,7 +1620,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: "",
-                                        display_format: "",
+                                        display_format: "QTY_FORMAT",
                                         default_value: "",
                                         summary: "LAST",
                                         other_settings: {},
@@ -1656,7 +1656,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_align: "ALIGN_RIGHT",
                                         grouped: false,
                                         display_style: "",
-                                        display_format: "MONEY_FORMAT",
+                                        display_format: "#,##0.#####",
                                         default_value: "",
                                         summary: "LAST",
                                         other_settings: {},
@@ -1777,7 +1777,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_align: "ALIGN_RIGHT",
                                         grouped: false,
                                         display_style: "",
-                                        display_format: "MONEY_FORMAT",
+                                        display_format: "#,##0.#####",
                                         default_value: "",
                                         summary: "LAST",
                                         other_settings: {},

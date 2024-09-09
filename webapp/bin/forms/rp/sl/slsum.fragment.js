@@ -165,13 +165,14 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                                             var qr = thatForm.qr;
                                             qr.getControl().view = thatForm.view;
                                             qr.getControl().addStyleClass("sapUiSizeCondensed reportTable2 ");
-                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
-                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
+                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
+                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                                             qr.getControl().setAlternateRowColors(false);
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-                                            var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
-                                            qr.getControl().setVisibleRowCount(r);
-                                            qr.getControl().setRowHeight(20);
+                                            // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
+                                            qr.getControl().setVisibleRowCount(10);
+                                            qr.setAutoDispRecords(thatForm.mainPage,{ "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.getControl().setRowHeight(18);
                                             qr.filterCols = ["DESCR", "INV_REFNM", "REFER", "LOCATION_NAME", "SLSMN_NAME", "MONTH"];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
                                                 // EVENT ON APPLY PERSONALIZATION
@@ -192,6 +193,9 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
                                             thatForm.helperFunc.getQry1(qryObj);
+                                            if (qryObj.rep.hideMainMenu)
+                                                UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
+
 
                                         }
                                     },
@@ -418,7 +422,8 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         "count_unique_label": "txtCountInvs",
                         "mUIHelper": {
                             "display_width": 70,
-                            "display_align": "ALIGN_CENTER"
+                            "display_align": "ALIGN_CENTER",
+                            "display_format": ""
                         }
                     },
                     "invoice_date": {
@@ -434,7 +439,8 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     "c_cus_no": {
                         "mTitle": "txtCust",
                         "mUIHelper": {
-                            "display_format": 60
+                            "display_width": 60,
+                            "display_format": "",
                         }
                     },
                     "inv_refnm": {
@@ -442,7 +448,8 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                         "mSummary": "COUNT_UNIQUE",
                         "count_unique_label": "txtCountDate",
                         "mUIHelper": {
-                            "display_format": 120
+                            "display_width": 120,
+                            "display_format": "",
                         }
                     }
                 },

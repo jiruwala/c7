@@ -46,7 +46,7 @@
               TO_NUMBER (field2) pos,
               field3 accno,
               field4 acname,
-              TO_NUMBER (field5) acbal,
+              TO_NUMBER (DECODE(field5,'null',0,field5)) acbal,
               USERNM
        FROM   temporary, COMPANY
       WHERE   CRNT = 'X' AND idno = 8.1

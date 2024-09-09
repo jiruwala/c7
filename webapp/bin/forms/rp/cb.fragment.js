@@ -50,7 +50,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                 customData: { key: ac },
                 press: function () {
                     var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpostDlv=Y inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
                 }
             }));
             mnu.addItem(new sap.m.MenuItem({
@@ -172,10 +172,6 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                             }
                         },
                         print_templates: [
-                            {
-                                title: "Vouchers",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -184,17 +180,17 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 22 },
+                                dispRecords: -1,// { "S": 10, "M": 16, "L": 20, "XL": 22 },
                                 execOnShow: false,
                                 dml: "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ," +
-                                    " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL," +
+                                    " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
                                     " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance," +
                                     " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
                                     " where ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
                                     " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code " +
                                     " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
                                     " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP,sl.name ,0," +
-                                    " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code",
+                                    " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -202,16 +198,31 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["CODE", "NAME", "SLSNAME", "TEL","ALLBALANCE","UNPOST_BAL"],
+                                filterCols: ["CODE", "NAME", "SLSNAME", "TEL", "ALLBALANCE", "UNPOST_BAL"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
-                                    var bal = parseFloat(oModel.getProperty("BALANCE", currentRowContext));
-                                    if (bal >= 0)
-                                        qv.getControl().getRows()[dispRow].getCells()[3].$().parent().parent().find("*").css("cssText", UtilGen.DBView.style_debit_numbers + ";text-align:end;");
-                                    else
-                                        qv.getControl().getRows()[dispRow].getCells()[3].$().parent().parent().find("*").css("cssText", UtilGen.DBView.style_credit_numbers + ";text-align:end;");
+                                    var cl = Util.extractNumber(oModel.getProperty("CRD_LIMIT2", currentRowContext));
+                                    var ab = Util.extractNumber(oModel.getProperty("ALLBALANCE", currentRowContext));
+                                    if (cl != 0 && ab > cl)
+                                        for (var i = startCell; i < endCell; i++) {
+                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "red");
+                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("color", "red");
+                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("background-color", "lightgrey");
+                                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", "lightgrey");
 
+                                        }
+
+
+
+                                },
+                                onPrintRenderAdd: function (ld, idx, col) {
+                                    if (idx >= ld.rows.length) return "";
+                                    var cl = Util.nvl(ld.getFieldValue(idx, "CRD_LIMIT2"), 0);
+                                    var ab = Util.nvl(ld.getFieldValue(idx, "ALLBALANCE"), 0);
+                                    if (cl != 0 && ab > cl)
+                                        return "background-color:lightgrey;color:red;";
+                                    return;
 
                                 },
                                 eventCalc: function (qv, cx, rowno, reAmt) {
@@ -296,8 +307,8 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
-                                    crd_limit: {
-                                        colname: "crd_limit",
+                                    crd_limit2: {
+                                        colname: "crd_limit2",
                                         data_type: FormView.DataType.Number,
                                         class_name: FormView.ClassTypes.LABEL,
                                         title: "Credit Limit",

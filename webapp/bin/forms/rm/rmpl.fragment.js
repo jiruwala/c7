@@ -265,7 +265,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "pur",
+                        selectedKey: "acc",
                     },
                     list: "@pur/Purchase,acc/Accounts",
                     edit_allowed: true,

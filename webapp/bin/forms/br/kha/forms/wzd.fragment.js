@@ -515,9 +515,28 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             },
             value: ""
         });
+        this.txtInfoSalesp = new sap.m.ComboBox({
+            width: "35%",
+            customData: [{ key: "" }],
+            items: {
+                path: "/",
+                template: new sap.ui.core.ListItem({ text: "{NAME}-{CODE}", key: "{CODE}" }),
+                templateShareable: true
+            },
+            selectionChange: function (ev) {
+            },
+            selectedKey: ""
+        });
+
+        Util.fillCombo(that.txtInfoSalesp, "select no code ,name from salesp where type='S' order by no");
+
         var endAlign = sap.ui.core.TextAlign.End;
+        var beginAlign = sap.ui.core.TextAlign.Begin;
         this.txtInfoInvNo = new sap.m.Input({ width: "35%" });
         this.txtInfoInvDate = new sap.m.DatePicker({ width: "25%" });
+
+        this.txtInfoPoNo = new sap.m.Input({ width: "25%" });
+
         this.txtInfoRef = new sap.m.Input({ width: "25%", editable: false });
         this.txtInfoRefName = new sap.m.Input({ width: "54%", editable: false });
         this.txtInfoBranch = new sap.m.Input({ width: "25%", editable: false });
@@ -525,8 +544,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.txtInfoGross = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass();
         this.txtInfoDisc = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: true }).addStyleClass();
         this.txtInfoAdd = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: true }).addStyleClass();
-        this.txtInfoAddRemarks = new sap.m.Input({ textAlign: endAlign, width: "54%", editable: true }).addStyleClass();
-        this.txtInfoDiscRemarks = new sap.m.Input({ textAlign: endAlign, width: "54%", editable: true }).addStyleClass();
+        this.txtInfoAddRemarks = new sap.m.Input({ textAlign: beginAlign, width: "54%", editable: true }).addStyleClass();
+        this.txtInfoDiscRemarks = new sap.m.Input({ textAlign: beginAlign, width: "54%", editable: true }).addStyleClass();
         this.txtInfoAmount = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass("yellow");
         this.txtInfoDescr = new sap.m.Input({ width: "80%" });
 
@@ -550,6 +569,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             Util.getLabelTxt("txtInvType", "20%", "@"), this.txtInfoInvType,
             Util.getLabelTxt("txtInvNo", "20%", ""), this.txtInfoInvNo,
             Util.getLabelTxt("dateTxt", "20%", "@"), this.txtInfoInvDate,
+            Util.getLabelTxt("txtSalesPerson", "20%", ""), this.txtInfoSalesp,
+            Util.getLabelTxt("txtPoNo", "20%", "@"), this.txtInfoPoNo,
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
             Util.getLabelTxt("txtCust", "20%", ""), this.txtInfoRef,
             Util.getLabelTxt("", "1%", "@"), this.txtInfoRefName,
@@ -736,6 +757,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             that.txtInfoBranch.setValue(br);
             that.txtInfoBranchName.setValue(brnam);
         }
+        var slp = Util.getSQLValue("select salesp from c_ycust where code='" + that.txtInfoRef.getValue() + "'");
+        if (slp != "")
+            that.txtInfoSalesp.setSelectedKey(slp);
         that.calcInfoAmt(true, true);
     },
     loadData: function () {
@@ -840,6 +864,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             " discamt number :=:discamt;" +
             " adescr_memo varchar2(500) :=':addescr';" +
             " ddescr_ctg varchar2(500) :=':ddescr';" +
+            " salesp varchar2(500) :=':txtSalesp';" +
+            " pono varchar2(500) :=':txtPoNo';" +
             " " +
             " grossamt number :=0;" +
             " prd_date date;" +
@@ -895,14 +921,14 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             "                  MEMO, ctg, INV_REF, INV_REFNM, INV_AMT, DISC_AMT, INV_COST,ADD_CHARGEX,deptno, " +
             "                  FLAG, CREATDT, LPNO, BKNO, KEYFLD, USERNAME, SUPINVNO, SHIPCO," +
             "                 INS_CO, BANK, LCNO, INS_NO, RATE, CURRENCY, KDCOST, CHG_KDAMT," +
-            "                 ORDERNO, C_CUS_NO,YEAR,NO_OF_RECIEVED,costcent,C_BRANCH_NO ) VALUES" +
+            "                 ORDERNO, C_CUS_NO,YEAR,NO_OF_RECIEVED,costcent,C_BRANCH_NO, REFERENCE_INFORMATION ) VALUES" +
             "                 (pcode, ploc, pinvno," +
-            "                  21, ptype, pdate, pstr, null," +
+            "                  21, ptype, pdate, pstr, salesp," +
             "                  adescr_memo,ddescr_ctg, (select ac_no from c_ycust where code=pref ), refnm," +
             "                   totamt, discamt, 0, addamt,addamt," +
             "                  2, sysdate, '', '', kfld,user, '', ''," +
             "                 '', '', '', '', 1,'KWD', 1 , 0," +
-            "                 null, pref,'2003',0,null,pBrNo );" +
+            "                 null, pref,'2003',0,null,pBrNo ,pono);" +
             " for xx in pu(kfld) loop " +
             " IF DISCAMT>0 and totamt>0 THEN " +
             " dag:=((discamt / totamt) * (((xx.price)/xx.PACK)*(xx.allqty))) / (xx.allqty/xx.pack);" +
@@ -939,7 +965,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             .replaceAll(":discamt", Util.extractNumber(that.txtInfoDisc.getValue()))
             .replaceAll(":addescr", that.txtInfoAddRemarks.getValue())
             .replaceAll(":ddescr", that.txtInfoDiscRemarks.getValue())
-            .replaceAll(":txtBranch", that.txtInfoBranch.getValue());
+            .replaceAll(":txtBranch", that.txtInfoBranch.getValue())
+            .replaceAll(":txtPoNo", that.txtInfoPoNo.getValue())
+            .replaceAll(":txtSalesp", that.txtInfoSalesp.getSelectedKey());
         var dt = Util.execSQL(sq);
         if (dt.ret != "SUCCESS") {
             FormView.err("Error , check  server log !");
@@ -955,14 +983,23 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
     printInv: function (kfld) {
         var that = this;
         that.loadData(true);
-        if (Util.nvl(kfld, "") == "") FormView.err("No Invoice selected !");
         var dt = Util.execSQLWithData("select location_code,invoice_no from pur1 where keyfld=" + kfld);
         if (dt.length > 0) {
             var invn = dt[0].INVOICE_NO;
             var loc = dt[0].LOCATION_CODE;
-            Util.printServerReport("br/kha/brsale", "_para_pfromno=" +
-                invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
+            if (Util.nvl(kfld, "") == "") FormView.err("No Invoice selected !");
+            Util.simpleConfirmDialog1(Util.getLangText("msgPrintOptions1"), "Printing Invoice",
+                function (oAction) {
+                    var addStr = "";
+                    if (oAction == "PRICE") addStr = "price/";
+                    Util.printServerReport("br/kha/" + Util.nvl(addStr, "") + "brsale", "_para_pfromno=" +
+                        invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
+                }, ["PRICE", "ITEMS"]
+
+            );
         }
+
+
     },
     validateSave: function () {
 

@@ -147,13 +147,15 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
                                             var qr = thatForm.qr;
                                             qr.getControl().view = thatForm.view;
                                             qr.getControl().addStyleClass("sapUiSizeCondensed reportTable2 ");
-                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
-                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
+                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
+                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                                             qr.getControl().setAlternateRowColors(false);
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-                                            var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
-                                            qr.getControl().setVisibleRowCount(r);
-                                            qr.getControl().setRowHeight(20);
+                                            // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
+                                            qr.getControl().setVisibleRowCount(10);
+                                            qr.setAutoDispRecords(thatForm.mainPage,{ "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.getControl().setRowHeight(18);
+                                            qr.getControl().attachColumnResize(undefined, function (e) { e.preventDefault(); });
                                             qr.filterCols = [];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
                                                 // EVENT ON APPLY PERSONALIZATION
@@ -293,7 +295,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
                 ploc: {
                     colname: "ploc",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
                     title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
@@ -308,12 +310,32 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "ALL",
+                        showSelectAll: true,
+                        selectedKeys: Util.getSQLColArray("select code from locations order by code")
+
                     },
-                    list: "select 'ALL' code,'ALL' name from dual union all select code,name from locations order by code",
+                    list: "select code,name from locations order by code",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
+                    dispInPara: true,
+                },
+                ptype: {
+                    colname: "ptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtOrdType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "1",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
                     dispInPara: true,
                 },
                 reptype: {
@@ -353,15 +375,16 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
             var rt = thatForm.frm.getFieldValue("parameter.reptype");
-            var rtypecol = rt == "QTY" ? "ORD_PKQTY" : "(ORD_PKQTY*SALE_PRICE)";
+            var rtypecol = rt == "QTY" ? "ORD_PKQTY" : "(qty_x*price_x)";
             var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
             var sq = "select location_code,location_name,ord_ref,ord_ship item,sum(:RTYPECOL) :REPCOLNAME , " +
                 " ord_ref||'-'||ord_refnm CUST,ord_ship||'__:REPCOLNAME' ITEM_BAL " +
                 " from joined_corder where " +
                 " ORD_DATE>=:parameter.fromdate " +
                 " AND ORD_DATE<=:parameter.todate  " +
-                " AND (JOINED_CORDER.location_code=':parameter.ploc' or NVL(':parameter.ploc','ALL') ='ALL') " +
+                " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " + 
                 " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
+                " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                 " group by  location_code,location_name,ord_ref ,ord_ship, " +
                 " ord_ref||'-'||ord_refnm , ord_ship||'__:REPCOLNAME'" +
                 " order by location_code,ord_ref,ord_ship";

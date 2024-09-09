@@ -261,7 +261,7 @@ sap.ui.jsfragment("bin.forms.rp.page", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 23 },
+                                dispRecords: -1,// { "S": 10, "M": 16, "L": 20, "XL": 23 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",

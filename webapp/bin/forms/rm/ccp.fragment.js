@@ -274,11 +274,11 @@ sap.ui.jsfragment("bin.forms.rm.ccp", {
             var insx = "declare " +
                 " cursor cst is select I.packd,I.unitd,I.pack,p.refer,i.descr,nvl(iss.iss_ucost,i.pkaver) ucost,ISS.ISSUED_QTY," +
                 "     (i.pkaver/i.pack)*I.pack sprice ,SUM(p.allqty *C.TQTY) ALLQTY  ,0 ,SUM(p.allqty *C.TQTY) QTY   from masterasm p,items i ,C_ORDER1 C," +
-                "     (SELECT REFER ISS_REFER,SUM(ALLQTY) ISSUED_QTY, (sum((pkcost*allqty))/sum(allqty)) iss_ucost FROM INVOICE2 WHERE INVOICE_CODE=25 AND TYPE=25 GROUP BY REFER) ISS" +
+                "     (SELECT REFER ISS_REFER,SUM(ALLQTY) ISSUED_QTY, (sum((pkcost*allqty))/sum(allqty)) iss_ucost FROM INVOICE2 WHERE INVOICE_CODE=25 AND TYPE=27 GROUP BY REFER) ISS" +
                 "    where p.BASEITEM=C.ORD_SHIP and refer=reference AND REFER=ISS_REFER(+) and " +
                 " ord_date>=" + Util.toOraDateString(fromdt) +
                 " and ord_date<=" + Util.toOraDateString(todt) +
-                "    AND C.ORD_DATE<=(SELECT MAX(DAT) FROM INVOICE2 WHERE INVOICE_CODE=25 AND TYPE=25 " +
+                "    AND C.ORD_DATE<=(SELECT MAX(DAT) FROM INVOICE2 WHERE INVOICE_CODE=25 AND TYPE=27 " +
                 " and dat>=" + Util.toOraDateString(fromdt) +
                 " and dat<=" + Util.toOraDateString(todt) + " )" +
                 "    GROUP BY I.packd,I.unitd,I.pack,P.refer,i.descr,i.pkaver/i.pack,i.prd_dt,i.exp_dt,ISSUED_QTY,iss.iss_ucost,i.pkaver" +

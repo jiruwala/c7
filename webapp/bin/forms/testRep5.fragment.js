@@ -84,31 +84,45 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             var mdl = tbl.getModel();
             var rr = tbl.getRows().indexOf(obj.getParent());
             var rowStart = tbl.getFirstVisibleRow();
+            var vername = sett["C7_VER_NAME"];
             // var rx = mdl.getData()[rowStart + rr]._rowid;
             // if (rx == undefined) return;
             // var vcd = parseInt(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "VOU_CODE")].getText());
             // var typ = parseInt(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "VOU_TYPE")].getText());
             var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "KEYFLD")].getText());
             var jvpos = parseInt(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "JVPOS")].getText());
+            var typd = (tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "TYPE_DESCR")].getText());
             // var  = tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "")].getText();
 
-            var dtx = Util.execSQLWithData("select vou_code,type from acvoucher1 where keyfld=" + kfld, "No data found ..");
-            var vcd = dtx[0].VOU_CODE;
-            var typ = dtx[0].TYPE;
+            var dtx = Util.execSQLWithData("select vou_code,type,refercode,refertype from acvoucher1 where keyfld=" + kfld, "No data found ..");
 
-            if (vcd == 1 && typ == 1) {
-                UtilGen.execCmd("gl.jv formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
-            } else if (vcd == 3 && (typ == 1 || typ == 6)) {
-                UtilGen.execCmd("gl.pv formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
-            } else if (vcd == 2 && (typ == 1 || typ == 6)) {
-                UtilGen.execCmd("gl.rv formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
-            } else if (vcd == 2 && (typ == 2 || typ == 7)) {
-                UtilGen.execCmd("gl.rvc formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
-            } else if (vcd == 3 && (typ == 2 || typ == 7)) {
-                UtilGen.execCmd("gl.pvc formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
-            }
-            else {
-                sap.m.MessageToast.show("Not a JV..");
+            if (dtx.length > 0) {
+                var vcd = dtx[0].VOU_CODE;
+                var typ = dtx[0].TYPE;
+
+                if (vcd == 1 && typ == 1) {
+                    UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                } else if (vcd == 3 && (typ == 1 || typ == 6)) {
+                    UtilGen.execCmd("gl.pv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                } else if (vcd == 2 && (typ == 1 || typ == 6)) {
+                    UtilGen.execCmd("gl.rv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                } else if (vcd == 2 && (typ == 2 || typ == 7)) {
+                    UtilGen.execCmd("gl.rvc readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                } else if (vcd == 3 && (typ == 2 || typ == 7)) {
+                    UtilGen.execCmd("gl.pvc readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                } else if (vcd == 1) {
+                    UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                }
+
+                else {
+                    sap.m.MessageToast.show("Not a JV..");
+                }
+            } else {  // if dtx.length>0 
+                if (typd == "dlv" && vername == "KHA")
+                    UtilGen.execCmd("bin.forms.br.kha.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
+                if (typd == "dlv" && vername == "BR")
+                    UtilGen.execCmd("bin.forms.br.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
+
             }
         }
         // UtilGen.clearPage(this.mainPage);
@@ -373,8 +387,26 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
+                            inclUnpostDlv: {
+                                colname: "inclUnpostDlv",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '@{\"text\":\"paraInclUnpostDlv\",\"width\":\"40%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
                                 default_value: "N",
-                                other_settings: { selected: false, width: "20%", trueValues: ["Y", "N"] },
+                                other_settings: { selected: false, width: "10%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -401,14 +433,14 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 canvasType: ReportView.CanvasType.FORMCREATE2,
                                 isMaster: false,
                                 masterToolbarInMain: false,
-                                dml: "select distinct accno,nvl(rfr_name,acname)||' '||COST_CENT_NAME name,b30,b60,b90,b120,b150,acbal from c6_gl1 " +
-                                    "  order by accno ",
+                                dml: "select distinct accno,nvl(rfr_name,acname)||' '||COST_CENT_NAME name,b30,b60,b90,b120,b150,acbal,crd_limit2 from c6_gl1 " +
+                                    " where usernm=c6_session.get_user_session order by accno ",
                                 // beforeLoadQry: function (sql, qryObj) {
                                 //     return "";
                                 // },
                                 bat7CustomAddQry: function (qryObj, ps) {
-                                    var sq = "select distinct accno,nvl(rfr_name,acname)||' '||COST_CENT_NAME name from c6_gl1 " +
-                                        "  order by accno ";
+                                    var sq = "select distinct accno,nvl(rfr_name,acname)||' '||COST_CENT_NAME name,crd_limit2 from c6_gl1 " +
+                                        " where usernm=c6_session.get_user_session order by accno ";
                                 },
                                 bat7CustomGetData: function (qryObj) {
 
@@ -439,14 +471,14 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                     },
                                     acbal: {
                                         colname: "acbal",
-                                        data_type: FormView.DataType.String,
+                                        data_type: FormView.DataType.Number,
                                         class_name: ReportView.ClassTypes.TEXTFIELD,
                                         title: '@{\"text\":\"Balance\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
                                         title2: "",
                                         display_width: colSpan,
-                                        display_align: "ALIGN_RIGHT",
+                                        display_align: "ALIGN_CENTER",
                                         display_style: "redText",
-                                        display_format: "FORMAT_MONEY_1",
+                                        display_format: sett["FORMAT_MONEY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();
@@ -474,8 +506,26 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             width: "85%",
                                             editable: false
                                         },
-                                    }
-
+                                    },
+                                    crd_limit2: {
+                                        colname: "crd_limit2",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: ReportView.ClassTypes.TEXTFIELD,
+                                        title: '{\"text\":\"crdLimit\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                                        title2: "",
+                                        display_width: colSpan,
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "redText",
+                                        display_format: sett["FORMAT_MONEY_1"],
+                                        default_value: "",
+                                        onPrintField: function () {
+                                            return this.obj.$().outerHTML();
+                                        },
+                                        other_settings: {
+                                            width: "35%",
+                                            editable: false
+                                        },
+                                    },
                                 }
                             },
                             {
@@ -484,7 +534,8 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 // disp_class: "paddingLR5P",
                                 disp_class: "reportTable2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
-                                dispRecords: { "S": 8, "M": 12, "L": 16, "XL": 22, "XXL": 35 },
+                                dispRecords: -1, // { "S": 6, "M": 9, "L": 12, "XL": 22, "XXL": 35 },
+                                dispRecordsDeductHeightP: { "S": 70, "M": 60, "L": 55, "XL": 30 },
                                 rowHeight: 18,
                                 execOnShow: false,
                                 canvas: "qry2Canvas",
@@ -545,7 +596,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_type: "NONE",
                                         summary: "LAST",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     debit: {
                                         colname: "debit",
@@ -581,7 +631,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_type: "NONE",
                                         other_settings: {},
                                         summary: "SUM",
-                                        commandLinkClick: cmdLink
                                     },
                                     descr: {
                                         colname: "DESCR",
@@ -597,7 +646,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     vou_no: {
                                         colname: "VOU_NO",
@@ -631,7 +679,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         default_value: "",
                                         display_type: "NONE",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     name: {
                                         colname: "NAME",
@@ -648,7 +695,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         default_value: "",
                                         display_type: "NONE",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     type_descr: {
                                         colname: "TYPE_DESCR",
@@ -664,7 +710,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     jvpos: {
                                         colname: "JVPOS",
@@ -1017,7 +1062,25 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 insert_allowed: true,
                                 require: false,
                                 dispInPara: true,
-                            }
+                            },
+                            inclUnpost: {
+                                colname: "inclUnpost",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"paraInclUnpost\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                             {
@@ -1039,7 +1102,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 isMaster: true,
                                 masterToolbarInMain: true,
                                 dml: "select accno,acname,acbal from c7_gl_ac1" +
-                                    " where usernm=c6_session.get_user_session  and acbal!=0  order by accno ",
+                                    " where usernm=c6_session.get_user_session order by accno ",
                                 // beforeLoadQry: function (sql, qryObj) {
                                 //     return "";
                                 // },
@@ -1092,12 +1155,13 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                             {
                                 type: "query",
                                 name: "qryAc2",
-                                disp_class: "paddingLR5P",
+                                disp_class: "reportTable2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 canvas: "qryAc2Canvas",
                                 showToolbar: true,
                                 canvasType: ReportView.CanvasType.VBOX,
-                                dispRecords: { "S": 6, "M": 15, "L": 18, "XL": 22, "XXL": 35 },
+                                dispRecords: -1, // { "S": 6, "M": 9, "L": 12, "XL": 22, "XXL": 35 },
+                                dispRecordsDeductHeightP: { "S": 70, "M": 60, "L": 55, "XL": 30 },
                                 execOnShow: false,
                                 masterQry: "SOA002@qryAc1",
                                 masterDetailRelation: ":accno==accno",   //  .match(/=\s*([A-Za-z_0-9.]*)/gm)
@@ -1138,7 +1202,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_type: "NONE",
                                         summary: "LAST",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     debit: {
                                         colname: "debit",
@@ -1148,7 +1211,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         title2: "",
                                         parentTitle: undefined,
                                         parentSpan: 1,
-                                        display_width: "80",
+                                        display_width: "120",
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
                                         display_format: "MONEY_FORMAT",
@@ -1203,13 +1266,12 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
-                                        display_width: "200",
+                                        display_width: "300",
                                         display_align: "ALIGN_BEGIN",
                                         display_style: "",
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     vou_no: {
                                         colname: "VOU_NO",
@@ -1243,7 +1305,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         default_value: "",
                                         display_type: "NONE",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     subaccno: {
                                         colname: "SUBACCNO",
@@ -1259,7 +1320,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     name: {
                                         colname: "NAME",
@@ -1276,7 +1336,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         default_value: "",
                                         display_type: "NONE",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     type_descr: {
                                         colname: "TYPE_DESCR",
@@ -1292,7 +1351,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     costcent: {
                                         colname: "COSTCENT",
@@ -1308,7 +1366,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     jvpos: {
                                         colname: "JVPOS",
@@ -1325,7 +1382,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         default_value: "",
                                         display_type: "NONE",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
                                     },
                                     keyfld: {
                                         colname: "keyfld",
@@ -1426,7 +1482,8 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
         // if (bk.length > 0) {
         var plsql = "declare ";
-        //cursor su is ----in getaccbal function to replace
+        var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
+        var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
         var sqxAB = "SELECT nvl(sum(deb-crd),0) bal FROM :V_STATMENT_1 v " +
             " WHERE v.PATH LIKE ACNo AND VOU_DATE<DT AND " +
             " (cost_PATH  LIKE CC||'%' or cc is null) " +
@@ -1441,7 +1498,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             " V.VOU_DATE<=TODATE :KEYFLD_CONDITION ";
 
         var sqx = " SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code FROM :ACVOUCHER2 V, ACACCOUNT A " +
-            " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
+            " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT " + vflg +
             " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
             " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
 
@@ -1479,6 +1536,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         paras += "todt date := :parameter.todate;";
         paras += "fromacc varchar2(100) := ':parameter.fromacc';";
         paras += "toacc varchar2(100) := ':parameter.toacc'; ";
+        paras += "pincup varchar2(255) := ''; ";
         sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2) IS " + sqls + " ORDER BY vou_date;";
         var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99991");
         sqls = sqls + str;
@@ -1511,6 +1569,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var sett = sap.ui.getCore().getModel("settings").getData();
         var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
         var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
+        var incUnpostDlv = thatForm.frm.getFieldValue("parameter.inclUnpostDlv");
         var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
         // if (bk.length > 0) {
         var plsql = "declare ";
@@ -1571,6 +1630,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
 
         var paras = "fromdt date := :parameter.fromdate;";
         paras += "todt date := :parameter.todate;";
+        paras += "pincup_dlv varchar2(255) := ':parameter.inclUnpostDlv'; ";
         paras += "pincup varchar2(255) := ':parameter.inclUnpost';";
         paras += "toacc varchar2(100) := ':parameter.paccno'; ";
         paras += "pbrno varchar2(100) := '';";

@@ -50,16 +50,9 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
                 }).addStyleClass("redTextBtn"),
                 new sap.m.Button({
                     width: "150px",
-                    text: Util.getLangText("Print - Items"),
+                    text: Util.getLangText("Print"),
                     press: function () {
                         that.printInv();
-                    }
-                }),
-                new sap.m.Button({
-                    width: "150px",
-                    text: Util.getLangText("Print - Price"),
-                    press: function () {
-                        that.printInv("price/");
                     }
                 }),
                 new sap.m.Button({
@@ -210,6 +203,22 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
 
         this.memo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "75%", editable: true });
         this.ctg = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "75%", editable: true });
+        this.txtSalesp = new sap.m.ComboBox({
+            width: "35%",
+            customData: [{ key: "" }],
+            items: {
+                path: "/",
+                template: new sap.ui.core.ListItem({ text: "{NAME}-{CODE}", key: "{CODE}" }),
+                templateShareable: true
+            },
+            selectionChange: function (ev) {
+            },
+            selectedKey: ""
+        });
+        this.txtPoNo = new sap.m.Input({ width: "25%" });
+
+        Util.fillCombo(that.txtSalesp, "select no code ,name from salesp where type='S' order by no");
+
 
         var fe = [
             Util.getLabelTxt("", "100%", "#"),
@@ -234,7 +243,9 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             Util.getLabelTxt("", "1%", "@", "", "Center"), this.net_amt,
             // Util.getLabelTxt("", "100%", "#"),
             Util.getLabelTxt("txtAddAmtDescr", "25%", ""), this.memo,
-            Util.getLabelTxt("txtDiscAmtDescr", "25%", ""), this.ctg
+            Util.getLabelTxt("txtDiscAmtDescr", "25%", ""), this.ctg,
+            Util.getLabelTxt("txtSalesPerson", "20%", ""), this.txtSalesp,
+            Util.getLabelTxt("txtPoNo", "20%", "@"), this.txtPoNo,
         ];
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
             width: { "S": 380, "M": 580, "L": 580 },
@@ -292,6 +303,8 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             var netamt = (gamt + aamt) - damt;
             var bnm = Util.getSQLValue("select b_name from cbranch where code='" + dtx[0].C_CUS_NO + "' and brno=" + dtx[0].C_BRANCH_NO);
             this.location_code.setSelectedKey(dtx[0].LOCATION_CODE)
+            this.txtSalesp.setSelectedKey(dtx[0].SLSMN);
+            this.txtPoNo.setValue(dtx[0].REFERENCE_INFORMATION);
             this.invoice_no.setValue(dtx[0].INVOICE_NO);
             this.invoice_type.setValue(dtx[0].TYPE);
             this.keyfld.setValue(dtx[0].KEYFLD);
@@ -607,11 +620,15 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             " totamt number:=:totalamt;" +
             " memostr varchar2(500):=':memo'; " +
             " ctgstr varchar2(500):=':ctg'; " +
+            " pono varchar2(500) :=':txtPoNo';" +
+            " slp varchar2(500) :=':txtSalesp';" +
             " cursor p1(kf number) is select *from pur1 where keyfld=kf; " +
             " cursor pu(kfx number) is select *from pur2 where keyfld=kfx order by itempos;" +
             " ";
         decl2 = decl2.replaceAll(":ctg", that.ctg.getValue())
             .replaceAll(":memo", this.memo.getValue())
+            .replaceAll(":txtSalesp", this.txtSalesp.getSelectedKey())
+            .replaceAll(":txtPoNo", this.txtPoNo.getValue())
             .replaceAll(":discamt", damt)
             .replaceAll(":addamt", aamt)
             .replaceAll(":totalamt", gamt)
@@ -620,7 +637,7 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             "  for xx in pu(kfld) loop  " +
             "   totamt:=totamt+ (((xx.price-xx.disc_amt)/xx.pack)*xx.allqty); " +
             "  end loop; " +
-            " update pur1 set ctg=ctgstr , memo= memostr,disc_amt=discamt , " +
+            " update pur1 set ctg=ctgstr , memo= memostr,disc_amt=discamt , reference_information=pono, slsmn=slp , " +
             " deptno=addamt,inv_amt=totamt where keyfld=kfld ; " +
             " " +
             " for xx in pu(kfld) loop " +
@@ -735,7 +752,7 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
 
         var invn = this.invoice_no.getValue();
         var loc = UtilGen.getControlValue(this.location_code);
-        Util.printServerReport("br/kha/" + Util.nvl(addStr, "") + "brsale", "_para_pfromno=" +
+        Util.printServerReport("br/" + Util.nvl(addStr, "") + "brsale", "_para_pfromno=" +
             invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
     }
 

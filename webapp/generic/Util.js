@@ -1780,14 +1780,14 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
 
                 // Convert the number to absolute value
-                const absNumber = Math.abs(number);
+                const absNumber = (Math.abs(number)).toFixed(2);
 
                 // Determine the appropriate SI symbol index
                 const tier = Math.log10(absNumber) / 3 | 0;
 
                 // If the number is 0 or smaller than 1,000, return the number as is
                 if (tier === 0) {
-                    return number.toString();
+                    return number.toFixed(2).toString();
                 }
 
                 // Calculate the scaled number and add the SI symbol
@@ -1837,7 +1837,48 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     textDirection: sap.ui.core.TextDirection.Inherit     // default
                 });
             },
+            simpleConfirmDialog1: function (msg, title, fnOnClose, actions) {
+                if (sap.m.MessageBox == undefined)
+                    jQuery.sap.require("sap.m.MessageBox");
+                var ea = Util.nvl(actions, [sap.m.MessageBox.Action.CLOSE]);
+                sap.m.MessageBox.confirm(msg, {
+                    title: Util.nvl(title, "Confirm"),                                   // default
+                    emphasizedAction: ea,
+                    actions: ea,
+                    onClose: function (oAction) {
+                        if (fnOnClose != undefined)
+                            fnOnClose(oAction);
+                    },                                       // default
+                    styleClass: "",                                      // default
+                    textDirection: sap.ui.core.TextDirection.Inherit     // default
+                });
+            },
+            extractQuotedStrings: function (input) {
+                // Regular expression to find all substrings within double quotes
+                const regex = /"(.*?)"/g;
+                let matches = [];
+                let match;
 
+                // Loop through all matches and add them to the result array
+                while ((match = regex.exec(input)) !== null) {
+                    matches.push(match[1]);
+                }
+
+                return matches;
+            },
+            getSQLColArray: function (sql, pcolname) {
+                var dt = Util.execSQLWithData(sql);
+                var ar = [];
+                if (dt.length == 0) return ar;
+                var colname = pcolname;
+                if (colname == undefined) {
+                    var ky = Object.keys(dt[0]);
+                    colname = ky[0];
+                }
+                for (var i = 0; i < dt.length; i++)
+                    ar.push(dt[i][colname]);
+                return ar;
+            },
             getDefaultColumn: function () {
                 var col = {
                     "mColpos": 1,

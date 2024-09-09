@@ -75,7 +75,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 7, "M": 14, "L": 15, "XL": 18 },
+                                dispRecords: -1,// { "S": 7, "M": 14, "L": 15, "XL": 18 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
@@ -138,7 +138,8 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
                                         " AND (ORD_DISCAMT=':parameter.psite' OR RTRIM(':parameter.psite') IS NULL)" +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
-                                        " AND (JOINED_CORDER.location_code=':parameter.ploc' or NVL(':parameter.ploc','ALL') ='ALL') " +
+                                        " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
+                                        " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                                         " GROUP BY " +
                                         " ORD_REF, ORD_REFNM," +
                                         " joined_corder.location_code ," +
@@ -226,7 +227,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                 ploc: {
                     colname: "ploc",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
                     title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
@@ -241,9 +242,11 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "ALL",
+                        showSelectAll: true,
+                        selectedKeys: Util.getSQLColArray("select code from locations order by code")
+
                     },
-                    list: "select 'ALL' code,'ALL' name from dual union all select code,name from locations order by code",
+                    list: "select code,name from locations order by code",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -417,6 +420,24 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                     list: undefined,
                     edit_allowed: false,
                     insert_allowed: false,
+                    require: false,
+                    dispInPara: true,
+                },
+                ptype: {
+                    colname: "ptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtOrdType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "1",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
                     require: false,
                     dispInPara: true,
                 },

@@ -50,7 +50,7 @@
            G.FC_MAIN,
            G.FC_MAIN_RATE,
            G.JVPOS,
-           G.BRANCH_NAME
+           nvl(G.BRANCH_NAME,g.NAME) branch_name
     FROM   C6_GL2 G
     where usernm= $P{SESSION_ID}  and accno= $P{PACCNO} 
 ORDER BY   POS ASC]]>

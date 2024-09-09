@@ -36,34 +36,36 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
         var colSpan = "XL2 L2 M2 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var cmdLink = function (obj, rowno, colno, lctb, frm) {
-            // var mdl = frm.objs["CAGE1@qry2"].obj.getControl().getModel();
-            // var rr = frm.objs["CAGE1@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
-            // var cont = frm.objs["CAGE1@qry2"].obj.getControl().getContextByIndex(rr);
-            // var rowid = mdl.getProperty("_rowid", cont);
-            // var ac = Util.nvl(lctb.getFieldValue(rowid, "ACCNO"), "");
-            // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
+            if (obj == undefined) return;
+            var tbl = obj.getParent().getParent();
+            var mdl = tbl.getModel();
+            var rr = tbl.getRows().indexOf(obj.getParent());
+            var rowStart = tbl.getFirstVisibleRow();
+            var vername = sett["C7_VER_NAME"];
+            var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "KEYFLD")].getText());
 
-            // var mnu = new sap.m.Menu();
-            // mnu.removeAllItems();
 
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "SOA A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + accno + " toacc=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "View A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view accno=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.openBy(obj);
+            var dtx = Util.execSQLWithData("select vou_code,type,refercode,refertype from acvoucher1 where keyfld=" + kfld, "No data found ..");
 
+            if (dtx.length > 0) {
+                var vcd = dtx[0].VOU_CODE;
+                var typ = dtx[0].TYPE;
+
+                if (vcd == 1 && typ == 1) {
+                    UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld, thatForm.view, obj, undefined);
+                } else if (vcd == 3 && (typ == 1 || typ == 6)) {
+                    UtilGen.execCmd("gl.pv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld, thatForm.view, obj, undefined);
+                } else if (vcd == 2 && (typ == 1 || typ == 6)) {
+                    UtilGen.execCmd("gl.rv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld, thatForm.view, obj, undefined);
+                } else if (vcd == 2 && (typ == 2 || typ == 7)) {
+                    UtilGen.execCmd("gl.rvc readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld, thatForm.view, obj, undefined);
+                } else if (vcd == 3 && (typ == 2 || typ == 7)) {
+                    UtilGen.execCmd("gl.pvc readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld, thatForm.view, obj, undefined);
+                } else if (vcd == 1) {
+                    UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld, thatForm.view, obj, undefined);
+                }
+
+            }
         }
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};
@@ -86,10 +88,16 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    onSubTitHTML: function () {
+                        var tbstr = Util.getLangText("titDlvDetails");
+                        var ht = "<div class='reportTitle'>Periodic cash & Cheque collection report</div > ";
+                        return ht;
+
+                    },
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),                    
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {
@@ -128,6 +136,61 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            accno: {
+                                colname: "accno",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.accno", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select name from acaccount where actype=0 and accno =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.acname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        var sq = "select accno code,name from acaccount where actype=0 and childcount=0 order by path";
+                                        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.accno", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.acname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, "300px", "400px", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            acname: {
+                                colname: "acname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
                             pcust: {
                                 colname: "pcust",
                                 data_type: FormView.DataType.String,
@@ -142,7 +205,6 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 other_settings: {
                                     showValueHelp: true,
                                     change: function (e) {
-
                                         var vl = e.oSource.getValue();
                                         thatForm.frm.setFieldValue(repCode + "@parameter.pcust", vl, vl, false);
                                         var vlnm = Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl));
@@ -155,7 +217,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                             thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
                                             thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
                                             return true;
-                                        }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                                        }, "300px", "400px", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
                                     },
                                     width: "35%"
                                 },
@@ -186,10 +248,6 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
 
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -198,9 +256,14 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: -1,
                                 execOnShow: false,
-                                dml: "select a.*,decode(type,1,'Bank',2,'Cash') rec_type from ACC_TRANSACTION_up a where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and  a.vou_code in (2,3) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by keyfld",
+                                dml: "select a.*,decode(type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type, " +
+                                    " (select max(descr2) from acvoucher2 where keyfld=a.keyfld and credit>0 ) acc_name " +
+                                    " from ACC_TRANSACTION_up a " +
+                                    " where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and " +
+                                    "(a.accno=':parameter.accno' or ':parameter.accno' is null) and " +
+                                    "  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by keyfld",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -208,7 +271,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ACCNO", "DESCR2", "VOU_DATE"],
+                                filterCols: ["ACCNO", "DESCR2", "CUST_CODE", "VOU_DATE", "CHEQUENO", "RCVFROM", "CREDOT", "NO"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     // var oModel = this.getControl().getModel();
@@ -239,7 +302,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         default_value: "",
                                         summary: "SUM",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+
                                     },
                                     rec_type: {
                                         colname: "rec_type",
@@ -255,7 +318,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+
 
                                     },
                                     vou_date: {
@@ -273,6 +336,39 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         default_value: "",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
+                                    },
+                                    duedate: {
+                                        colname: "duedate",
+                                        data_type: FormView.DataType.Date,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Due Date",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "SHORT_DATE_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+
+                                    },
+                                    chequeno: {
+                                        colname: "chequeno",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Cheque No",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+
+
                                     },
                                     no: {
                                         colname: "no",
@@ -305,7 +401,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+
 
                                     },
                                     accno: {
@@ -322,7 +418,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+
 
                                     },
                                     descr2: {
@@ -340,7 +436,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         default_value: "",
                                         display_type: "NONE",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+
                                     },
                                     descr: {
                                         colname: "descr",
@@ -357,8 +453,57 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         default_value: "",
                                         display_type: "NONE",
                                         other_settings: {},
+
+                                    },
+
+                                    acc_name: {
+                                        colname: "acc_name",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "A/C From",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "200",
+                                        display_align: "ALIGN_BEGIN",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+
+                                    },
+                                    rcvfrom: {
+                                        colname: "rcvfrom",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Pay From",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "80",
+                                        display_align: "ALIGN_BEGIN",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                    },
+                                    keyfld: {
+                                        colname: "keyfld",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Keyfld",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "0",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
                                         commandLinkClick: cmdLink
-                                    }
+
+                                    },
                                 }
                             }
                         ]

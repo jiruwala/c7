@@ -78,10 +78,6 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                     rep: {
                         parameters: thatForm.helperFunc.getParas("PL001"),
                         print_templates: [
-                            {
-                                title: "PL Report",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -910,8 +906,13 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                     }
                     paras["fnOnCellClick"] = function (oData, rowno, col) {
                         var st = "";
-                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
-                            st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+
+                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null) {
+                            var sdf = new simpleDateFormat("MM/dd/yyyy");
+                            var fromdt = sdf.format(thatForm.frm.objs["PL001@parameter.fromdate"].obj.getDateValue());
+                            var todt = sdf.format(thatForm.frm.objs["PL001@parameter.todate"].obj.getDateValue());
+                            st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + " fromdate=@" + fromdt + " todate=@" + todt + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        }
                         return st;
                     }
 
@@ -1139,8 +1140,12 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
                     }
                     paras["fnOnCellClick"] = function (oData, rowno, col) {
                         var st = "";
-                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
-                            st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null) {
+                            var sdf = new simpleDateFormat("MM/dd/yyyy");
+                            var fromdt = sdf.format(thatForm.frm.objs["PL002@parameter.fromdate"].obj.getDateValue());
+                            var todt = sdf.format(thatForm.frm.objs["PL002@parameter.todate"].obj.getDateValue());
+                            st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + + " fromdate=@" + fromdt + " todate=@" + todt + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        }
                         return st;
                     }
 

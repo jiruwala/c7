@@ -781,7 +781,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             "                 0, x.pack, x.packd, x.unitd, pdate," +
             "                 0, x.tqty, 0, 0," +
             "                 x.tqty*x.pack, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
-            "                 kfld , 1, 'KWD', SYSDATE, X.ord_pos, X.tqty*X.PACK, 0, 0, x.ORD_EMPNO," +
+            "                 kfld , 1, 'KWD', SYSDATE, X.ord_pos, 0,X.tqty*X.PACK, 0, x.ORD_EMPNO," +
             "                 null, 0,'',x.PAYTERM,x.ord_date ) ;" +
             "     totamt:=totamt+(x.TQTY*pr);                " +
             " " +
@@ -864,6 +864,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             Util.printServerReport("br/brsale", "_para_pfromno=" +
                 invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
         }
+
     },
     validateSave: function () {
 

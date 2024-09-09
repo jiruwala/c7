@@ -261,7 +261,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 23 },
+                                dispRecords: -1,// { "S": 10, "M": 16, "L": 20, "XL": 23 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
@@ -271,7 +271,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["COL1", "COL2"],
+                                filterCols: ["CODE", "NAME", "BAL", "CRD_LIMIT", "B30", "B60", "B90", "B120", "B150"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();

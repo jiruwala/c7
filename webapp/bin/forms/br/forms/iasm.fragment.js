@@ -370,8 +370,9 @@ sap.ui.jsfragment("bin.forms.br.forms.iasm", {
 
                     var delAdd = "";
                     if (qry.name == "qry1") {
+                        var kf = qry.formview.getFieldValue("keyfld")
                         delAdd += "delete from pur2 where type=2 and keyfld=:qry1.keyfld ; ";
-                        delAdd += "x_post_job_voucher(:qry1.keyfld,false,true); ";
+                        delAdd += "x_post_job_voucher(:qry1.keyfld,'N','Y'); ";                        
                         var dt = Util.execSQL("select ord_no from c_order1 where ord_code=9 and jobno=" + kf);
                         if (dt.ret == "SUCCESS") {
                             var dtx = JSON.parse("{" + dt.data + "}").data;
@@ -782,13 +783,13 @@ sap.ui.jsfragment("bin.forms.br.forms.iasm", {
                     list_type: "sql",
                     cols: [
                         {
-                            colname: "ORD_NO",
+                            colname: "INVOICE_NO",
                         },
                         {
-                            colname: "ORD_REF",
+                            colname: "MEMO",
                         },
                         {
-                            colname: "ORD_REFNM"
+                            colname: "INVOICE_DATE"
                         },
                         {
                             colname: 'KEYFLD',
