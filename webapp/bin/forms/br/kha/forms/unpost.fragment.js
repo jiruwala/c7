@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.br.forms.unpost", {
+sap.ui.jsfragment("bin.forms.br.kha.forms.unpost", {
 
     createContent: function (oController) {
         var that = this;
@@ -50,9 +50,16 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
                 }).addStyleClass("redTextBtn"),
                 new sap.m.Button({
                     width: "150px",
-                    text: Util.getLangText("Print"),
+                    text: Util.getLangText("Print - Items"),
                     press: function () {
                         that.printInv();
+                    }
+                }),
+                new sap.m.Button({
+                    width: "150px",
+                    text: Util.getLangText("Print - Price"),
+                    press: function () {
+                        that.printInv("price/");
                     }
                 }),
                 new sap.m.Button({
@@ -752,7 +759,7 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
 
         var invn = this.invoice_no.getValue();
         var loc = UtilGen.getControlValue(this.location_code);
-        Util.printServerReport("br/" + Util.nvl(addStr, "") + "brsale", "_para_pfromno=" +
+        Util.printServerReport("br/kha/" + Util.nvl(addStr, "") + "brsale", "_para_pfromno=" +
             invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
     }
 

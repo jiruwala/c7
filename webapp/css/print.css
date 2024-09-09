@@ -3,14 +3,23 @@ table {
     border-collapse: collapse;
     /*width: 100%;*/
 }
-
+ 
 td, th {
-    border: 1px solid black;
+    border: ^^borderSize^^ ^^borderBrush^^ ^^borderColor^^ ;
     text-align: left;
     ^^tdPadding^^
     ^^tdFontSize^^
 
     
+    
+}
+
+.th_nb {
+    border: 0px ;
+    text-align: left;
+    ^^tdPadding^^
+    ^^tdFontSize^^
+  
     
 }
 .company, .page-header-space {
@@ -112,7 +121,7 @@ td, th {
     thead { display:table-header-group;}
     tfoot { display:table-footer-group;}
     
-    body {margin:0mm }
+    body {margin:0.15mm }
 }
 
 @media print {

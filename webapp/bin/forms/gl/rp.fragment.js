@@ -341,7 +341,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                         if (qry.name == "qry1") {
                             thatForm.fileUpload = undefined;
                             that.frm.setFieldValue("pac", "", "", true);
-                            that.frm.setFieldValue("qry1.crd_limit", 0, 0, true);
+                            that.frm.setFieldValue("qry1.crd_limit2", 0, 0, true);
                             that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                             that.view.byId("numtxt" + thatForm.timeInLong).setText("");
                             that.frm.objs["qry1.etype"].obj.setSelectedItem(that.frm.objs["qry1.etype"].obj.getItems()[0]);
@@ -701,8 +701,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 insert_allowed: false,
                                 require: false
                             },
-                            crd_limit: {
-                                colname: "crd_limit",
+                            crd_limit2: {
+                                colname: "crd_limit2",
                                 data_type: FormView.DataType.Number,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
                                 title: '{\"text\":\"Crd Limit\",\"width\":\"15%\","textAlign":"End","styleClass":""}',

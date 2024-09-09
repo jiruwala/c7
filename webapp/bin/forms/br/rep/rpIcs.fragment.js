@@ -147,13 +147,15 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
                                             var qr = thatForm.qr;
                                             qr.getControl().view = thatForm.view;
                                             qr.getControl().addStyleClass("sapUiSizeCondensed reportTable2 ");
-                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
-                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
+                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
+                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                                             qr.getControl().setAlternateRowColors(false);
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-                                            var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
-                                            qr.getControl().setVisibleRowCount(r);
-                                            qr.getControl().setRowHeight(20);
+                                            // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
+                                            qr.getControl().setVisibleRowCount(10);
+                                            qr.setAutoDispRecords(thatForm.mainPage,{ "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.getControl().setRowHeight(18);
+                                            qr.getControl().attachColumnResize(undefined, function (e) { e.preventDefault(); });
                                             qr.filterCols = [];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
                                                 // EVENT ON APPLY PERSONALIZATION

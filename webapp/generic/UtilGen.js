@@ -2261,6 +2261,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         frag.frm.cmdButtons.cmdNew.setVisible(false);
                         frag.frm.cmdButtons.cmdEdit.setVisible(false);
                         frag.frm.cmdButtons.cmdDel.setVisible(false);
+                        frag.frm.cmdButtons.cmdSave.setVisible(false);
                     }
 
                     if (frag.oController.status != FormView.RecordStatus.NEW) {

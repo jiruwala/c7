@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rm.imo", {
+sap.ui.jsfragment("bin.forms.rp.slsmn", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -7,10 +7,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
         // this.joApp = new sap.m.SplitApp({mode: sap.m.SplitAppMode.HideMode,});
         // this.joApp2 = new sap.m.App();
         this.timeInLong = (new Date()).getTime();
-        this.monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        this.monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
 
-        this.helperFunc.init(this);
         this.bk = new sap.m.Button({
             icon: "sap-icon://nav-back",
             press: function () {
@@ -42,7 +39,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
             // var rr = frm.objs["CAGE1@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
             // var cont = frm.objs["CAGE1@qry2"].obj.getControl().getContextByIndex(rr);
             // var rowid = mdl.getProperty("_rowid", cont);
-            // var ac = Util.nvl(lctb.getFieldValue(rowid, "CODE"), "");
+            // var ac = Util.nvl(lctb.getFieldValue(rowid, "ACCNO"), "");
             // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
 
             // var mnu = new sap.m.Menu();
@@ -52,16 +49,16 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
             //     text: "SOA A/c -" + ac,
             //     customData: { key: ac },
             //     press: function () {
-            //         var CODE = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + CODE + " toacc=" + CODE + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            //         var accno = this.getCustomData()[0].getKey();
+            //         UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + accno + " toacc=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
             //     }
             // }));
             // mnu.addItem(new sap.m.MenuItem({
             //     text: "View A/c -" + ac,
             //     customData: { key: ac },
             //     press: function () {
-            //         var CODE = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view CODE=" + CODE, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            //         var accno = this.getCustomData()[0].getKey();
+            //         UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view accno=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
             //     }
             // }));
             // mnu.openBy(obj);
@@ -74,35 +71,32 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("repImo1Descr"),
+            title: Util.getLangText("titSalesManAna"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
-                    code: "IMO01",
-                    name: Util.getLangText("repImo1"),
-                    descr: Util.getLangText("repImo1Descr"),
+                    code: "SLSMN1",
+                    name: Util.getLangText("titSalesManAna"),
+                    descr: Util.getLangText("titSalesManAna"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
-                    printCSS: "print2.css",
                     onSubTitHTML: function () {
-                        var ht = "<div class='reportTitle'>" + Util.getLangText("repImo1Descr") + "</div > ";
-                        // if (cs != "")
-                        //     ht += "<div class='reportTitle2'>" +"</div > ";
+                        var tbstr = Util.getLangText("titSalesManAna");
+                        var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
-
 
                     },
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: ReportUtils.Report.getMainParaContainerSettings(),
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
-                        parameters: thatForm.helperFunc.getParas("IMO01"),
+                        parameters: thatForm.helperFunc.getParas(),
                         print_templates: [
                         ],
                         canvas: [],
@@ -110,24 +104,34 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                             {
                                 type: "query",
                                 name: "qry2",
-                                showType: FormView.QueryShowType.FORM,
-                                disp_class: "",
-                                dispRecords: -1,
+                                showType: FormView.QueryShowType.QUERYVIEW,
+                                disp_class: "reportTable2",
+                                dispRecords: { "S": 10, "M": 16, "L": 20 },
                                 execOnShow: false,
-                                dml: "",
+                                dml: "select '' accno from dual",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
                                 title: "",
                                 isMaster: false,
-                                isCrossTb: "N",
-                                showToolbar: false,
+                                showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: [],
-                                canvasType: ReportView.CanvasType.SCROLLCONTAINER,
+                                filterCols: ["COL1", "COL2"],
+                                canvasType: ReportView.CanvasType.VBOX,
+                                onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
+                                    // var oModel = this.getControl().getModel();
+                                    // var bal = parseFloat(oModel.getProperty("BALANCE", currentRowContext));
+                                    // if (bal >= 0)
+                                    //     qv.getControl().getRows()[dispRow].getCells()[3].$().css("color", "green");
+                                    // else
+                                    //     qv.getControl().getRows()[dispRow].getCells()[3].$().css("color", "red");
 
+
+                                },
                                 bat7CustomAddQry: function (qryObj, ps) {
 
+                                },
+                                beforeLoadQry: function (sql) {
                                 },
                                 fields: {
                                     accno: {
@@ -143,29 +147,25 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                                         display_style: "",
                                         display_format: "",
                                         default_value: "",
-                                        other_settings: { vertical: true },
+                                        other_settings: {},
                                         onPrintField: function () {
                                             return thatForm.qr.getContent();
                                         },
                                         afterAddOBject: function () {
-                                            var showmonth = thatForm.frm.getFieldValue("parameter.showMonth");
                                             thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
-                                            var vb = new sap.m.VBox({
-                                                width: "-1px", //(showmonth == "Y" ? "1500px" : "-1px"),                                                
-                                                items: [thatForm.qr]
-                                            }).addStyleClass("sapUiSmallMargin");
-                                            // this.toolbar = that.getToolbar();
+                                            var vb = new sap.m.VBox({ width: "-1px", items: [thatForm.qr] }).addStyleClass("sapUiSmallMargin");
                                             this.obj.addContent(vb);
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
-                                            return thatForm.helperFunc.addQryPL3(qryObj, ps, "IMO01");
 
+                                            return thatForm.helperFunc.addQry1(qryObj, ps);
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
-                                            thatForm.helperFunc.getQryPL3(qryObj);
+                                            thatForm.helperFunc.getQry1(qryObj);
                                             if (qryObj.rep.hideMainMenu)
                                                 UtilGen.DBView.autoShowHideMenu(!qryObj.rep.hideMainMenu, thatForm.jp);
+
                                         }
                                     },
                                 }
@@ -180,6 +180,9 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
         this.frm.parasAsLabels = true;
         return this.frm.createViewMain(this, js);
 
+    }
+    ,
+    loadData: function () {
     },
     helperFunc: {
         init: function (thatForm) {
@@ -229,57 +232,28 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                     insert_allowed: true,
                     require: true,
                     dispInPara: true,
-                },
-                reptype: {
-                    colname: "reptype",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '{\"text\":\"reportType\",\"width\":\"15%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "QTY",
-                    other_settings: {
-                        width: "35%",
-                        items: {
-                            path: "/",
-                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                            templateShareable: true
-                        },
-                        selectedKey: "QTY",
-                    },
-                    list: "@QTY/Quantity,SALES/Sales",
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true,
-                    dispInPara: true,
-                },
+                }
             };
-
             return para;
         },
-        addQryPL3: function (qryObj, ps, repCode) {
+        addQry1: function (qryObj, ps) {
             var thatForm = this.thatForm;
-            var fisc = sap.ui.getCore().getModel("fiscalData").getData();
             var ret = true;
-            var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
-            var todt = thatForm.frm.getFieldValue("parameter.todate");
-            var todt = thatForm.frm.getFieldValue("parameter.rpttype");
-            var bk = UtilGen.getBackYears(fromdt, todt);
-            // this.codes = this.assignCodes();
-            var delStr = "delete from temporary where usernm='01' and idno=66105;";
-            var insx = "";
-            var rt = thatForm.frm.getFieldValue("parameter.reptype");
-            var str = (rt != "QTY" ? "*sale_price" : "");
-            var sq = "SELECT ORD_SHIP CODE, I.DESCR, SUM(TQTY" + str + ") QTY," +
-                " TO_CHAR(ORD_DATE,'RRRR/MM') MNTH,TO_CHAR(ORD_DATE,'RRRR_MM')||'__QTY' MNTH_BAL," +
-                " i.packd, 1 levelno,'' parentacc ,0 CHILDCOUNT " +
-                " FROM C_ORDER1 O,ITEMS I " +
-                " WHERE I.REFERENCE=O.ORD_SHIP " +
-                " GROUP BY ORD_SHIP,TO_CHAR(ORD_DATE,'RRRR/MM'),I.DESCR,TO_CHAR(ORD_DATE,'RRRR_MM')||'__QTY',i.packd " +
-                " ORDER BY TO_CHAR(ORD_DATE,'RRRR/MM'),ord_ship";
+            var sq =
+                "begin " +
+                "  commit; " +
+                "end;";
+            sq = thatForm.frm.parseString(sq);
+            Util.doAjaxJson("sqlmetadata?", {
+                sql: sq,
+                ret: "NONE",
+                data: null
+            }, false).done(function (data) {
+            });
+            sq = "select from ...";
+            sq = thatForm.frm.parseString(sq);
+            var pars = Util.nvl(qryObj.rep.parameters, []);
+
             Util.doAjaxJson("bat7addQry?" + ps, {
                 sql: sq,
                 ret: "",
@@ -296,11 +270,13 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                     ret = false;
                 }
             });
-            return true;
+            return ret;
         },
-        getQryPL3: function (qryObj) {
+        getQry1: function (qryObj) {
             var thatForm = this.thatForm;
+            var fisc = sap.ui.getCore().getModel("fiscalData").getData();
             var sett = sap.ui.getCore().getModel("settings").getData();
+
             Util.doAjaxJson("bat7getData", {
                 sql: "",
                 ret: "",
@@ -314,75 +290,46 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                 qrNo: 1001,
             }, false).done(function (dt) {
                 if (dt.ret == "SUCCESS" && thatForm.qr != undefined) {
-                    var rt = thatForm.frm.getFieldValue("parameter.reptype");
+                    // var dtx = JSON.parse("{" + dt.data + "}").data;  
                     var paras = {
                         mColParent: "PARENTACC",
-                        mColCode: "CODE",
-                        mColName: "DESCR",
+                        mColCode: "ACCNO",
+                        mColName: "NAME",
                         mColLevel: "LEVELNO",
                         mColChild: "CHILDCOUNT"
                     };
                     var ld = new LocalTableData();
                     ld.parseCol("{" + dt.data + "}");
+                    // YTD Balance to be hidden in case period from starting of the year
 
-                    ld.cols[ld.getColPos("CODE")].mUIHelper.display_width = "180";
-                    ld.cols[ld.getColPos("DESCR")].mUIHelper.display_width = "250";
-                    ld.cols[ld.getColPos("PACKD")].mUIHelper.display_width = "60";
-                    ld.cols[ld.getColPos("CODE")].ct_row = "Y";
-                    ld.cols[ld.getColPos("CODE")].mTitle = Util.getLangText("txtCode");
-                    ld.cols[ld.getColPos("DESCR")].ct_row = "Y";
-                    ld.cols[ld.getColPos("CODE")].mHideCol = true;
-                    ld.cols[ld.getColPos("DESCR")].mTitle = Util.getLangText("titleTxt");
-                    ld.cols[ld.getColPos("PARENTACC")].ct_row = "Y";
-                    ld.cols[ld.getColPos("LEVELNO")].ct_row = "Y";
-                    ld.cols[ld.getColPos("CHILDCOUNT")].ct_row = "Y";
-                    ld.cols[ld.getColPos("PACKD")].ct_row = "Y";
+                    // ld.getColByName("PATH").mHideCol = true;
+                    // ld.getColByName("ACCNO").mTitle = Util.getLangText("accNo");
 
-                    ld.cols[ld.getColPos("MNTH_BAL")].ct_col = "Y";
+                    // ld.getColByName("BALANCE").mUIHelper.display_width = "120";
+                    // ld.getColByName("BALANCE").mUIHelper.data_type = "NUMBER";
+                    // ld.getColByName("BALANCE").mUIHelper.display_format = "QTY_FORMAT";
+                    // ld.getColByName("BALANCE").mTitle = Util.getLangText("periodicBalanceTxt") + "\n(" + sett["DEFAULT_CURRENCY"] + ")";
+                    // ld.getColByName("BALANCE").mSummary = "SUM";
+                    
 
-                    ld.cols[ld.getColPos("QTY")].ct_val = "Y";
-                    ld.cols[ld.getColPos("QTY")].mSummary = "SUM";
-                    ld.cols[ld.getColPos("QTY")].data_type = "number";
-                    ld.cols[ld.getColPos("QTY")].mUIHelper.display_format = "MONEY_FORMAT";
-                    ld.cols[ld.getColPos("QTY")].mUIHelper.display_width = "100";
-
-                    ld.cols[ld.getColPos("PARENTACC")].mHideCol = true;
-                    ld.cols[ld.getColPos("LEVELNO")].mHideCol = true;
-                    ld.cols[ld.getColPos("CHILDCOUNT")].mHideCol = true;
-
-                    if (rt != "QTY")
-                        ld.cols[ld.getColPos("PACKD")].mHideCol = true;
-
-                    ld.parse("{" + dt.data + "}", true);
-                    ld.do_cross_tab();
-                    ld.sortCol(ld.getColPos("DESCR"), true);
-                    var cx = ld.addColumn("AGR");
-                    cx.mColClass = "sap.m.Label";
-                    cx.mUIHelper.data_type = "string";
-                    cx.mUIHelper.display_align = Util.getLangDescrAR("end", "begin");
-                    cx.mUIHelper.display_format = "";
-                    cx.mUIHelper.display_width = 100;
-                    cx.mUIHelper.display_style = "";
-                    cx.mTitleParent = Util.getLangText("summaryBalTxt");
-                    cx.mTitle = Util.getLangText("txtAvg");
-
-
-                    UtilGen.setAvg(ld, "QTY", "AGR", (rt != "QTY" ? sett['FORMAT_MONEY_1'] : undefined));
-
-                    UtilGen.getMonthTitleCrossTable(ld);
-                    var fntsize = Util.getLangDescrAR("14px", "16px");
+                    var fntsize = Util.getLangDescrAR("12px", "16px");
                     paras["tableClass"] = "class=\"tbl1\"";
                     paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
                     paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
                     paras["fnOnCellAddClass"] = function (oData, rowno, col) {
-                        var st = "";
+                        // var st = "";
+                        // if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
+                        //     st = "linkLabel";
+
                         return st;
                     }
                     paras["fnOnCellClick"] = function (oData, rowno, col) {
                         var st = "";
-                        // if ((col == "CODE" || col == "DESCR") && oData[rowno]["CODE"] != null) {
-                        //     var sq1="";
-                        //     st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        // if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null) {
+                        //     var sdf = new simpleDateFormat("MM/dd/yyyy");
+                        //     var fromdt = sdf.format(thatForm.frm.objs["PL001@parameter.fromdate"].obj.getDateValue());
+                        //     var todt = sdf.format(thatForm.frm.objs["PL001@parameter.todate"].obj.getDateValue());
+                        //     st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + " fromdate=@" + fromdt + " todate=@" + todt + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
                         // }
                         return st;
                     }
@@ -390,62 +337,38 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                     paras["fnOnCellAddStyle"] = function (oData, rowno, col) {
                         if (rowno == -1)
                             return "border:groove;";
-                        if (rowno == -1)
-                            return "border:groove;";
-                        var st = "padding-left:10px;padding-right:10px;height:24px;";
-                        if (oData[rowno]["DESCR"] == Util.getLangText("totalTxt"))
-                            st += "vertical-align:center;font-weight:bold;border-top:groove;background-color:lightgrey;";
-
+                        paras["hideTotals"] = (thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
+                        var st = "padding-left:5px;padding-right:5px;";
+                        if (oData[rowno]["CHILDCOUNT"] > 0 && oData[rowno]["PARENTACC"] != "")
+                            st += "font-weight:bold;height:30px;vertical-align:bottom;";
+                        if (oData[rowno]["ACCNO"] == null && col.endsWith("BALANCE"))
+                            st += "vertical-align:top;";
+                        if (oData[rowno]["ACCNO"] == null && col == "NAME")
+                            st += "vertical-align:top;";
+                        if (oData[rowno]["ACCNO"] == "-" && col == "NAME")
+                            st += "vertical-align:top;";
+                        if (oData[rowno]["ACCNO"] == "-" && col.endsWith("BALANCE"))
+                            st += "vertical-align:top;font-weight:bold;font-size:14px;";
+                        if (oData[rowno]["PARENTACC"] == "")
+                            st += "font-weight:bold;height:40px;vertical-align:bottom!important;";
                         if (oData[rowno]["LEVELNO"] == -1)
                             st = "font-weight:bold;border-bottom:groove;background-color:lightgrey;";
+
                         return st;
                     }
-                    paras["fnOnCellValue"] = function (oData, rowno, col, cellValue) {
-                        var vl = cellValue;
-                        // if (col == "BALANCE" && cellValue != "")
-                        //     vl = oData[rowno]["POST_VAL"] + " " + cellValue + ""
-                        return vl;
-                    };
-                    paras["formatNumber"] = function (oData, rowno, col) {
-                        if (rt != "QTY")
-                            return new DecimalFormat(sett['FORMAT_MONEY_1']);
-                        return undefined;
-                    }
-                    paras["reFormatNumber"] = true;
-                    paras["hideSubTotals"] = true;
-                    paras["hideTotals"] = false; //(thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
-                    paras["showFooter"] = true;
-
                     paras["fnOnAddTotalRow"] = function (footerNode_fg, mapNode_fg) {
-                        // footerNode_fg["LEVELNO"] = mapNode_fg["LEVELNO"];
+                        // footerNode_fg["YTD_RATE"] = mapNode_fg["YTD_RATE"];
                     };
-                    paras["fnOnFooter"] = function (footer) {
-                        var dfq1 = new DecimalFormat("#,##0");
-                        var cnt = 0, tot = 0;
-                        for (var fi in footer)
-                            if (fi.endsWith("__QTY") && fi != "tot__QTY") {
-                                tot += Util.extractNumber(footer[fi]);
-                                cnt++;
-                            }
-                        if (cnt == 0) return;
-                        var avg = tot / cnt;
-                        if (avg < 0) avg = dfq1.format(Math.abs(avg)); else avg = dfq1.format(avg);
-                        footer["AGR"] = avg;
-                        footer["LEVELNO"] = -1;
-                    };
+                    ld.parse("{" + dt.data + "}", true);
 
                     var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
                     thatForm.qr.setContent(str);
-
                 }
             });
-        },
-    },
-    loadData: function () {
-    }
+        }
 
-})
-    ;
+    }
+});
 
 
 

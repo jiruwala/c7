@@ -75,7 +75,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 7, "M": 14, "L": 15, "XL": 18 },
+                                dispRecords: -1, //{ "S": 7, "M": 14, "L": 15, "XL": 18 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
@@ -156,8 +156,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
         this.frm.parasAsLabels = true;
         return this.frm.createViewMain(this, js);
 
-    }
-    ,
+    },
+
     helperFunc: {
         init: function (thatForm) {
             this.thatForm = thatForm;
@@ -478,7 +478,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "80",
+                    display_width: "120",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",

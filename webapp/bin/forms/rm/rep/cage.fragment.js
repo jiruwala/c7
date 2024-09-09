@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rp.cage", {
+sap.ui.jsfragment("bin.forms.rm.rep.cage", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -69,7 +69,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         this.o1 = {};
 
         var js = {
-            title: "Report Title",
+            title: "Receivables Ageing",
             title2: "",
             show_para_pop: false,
             reports: [
@@ -249,10 +249,6 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
 
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -261,7 +257,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: -1,// { "S": 10, "M": 16, "L": 20, "XL": 23 },
+                                dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 23 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
@@ -271,7 +267,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["CODE", "NAME", "BAL", "CRD_LIMIT", "B30", "B60", "B90", "B120", "B150"],
+                                filterCols: ["CODE", "NAME", "BAL", "CRD_LIMIT", "B30", "B60", "B90", "B120", "B180", "B270", "B360", "B720"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
@@ -457,11 +453,68 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
-                                    b150: {
-                                        colname: "b150",
+                                    b180: {
+                                        colname: "b180",
                                         data_type: FormView.DataType.Number,
                                         class_name: FormView.ClassTypes.LABEL,
-                                        title: "121-150",
+                                        title: "121-180",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        valOnZero: "",
+                                        display_width: "100",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        summary: "SUM",
+                                        commandLinkClick: cmdLink
+                                    },
+                                    b270: {
+                                        colname: "b270",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "181-270",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        valOnZero: "",
+                                        display_width: "100",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        summary: "SUM",
+                                        commandLinkClick: cmdLink
+                                    },
+                                    b360: {
+                                        colname: "b360",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "271-360",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        valOnZero: "",
+                                        display_width: "100",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        summary: "SUM",
+                                        commandLinkClick: cmdLink
+                                    },
+                                    b720: {
+                                        colname: "b720",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "361-720",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
@@ -476,7 +529,6 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         summary: "SUM",
                                         commandLinkClick: cmdLink
                                     }
-
                                 }
                             }
                         ]
@@ -493,7 +545,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
     save_cage: function () {
         var thatForm = this;
         var todt = thatForm.frm.getFieldValue("parameter.todate");
-        var fromdt = Util.addDaysFromDate(todt, -151);
+        var fromdt = Util.addDaysFromDate(todt, -720);
         var bk = UtilGen.getBackYears(fromdt, todt);
 
         // _CURSOR_A2   --- order by path

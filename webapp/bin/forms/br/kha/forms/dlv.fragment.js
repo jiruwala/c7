@@ -1843,10 +1843,12 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
 
     loadData: function () {
         var frag = this;
+        frag.frm.readonly = Util.nvl(frag.oController.readonly, false);
         if (Util.nvl(frag.oController.keyfld, "") != "") {
             frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
             frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+            UtilGen.Vouchers.formLoadData(this);
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }
@@ -1858,6 +1860,53 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         return true;
     }
     ,
+    getLogDlvCustAboveCredit: function (grpname) {
+        var frag = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var frm = frag.frm;
+        var cust = frm.getFieldValue("ord_ref");
+        var insq = "";
+        var inslog = false;
+        var cl = 0;
+
+        var getSq = function () {
+            var sqx = "c7_insert_log_proc(':GRPNAME'," +
+                "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT '" +
+                ",:KEYFLD,':PVAR2',:JVNO,':PVAR4',':PVAR5',':NOTIFY_TYPE'); ";
+            sqx = sqx.replaceAll(":REC_STAT", stat)
+                .replaceAll(":USERNAME", sett["LOGON_USER"])
+                .replaceAll(":GRPNAME", Util.nvl(grpname, "JV"))
+                .replaceAll(":JVNO", vono)
+                .replaceAll(":KEYFLD", kfld)
+                .replaceAll(":PVAR2", pv2)
+                .replaceAll(":PVAR4", pv4)
+                .replaceAll(":PVAR5", pv5)
+                .replaceAll(":TABLENAME", Util.nvl(tablename, "ACVOUCHER1"))
+                .replaceAll(":NOTIFY_TYPE", Util.nvl(notifyType, ""));
+            return sqx;
+        }
+        var chkAboveCl = function () {
+            if (Util.nvl(sett["DLV_CUST_ABOVE_CREDIT_NOTIFY"], "false") != "TRUE")
+                return false;
+            cl = Util.getSQLValue("select nvl(crd_limit,0) from c_ycust where code='" + cust + "'");
+            if (cl == 0) return false;
+            var totamt = frm.getFieldValue("totamt");
+            var bal = Util.getSQLValue("select c7_get_cb('" + vono + "' , 'Y','Y') from dual");
+        }
+        
+        var stat = frm.objs["qry1"].status != FormView.RecordStatus.EDIT ?
+            "INSERTED" : "UPDATED";
+
+        stat = Util.nvl(pNotify, stat);
+        var notifyType = grpname + "_" + stat;
+
+        var kfld = frm.getFieldValue("qry1.keyfld");
+        var pv5 = "";
+        var pv4 = "";
+        var pv2 = "";
+        insq = getSq();
+
+    },
     save_data: function () {
     }
     ,

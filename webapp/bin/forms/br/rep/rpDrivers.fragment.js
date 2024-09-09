@@ -54,6 +54,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    printOrient: ReportView.PageOrient.PORTRAIT,
                     onSubTitHTML: function () {
                         var tbstr = Util.getLangText("titDriverTrips");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
@@ -75,7 +76,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 7, "M": 14, "L": 15, "XL": 18 },
+                                dispRecords: -1,// { "S": 7, "M": 14, "L": 15, "XL": 18 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
@@ -123,7 +124,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                     var tr1 = Util.nvl(cold[oy + "Grp"], "");
 
                                     var sq = "SELECT " +
-                                        " SUM(qty_x/pack_x) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT , " +
+                                        " SUM(ORD_PKQTY) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT , " +
                                         " count(*) counts,ord_empno,driver_name " + tr +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
@@ -327,7 +328,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     display_format: "",
                     default_value: "Y",
                     other_settings: {
-                        selected: false, width: "20%",
+                        selected: false, width: "35%",
                         items: {
                             path: "/",
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
@@ -383,7 +384,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "300",
+                    display_width: "350",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
@@ -434,7 +435,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "200",
+                    display_width: "350",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
@@ -451,7 +452,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "200",
+                    display_width: "300",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
@@ -486,7 +487,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "120",
+                    display_width: "200",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",

@@ -1780,14 +1780,14 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
 
                 // Convert the number to absolute value
-                const absNumber = Math.abs(number);
+                const absNumber = (Math.abs(number)).toFixed(2);
 
                 // Determine the appropriate SI symbol index
                 const tier = Math.log10(absNumber) / 3 | 0;
 
                 // If the number is 0 or smaller than 1,000, return the number as is
                 if (tier === 0) {
-                    return number.toString();
+                    return number.toFixed(2).toString();
                 }
 
                 // Calculate the scaled number and add the SI symbol

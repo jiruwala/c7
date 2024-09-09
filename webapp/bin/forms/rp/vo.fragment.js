@@ -64,7 +64,7 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
             mnu.openBy(obj);
 
         };
-        cmdLink=undefined;
+        cmdLink = undefined;
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};
         var fe = [];
@@ -274,7 +274,7 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: -1,// { "S": 10, "M": 16, "L": 20 },
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
@@ -284,7 +284,7 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ACCNO", "DESCR2", "VOU_DATE", "CUST_CODE", "DESCR", "BRANCH_NO"],
+                                filterCols: ["ACCNO", "DESCR2", "VOU_DATE", "CUST_CODE", "DESCR", "BRANCH_NO", "CHEQUENO", "RCVFROM", "DEBIT"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 beforeLoadQry: function (sql) {
                                     var sb = thatForm.frm.getFieldValue("parameter.showBalance");
@@ -365,6 +365,39 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
+                                    duedate: {
+                                        colname: "duedate",
+                                        data_type: FormView.DataType.Date,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Due Date",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "SHORT_DATE_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    chequeno: {
+                                        colname: "chequeno",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Cheque No",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+
+                                    },
                                     no: {
                                         colname: "no",
                                         data_type: FormView.DataType.Number,
@@ -415,6 +448,23 @@ sap.ui.jsfragment("bin.forms.rp.vo", {
                                         display_type: "NONE",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
+                                    },
+                                    rcvfrom: {
+                                        colname: "rcvfrom",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Pay To",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+
                                     },
                                     grpname_a: {
                                         colname: Util.getLangDescrAR("grpname_a", "grpname"),

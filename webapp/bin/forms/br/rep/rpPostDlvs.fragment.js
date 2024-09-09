@@ -85,6 +85,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
+                    printOrient: ReportView.PageOrient.LANDSCAPE,
                     onSubTitHTML: function () {
                         var tbstr = Util.getLangText("titDlvAfterInvs");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
@@ -106,7 +107,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 7, "M": 14, "L": 15, "XL": 18 },
+                                dispRecords: -1,//{ "S": 7, "M": 14, "L": 15, "XL": 18 },                                
                                 execOnShow: false,
                                 dml: "",
                                 parent: "",
