@@ -153,7 +153,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
                                             // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
                                             qr.getControl().setVisibleRowCount(10);
-                                            qr.setAutoDispRecords(thatForm.mainPage,{ "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 35, "XL": 20 });
                                             qr.getControl().setRowHeight(18);
                                             qr.getControl().attachColumnResize(undefined, function (e) { e.preventDefault(); });
                                             qr.filterCols = [];
@@ -382,7 +382,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
                 " from joined_corder where " +
                 " ORD_DATE>=:parameter.fromdate " +
                 " AND ORD_DATE<=:parameter.todate  " +
-                " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " + 
+                " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
                 " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
                 " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                 " group by  location_code,location_name,ord_ref ,ord_ship, " +
@@ -481,6 +481,13 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
 
                     ld.parse("{" + dt.data + "}", true);
                     ld.do_cross_tab();
+
+                    if (ld.cols.length == 0 || ld.rows.length == 0) {
+                        sap.m.MessageToast.show("No data found !");
+                        qr.reset();
+                        return;
+                    }
+
                     var dt2 = ld.format();
                     // qr.mLctb.parseCol(dt2);
                     qr.setJsonStrMetaData(dt2);

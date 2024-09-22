@@ -233,7 +233,7 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                         showType: FormView.QueryShowType.QUERYVIEW,
                         applyCol: "C7.BRCUSTITEMS",
                         addRowOnEmpty: true,
-                        dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY, C.PACKD, C.UNITD, C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
+                        dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY, C.PACKD, C.UNITD, c.asm_ctg,C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
                         // dml: "select *from c_custitems where startdate=" + Util.nvl(Util.toOraDateString(that2.qrDate), 'null') + " and keyfld=':keyfld' order by refer ",
                         dispRecords: { "S": 5, "M": 7, "L": 8, "XL": 14, "XXL": 25 },
                         edit_allowed: true,
@@ -466,14 +466,23 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
     }
     ,
     loadData: function () {
-        // if (Util.nvl(this.oController.accno, "") != "" &&
-        //     Util.nvl(this.oController.status, "view") == FormView.RecordStatus.VIEW) {
-        //     this.frm.setFieldValue("pac", this.oController.accno, this.oController.accno, true);
-        //     this.frm.loadData(undefined, FormView.RecordStatus.VIEW);
-        //     this.oController.accno = "";
-        //     return;
+        if (Util.nvl(this.oController.code, "") != "") {
+            this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
+            var kf = Util.execSQLWithData("select keyfld from c_contract where cust_code='" +
+                this.oController.code + "' and branch_no='" + Util.nvl(this.oController.branch, "") + "'");
+            if (kf != undefined && kf.length > 0) {
+                // this.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                this.frm.setFieldValue("pac", kf[0].KEYFLD, kf[0].KEYFLD, true);
+                this.frm.loadData(undefined, FormView.RecordStatus.VIEW);
 
-        // }
+            } else {
+                UtilGen.setControlValue(this.frm.objs["qry1.cust_code"].obj, this.oController.code, this.oController.code, true);
+                if (Util.nvl(this.oController.branch, "") != "")
+                    UtilGen.setControlValue(this.frm.objs["qry1.branch_no"].obj, Util.nvl(this.oController.branch, ""), Util.nvl(this.oController.branch, ""), true);
+            }
+            return;
+        }
+
         this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
     },
     helperFunc: {

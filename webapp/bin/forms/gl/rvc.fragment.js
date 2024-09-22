@@ -6,6 +6,11 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
         this.view = oController.getView();
         this.qryStr = Util.nvl(oController.code, "");
         this.timeInLong = (new Date()).getTime();
+        this.isDialog = false;
+        try {
+            that.isDialog = (that.oController.getForm().getParent() instanceof sap.m.Dialog);
+        } catch (e) { };
+
         this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
         this.vars = {
             keyfld: -1,
@@ -72,19 +77,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
             form: {
                 title: "Cash Receipt Voucher",
                 toolbarBG: "thistle",
-                formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: thistle;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ]
-                },
+                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
@@ -319,9 +312,9 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 canvas: "default_canvas",
                                 display_width: codSpan,
                                 display_align: "ALIGN_CENTER",
-                                display_style: "",
+                                display_style: "keyIdText",
                                 display_format: "",
-                                other_settings: { width: "30%" },
+                                other_settings: { width: "35%" },
                                 edit_allowed: false,
                                 insert_allowed: false,
                                 require: true
@@ -330,7 +323,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 colname: "attachment",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"Attachment\",\"width\":\"35%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"Attachment\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -340,7 +333,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 other_settings: {
                                     showValueHelp: true,
                                     editable: false,
-                                    width: "20%",
+                                    width: "35%",
                                     valueHelpRequest: function (e) {
                                         if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT &&
                                             that2.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
@@ -364,7 +357,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "15%" },
+                                other_settings: { width: "35%" },
                                 edit_allowed: false,
                                 insert_allowed: true,
                                 require: true
@@ -373,7 +366,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 colname: "vou_date",
                                 data_type: FormView.DataType.Date,
                                 class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '@{\"text\":\"Vou Date\",\"width\":\"50%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"Vou Date\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -381,7 +374,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 display_style: "",
                                 display_format: "",
                                 other_settings: {
-                                    width: "20%",
+                                    width: "35%",
                                     maxDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_to),
                                     minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
                                     change: function () {
@@ -397,22 +390,6 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true,
-                            },
-                            descr: {
-                                colname: "descr",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"Descr\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                canvas: "default_canvas",
-                                display_width: fullSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { width: "85%" },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true
                             },
                             code: {
                                 colname: "code",
@@ -462,7 +439,8 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 },
                                 edit_allowed: false,
                                 insert_allowed: false,
-                                require: true
+                                require: true,
+                                keyboardFocus: false,
                             },
                             rcvfrom: {
                                 colname: "rcvfrom",
@@ -524,7 +502,8 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 },
                                 edit_allowed: false,
                                 insert_allowed: false,
-                                require: false
+                                require: false,
+                                keyboardFocus: false,
                             },
                             costcent: {
                                 colname: "costcent",
@@ -562,14 +541,31 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                                 canvas: "default_canvas",
                                 display_width: fullSpan,
                                 display_align: "ALIGN_RIGHT",
-                                display_style: "",
+                                display_style: "",                                
                                 display_format: "",
                                 other_settings: {
                                     width: "19%",
                                 },
                                 edit_allowed: false,
                                 insert_allowed: false,
-                                require: false
+                                require: false,
+                                keyboardFocus: false,
+                            },
+                            descr: {
+                                colname: "descr",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTAREA,
+                                title: '{\"text\":\"Descr\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: fullSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: { width: "35%",rows:2 },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true
                             },
                         }
 
@@ -579,7 +575,7 @@ sap.ui.jsfragment("bin.forms.gl.rvc", {
                         name: "qry2",
                         showType: FormView.QueryShowType.QUERYVIEW,
                         applyCol: "C7.RV1",
-                        dispRecords: { "S": 5, "M": 7, "L": 13, "XL": 20, "XXL": 25 },
+                        dispRecords: { "S": 3, "M": 4, "L": 7, "XL": 12, "XXL": 20 },
                         addRowOnEmpty: true,
                         dml: dmlSq,
                         edit_allowed: true,

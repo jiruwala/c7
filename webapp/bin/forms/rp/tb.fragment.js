@@ -125,6 +125,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                                             thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
                                             var vb = new sap.m.VBox({ width: "-1px", items: [thatForm.qr] }).addStyleClass("sapUiSmallMargin");
                                             this.obj.addContent(vb);
+                                            this.obj.addContent(new sap.m.VBox({ height: "100px" }));
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
