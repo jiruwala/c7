@@ -814,6 +814,8 @@ sap.ui.jsview('bin.Dashboard', {
         var dt = null;
         Util.doAjaxGet(pth, "", false).done(function (data) {
             dt = JSON.parse(data);
+            if (Util.nvl(dt["C7_VER_NO"], 7) > 7.5)
+                FormView.err("Err ! , version above 7.5 is not compatiable !");
             var oModel = new sap.ui.model.json.JSONModel(dt);
             sap.ui.getCore().setModel(oModel, "settings");
             var tit = (Util.getLangDescrAR("title", "nvl(titlea,title) title"));
@@ -875,6 +877,9 @@ sap.ui.jsview('bin.Dashboard', {
         var that = this;
         Util.Notifications.checkNewNotifications();
         var sett = sap.ui.getCore().getModel("settings").getData();
+        if (Util.nvl(sett["C7_VER_NO"], 7) > 7.5)
+            FormView.err("Err ! , version above 7.5 is not compatiable !");
+
         var fisc = sap.ui.getCore().getModel("fiscalData").getData();
         that.today_date.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         that.today_date.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
@@ -1197,7 +1202,7 @@ sap.ui.jsview('bin.Dashboard', {
         mv.resizableColumn = false;
         mv.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
         mv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
-        mv.getControl().attachColumnResize(undefined,function (e) { e.preventDefault(); });
+        mv.getControl().attachColumnResize(undefined, function (e) { e.preventDefault(); });
         mv.getControl().addStyleClass("sapUiSizeCondensed " + Util.getLangDescrAR("menuTable", "menuTableAR"));
         mv.getControl().attachRowSelectionChange(undefined, function () {
 

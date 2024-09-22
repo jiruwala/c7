@@ -117,7 +117,8 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                         "pref=" + pcust.getValue() +
                                         " fromdate=@" + sdf.format(fromdt.getDateValue()) +
                                         " todate=@" + sdf.format(todt.getDateValue()) +
-                                        " inclUnpost=" + UtilGen.getControlValue(unpost)
+                                        " inclUnpost=" + UtilGen.getControlValue(unpost)+
+                                        " inclUnpostDlv=" + UtilGen.getControlValue(unpost)
                                         , UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
                                     return "";
                                 }
@@ -370,8 +371,8 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                     display_align: "ALIGN_LEFT",
                     display_style: "",
                     display_format: "",
-                    default_value: "N",
-                    other_settings: { selected: false, width: "10%", trueValues: ["Y", "N"] },
+                    default_value: "Y",
+                    other_settings: { selected: true, width: "10%", trueValues: ["Y", "N"] },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false,

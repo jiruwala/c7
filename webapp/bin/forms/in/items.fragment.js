@@ -138,16 +138,18 @@ sap.ui.jsfragment("bin.forms.in.items", {
                 formSetting: {
                     // width: { "S": 500, "M": 650, "L": 850, "XL": 1000 },
                     width: ((sap.ui.Device.resize.width - 500) > 900 ? 900 : (sap.ui.Device.resize.width - 500)) + "px",
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: lavender;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
+                    class:"jvForm",
+                    cssText:[],
+                    // cssText: [
+                    //     "padding-left:10px;" +
+                    //     "padding-top:20px;" +
+                    //     "border-width: thin;" +
+                    //     "border-style: solid;" +
+                    //     "border-color: lavender;" +
+                    //     "margin: 10px;" +
+                    //     "border-radius:25px;"
+                    //     // "background-color:khaki;"
+                    // ],
                 },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
@@ -975,6 +977,70 @@ sap.ui.jsfragment("bin.forms.in.items", {
     },
     showRawItems: function () {
         var that2 = this;
+        var generateCtgs = function () {
+            var view = that2.view;
+            Util.destroyID(view.createId("btCtg" + that2.timeInLong));
+            var btctg = new sap.m.Button(view.createId("btCtg" + that2.timeInLong), {
+                text: "DEFAULT",
+                customData: [{ key: "DEFAULT" }],
+                icon: "sap-icon://megamenu",
+                press: function () {
+                    var mnus = [];
+                    var loadasctg = function () {
+                        that2.fetchCustItems = false;
+                        fetchData();
+                    }
+                    mnus.push(new sap.m.MenuItem({
+                        text: Util.getLangText("txtNewCtg") + "..",
+                        press: function () {
+                            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
+                                || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                UtilGen.inputDialog("New Category", "Enter New Cateogry", "", function (str) {
+                                    if (Util.nvl(str, "") == "")
+                                        return false;
+                                    btctg.getCustomData()[0].setKey(str);
+                                    btctg.setText(str);
+                                    setTimeout(() => {
+                                        that2.qc.getControl().focus();
+                                    }, 500);
+                                    return true;
+                                })
+                            } else sap.m.MessageToast.show("Form must be in EDIT mode !");
+                        }
+                    }));
+                    if (btctg.getCustomData()[0].getKey() != "DEFAULT")
+                        mnus.push(new sap.m.MenuItem({
+                            text: "DEFAULT",
+                            press: function () {
+                                btctg.getCustomData()[0].setKey("DEFAULT");
+                                btctg.setText("DEFAULT");
+                                loadasctg()
+                            }
+                        }));
+                    var dtx = Util.execSQLWithData("select distinct ctg from masterasm where baseitem='" + that2.frm.getFieldValue("qry1.reference") + "'");
+                    for (var di in dtx) {
+                        if (dtx[di].CTG != "DEFAULT")
+                            mnus.push(new sap.m.MenuItem({
+                                text: dtx[di].CTG,
+                                customData: [{ key: dtx[di].CTG }],
+                                press: function () {
+                                    var dd = this.getCustomData()[0].getKey();
+                                    btctg.getCustomData()[0].setKey(dd);
+                                    btctg.setText(dd);
+                                    loadasctg()
+                                }
+                            }));
+                    }
+                    var mnu = new sap.m.Menu({
+                        title: "",
+                        items: mnus
+                    });
+                    mnu.openBy(this);
+                }
+            });
+            return btctg;
+        };
+
         if (this.qc == undefined) {
             this.qc = new QueryView("qrRawitems" + that2.timeInLong);
             this.qc.getControl().setEditable(true);
@@ -983,10 +1049,14 @@ sap.ui.jsfragment("bin.forms.in.items", {
             this.qc.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
             this.qc.getControl().setFixedBottomRowCount(0);
             this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
-            UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], true);
+            UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], false);
+            this.qc.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
             this.qc.insertable = true;
             this.qc.deletable = true;
         }
+
+        this.qc.showToolbar.toolbar.addContent(generateCtgs());
+
         if (that2.fetchCustItems == false)
             that2.qc.reset();
         var cc = "";
@@ -1063,6 +1133,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
                 " M.PACK, M.UNITD, M.PKQTY, M.QTY,round(GET_ITEM_COST(M.REFER)*I.PACK,5) PKCOST," +
                 " GET_ITEM_COST(M.REFER)*M.ALLQTY AMOUNT FROM MASTERASM M,ITEMS I " +
                 " WHERE I.REFERENCE=M.REFER " +
+                " and m.ctg='" + that2.view.byId("btCtg" + that2.timeInLong).getCustomData()[0].getKey() + "' " +
                 " and m.baseitem='" + that2.frm.getFieldValue("qry1.reference") + "'" +
                 " order by m.refer "
             );
@@ -1206,6 +1277,15 @@ sap.ui.jsfragment("bin.forms.in.items", {
             }
 
         });
+        var cmdSave = new sap.m.Button({
+            text: Util.getLangText("saveRec"),
+            icon: "sap-icon://save",
+            press: function () {
+                that2.frm.cmdButtons.cmdSave.firePress();
+                cmdEdit.setPressed(false);
+            }
+
+        });
         Util.destroyID("txtRM" + that2.timeInLong, that2.view);
         var txtSumRM = new sap.m.Text(that2.view.createId("txtRM" + that2.timeInLong), { width: "300px", text: "0" }).addStyleClass("redText boldText");
 
@@ -1214,6 +1294,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
         pg.removeAllHeaderContent();
         pg.addHeaderContent(this.qc.showToolbar.toolbar);
         pg.addContent(this.qc.getControl());
+        tbHeader.addContent(cmdSave);
         tbHeader.addContent(cmdEdit);
         tbHeader.addContent(cmdClose);
         tbHeader.addContent(new sap.m.ToolbarSpacer());
@@ -1241,6 +1322,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
         eventCalc(that2.qc, undefined, 0, true);
 
     },
+
     doUpdateRawMat: function () {
         var that2 = this;
         var sett = sap.ui.getCore().getModel("settings").getData();
@@ -1251,10 +1333,11 @@ sap.ui.jsfragment("bin.forms.in.items", {
         var ld = that2.qc.mLctb;
         var sqls = "";
         var rfr = that2.frm.getFieldValue("qry1.reference");
+        var ctg = that2.view.byId("btCtg" + that2.timeInLong).getCustomData()[0].getKey();
         var sq2 = UtilGen.getInsertRowStringByObj(
             "MASTERASM",
             {
-                "CTG": "'DEFAULT'",
+                "CTG": Util.quoted(ctg),
                 "BASEITEM": "':XBASEITEM'",
                 "REFER": "':XREFER'",
                 "PACKD": "':XPACKD'",
@@ -1295,7 +1378,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
                 .replaceAll(":XALLQTY", (pkq * dtx[0].PACK) + q)
             sqls += sq + ";";
         }
-        sqls = "delete from masterasm where baseitem='" + rfr + "';" + sqls;
+        sqls = "delete from masterasm where ctg='" + ctg + "' and baseitem='" + rfr + "';" + sqls;
         return sqls;
     },
     loadData: function () {

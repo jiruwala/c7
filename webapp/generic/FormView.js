@@ -28,11 +28,42 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 "cmdPrint": undefined,
             };
         };
+        FormView.getDefaultHeadCSS = (pClass, pWidth, pDeduct) => {
+            return {
+                class: Util.nvl(pClass, "mainParaForm"),
+                width: Util.nvl(pWidth, ((sap.ui.Device.resize.width - Util.nvl(pDeduct, 500)) > 900 ? 900 : (sap.ui.Device.resize.width - Util.nvl(pDeduct, 500))) + "px"),
+                cssText: [
+                ]
+            };
+        };
+        FormView.getDefaultHeadCSSAuto = (pClass, isDialog, pDed) => {
+
+            var ded = 0;
+            if (!isDialog && UtilGen.DBView.app.getMode() == sap.m.SplitAppMode.StretchCompressMode)
+                ded += Util.nvl(pDed, 100);
+            var wd = { "S": (500 - ded), "M": (668 - ded), "L": (742 - ded), "XL": (1000 - ded) };
+
+            return {
+                class: Util.nvl(pClass, "mainParaForm"),
+                width: wd,
+                cssText: [
+                ]
+            };
+        };
+        FormView.getDefaultHeadCSS = (pClass, pWidth, pDeduct) => {
+            return {
+                class: Util.nvl(pClass, "mainParaForm"),
+                width: Util.nvl(pWidth, ((sap.ui.Device.resize.width - Util.nvl(pDeduct, 500)) > 1000 ? 1000 : (sap.ui.Device.resize.width - Util.nvl(pDeduct, 500))) + "px"),
+                cssText: [
+                ]
+            };
+        };
+
         FormView.err = function (msg) {
             sap.m.MessageToast.show(msg, {
                 my: sap.ui.core.Popup.Dock.RightBottom,
                 at: sap.ui.core.Popup.Dock.RightBottom,
-                duraiton:10000
+                duraiton: 10000
             });
             var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
             oMessageToastDOM.css('color', "red");
@@ -90,6 +121,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             "TIMEFIELD": "sap.m.TimePicker",
             "COMBOBOX": "sap.m.ComboBox",
             "MULTICOMBOBOX": "sap.m.MultiComboBox",
+            "TEXTAREA":"sap.m.TextArea",
             "CHECKBOX": "sap.m.CheckBox",
             // "SEARCHFIELD": "SearchText",
             "SEARCHFIELD": "sap.m.SearchField",
@@ -250,6 +282,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 fd.other_settings = Util.nvl(met[f].other_settings, {});
                                 fd.edit_allowed = Util.nvl(met[f].edit_allowed, true);
                                 fd.insert_allowed = Util.nvl(met[f].insert_allowed, true);
+                                fd.keyboardFocus = Util.nvl(met[f].keyboardFocus, true);
                                 qr.fields[met[f].colname] = fd;
                                 that.objs[fd.name] = fd;
                             }
@@ -282,6 +315,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         fd.default_value = Util.nvl(met[f].default_value, "");
                         fd.showValueHelp = Util.nvl(met[f].showValueHelp, "");
                         fd.trueValues = Util.nvl(met[f].trueValues, undefined);
+                        fd.keyboardFocus = Util.nvl(met[f].keyboardFocus, true);
                         qr.fields[met[f].colname] = fd;
 
                         this.objs[fd.name] = fd;
@@ -435,6 +469,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                     flds[f].obj.trueValues = set["trueValues"];
                                 if (flds[f].hasOwnProperty("trueValues"))
                                     flds[f].obj.trueValues = flds[f].trueValues;
+                                if (!flds[f].keyboardFocus)
+                                    flds[f].obj.dontEnterFocus = true;
 
                                 if (flds[f].obj instanceof sap.m.Input && flds[f].obj.getShowValueHelp()) {
                                     flds[f].obj.attachBrowserEvent("keydown", function (oEvent) {
@@ -538,7 +574,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
             }
 
-
             Util.navEnter(this.dispCanvases["default_canvas"], function (lastObj) {
                 if (thatForm.form.db.length > 1) {
                     if (thatForm.form.db[1].showType == FormView.QueryShowType.QUERYVIEW) {
@@ -560,7 +595,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 this.sc.addContent(this.vbCustom);
             }
             // this.objs["default_canvas"].obj = UtilGen.formCreate("", true, this.dispCanvases["default_canvas"], qr.labelSpan, qr.emptySpan, qr.columnsSpan);
-            this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, sap.m.ScrollContainer, this.form.formSetting, "sapUiSizeCondensed", "10px");
+            this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, sap.m.ScrollContainer, this.form.formSetting, undefined, "10px");
+            this.objs["default_canvas"].obj.addStyleClass("sapUiSizeCondensed");
             this.sc.addContent(this.objs["default_canvas"].obj);
 
             if (this.objs["default_canvas"].hasOwnProperty("after_add_canvas") && this.objs["default_canvas"].after_add_canvas != undefined)
@@ -1630,7 +1666,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     if (tbl[key] instanceof sap.m.DatePicker && tbl[key].getDateValue() == undefined)
                         val = "null";
                     if (tbl[key].field_type != undefined && tbl[key].field_type == "number")
-                        val = tbl[key].getValue();
+                        val = Util.extractNumber(tbl[key].getValue());
                     if (tbl[key].field_type != undefined && tbl[key].field_type == "money")
                         val = df.parse(tbl[key].getValue());
 

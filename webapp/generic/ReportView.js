@@ -2486,7 +2486,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 this.initV = false;
 
             } catch (e) {
-                console.log(e)
+                console.log(e);
                 thatRV.ERROR_ON_RCV_DATA = true;
                 clearInterval(thatRV.rcv_data_timer);
             }

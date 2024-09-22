@@ -1303,7 +1303,11 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         UtilGen.Search.do_quick_search_simple("select brno code,b_name  title,AREA from cbranch where code=':locationx' order by brno ".replaceAll(":locationx", locval),
             ["CODE", "TITLE", "AREA"], function (data) {
                 var bn = data.CODE;
-                UtilGen.execCmd("bin.forms.br.kha.forms.con1 formType=dialog formSize=80%,80% status=new code=" + locval + " branch=" + bn, UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var confrm = "bin.forms.br.forms.con1";
+                if (sett["C7_VER_NAME"] == "KHA")
+                    confrm = "bin.forms.br.kha.forms.con1";
+                UtilGen.execCmd(confrm + " formType=dialog formSize=80%,80% status=new code=" + locval + " branch=" + bn, UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
                 });
             });
     },

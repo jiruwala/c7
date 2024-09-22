@@ -539,9 +539,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     canvas: "default_canvas",
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
-                    display_style: "",
+                    display_style: "keyIdText",
                     display_format: "",
-                    other_settings: { editable: false, width: "20%" },
+                    other_settings: { editable: false, width: "30%" },
                     edit_allowed: false,
                     insert_allowed: false,
                     require: true
@@ -550,7 +550,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     colname: "stra",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '@{\"text\":\"storeNo\",\"width\":\"40%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"storeNo\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -559,7 +559,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_format: "",
                     default_value: sett["DEFAULT_STORE"],
                     other_settings: {
-                        editable: true, width: "25%",
+                        editable: true, width: "30%",
 
                         items: {
                             path: "/",
@@ -587,7 +587,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: {
-                        editable: true, width: "20%",
+                        editable: true, width: "30%",
                         items: {
                             path: "/",
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
@@ -621,9 +621,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    default_value: "1",
                     other_settings: {
-                        editable: true, width: "15%",
+                        editable: true, width: "10%",
                         showValueHelp: true,
                         change: function (e) {
                             var locval = UtilGen.getControlValue(thatForm.frm.objs["qry1.location_code"].obj)
@@ -672,10 +671,11 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: false, width: "24%" },
+                    other_settings: { editable: false, width: "19%" },
                     edit_allowed: false,
                     insert_allowed: false,
-                    require: false
+                    require: false,
+                    keyboardFocus: false,
                 },
                 ord_no: {
                     colname: "ord_no",
@@ -689,7 +689,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: {
-                        editable: true, width: "20%",
+                        editable: true, width: "30%",
                         change: function () {
                             thatForm.helperFunc.fetchItem(false);
                         }
@@ -698,33 +698,12 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     insert_allowed: true,
                     require: true
                 },
-                ord_date: {
-                    colname: "ord_date",
-                    data_type: FormView.DataType.Date,
-                    class_name: FormView.ClassTypes.DATEFIELD,
-                    title: '@{\"text\":\"ordDate\",\"width\":\"41%\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    other_settings: {
-                        width: "24%",
-                        minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
-                        change: function () {
-                        }
-                    },
-                    list: undefined,
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true,
-                },
+
                 ord_empno: {
                     colname: "ord_empno",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"txtDriver\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"txtDriver\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -733,7 +712,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_format: "",
                     other_settings: {
                         editable: true,
-                        width: "15%",
+                        width: "10%",
                         showValueHelp: true,
                         change: function (e) {
                             var sq = "select name from salesp where no = :CODE";
@@ -776,36 +755,44 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     other_settings: { editable: true, width: "19%" },
                     edit_allowed: false,
                     insert_allowed: false,
-                    require: false
+                    require: false,
+                    keyboardFocus: false,
                 },
+                ord_date: {
+                    colname: "ord_date",
+                    data_type: FormView.DataType.Date,
+                    class_name: FormView.ClassTypes.DATEFIELD,
+                    title: '{\"text\":\"ordDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        width: "30%",
+                        minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
+                        change: function () {
+                        }
+                    },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                },
+
                 ord_ship: {// telephone no
                     colname: "ord_ship",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"txtTel\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"txtTel\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "15%" },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true
-                },
-                payterm: {
-                    colname: "payterm",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"truckNo\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: "",
-                    other_settings: { editable: true, width: "15%" },
+                    other_settings: { editable: true, width: "30%" },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true
@@ -822,7 +809,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: {
-                        editable: true, width: "20%",
+                        editable: true, width: "12%",
                         showValueHelp: true,
                         change: function (e) {
 
@@ -843,7 +830,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             var objBal = thatForm.frm.objs["qry1.txt_balance"].obj;
 
                             var dtxM = Util.execSQLWithData("select nvl(sum(debit-credit),0) bal from acvoucher2 where cust_code=" + Util.quoted(objCd.getValue()));
-                            var dt2 = Util.getSQLValue("select sum(sale_price*ord_pkqty) from c_order1 where saleinv is null and  ord_ref=" + Util.quoted(objCd.getValue()));
+                            var dt2 = Util.getSQLValue("select sum(sale_price*tqty) from c_order1 where saleinv is null and  ord_ref=" + Util.quoted(objCd.getValue()));
                             var bl = dtxM[0]["BAL"] + dt2;
                             UtilGen.setControlValue(objBal, bl, bl, true);
 
@@ -881,50 +868,27 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "24%" },
+                    other_settings: { editable: true, width: "17%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    keyboardFocus: false,
+                },
+                payterm: {
+                    colname: "payterm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"truckNo\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "30%" },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true
-                },
-                txt_balance: {
-                    colname: "txt_balance",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"balanceTxt\",\"width\":\"10%\","textAlign":"End","styleClass":"redText"}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: { editable: true, width: "15%" },
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: false
-                },
-                cmdSOA: {
-                    colname: "cmdSOA",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.BUTTON,
-                    title: '@{\"text\":\" \",\"width\":\"1%\","textAlign":"End","styleClass":"redText"}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: {
-                        editable: true, width: "14%", text: Util.getLangText("soaTxt"), press: function () {
-                            var ac = thatForm.frm.getFieldValue("qry1.ord_ref");
-                            if (Util.nvl(ac, "") != "")
-                                UtilGen.execCmd("testRep5 formType=dialog repno=0 para_PARAFORM=false para_EXEC_REP=true pref=" + ac + "", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
-                            return true;
-
-                        }
-                    },
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: false
                 },
                 ord_discamt: {// branch no
                     colname: "ord_discamt",
@@ -938,7 +902,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: {
-                        editable: true, width: "20%",
+                        editable: true, width: "10%",
                         showValueHelp: true,
                         change: function (e) {
                             var locval = UtilGen.getControlValue(thatForm.frm.objs["qry1.ord_ref"].obj)
@@ -974,27 +938,71 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "24%" },
+                    keyboardFocus: false,
+                    other_settings: { editable: true, width: "19%" },
                     edit_allowed: false,
                     insert_allowed: false,
                     require: false
                 },
-                ord_addamt: {
-                    colname: "ord_addamt",
+                txt_balance: {
+                    colname: "txt_balance",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"addAmt\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"balanceTxt\",\"width\":\"25%\","textAlign":"End","styleClass":"redText"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: { editable: true, width: "25%" },
+                    other_settings: { editable: true, width: "30%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
+                },
+                cmdSOA: {
+                    colname: "cmdSOA",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.BUTTON,
+                    title: '@{\"text\":\" \",\"width\":\"1%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: {
+                        editable: true, width: "14%", text: Util.getLangText("soaTxt"), press: function () {
+                            var ac = thatForm.frm.getFieldValue("qry1.ord_ref");
+                            if (Util.nvl(ac, "") != "")
+                                UtilGen.execCmd("testRep5 formType=dialog repno=0 para_PARAFORM=false para_EXEC_REP=true pref=" + ac + "", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                            return true;
+
+                        }
+                    },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
+                },
+
+                ord_addamt: {
+                    colname: "ord_addamt",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"addAmt\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { editable: true, width: "30%" },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false
-                }
+                },
+
+
             };
         },
         getList: function () {
@@ -1893,7 +1901,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             var totamt = frm.getFieldValue("totamt");
             var bal = Util.getSQLValue("select c7_get_cb('" + vono + "' , 'Y','Y') from dual");
         }
-        
+
         var stat = frm.objs["qry1"].status != FormView.RecordStatus.EDIT ?
             "INSERTED" : "UPDATED";
 

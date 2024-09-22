@@ -6,6 +6,10 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
         this.view = oController.getView();
         this.qryStr = Util.nvl(oController.code, "");
         this.timeInLong = (new Date()).getTime();
+        this.isDialog = false;
+        try {
+            that.isDialog = (that.oController.getForm().getParent() instanceof sap.m.Dialog);
+        } catch (e) { };
         this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
         this.vars = {
             keyfld: -1,
@@ -35,10 +39,13 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
         this.joApp.displayBack = function () {
             that.frm.refreshDisplay();
         };
+
         // UtilGen.setFormTitle(this.oController.getForm(), "Journal Voucher", this.mainPage);
         setTimeout(function () {
-            if (that.oController.getForm().getParent() instanceof sap.m.Dialog)
+            if (that.oController.getForm().getParent() instanceof sap.m.Dialog) {
+                that.isDialog = true;
                 that.oController.getForm().getParent().setShowHeader(false);
+            }
 
         }, 10);
 
@@ -67,6 +74,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
             form: {
                 title: "Journal Voucher",
                 toolbarBG: "lightgreen",
+                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
@@ -158,7 +166,6 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
 
                     },
                     beforeSaveQry: function (qry, sqlRow, rowno) {
-
                         UtilGen.Vouchers.getNewKF(qry, sqlRow, rowno);
                         UtilGen.Vouchers.validateDetails(qry, sqlRow, rowno);
 
@@ -191,8 +198,6 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                     ld.setFieldValue(idx, "FCCREDIT", td);
                                 else
                                     ld.setFieldValue(idx, "FCDEBIT", Math.abs(td));
-
-
                             }
                         }
                         if (qry.name == "qry1") {
@@ -285,8 +290,6 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         update_default_values: {
                             "DEBAMT": ":qry2.totaldebit",
                             "CRDAMT": ":qry2.totalcredit",
-
-
                         },
                         table_name: "ACVOUCHER1",
                         edit_allowed: true,
@@ -302,7 +305,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 canvas: "default_canvas",
                                 display_width: codSpan,
                                 display_align: "ALIGN_CENTER",
-                                display_style: "",
+                                display_style: "keyIdText",
                                 display_format: "",
                                 other_settings: { editable: false, width: "20%" },
                                 edit_allowed: false,
@@ -313,7 +316,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 colname: "attachment",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"Attachment\",\"width\":\"50%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"Attachment\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -323,7 +326,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 other_settings: {
                                     showValueHelp: true,
                                     editable: false,
-                                    width: "20%",
+                                    width: "35%",
                                     valueHelpRequest: function (e) {
                                         if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT &&
                                             that2.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
@@ -340,7 +343,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 colname: "no",
                                 data_type: FormView.DataType.Number,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"From A/c\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"txtNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "No",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -356,7 +359,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 colname: "vou_date",
                                 data_type: FormView.DataType.Date,
                                 class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '@{\"text\":\"Vou Date\",\"width\":\"50%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"Vou Date\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -364,7 +367,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 display_style: "",
                                 display_format: "",
                                 other_settings: {
-                                    width: "20%",
+                                    width: "35%",
                                     maxDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_to),
                                     minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
                                     change: function () {
@@ -384,7 +387,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                             descr: {
                                 colname: "descr",
                                 data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                class_name: FormView.ClassTypes.TEXTAREA,
                                 title: '{\"text\":\"Descr\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
@@ -392,7 +395,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "90%" },
+                                other_settings: { width: "75%", rows: 2,tooltip:"Press shift+enter for another row !" },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true
@@ -407,7 +410,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         applyCol: "C7.JV",
                         addRowOnEmpty: true,
                         dml: dmlSq,
-                        dispRecords: { "S": 7, "M": 9, "L": 13, "XL": 20, "XXL": 25 },
+                        dispRecords: { "S": 3, "M": 4, "L": 7, "XL": 12, "XXL": 20 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,

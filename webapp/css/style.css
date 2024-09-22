@@ -56,6 +56,7 @@ body {
 
 .mainParaForm {
     padding-left: 50px;
+    display: block;
     padding-top: 20px;
     border-style: groove;
     margin: 10px;
@@ -63,6 +64,27 @@ body {
     background-color: #d8e4bc;
     padding-bottom: 20px;
 }
+.keyIdText{
+    background: #fffacd;
+    border-style: ridge;
+    border-width: medium;
+    padding-left: 5px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+.jvForm {
+    display: block;
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;    
+    padding-right: 10px;    
+    border-style: groove;
+    border-radius: 15px;
+    margin: 10px;
+    border-color: lightgreen;
+    border-width: thin;
+}
+
 
 .alignMiddle25Top {
     position: absolute;

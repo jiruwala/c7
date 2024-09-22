@@ -184,6 +184,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                                             );
                                             this.obj.addContent(qr.showToolbar.toolbar);
                                             this.obj.addContent(qr.getControl());
+                                            this.obj.addContent(new sap.m.VBox({ height: "100px" }));
 
 
                                         },

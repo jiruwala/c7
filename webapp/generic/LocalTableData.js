@@ -192,6 +192,8 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
         };
         LocalTableData.prototype.parseCol = function (strData) {
             this.resetData();
+            if ((Util.nvl(strData, "") + "").trim() == "")
+                return;
             this.dataJson = JSON.parse(strData);
             this.jsonString = strData;
             this.parsedLstCols.rowCol = [];

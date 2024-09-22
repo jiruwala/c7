@@ -656,13 +656,15 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (contSetting != undefined && contSetting.hasOwnProperty("width")) {
                     if (typeof contSetting.width == "object") {
                         var newr = "L";
-                        if (sap.ui.Device.resize.width <= 639)
+                        if (sap.ui.Device.resize.width <= 768)
                             newr = "S";
-                        if (sap.ui.Device.resize.width > 640 && sap.ui.Device.resize.width <= 1007)
+                        if (sap.ui.Device.resize.width > 768 && sap.ui.Device.resize.width <= 992)
                             newr = "M";
-                        if (sap.ui.Device.resize.width > 1007)
+                        if (sap.ui.Device.resize.width > 992)
                             newr = "L";
-                        contSetting.width = contSetting.width[newr] + "px";
+                        if (sap.ui.Device.resize.width > 1200)
+                            newr = "XL";
+                        contSetting.width = Util.nvl(contSetting.width[newr], contSetting.width["L"]) + "px";
                         console.log("DEVICE " + newr + " -width=" + sap.ui.Device.resize.width + " records=" + contSetting.width);
                     }
                 }
@@ -892,7 +894,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     })
                 });
             },
-            addControl:function(ar, lbl, cntClass, id, sett, dataType, fldFormat, view, fnchange, sqlStr) {
+            addControl: function (ar, lbl, cntClass, id, sett, dataType, fldFormat, view, fnchange, sqlStr) {
                 var setx = sett;
                 var idx = id;
                 if (Util.nvl(id, "") == "")
@@ -912,7 +914,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 return cnt;
             }
             ,
-            formAddItem:function(frm, label, controls) {
+            formAddItem: function (frm, label, controls) {
                 frm.addContent(new sap.m.Label({ text: label }));
                 if (controls instanceof Array)
                     for (var i in controls)
@@ -2183,7 +2185,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var frm = frag.frm;
                     var kf = frm.getFieldValue("keyfld");
                     var insq = "";
-                    if (frag.qryAccs==undefined) return "";
+                    if (frag.qryAccs == undefined) return "";
                     var getSq = function () {
                         var sqx = "c7_insert_log_proc(':GRPNAME'," +
                             "':USERNAME',':TABLENAME',':REC_STAT',':GRPNAME'||' # '||:JVNO||' :REC_STAT '" +
@@ -3761,7 +3763,87 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }
                 );
                 qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
-            }
+            },
+            inputDialog: function (title, msg, val, fnOk, fnCancel, width, height) {
+                var inp = new sap.m.Input({ value: Util.nvl(val, "") });
+                var vb = new sap.m.VBox({
+                    // alignItems: sap.m.FlexAlignItems.Center,
+                    items: [new sap.m.Title({ text: Util.getLangText(msg) }), inp]
+                }).addStyleClass("sapUiSmallMargin");
+                inp.attachBrowserEvent("keydown", function (e) {
+                    if (e.key == 'Enter')
+                        btDone.firePress();
+                });
+                var btDone = new sap.m.Button({
+                    text: Util.getLangText("cmdDone"),
+                    icon: "sap-icon://accept",
+                    press: function () {
+                        if (fnOk != undefined)
+                            if (Util.nvl(fnOk(inp.getValue()), true))
+                                dlg.close();
+                            else {
+                                setTimeout(() => { inp.focus() }, 500);
+                                FormView.err(Util.getLangText("msgDeniedInputDlg"));
+                            }
+                    }
+                });
+                var btCancel = new sap.m.Button({
+                    text: Util.getLangText("cmdClose"),
+                    icon: "sap-icon://decline",
+                    press: function () {
+                        dlg.close();
+                        if (fnCancel != undefined)
+                            fnCancel();
+
+                    }
+                });
+
+                var dlg = new sap.m.Dialog({
+                    title: Util.getLangText(title),
+                    contentWidth: Util.nvl(width, "400px"),
+                    contentHeight: Util.nvl(height, "100px"),
+                    content: vb,
+                    buttons: [btDone,
+                        btCancel
+                    ]
+                });
+                dlg.attachAfterClose(function () {
+                    if (fnCancel != undefined)
+                        fnCancel();
+                });
+                dlg.open();
+                setTimeout(function () {
+                    inp.focus();
+                }, 100);
+            },
+            // grpname: , tablename: , rec_stat: , descr: , pvar1: , pvar2: pvar3: , pvar4: , pvar5: , notify_type:
+            getInsertLogStr: function (setx, condStr) {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var log = true;
+                var user = sett["LOGON_USER"];
+                if (Util.nvl(setx.notify_type, "") != "" && Util.nvl(condStr, "") != "") {
+                    var sqN = Util.getSQLValue("select nvl(count(*),0) from C7_NOTIFY_SETUP where setup_type='" + setx.notify_type + "' and CONDITION_STR='" + condStr + "'");
+                    if (sqN != 0)
+                        log = true;
+                    else log = false;
+                }
+                if (!log) return "";
+                var sqx = "c7_insert_log_proc(':GRPNAME'," +
+                    "':USERNAME',':TABLENAME',':REC_STAT',':DESCR' " +
+                    ",':PVAR1',':PVAR2',':PVAR3',':PVAR4',':PVAR5',':NOTIFY_TYPE'); ";
+                sqx = sqx.replaceAll(":GRPNAME", setx.grpname)
+                    .replaceAll(":USERNAME", user)
+                    .replaceAll(":TABLENAME", setx.tablename)
+                    .replaceAll(":REC_STAT", setx.rec_stat)
+                    .replaceAll(":DESCR", setx.descr)
+                    .replaceAll(":PVAR1", Util.nvl(setx.pvar1, ""))
+                    .replaceAll(":PVAR2", Util.nvl(setx.pvar2, ""))
+                    .replaceAll(":PVAR3", Util.nvl(setx.pvar3, ""))
+                    .replaceAll(":PVAR4", Util.nvl(setx.pvar4, ""))
+                    .replaceAll(":PVAR5", Util.nvl(setx.pvar5, ""))
+                    .replaceAll(":NOTIFY_TYPE", Util.nvl(setx.notify_type, ""));
+                return sqx;
+            },
 
         };
 
