@@ -103,7 +103,18 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
+                    mainParaContainerSetting:  {
+                        width: "600px",
+                        cssText: [
+                            "padding-left:50px;" +
+                            "padding-top:20px;" +
+                            "border-style: inset;" +
+                            "margin-left: 10%;" +
+                            "margin-right: 10%;" +
+                            "border-radius:25px;" +
+                            "background-color:#dcdcdc;"
+                        ]
+                    },
                     rep: {
                         parameters: {
                             fromdate: {
@@ -181,13 +192,13 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                     "NVL (SUM (ROUND ( (qtyout ), 3) / PACK), 0) qtyout ," +
                                     "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) qtyx, MAX(0) PACK_COST," +
                                     "PKAVER, NVL (SUM ( (pkcost / itpack) * (qtyin - qtyout)), 0) costamt, descr2," +
-                                    "PARENTITEM , PARENTITEMDESCR " +
+                                    "PARENTITEM , PARENTITEMDESCR , barcode " +
                                     " FROM   JOINED_INVOICE JI , " +
                                     " (select refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3) / invoice2.PACK), 0) bal " +
                                     " from invoice2 where  dat<:parameter.fromdate AND (invoice2.STRA = :parameter.strno or :parameter.strno=0 ) group by refer ) ob1  " +
                                     " WHERE   ob1.refer(+)=ji.refer " +
                                     " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
-                                    " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR " +
+                                    " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode" +
                                     " ORDER BY  descr2 ",
                                 parent: "",
                                 levelCol: "",
@@ -232,6 +243,23 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "80",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    barcode: {
+                                        colname: "barcode",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Barcode",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "120",
                                         display_align: "ALIGN_LEFT",
                                         grouped: false,
                                         display_style: "",
@@ -367,7 +395,18 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
+                    mainParaContainerSetting:  {
+                        width: "600px",
+                        cssText: [
+                            "padding-left:50px;" +
+                            "padding-top:20px;" +
+                            "border-style: inset;" +
+                            "margin-left: 10%;" +
+                            "margin-right: 10%;" +
+                            "border-radius:25px;" +
+                            "background-color:#dcdcdc;"
+                        ]
+                    },
                     rep: {
                         parameters: {
                             todate: {
@@ -425,10 +464,10 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 dml: "SELECT   REFER, nvl(descr,descra) DESCRA, ITPACKD," +
                                     " NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0) qtyx,max(0) pack_cost, " +
                                     " PKAVER, NVL (SUM ( (pkcost) * (qtyin - qtyout)), 0) costamt, descr2," +
-                                    " PARENTITEM , PARENTITEMDESCR " +
+                                    " PARENTITEM , PARENTITEMDESCR ,barcode" +
                                     " FROM   JOINED_INVOICE" +
                                     " WHERE  ITPRICE4=0 and INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
-                                    " GROUP BY   REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR " +
+                                    " GROUP BY   REFER, barcode, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR " +
                                     " ORDER BY  descr2 ",
                                 parent: "",
                                 levelCol: "",
@@ -485,6 +524,23 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "80",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    barcode: {
+                                        colname: "barcode",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Barcode",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "120",
                                         display_align: "ALIGN_LEFT",
                                         grouped: false,
                                         display_style: "",
@@ -603,7 +659,18 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
                     },
-                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
+                    mainParaContainerSetting:  {
+                        width: "600px",
+                        cssText: [
+                            "padding-left:50px;" +
+                            "padding-top:20px;" +
+                            "border-style: inset;" +
+                            "margin-left: 10%;" +
+                            "margin-right: 10%;" +
+                            "border-radius:25px;" +
+                            "background-color:#dcdcdc;"
+                        ]
+                    },
                     rep: {
                         parameters: {
                             fromdate: {
