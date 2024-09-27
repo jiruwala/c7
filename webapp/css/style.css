@@ -1,3 +1,5 @@
+
+
 body {
     overflow-y: hidden;
     /* Hide vertical scrollbar */
@@ -5,7 +7,13 @@ body {
     /* Hide horizontal scrollbar */
 }
 
-
+iframe {
+    overflow-clip-margin: content-box !important;
+    overflow: clip !important;
+    border-style: none;
+    border-color: initial;
+    border-image: initial;
+}
 .colorBlack {
     color: black !important;
 }
@@ -14,7 +22,10 @@ body {
     background-color: lightgreen !important;
     font-weight: bold;
 }
-
+.tileLayout {
+	float: left !important;
+    background-color: white;
+}
 
 .db1LabelsBlue {
     font-size: .875rem;
@@ -231,7 +242,7 @@ body {
     display: none;
 }
 
-.container {
+.container_1 {
     display: block;
     position: relative;
     text-align: center;
