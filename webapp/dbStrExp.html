@@ -1,0 +1,144 @@
+<div class="wrapper">
+  <aside id="sidebar" class="expand">
+    <ul class="sidebar-nav">
+      <li>
+        <div class="row">
+          <div class="tile_disp orange_disp text-center col-xl-11">Rent&nbsp; Paid <br>
+            <strong> 18,568.000</strong>
+          </div>
+        </div>
+      </li>
+      <br>
+      <li>
+        <div class="row">
+          <div class="tile_disp orange_disp text-center col-xl-11">Salaries&nbsp; Paid <br>
+            <strong> 20,568.000</strong>
+          </div>
+        </div>
+      </li>
+      <br>
+      <li>
+        <div class="row">
+          <div class="tile_disp orange_disp text-center col-xl-11">Spent on Equipments <br>
+            <strong> 21,568.000</strong>
+          </div>
+        </div>
+      </li>
+      <br>
+      <li>
+        <div class="row">
+          <div class="tile_disp orange_disp text-center col-xl-11">Other Expenses <br>
+            <strong> 61,568.000</strong>
+          </div>
+        </div>
+      </li>
+      <br>
+      <li>
+        <div class="row">
+          <div class="tile_disp red_disp text-center col-xl-11">Total Expenses <br>
+            <strong> 61,568.000</strong>
+          </div>
+        </div>
+      </li>
+
+    </ul>
+    <div class="sidebar-footer">
+      <a href="#" onClick="UtilGen.DBView.toMainMenu();" class="sidebar-link">
+        <i class="lni lni-exit"></i>
+        <span>Main Menus</span>
+      </a>
+    </div>
+  </aside>
+  <div class="main p-3">
+    <div class="text-center">
+      <h1>
+        Store Expenses&nbsp; </h1>
+    </div>
+    <br>
+    <div class="container-fluid">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-12"><strong>Other Expenses</strong></div>
+        </div>
+        <br>
+        <div class="row">
+          <div class="col-xl-12"><canvas id="myChart1"
+            style="width:100%;min-width: 600px; max-width:1200px;height: 300px"></canvas></div>            
+        </div><br>
+        <div class="row">
+          <div class="col-xl-12"><canvas id="myChart3"
+            style="width:100%;min-width: 600px; max-width:1200px;height: 300px"></canvas></div>
+        </div>
+
+        <br>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+
+  var xValues1 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var yValues1 = [5500, 4900, 6500, 2400, 5100, 3500, 4500, 9800, 3000, 5000, 7000, 6000];
+  var barColors1 = ["red", "green", "blue", "orange", "brown", "maroon", "red", "green", "blue", "orange", "brown", "maroon"];
+
+  new Chart("myChart1", {
+    type: "bar",
+    data: {
+      labels: xValues1,
+      datasets: [{
+        backgroundColor: barColors1,
+        data: yValues1
+      }]
+    },
+    options: {
+      legend: { display: false },
+      datalabels: {
+        display: 'auto',
+        color: 'black',
+        font: {
+          weight: 'bold'
+        },
+      },
+      title: {
+        display: true,
+        text: "Monthly Expenses"
+      }
+    }
+  });		
+
+  var xValues3 = ["مصاريف متنوعة", "بنكية", "تليفونات", "مصروفات اخري", "غرامات"];
+  var yValues3 = [5500, 4900, 6500, 2400, 5100];
+  var barColors3 = ["red", "green", "blue", "orange", "brown"];
+  
+
+  new Chart("myChart3", {
+    type: "pie",
+    data: {
+      labels: xValues3,
+      datasets: [{
+        backgroundColor: barColors3,
+        data: yValues3
+      }]
+    },
+    options: {
+      legend: { display: false },
+      datalabels: {
+        display: 'auto',
+        color: 'black',
+        font: {
+          weight: 'bold'
+        },
+      },
+      title: {
+        display: true,
+        text: "Other Expenses"
+      }
+    }
+  });	
+
+  setTimeout(function(){
+    document.getElementById("myChart3").update();
+  },100);
+</script>

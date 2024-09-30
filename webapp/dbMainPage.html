@@ -1,0 +1,98 @@
+<div class="container-fluid main1_header">
+  <div class="container">
+<div class="row justify-content-center">
+	<div  class="col-md-2 tile orange col-4 col-sm-4 text-center" onClick="UtilGen.DBView.showShiping();"><strong>Shipping</strong> <br><span id="shipping_value">2,56,586.000</span> </div>
+    <div  class="col-md-2 tile orange col-4 col-sm-4 text-center" onClick="UtilGen.DBView.showStrExpenses();"><strong>Suhhaiba Port</strong> <br><span id="suhaiba_value">2,56,586.000</span> </div>
+    <div  class="col-md-3 tile orange align-content-center col-3 col-sm-4 text-center"><strong>Sales</strong> <br><span id="sales_value">6,586.000</span> </div>
+   
+    <div  class="col-md-2 tile orange col-4 col-sm-4 text-center"><strong>Wafra Expenses</strong> <br><span id="wafra_value">1,26,586.000</span> </div>
+    <div  class="col-6 col-md-2 tile orange col-sm-5 text-center"><strong>Expenses</strong> <br><span id="expneses_value">98,785.000</span> </div>
+  </div>
+	  <br>
+    <br>
+<div class="row">
+	<div class="col-md-3">
+        <div class="col-lg-12 tile red col-sm-5 col-md-12 col-5">Follow Up /&nbsp; Customer Balances</div>
+	    <div class="col-lg-12 tile red col-sm-6 col-md-12 col-5">HR<br>No Of Employees
+	    </div>
+	     <div class="col-lg-12 tile red col-sm-5 col-md-12 col-5">Office Expenses</div>
+	     <div class="col-lg-12 tile red col-sm-6 col-5 col-md-12">Inventory<br>Balances
+	     </div>		
+      </div>
+	<div class="col-md-6 my-auto object-fit-md-contain"><canvas id="myChart"></canvas></div>	
+	<div class="col-md-3">
+	    <div class="col-lg-12 tile red col-sm-5 col-6 col-md-12">Recievables</div>
+	    <div class="col-lg-12 tile red col-sm-5 col-5 col-md-12">Payables</div>
+	    <div class="col-lg-12 tile red col-sm-5 col-6 col-md-12">Cash / Bank </div>
+	    <div class="col-lg-12 tile red col-sm-5 col-5 col-md-12">Administration</div>		
+	</div>
+	</div>
+	  <h4>&nbsp;</h4>
+<div class="row justify-content-center">
+  <div class="col-md-12 justify-content-center my-auto col-xl-11"><canvas id="myChart2" style="width:100%;min-width: 600px max-width:1200px;height: 200px"></canvas></div>
+</div>
+  </div>
+</div>
+	<br>
+	<script>
+var xValues = ["Wafra Store", "Mina Abdulla"];
+var yValues = [555689, 495598,];
+var barColors = [
+  "#b91d47",
+  "#00aba9",
+];
+
+new Chart("myChart", {
+  type: "doughnut",
+  data: {
+    labels: xValues,
+    datasets: [{
+      backgroundColor: barColors,
+      data: yValues
+    }]
+  },
+  options: {
+    title: {
+      display: true,
+      text: "Sales By Store"
+    }
+  }
+});
+var xValues2 = ["Jan", "Feb", "Mar", "Apr", "May","Jun","July","Aug","Sep","Oct","Nov","Dec"];
+var yValues2 = [5500, 4900, 6500, 2400, 5100,3500,4500,9800,3000,5000,7000,6000];
+var barColors2 = ["red", "green","blue","orange","brown","maroon","red", "green","blue","orange","brown","maroon"];
+
+new Chart("myChart2", {
+  type: "bar",
+  data: {
+    labels: xValues2,
+    datasets: [{
+      backgroundColor: barColors2,
+      data: yValues2
+    }]
+  },
+  options: {
+    legend: {display: false},
+    title: {
+      display: true,
+      text: "Monthly Sales"
+    }
+  }
+});
+		
+		function resizeCanvas(canvas) {
+  var parent = canvas.parentElement;
+  
+  canvas.width = parent.offsetWidth;
+  canvas.height = parent.offsetHeight;
+}
+		
+window.addEventListener('resize', function(event) {
+  resizeCanvas(document.getElementById("myChart"));
+	setTimeout(function(){
+		document.getElementById("myChart").update();
+	},10);
+});
+		
+</script>
+

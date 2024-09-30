@@ -169,7 +169,25 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 insert_allowed: false,
                                 require: false,
                                 dispInPara: true,
-                            }
+                            },
+                            abovecredit: {
+                                colname: "abovecredit",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"showAboveCreditLimit\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "N",
+                                other_settings: { selected: false, width: "5%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                         ],
@@ -235,6 +253,15 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         var up = ld.getFieldValue(i, "UNPOST_BAL");
                                         ld.setFieldValue(i, "ALLBALANCE", (bl + up));
                                     }
+                                    var ac = thatForm.frm.getFieldValue("parameter.abovecredit");
+                                    if (ac == 'Y')
+                                        for (var i = ld.rows.length-1; i >= 0; i--) {
+                                            var bl = ld.getFieldValue(i, "ALLBALANCE");
+                                            var cl = ld.getFieldValue(i, "CRD_LIMIT2");
+                                            if (cl == 0 || bl < cl)
+                                                ld.deleteRow(i);
+                                        }
+
                                 },
                                 bat7CustomAddQry: function (qryObj, ps) {
 

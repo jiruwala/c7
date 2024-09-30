@@ -157,7 +157,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con1", {
                         }
                     },
                     beforeDeleteValidate: function (frm) {
-                        FormView.err("Deleteion not implemented , denied:");
+                        // FormView.err("Deleteion not implemented , denied:");
                         // var qry = that.frm.objs["qry1"];
                         // if (qry.name == "qry1" && (qry.status == FormView.RecordStatus.EDIT) ||
                         //     (qry.status == FormView.RecordStatus.VIEW)) {
@@ -176,9 +176,14 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con1", {
 
                     },
                     afterDelRow: function (qry, ld, data) {
+                        var delAdd = "";
+                        if (qry.name == "qry1")
+                            delAdd += "update c_order1 set sale_price=0 where saleinv is null and ord_ref=':qry1.cust_code' and ord_discamt=':qry1.branch_no';";
+
+
                         if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                             qry.obj.addRow();
-
+                        return delAdd;
                     },
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
                     },
@@ -234,7 +239,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con1", {
                         applyCol: "C7.BRCUSTITEMS",
                         addRowOnEmpty: true,
                         dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY,c.priceu, C.PACKD, C.UNITD, C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
-                        dispRecords: { "S": 5, "M": 7, "L": 8, "XL": 14, "XXL": 25 },
+                        dispRecords: { "S": 3, "M": 5, "L":8 , "XL": 10, "XXL": 14 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,

@@ -1,0 +1,105 @@
+<body>
+  <div class="wrapper">
+      <aside id="sidebar">
+          <div class="d-flex">
+              <button class="toggle-btn" type="button">
+          <i class="lni lni-ship"></i>
+              </button>
+              <div class="sidebar-logo">
+                  <a href="#">Shipments</a>
+              </div>
+          </div>
+          <ul class="sidebar-nav">
+              <li class="sidebar-item">
+                  <a href="#" class="sidebar-link" onClick="UtilGen.DBView.showShipData(1);">
+          <i class="lni lni-ship"></i>
+                      <span>Ship 1</span>
+                  </a>
+              </li>
+              <li class="sidebar-item">
+                  <a href="#" class="sidebar-link" onClick="UtilGen.DBView.showShipData(2);">
+                      <i class="lni lni-ship"></i>
+                      <span>Ship 2</span>
+                  </a>
+              </li>
+              <li class="sidebar-item">
+                  <a href="#" class="sidebar-link" onClick="UtilGen.DBView.showShipData(3);">
+                      <i class="lni lni-ship"></i>
+                      <span>Ship 3</span>
+                  </a>
+              </li>
+              <li class="sidebar-item">
+                  <a href="#" class="sidebar-link" onClick="UtilGen.DBView.showShipData(4);">
+                      <i class="lni lni-ship"></i>
+                      <span>Ship 4</span>
+                  </a>
+              </li>
+          </ul>
+          <div class="sidebar-footer">
+              <a href="#" onClick="UtilGen.DBView.toMainMenu();" class="sidebar-link">
+                  <i class="lni lni-exit"></i>
+                  <span>Main Menus</span>
+              </a>
+          </div>
+      </aside>
+    <div class="main p-3">
+      <div class="text-center">
+              <h1>
+            Ship <span id='vrShipNo'></span> </h1>
+        </div>
+  <div class="container-fluid">
+    <div class="container">
+      <div class="row justify-content-center">
+      <div id="vrShipIt1" class="text-center tile_disp orange_disp col-3 col-md-2"><span>1/2</span></div>
+        <div id="vrShipIt2" class="text-center tile_disp orange_disp tile_disp_sel col-3 col-md-2"><span>3/4</span></div>
+        <div id="vrShipIt3" class="text-center tile_disp orange_disp col-3 col-md-2"><span>3/8</span></div>
+        </div>
+      <br><br>
+      <div class="row">
+      <div class="col-md-12"><p class="text-center">Port Expenses</p></div>
+        </div>			  
+      <div class="row justify-content-center">
+      <div class="col-md-3 text-center tile_disp tile_plain col-sm-3 col-5">Global<br>19,223.000</div>
+      <div class="col-md-3 text-center tile_disp tile_plain col-sm-3 col-6">Rashid<br>10,898.000</div>
+      <div class="col-md-3 text-center tile_disp tile_plain col-sm-3">Delivery Cos.<br>23,233.000</div>
+        </div>
+     <br>
+      
+      <div class="row justify-content-center">
+      <div class="col-md-3 tile_disp tile_plain col-sm-7 col-10"><p class="text-center">Actross Expenses<br>65,658.00</p></div>	        
+      </div>			  
+    </div>
+    <div class="row justify-content-center">
+      <div class="lineup col-xl-1 col-lg-1 col-md-1 col-sm-1 col-2"></div>
+      <div class="lineup1 col-xl-1 col-lg-1 col-md-1 col-sm-1 col-2"></div>
+    </div>			  
+       <div class="row justify-content-center">
+         <div class="linedown col-xl-1 col-lg-1 col-md-1 col-sm-1 col-2"></div>
+      <div class="linedown1 col-xl-1 col-lg-1 col-md-1 col-sm-1 col-2"></div>			  
+    </div>			  
+      <div class="row justify-content-center">
+      <div class="col-md-3 tile_disp tile_plain col-sm-5 col-5 col-xl-2"><p class="text-center">Wafra<br>
+65,658.00</p>
+      </div>	        
+      <div class="col-md-3 tile_disp tile_plain col-sm-6 col-5 col-xl-2"><p class="text-center">Mina Abdulla<br>65,658.00</p></div>	        
+    </div>			  
+    
+
+  </div>
+    
+      </div>
+</div>
+  <script src="js/jquery-3.4.1.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="js/popper.min.js"></script> 
+<script src="js/bootstrap-4.4.1.js"></script>
+
+<script>
+  var hamBurger = document.querySelector(".toggle-btn");
+  hamBurger.addEventListener("click", function () {
+    document.querySelector("#sidebar").classList.toggle("expand");
+
+  });
+</script>
+</body>

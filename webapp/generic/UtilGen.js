@@ -3764,8 +3764,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 );
                 qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
             },
-            inputDialog: function (title, msg, val, fnOk, fnCancel, width, height) {
-                var inp = new sap.m.Input({ value: Util.nvl(val, "") });
+            inputDialog: function (title, msg, val, fnOk, fnCancel, width, height, pSet) {
+                var setInp = { ...{ value: Util.nvl(val, "") }, ...Util.nvl(pSet, {}) };
+                var inp = new sap.m.Input(setInp);
                 var vb = new sap.m.VBox({
                     // alignItems: sap.m.FlexAlignItems.Center,
                     items: [new sap.m.Title({ text: Util.getLangText(msg) }), inp]
@@ -3779,8 +3780,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     icon: "sap-icon://accept",
                     press: function () {
                         if (fnOk != undefined)
-                            if (Util.nvl(fnOk(inp.getValue()), true))
+                            if (Util.nvl(fnOk(inp.getValue()), true)) {
+                                dlg.closeFromOk = true;
                                 dlg.close();
+                            }
                             else {
                                 setTimeout(() => { inp.focus() }, 500);
                                 FormView.err(Util.getLangText("msgDeniedInputDlg"));
@@ -3808,6 +3811,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     ]
                 });
                 dlg.attachAfterClose(function () {
+                    if (Util.nvl(dlg.closeFromOk, false))
+                    return;
+                
                     if (fnCancel != undefined)
                         fnCancel();
                 });
@@ -3816,6 +3822,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     inp.focus();
                 }, 100);
             },
+
             // grpname: , tablename: , rec_stat: , descr: , pvar1: , pvar2: pvar3: , pvar4: , pvar5: , notify_type:
             getInsertLogStr: function (setx, condStr) {
                 var sett = sap.ui.getCore().getModel("settings").getData();
