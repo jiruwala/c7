@@ -196,16 +196,16 @@ sap.ui.jsview("bin.forms.br.kha.forms.dbMgr2", {
         var that = this;
         UtilGen.clearPage(that.pgBasicData);
         that.joApp.toDetail(that.pgBasicData, "slide");
-        var tb = new sap.m.Toolbar({
-            content: [new sap.m.Button({
-                icon: "sap-icon://nav-back",
-                press: function () {
-                    that.joApp.toDetail(that.mainPage, "flip");
-                }
-            }
-            )]
-        });
-        that.pgBasicData.setSubHeader(tb);
+        // var tb = new sap.m.Toolbar({
+        //     content: [new sap.m.Button({
+        //         icon: "sap-icon://nav-back",
+        //         press: function () {
+        //             that.toMainMenu();
+        //         }
+        //     }
+        //     )]
+        // });
+        // that.pgBasicData.setSubHeader(tb);
         that.qr2 = new sap.ui.core.HTML({
             preferDOM: true,
             // content: "<iframe src='/dbMainPage.html' style='width:100%;height:'100%'></iframe>"
@@ -221,9 +221,64 @@ sap.ui.jsview("bin.forms.br.kha.forms.dbMgr2", {
         });
         var vb = new sap.m.VBox({ width: "-1px", height: "-1px", items: [that.qr2] });
         that.pgBasicData.addContent(vb);
+        that.showShip1();
         setTimeout(() => {
             // that.qr.$().contents().find('#db1').html('<strong> blah </strong>');
-            // $('#db_cmd_1').html('<strong>Copung </strong>');
+            // $('#db_cmd_1').html('<strong>Copung </strong>');            
+        }, 100);
+    },
+    toMainMenu: function () {
+        this.joApp.toDetail(this.mainPage, "flip");
+    },
+    showShip1: function () {
+        this.selShip = 1;
+        this.showShipData();
+    },
+    showShipData: function (selShip) {
+        var that = this;
+        UtilGen.showWorking(that.pgBasicData, Util.getLangText("msgFetching"));
+        that.selShip = Util.nvl(selShip, 1);
+        setTimeout(() => {
+            // that.qr.$().contents().find('#db1').html('<strong> blah </strong>');
+            $('#vrShipNo').html('&nbsp;No&nbsp;' + that.selShip);
+            $('.tile_disp_sel').each(function () {
+                $(this).removeClass("tile_disp_sel");
+            });
+            if (that.selShip == 1)
+                $('#vrShipIt3').addClass("tile_disp_sel");
+            if (that.selShip == 2)
+                $('#vrShipIt1').addClass("tile_disp_sel");
+            if (that.selShip == 3)
+                $('#vrShipIt2').addClass("tile_disp_sel");
+            if (that.selShip == 4)
+                $('#vrShipIt2').addClass("tile_disp_sel");
+            setTimeout(() => {
+                UtilGen.closeWorking(that.pgBasicData);
+            }, 1000);
+        }, 100);
+    },
+    showStrExpenses: function () {
+        var that = this;
+        UtilGen.clearPage(that.pgBasicData);
+        that.joApp.toDetail(that.pgBasicData, "slide");
+        that.qr2 = new sap.ui.core.HTML({
+            preferDOM: true,
+            // content: "<iframe src='/dbMainPage.html' style='width:100%;height:'100%'></iframe>"
+        }).addStyleClass("sapUiSmallMargin");
+        $.ajax({
+            url: "/dbStrExp.html",
+            async: false,
+            success: function (cssText) {
+                hd = cssText;
+                that.qr2.setContent(hd);
+            }
+        });
+        var vb = new sap.m.VBox({ width: "-1px", height: "-1px", items: [that.qr2] });
+        that.pgBasicData.addContent(vb);
+        that.showShip1();
+        setTimeout(() => {
+            // that.qr.$().contents().find('#db1').html('<strong> blah </strong>');
+            // $('#db_cmd_1').html('<strong>Copung </strong>');            
         }, 100);
     },
     helperFunctions: {

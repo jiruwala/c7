@@ -1,4 +1,19 @@
 @charset "UTF-8";
+
+.section-title {
+    font-family: 'Lato', sans-serif; /* Or 'Roboto', 'Montserrat', etc. */
+    font-size: 24px; /* Base size for section title */
+    font-weight: 600; /* Slightly bold */
+    color: #2E4053; /* Dark Blue-Gray for subtle contrast */
+    text-align: left; /* Aligns to the left, or change to center if needed */
+    margin-top: 30px; /* Space above the section */
+    margin-bottom: 15px; /* Space below the section heading */
+    padding-bottom: 5px; /* Adds space between heading and content */
+    border-bottom: 2px solid #fbab60; /* Thin underline to divide sections */
+    letter-spacing: 0.5px; /* Light letter spacing */
+}
+
+
 .main1_header {
 	padding-top: 20px		
 }
@@ -61,3 +76,120 @@
 	cursor: pointer;
 	
 }
+
+.tile_disp {
+	font-family: 'Roboto', sans-serif; /* Change to 'Montserrat', 'Lato', 'Poppins', or 'Oswald' if preferred */
+    font-size: 20px; /* Base font size */
+    font-weight: bold; /* Emphasizes the amount */
+    text-align: center; /* Centers the number on the tile */
+    padding: 10px; /* Adds some space around the number */
+    border-radius: 8px; /* Rounded corners for a modern look */
+    display: inline-block;
+    width: auto;
+    min-width: 100px; /* Ensure minimum size */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+ 	box-sizing: border-box;
+} 
+
+.tile_disp_sel { 
+	border:solid;
+	border-color: blue;
+	
+}
+.orange_disp {  background: #DC572E;
+		color: #fff;
+}
+
+.red_disp {  background: #AC193D;
+		color: #fff;
+}
+
+.orange1_disp {  background: #fbab60;
+		color: #3B3B3B;
+}
+
+
+.tile_plain{
+	border:ridge;
+	
+}
+
+.lineup{
+	 padding-top: 50px;
+    padding-right: 25px;
+    padding-left: 25px;
+    padding-bottom: 20px;
+	border-right:solid;
+	border-bottom: solid;
+
+}
+
+.lineup1{
+	 padding-top: 50px;
+    padding-right: 25px;
+    padding-left: 25px;
+    padding-bottom: 20px;
+	border-bottom:solid;
+}
+
+.linedown{
+	padding-top: 30px;
+    padding-right: 25px;
+    padding-left: 25px;
+    padding-bottom: 20px;
+	border-left:solid;
+
+}
+
+.linedown1{
+	 padding-top: 30px;
+    padding-right: 25px;
+    padding-left: 25px;
+    padding-bottom: 20px;
+	border-right:solid;
+}
+
+@media (min-width: 100px) {
+    .section-title {
+        font-size: 28px; /* Larger font size for tablets */
+    }
+	.tile_disp {
+		font-size: 12px;
+		font-weight:normal;
+		min-width: 50px!important;
+	}
+}
+
+
+@media (min-width: 575px) {
+    .section-title {
+        font-size: 28px; /* Larger font size for tablets */
+    }
+	.tile_disp {
+		font-size: 12px;
+		font-weight:normal;
+		min-width: 100px!important;
+	}
+}
+
+@media (min-width: 768px) {
+    .section-title {
+        font-size: 28px; /* Larger font size for tablets */
+    }
+	.tile_disp {
+		font-size: 16px;
+		font-weight:normal;
+	}
+}
+
+@media (min-width: 1024px) {
+    .section-title {
+        font-size: 32px; /* Larger font size for desktop */
+		
+    }
+	.tile_disp{
+		font-size: 22px;
+		font-weight: bold;
+	}
+}
+

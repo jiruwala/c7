@@ -194,7 +194,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					<textElement textAlignment="Center" verticalAlignment="Bottom">
 						<font fontName="DejaVu Sans" size="12" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{ADDR}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{INV_REFNM}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 					<reportElement style="strHeader" x="100" y="200" width="467" height="20" uuid="919766aa-c4b4-4e79-9f90-1a0a9d49c53d"/>

@@ -36,9 +36,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
         var sumSpan = "XL2 L2 M2 S12";
         this.o1 = {};
         var fe = [];
-
         var sc = new sap.m.ScrollContainer();
-
         var js = {
             title: Util.getLangText("nameDlvDetails"),
             title2: "",
@@ -85,7 +83,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO", "PRICEX"],
+                                filterCols: ["ORD_NO", "ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO", "PRICEX"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");

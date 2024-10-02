@@ -1049,8 +1049,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (Util.nvl(val, "") == "") return;
                 for (var i in qv.mLctb.cols) {
                     var f = sap.ui.model.FilterOperator.Contains;
-                    // if (qv.mLctb.cols[i].getMUIHelper().data_type == "NUMBER")
-                    //     f = sap.ui.model.FilterOperator.EQ;
+                    if (qv.mLctb.cols[i].getMUIHelper().data_type == "NUMBER")
+                        f = sap.ui.model.FilterOperator.EQ;
                     if (flcol.indexOf(qv.mLctb.cols[i].mColName) > -1)
                         flts.push(new sap.ui.model.Filter({
                             path: qv.mLctb.cols[i].mColName,
@@ -3750,7 +3750,35 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.filterCols = findCols;
                     qrj.showToolbar.showFilter = true;
                     qrj.showToolbar.showSearch = false;
+
+                    var txt = new sap.m.Input({ width: "100px" });
+                    var btf = new sap.m.Button({
+                        icon: "sap-icon://sys-find",
+                        tooltip: "click to find next..",
+                        press: function () {
+                            var bi = 0;
+                            if (qrj.getControl().getSelectedIndices().length > 0) {
+                                bi = qrj.getControl().getSelectedIndices()[0] + 1;
+                            }
+                            var rn = qrj.mLctb.findAny(findCols, txt.getValue(), bi);
+                            if (rn < 0) {
+                                qrj.getControl().setSelectedIndex(-1);
+                                return;
+                            }
+                            qrj.getControl().setSelectedIndex(rn);
+                            if (rn > 1) {
+                                qrj.getControl().setFirstVisibleRow(rn - 1);
+                            } else
+                                qrj.getControl().setFirstVisibleRow(rn);
+                        }
+                    });
+                    txt.attachBrowserEvent("keydown", function (e) {
+                        if (e.key == 'Enter')
+                        btf.firePress();
+                    });
+    
                 }
+
                 if (Util.nvl(addSpace, false))
                     qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                 qrj.showToolbar.showPersonalization = false;
@@ -3762,6 +3790,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     function (qv) {
                     }
                 );
+                if (Util.nvl(findCols, []).length > 0) {
+                    qrj.showToolbar.toolbar.addContent(txt);
+                    qrj.showToolbar.toolbar.addContent(btf);
+                }
+
                 qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
             },
             inputDialog: function (title, msg, val, fnOk, fnCancel, width, height, pSet) {
@@ -3812,8 +3845,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 });
                 dlg.attachAfterClose(function () {
                     if (Util.nvl(dlg.closeFromOk, false))
-                    return;
-                
+                        return;
+
                     if (fnCancel != undefined)
                         fnCancel();
                 });
