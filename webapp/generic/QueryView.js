@@ -191,13 +191,13 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             // neQr.loadData();
             neQr.getControl().addStyleClass("sapUiSizeCondensed");
             neQr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
-            neQr.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
+            neQr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
             neQr.getControl().setFixedBottomRowCount(this.getControl().getFixedBottomRowCount());
             neQr.getControl().setFixedColumnCount(this.getControl().getFixedColumnCount());
             neQr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
 
-            neQr.showToolbar.showSearch = true;
-            neQr.showToolbar.showFilter = true;
+            neQr.showToolbar.showSearch = false;
+            neQr.showToolbar.showFilter = false;
             neQr.showToolbar.showNewWnd = false;
             neQr.showToolbar.showPersonalization = false;
             if (neQr.queryType == "tree") {
@@ -206,6 +206,9 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             }
 
             neQr.showToolbar.showGroupFilter = false;
+            if (this.showToolbar.filterCols.length > 0)
+                neQr.showToolbar.filterCols = this.showToolbar.filterCols.slice(0);
+
             neQr.createToolbar("", this.showToolbar.filterCols,
                 function (prsn, qv) {
                 },
@@ -213,19 +216,50 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 function (qv) {
                 }
             );
+
+            if (neQr.showToolbar.filterCols.length > 0) {
+                var txt = new sap.m.Input({ width: "100px" });
+                var btf = new sap.m.Button({
+                    icon: "sap-icon://sys-find",
+                    tooltip: "click to find next..",
+                    press: function () {
+                        var bi = 0;
+                        if (neQr.getControl().getSelectedIndices().length > 0) {
+                            bi = neQr.getControl().getSelectedIndices()[0] + 1;
+                        }
+                        var rn = neQr.mLctb.findAny(neQr.showToolbar.filterCols, txt.getValue(), bi);
+                        if (rn < 0) {
+                            neQr.getControl().setSelectedIndex(-1);
+                            return;
+                        }
+                        neQr.getControl().setSelectedIndex(rn);
+                        if (rn > 1) {
+                            neQr.getControl().setFirstVisibleRow(rn - 1);
+                        } else
+                            neQr.getControl().setFirstVisibleRow(rn);
+                    }
+                });
+                txt.attachBrowserEvent("keydown", function (e) {
+                    if (e.key == 'Enter')
+                    btf.firePress();
+                });
+                neQr.showToolbar.toolbar.addContent(txt);
+                neQr.showToolbar.toolbar.addContent(btf);
+            }
             neQr.showToolbar.toolbar.addContent(new sap.m.Button({
                 icon: "sap-icon://decline",
                 text: "Close",
                 press: function () {
                     dlg.close();
                 }
-            }))
+            }));                        
             vb.insertHeaderContent(neQr.showToolbar.toolbar);
 
             if (this.onRowRender != undefined)
                 neQr.onRowRender = this.onRowRender;
 
             dlg.open();
+
             setTimeout(function () {
                 // sap.ui.getCore().byId(that.tableId + "txtSearch").fireLiveChange();
                 neQr.loadData();

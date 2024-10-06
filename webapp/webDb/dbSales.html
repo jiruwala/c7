@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sidebar With Bootstrap</title>
+<link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
+<link href="css/bootstrap-4.4.1.css" rel="stylesheet" type="text/css">
+<link href="dbview.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+	<div class="container-fluid">
+  <div class="row text-center">
+    <div class="col-xl-12"><span class="section-title">Sales</span></div>
+  </div>
+  <br>
+  <br>
+  <div class="row justify-content-end">
+    <div class="col-md-3 text-center tile_disp tile_plain">Mina Abdulla<br>
+      19,223.000</div>
+	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <div class="col-md-3 text-center tile_disp tile_plain">Wara<br>
+      19,223.000</div>
+    <div class="col-md-1 my-auto col-1"><img src="images/equal_pic.png" alt="" width="81" height="99" class="img-fluid"/></div>
+    <div class="col-md-3 text-center tile_disp tile_plain">Total<br>
+      30,121.000</div>&nbsp;&nbsp;
+  </div>
+			  <div class="row">
+				  <div class="col-md-1 col-lg-2"></div>
+				<div class="lineup col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1"></div>
+		    <div class="lineup1 col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1"></div>
+				  <div class="col-1 col-lg-2"></div>
+				<div class="lineup col-xl-1 col-lg-1 col-md-1 col-sm-1 col-2 offset-xl-0"></div>
+		    <div class="lineup1 col-xl-1 col-lg-1 col-md-1 col-sm-1 col-2"></div>
+				  
+		  </div>			  
+   		  <div class="row">
+			  <div class="col-md-1 col-lg-2"></div>
+	     		<div class="linedown col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1"></div>
+		    <div class="linedown1 col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1"></div>
+			  <div class="col-1 col-xl-2 col-lg-2"></div>
+	     		<div class="linedown col-1"></div>
+		    <div class="linedown1 col-1"></div>			  
+		  </div>	
+	<div class="row">
+	  <div class="col-1"></div>
+	  <div id="dbSalesCmdCredit1" class="text-center tile_disp orange_disp col-lg-2 col-md-1" style="cursor: pointer;" onClick="UtilGen.DBView.dispDbSalesTb(0);">Credit<br>3,500.00
+	  </div>&nbsp;&nbsp;
+	  <div id="dbSalesCmdCash1" class="text-center tile_disp orange_disp col-lg-2 col-md-1" style="cursor: pointer;" onClick="UtilGen.DBView.dispDbSalesTb(1);">Cash<br>6,500.000</div>
+			&nbsp;&nbsp;&nbsp;
+			<div id="dbSalesCmdCredit2" class="text-center tile_disp orange_disp col-lg-2 col-md-1" style="cursor: pointer;" onClick="UtilGen.DBView.dispDbSalesTb(2);">Credit<br>9,350.000</div>
+		&nbsp;&nbsp;
+		<div id="dbSalesCmdCash2" class="text-center  tile_disp orange_disp col-lg-2 col-md-1" style="cursor: pointer;" onClick="UtilGen.DBView.dispDbSalesTb(3);">Cash<br>10,123.000</div>
+	</div>
+</div>
+	<br>
+	<br>
+<br>
+	<br>
+<div class="container">
+  <div class="row">
+    <div class="col-xl-12 text-center justify-content-center"><div style="max-width: 100%" id="tbDbSales1"><table width="100%" border="1">
+  <tbody>
+    <tr>
+      <th scope="col">&nbsp;</th>
+      <th scope="col">&nbsp;</th>
+      <th scope="col">&nbsp;</th>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+  </div>
+</div>
+	<br>
+	<br>
+	<br>
+	
+<script src="js/jquery-3.4.1.min.js"></script> 
+
+<!-- Include all compiled plugins (below), or include individual files as needed --> 
+<script src="js/popper.min.js"></script> 
+<script src="js/bootstrap-4.4.1.js"></script>
+</body>
+</html>

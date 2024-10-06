@@ -138,6 +138,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.unpost", {
         this.qc.insertable = false;
         this.qc.deletable = false;
         this.mainPage.addContent(tb);
+        UtilGen.createDefaultToolbar2(this.qc, ["ORD_NO"], false);
+        this.mainPage.addContent(this.qc.showToolbar.toolbar);
         this.mainPage.addContent(this.qc.getControl());
     },
     createViewHeader: function () {
@@ -374,9 +376,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.unpost", {
                 var rowStart = tbl.getFirstVisibleRow();
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "ORDWAS")].getText());
 
-                UtilGen.execCmd("bin.forms.br.forms.dlv formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                var dlvstr = sett["C7_VER_NAME"] == "KHA" ? "bin.forms.br.kha.forms.dlv" : "bin.forms.br.forms.dlv";
+                UtilGen.execCmd(dlvstr + " readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,80%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
                     that.loadData_details(true, true, true);
-
                 });
             };
 

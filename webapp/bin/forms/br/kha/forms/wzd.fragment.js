@@ -159,28 +159,41 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         });
 
         this.txtBranch = new sap.m.Input({
-            width: "30%", showValueHelp: true,
+
+            width: "30%", showValueHelp: true,            
             valueHelpRequest: function (e) {
                 var fromdt = UtilGen.getControlValue(that.txtFromDate);
                 var todt = UtilGen.getControlValue(that.txtToDate);
                 var loc = that.txtLocations.getValue();
                 var locWhere = " ('" + loc + "' like '%\"'||LOCATION_CODE ||'\"%' )";
-
-                Util.showSearchList("select brno code,b_name name from cbranch where brno in " +
+                var sq = "select brno code,b_name name from cbranch where brno in " +
                     " (select distinct ORD_DISCAMT from C_ORDER1 where ord_code=9 and SALEINV is null and " +
                     " ord_date>=" + Util.toOraDateString(fromdt) +
                     " and ord_date<=" + Util.toOraDateString(todt) + " and " +
                     locWhere +
                     " and  ORD_REF=" + Util.quoted(that.txtRef.getValue()) +
                     ") and  code=" + Util.quoted(that.txtRef.getValue()) +
-                    " order by brno", "NAME", "CODE", function (valx, val) {
-                        that.txtBranch.setValue(valx);
-                        that.txtBranchName.setValue(val);
-                    });
+                    " order by brno";
+                // search multiple select
+                UtilGen.Search.do_quick_search(e, this,
+                    sq,
+                    "select '' from dual ", that.txtBranchName, function (dt) {
+                        console.log(dt);
+                        // if (dt.length == 1) {
+                        //     var vl = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " and brno=" + Util.quoted(that.txtBranch.getValue().replaceAll('"',"")));
+                        //     that.txtBranchName.setValue(vl);
+                        // }
+
+                    }, undefined, undefined, true);
+
+                // Util.showSearchList(sq, "NAME", "CODE", function (valx, val) {
+                //     that.txtBranch.setValue(valx);
+                //     that.txtBranchName.setValue(val);
+                // });
             },
             change: function (e) {
-                var vl = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " and brno=" + Util.quoted(that.txtBranch.getValue()));
-                that.txtBranchName.setValue(vl);
+                // var vl = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " and brno=" + Util.quoted(that.txtBranch.getValue()));
+                // that.txtBranchName.setValue(vl);
             }
         });
         this.txtBranchName = new sap.m.Input({
@@ -272,7 +285,10 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.txtTotalDlv.setValue(0);
 
         var loc = that.txtLocations.getValue();
+        var brn = that.txtBranch.getValue(); 
+
         var locWhere = " ('" + loc + "' like '%\"'||LOCATION_CODE ||'\"%' )";
+        var branWhere = " ('" + brn + "' like '%\"'||ORD_DISCAMT||'\"%' )"; 
 
         var sq = "SELECT   o.periodcode," +
             "               o.location_code," +
@@ -314,8 +330,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             " and o.ord_date<=" + Util.toOraDateString(todt) +
             " and " + locWhere +
             " and ord_ref=" + Util.quoted(that.txtRef.getValue()) +
-            " and (  ord_discamt=" + Util.quoted(that.txtBranch.getValue()) +
-            " or " + Util.quoted(that.txtBranch.getValue()) + " is null )" +
+            " and (" + Util.quoted(that.txtBranch.getValue().trim()) + " is null " +
+            // " or " + Util.quoted(that.txtBranch.getValue()) + " is null )" +
+            " OR " + branWhere + " ) " + 
             "    GROUP BY   o.periodcode," +
             "               locations.name,o.location_code ," +
             "               o.ord_ref, " +
@@ -729,7 +746,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var slices = this.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
         if (slices.length <= 0) {
-            that.joApp.toDetail(that.detailPage, "slice");
+            that.joApp.toDetail(that.detailPage, "slide");
             FormView.err("No Any delivery selected !");
         }
         var refName = that.txtRefName.getValue() + " - " + that.txtRef.getValue();
@@ -744,8 +761,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         var adamt = df.format(parseFloat(that.txtAddAmt.getValue()));
         that.txtInfoRef.setValue(that.txtRef.getValue());
         that.txtInfoRefName.setValue(that.txtRefName.getValue());
-        that.txtInfoBranch.setValue(that.txtBranch.getValue());
-        that.txtInfoBranchName.setValue(that.txtBranchName.getValue());
+        // that.txtInfoBranch.setValue(that.txtBranch.getValue());
+        // that.txtInfoBranchName.setValue(that.txtBranchName.getValue());
         that.txtInfoDisc.setValue(df.format(0));
         that.txtInfoAdd.setValue(adamt);
         that.txtInfoGross.setValue(that.txtTotalAmount.getValue());

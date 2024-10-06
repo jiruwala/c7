@@ -620,7 +620,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var slices = this.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
         if (slices.length <= 0) {
-            that.joApp.toDetail(that.detailPage, "slice");
+            that.joApp.toDetail(that.detailPage, "slide");
             FormView.err("No Any delivery selected !");
         }
         var refName = that.txtRefName.getValue() + " - " + that.txtRef.getValue();

@@ -535,7 +535,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 disp_class: "reportTable2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 dispRecords: -1, // { "S": 6, "M": 9, "L": 12, "XL": 22, "XXL": 35 },
-                                dispRecordsDeductHeightP: { "S": 70, "M": 60, "L": 55, "XL": 30 },
+                                dispRecordsDeductHeightP: { "S": 70, "M": 60, "L": 55, "XL": 45 },
                                 rowHeight: 18,
                                 execOnShow: false,
                                 canvas: "qry2Canvas",
@@ -1161,7 +1161,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 showToolbar: true,
                                 canvasType: ReportView.CanvasType.VBOX,
                                 dispRecords: -1, // { "S": 6, "M": 9, "L": 12, "XL": 22, "XXL": 35 },
-                                dispRecordsDeductHeightP: { "S": 70, "M": 60, "L": 55, "XL": 30 },
+                                dispRecordsDeductHeightP: { "S": 70, "M": 60, "L": 55, "XL": 45 },
                                 execOnShow: false,
                                 masterQry: "SOA002@qryAc1",
                                 masterDetailRelation: ":accno==accno",   //  .match(/=\s*([A-Za-z_0-9.]*)/gm)

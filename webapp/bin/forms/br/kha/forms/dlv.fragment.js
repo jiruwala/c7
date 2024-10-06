@@ -1853,10 +1853,10 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         var frag = this;
         frag.frm.readonly = Util.nvl(frag.oController.readonly, false);
         if (Util.nvl(frag.oController.keyfld, "") != "") {
+            UtilGen.Vouchers.formLoadData(this);
             frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
-            frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
-            UtilGen.Vouchers.formLoadData(this);
+            // frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);            
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }

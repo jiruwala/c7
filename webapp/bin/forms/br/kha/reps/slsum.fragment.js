@@ -171,7 +171,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
                                             // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
                                             qr.getControl().setVisibleRowCount(10);
-                                            qr.setAutoDispRecords(thatForm.mainPage,{ "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 35, "XL": 20 });
                                             qr.getControl().setRowHeight(18);
                                             qr.filterCols = ["GROSSAT", "ADDAMT", "DISCAMT", "NETAMT", "C_CUS_NO", "INV_REFNM", "BRANCHNAME"];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
@@ -741,7 +741,25 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                     insert_allowed: true,
                     require: false,
                     dispInPara: true,
-                }
+                },
+                statmentNo: {
+                    colname: "statmentNo",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtUserRepNo\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
             };
         },
         addQry1: function (qryObj, ps) {

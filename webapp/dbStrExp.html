@@ -1,9 +1,14 @@
 <div class="wrapper">
   <aside id="sidebar" class="expand">
+    <ul>
+      <a href="#" onClick="UtilGen.DBView.toMainMenu();" class="sidebar-link"> <i class="lni lni-exit"></i> <span>Main
+          Menus</span> </a>
+    </ul>
     <ul class="sidebar-nav">
       <li>
         <div class="row">
-          <div class="tile_disp orange_disp text-center col-xl-11">Rent&nbsp; Paid <br>
+          <div class="tile_disp orange_disp text-center col-xl-11 col-md-10 col-sm-8 col-lg-11 col-9"
+            style="min-width: 170px">Rent&nbsp; Paid <br>
             <strong> 18,568.000</strong>
           </div>
         </div>
@@ -11,7 +16,8 @@
       <br>
       <li>
         <div class="row">
-          <div class="tile_disp orange_disp text-center col-xl-11">Salaries&nbsp; Paid <br>
+          <div class="tile_disp orange_disp text-center col-xl-11 col-md-10 col-sm-8 col-lg-11 col-9"
+            style="min-width: 170px">Salaries&nbsp; Paid <br>
             <strong> 20,568.000</strong>
           </div>
         </div>
@@ -19,7 +25,8 @@
       <br>
       <li>
         <div class="row">
-          <div class="tile_disp orange_disp text-center col-xl-11">Spent on Equipments <br>
+          <div class="tile_disp orange_disp text-center col-xl-11 col-md-10 col-sm-8 col-lg-11 col-9"
+            style="min-width: 170px">Spent on Equip&nbsp; <br>
             <strong> 21,568.000</strong>
           </div>
         </div>
@@ -27,57 +34,124 @@
       <br>
       <li>
         <div class="row">
-          <div class="tile_disp orange_disp text-center col-xl-11">Other Expenses <br>
+          <div class="tile_disp orange_disp text-center col-xl-11 col-md-10 col-sm-8 col-lg-11 col-9"
+            style="min-width: 170px">Other Expenses <br>
             <strong> 61,568.000</strong>
+          </div>
+        </div>
+      </li>
+      <br>
+
+      <li>
+        <div class="row">
+          <div class="tile_disp orange_disp text-center col-xl-11 col-md-10 col-sm-8 col-lg-11 col-9"
+            style="min-width: 170px">Transp. Fees <br>
+            <strong> 25,256.000</strong>
           </div>
         </div>
       </li>
       <br>
       <li>
         <div class="row">
-          <div class="tile_disp red_disp text-center col-xl-11">Total Expenses <br>
+          <div class="tile_disp red_disp text-center col-xl-11 col-md-10 col-sm-8 col-lg-11 col-9"
+            style="min-width: 170px">Total Expenses <br>
             <strong> 61,568.000</strong>
           </div>
         </div>
       </li>
-
     </ul>
-    <div class="sidebar-footer">
-      <a href="#" onClick="UtilGen.DBView.toMainMenu();" class="sidebar-link">
-        <i class="lni lni-exit"></i>
-        <span>Main Menus</span>
-      </a>
-    </div>
   </aside>
   <div class="main p-3">
-    <div class="text-center">
-      <h1>
-        Store Expenses&nbsp; </h1>
-    </div>
+    <div class="text-center section-title"> Wafra store expenses </div>
     <br>
     <div class="container-fluid">
       <div class="container">
         <div class="row">
-          <div class="col-xl-12"><strong>Other Expenses</strong></div>
+          <div class="col-md-12 col-lg-6"><strong>&nbsp;</strong></div>
         </div>
         <br>
         <div class="row">
-          <div class="col-xl-12"><canvas id="myChart1"
-            style="width:100%;min-width: 600px; max-width:1200px;height: 300px"></canvas></div>            
-        </div><br>
-        <div class="row">
-          <div class="col-xl-12"><canvas id="myChart3"
-            style="width:100%;min-width: 600px; max-width:1200px;height: 300px"></canvas></div>
+          <div class="col-md-12 col-lg-6">
+            <canvas id="myChart3"
+              style="width:100%;min-width: 300px; max-width:300px;height: 200px;max-height: 200px"></canvas>
+          </div>
+          <div class="col-md-12 col-lg-6" style="border:groove">
+            <div class="row">
+              <div class="col-md-12 col-lg-6 col-xl-12">Last 5 Payments for expenses&nbsp;</div>
+            </div>
+            <br>
+            <table width="100%" border="0">
+              <tbody>
+                <tr>
+                  <th scope="col">Description&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col">Date</th>
+                </tr>
+                <tr>
+                  <td>دفعة 2 صيانة اكتروس 4 شهر 7/2024</td>
+                  <td style="text-align: end;">1,253</td>
+                  <td style="text-align: center;">01/01/2024</td>
+                </tr>
+                <tr>
+                  <td>دفعة 8 ايداع </td>
+                  <td style="text-align: end;">10,000</td>
+                  <td style="text-align: center;">01/01/2024</td>
+                </tr>
+                <tr>
+                  <td>Oher...</td>
+                  <td style="text-align: end;">10,000</td>
+                  <td style="text-align: center;">01/01/2024</td>
+                </tr>
+                <tr>
+                  <td>Other..</td>
+                  <td style="text-align: end;">7,000</td>
+                  <td style="text-align: center;">01/01/2024</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-
         <br>
-
+        <div class="row">
+          <div class="col-md-12">
+            <canvas id="myChart1"
+              style="width:100%;min-width: 300px; max-width:1200px;height: 250px;min-height: 250px"></canvas>
+          </div>
+        </div>
+        <br>
       </div>
     </div>
   </div>
 </div>
 <script>
+  var xValues2 = ["مصاريف متنوعة", "بنكية", "تليفونات", "مصروفات اخري", "غرامات"];
+  var yValues2 = [5500, 4900, 6500, 2400, 5100];
+  var barColors2 = ["red", "green", "blue", "orange", "brown"];
 
+  new Chart("myChart3", {
+    type: "pie",
+    data: {
+      labels: xValues2,
+      datasets: [{
+        backgroundColor: barColors2,
+        data: yValues2
+      }]
+    },
+    options: {
+      legend: { display: true },
+      datalabels: {
+        display: 'auto',
+        color: 'black',
+        font: {
+          weight: 'bold'
+        },
+      },
+      title: {
+        display: true,
+        text: "Other Expenses"
+      }
+    }
+  });
 
   var xValues1 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var yValues1 = [5500, 4900, 6500, 2400, 5100, 3500, 4500, 9800, 3000, 5000, 7000, 6000];
@@ -106,39 +180,18 @@
         text: "Monthly Expenses"
       }
     }
-  });		
-
-  var xValues3 = ["مصاريف متنوعة", "بنكية", "تليفونات", "مصروفات اخري", "غرامات"];
-  var yValues3 = [5500, 4900, 6500, 2400, 5100];
-  var barColors3 = ["red", "green", "blue", "orange", "brown"];
-  
-
-  new Chart("myChart3", {
-    type: "pie",
-    data: {
-      labels: xValues3,
-      datasets: [{
-        backgroundColor: barColors3,
-        data: yValues3
-      }]
-    },
-    options: {
-      legend: { display: false },
-      datalabels: {
-        display: 'auto',
-        color: 'black',
-        font: {
-          weight: 'bold'
-        },
-      },
-      title: {
-        display: true,
-        text: "Other Expenses"
-      }
+  });
+  var expense_resize = function (e) {
+    var sidebar = document.getElementById("sidebar");
+    var width = e.target.outerWidth;
+    console.log(sidebar);
+    console.log(width);
+    if (width < 700)
+      $(sidebar).removeClass("expand");
+    else {
+      $(sidebar).removeClass("expand");
+      $(sidebar).addClass("expand");
     }
-  });	
-
-  setTimeout(function(){
-    document.getElementById("myChart3").update();
-  },100);
+  }
+  window.addEventListener("resize", expense_resize);	
 </script>

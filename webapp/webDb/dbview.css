@@ -1,130 +1,205 @@
 @charset "UTF-8";
+.section-title {
+  font-family: 'Lato', sans-serif; /* Or 'Roboto', 'Montserrat', etc. */
+  font-size: 24px; /* Base size for section title */
+  font-weight: 600; /* Slightly bold */
+  color: #2E4053; /* Dark Blue-Gray for subtle contrast */
+  text-align: left; /* Aligns to the left, or change to center if needed */
+  margin-top: 30px; /* Space above the section */
+  margin-bottom: 15px; /* Space below the section heading */
+  padding-bottom: 5px; /* Adds space between heading and content */
+  border-bottom: 2px solid #fbab60; /* Thin underline to divide sections */
+  letter-spacing: 0.5px; /* Light letter spacing */
+}
+
+.section-title1 {
+  font-family: 'Lato', sans-serif; /* Or 'Roboto', 'Montserrat', etc. */
+  font-size: 20px; /* Base size for section title */
+  font-weight: 600; /* Slightly bold */
+  color: #2E4053; /* Dark Blue-Gray for subtle contrast */
+  text-align: left; /* Aligns to the left, or change to center if needed */
+  margin-top: 30px; /* Space above the section */
+  margin-bottom: 15px; /* Space below the section heading */
+  padding-bottom: 5px; /* Adds space between heading and content */
+  border-bottom: 2px solid #fbab60; /* Thin underline to divide sections */
+  letter-spacing: 0.5px; /* Light letter spacing */
+}
+.sapFShellBar{
+  background-color: #7c4848!important;
+}
 .main1_header {
-	padding-top: 20px		
+  padding-top: 20px
+}
+.shipping_qtys {
+  border: ridge;
+  font-size: 13px;
+  font-weight: normal;
+  background-color: #ffcba4;
 }
 
 .tile {
-    width: 100%;
-    padding-top: 20px;
-    padding-right: 25px;
-    padding-left: 25px;
-    padding-bottom: 20px;
-    margin: 5px;
-    display: inline-block;
-    box-sizing: border-box;
-    background: #fff;
-    border-radius: 15px;
-} 
-
- .title {
-    	margin-top: 0px;
-  }
-
+  width: 100%;
+  padding-top: 20px;
+  padding-right: 25px;
+  padding-left: 25px;
+  padding-bottom: 20px;
+  margin: 5px;
+  display: inline-block;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 15px;
+}
+.title {
+  margin-top: 0px;
+}
 .purple, .blue, .red, .orange, .green {
-    color: #fff;
-  }
-  
+  color: #fff;
+}
 .purple {
-    background: #5133AB;
+  background: #5133AB;
 }
-
- .purple:hover {
-    background: darken(#5133AB, 10%);
- }	
- 
-.red { background: #AC193D;}
-
+.purple:hover {
+  background: darken(#5133AB, 10%);
+}
+.red {
+  background: #AC193D;
+}
 .red:hover {
-    background: #8b0000;
-	cursor: pointer;
-}		
-
-
-.green {background: #00A600;}
-
- .green:hover {
-	background: darken(#00A600, 10%);
-}		
-
-
-.blue {   background: #2672EC;}
-
+  background: #8b0000;
+  cursor: pointer;
+}
+.green {
+  background: #00A600;
+}
+.green:hover {
+  background: darken(#00A600, 10%);
+}
+.blue {
+  background: #2672EC;
+}
 .blue:hover {
-	background: darken(#2672EC, 10%);
-}	
-
-
-.orange {  background: #DC572E;}
-
+  background: darken(#2672EC, 10%);
+}
+.orange {
+  background: #DC572E;
+}
 .orange:hover {
-	background: #fd5800;
-	cursor: pointer;
-	
+  background: #fd5800;
+  cursor: pointer;
 }
-
 .tile_disp {
-    width: 100%;
-    padding-top: 20px;
-    padding-right: 25px;
-    padding-left: 25px;
-    padding-bottom: 20px;
-    margin: 5px;
-    display: inline-block;
-    box-sizing: border-box;
-    background: #fff;
-    border-radius: 15px;
-} 
-
-.tile_disp_sel { 
-	border:solid;
-	border-color: blue;
-	
-}
-.orange_disp {  background: #DC572E;
-		color: #fff;
+  font-family: 'Roboto', sans-serif; /* Change to 'Montserrat', 'Lato', 'Poppins', or 'Oswald' if preferred */
+  font-size: 20px; /* Base font size */
+  font-weight: normal; /* Emphasizes the amount */
+  text-align: center; /* Centers the number on the tile */
+  padding: 10px; /* Adds some space around the number */
+  border-radius: 8px; /* Rounded corners for a modern look */
+  display: inline-block;
+  width: auto;
+  min-width: 100px; /* Ensure minimum size */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+  box-sizing: border-box;
 }
 
-.red_disp {  background: #AC193D;
-		color: #fff;
+.tile_disp_margin {
+  font-family: 'Roboto', sans-serif; /* Change to 'Montserrat', 'Lato', 'Poppins', or 'Oswald' if preferred */
+  font-size: 20px; /* Base font size */
+  font-weight: normal; /* Emphasizes the amount */
+  text-align: center; /* Centers the number on the tile */
+	margin:10px;
+	padding:15px;
+  border-radius: 8px; /* Rounded corners for a modern look */
+  display: inline-block;
+  width: auto;
+  min-width: 100px; /* Ensure minimum size */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+  box-sizing: border-box;
 }
 
 
-.tile_plain{
-	border:ridge;
-	
+.tile_disp_sel {
+  border: solid;
+  border-color: blue;
 }
-
-.lineup{
-	 padding-top: 50px;
-    padding-right: 25px;
-    padding-left: 25px;
-    padding-bottom: 20px;
-	border-right:solid;
-	border-bottom: solid;
-
+.orange_disp {
+  background: #DC572E;
+  color: #fff;
 }
-
-.lineup1{
-	 padding-top: 50px;
-    padding-right: 25px;
-    padding-left: 25px;
-    padding-bottom: 20px;
-	border-bottom:solid;
+.red_disp {
+  background: #AC193D;
+  color: #fff;
 }
-
-.linedown{
-	padding-top: 30px;
-    padding-right: 25px;
-    padding-left: 25px;
-    padding-bottom: 20px;
-	border-left:solid;
-
+.orange1_disp {
+  background: #fbab60;
+  color: #3B3B3B;
 }
-
-.linedown1{
-	 padding-top: 30px;
-    padding-right: 25px;
-    padding-left: 25px;
-    padding-bottom: 20px;
-	border-right:solid;
+.tile_plain {
+  border: ridge;
+}
+.lineup {
+  padding-top: 50px;
+  padding-right: 25px;
+  padding-left: 25px;
+  padding-bottom: 20px;
+  border-right: solid;
+  border-bottom: solid;
+}
+.lineup1 {
+  padding-top: 50px;
+  padding-right: 25px;
+  padding-left: 25px;
+  padding-bottom: 20px;
+  border-bottom: solid;
+}
+.linedown {
+  padding-top: 30px;
+  padding-right: 25px;
+  padding-left: 25px;
+  padding-bottom: 20px;
+  border-left: solid;
+}
+.linedown1 {
+  padding-top: 30px;
+  padding-right: 25px;
+  padding-left: 25px;
+  padding-bottom: 20px;
+  border-right: solid;
+}
+@media (min-width: 100px) {
+  .section-title {
+    font-size: 28px; /* Larger font size for tablets */
+  }
+  .tile_disp {
+    font-size: 12px;
+    font-weight: normal;
+    min-width: 50px !important;
+  }
+}
+@media (min-width: 575px) {
+  .section-title {
+    font-size: 28px; /* Larger font size for tablets */
+  }
+  .tile_disp {
+    font-size: 12px;
+    font-weight: normal;
+    min-width: 100px !important;
+  }
+}
+@media (min-width: 768px) {
+  .section-title {
+    font-size: 28px; /* Larger font size for tablets */
+  }
+  .tile_disp {
+    font-size: 16px;
+    font-weight: normal;
+  }
+}
+@media (min-width: 1024px) {
+  .section-title {
+    font-size: 32px; /* Larger font size for desktop */
+  }
+  .tile_disp {
+    font-size: 22px;
+    font-weight: normal;
+  }
 }
