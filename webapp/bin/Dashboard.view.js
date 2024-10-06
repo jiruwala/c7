@@ -695,7 +695,7 @@ sap.ui.jsview('bin.Dashboard', {
         }).addStyleClass("sapUiSmallMargin");
 
         var dlg = new sap.m.Dialog({
-            title: "Logon..",
+            title: "Logon , CHAINEL VER 7.7",
             buttons: bts,
             content: [vb]
         });
@@ -814,8 +814,8 @@ sap.ui.jsview('bin.Dashboard', {
         var dt = null;
         Util.doAjaxGet(pth, "", false).done(function (data) {
             dt = JSON.parse(data);
-            if (Util.nvl(dt["C7_VER_NO"], 7) > 7.5)
-                FormView.err("Err ! , version above 7.5 is not compatiable !");
+            if (Util.nvl(dt["C7_VER_NO"], 7) <= 7.5)
+                FormView.err("Err ! , version below than equal to 7.5 is not compatiable !");
             var oModel = new sap.ui.model.json.JSONModel(dt);
             sap.ui.getCore().setModel(oModel, "settings");
             var tit = (Util.getLangDescrAR("title", "nvl(titlea,title) title"));
@@ -877,8 +877,8 @@ sap.ui.jsview('bin.Dashboard', {
         var that = this;
         Util.Notifications.checkNewNotifications();
         var sett = sap.ui.getCore().getModel("settings").getData();
-        if (Util.nvl(sett["C7_VER_NO"], 7) > 7.5)
-            FormView.err("Err ! , version above 7.5 is not compatiable !");
+        if (Util.nvl(sett["C7_VER_NO"], 7) <= 7.5)
+            FormView.err("Err ! , version below than equal to 7.5 is not compatiable !");
 
         var fisc = sap.ui.getCore().getModel("fiscalData").getData();
         that.today_date.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
