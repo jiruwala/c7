@@ -153,7 +153,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
                                             // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
                                             qr.getControl().setVisibleRowCount(10);
-                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 50, "XL": 35 });
                                             qr.getControl().setRowHeight(18);
                                             qr.getControl().attachColumnResize(undefined, function (e) { e.preventDefault(); });
                                             qr.filterCols = [];
@@ -364,6 +364,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     require: true,
                     dispInPara: true,
                 },
+                incInvoiceNo: {
+                    colname: "incInvoiceNo",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"txtInclInvoiceNo\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { selected: false, width: "5%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
             };
 
             return para;
@@ -375,9 +392,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
             var rt = thatForm.frm.getFieldValue("parameter.reptype");
+            var incIn = thatForm.frm.getFieldValue("parameter.incInvoiceNo");
             var rtypecol = rt == "QTY" ? "ORD_PKQTY" : "(qty_x*price_x)";
             var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
-            var sq = "select location_code,location_name,ord_ref,BRANCH_NAME branch,sum(:RTYPECOL) :REPCOLNAME , " +
+            var sq = "select location_code,location_name,ord_ref,ord_discamt,BRANCH_NAME branch,sum(:RTYPECOL) :REPCOLNAME , " +
                 " ord_ref||'-'||ord_refnm CUST,BRANCH_NAME||'__:REPCOLNAME' BRANCH_BAL " +
                 " from joined_corder where " +
                 " ORD_DATE>=:parameter.fromdate " +
@@ -385,9 +403,25 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                 " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
                 " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
                 " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
-                " group by  location_code,location_name,ord_ref ,BRANCH_NAME, " +
+                " group by  location_code,location_name,ord_ref,ord_discamt ,BRANCH_NAME, " +
                 " ord_ref||'-'||ord_refnm , ord_ship||'__:REPCOLNAME'" +
-                " order by location_code,ord_ref,BRANCH_NAME";
+                " order by location_code,ord_ref,ord_discamt";
+            if (incIn == "Y")
+                sq = "select location_code,location_name,ord_ref,ord_discamt,BRANCH_NAME branch,sum(:RTYPECOL) :REPCOLNAME , " +
+                    " ord_ref||'-'||ord_refnm CUST,BRANCH_NAME||'__:REPCOLNAME' BRANCH_BAL , pur.invoice_no " +
+                    " from joined_corder , "+
+                    "(select KEYFLD,invoice_no from pur1 where invoice_code=21 ) pur " +
+                    "  where " +
+                    " pur.keyfld(+)=joined_corder.saleinv and " +
+                    " ORD_DATE>=:parameter.fromdate " +
+                    " AND ORD_DATE<=:parameter.todate  " +
+                    " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
+                    " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
+                    " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
+                    " group by  location_code,location_name,ord_ref ,ord_discamt,BRANCH_NAME,pur.invoice_no, " +
+                    " ord_ref||'-'||ord_refnm , ord_ship||'__:REPCOLNAME'" +
+                    " order by location_code,ord_ref,ord_discamt";
+
             sq = sq.replaceAll(":RTYPECOL", rtypecol)
                 .replaceAll(":REPCOLNAME", repcolname);
             sq = thatForm.frm.parseString(sq);
@@ -437,6 +471,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     var qr = thatForm.qr;
                     var ld = new LocalTableData();
                     var rt = thatForm.frm.getFieldValue("parameter.reptype");
+                    var incIn = thatForm.frm.getFieldValue("parameter.incInvoiceNo");
                     var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
                     ld.parseCol("{" + dt.data + "}");
                     ld.cols[ld.getColPos("LOCATION_CODE")].mUIHelper.display_width = "50";
@@ -454,6 +489,12 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
 
                     ld.cols[ld.getColPos(repcolname)].ct_val = "Y";
                     ld.cols[ld.getColPos(repcolname)].mUIHelper.display_format = "QTY_FORMAT";
+
+                    if (incIn == "Y") {
+                        ld.cols[ld.getColPos("INVOICE_NO")].ct_row = "Y";
+                        ld.cols[ld.getColPos("INVOICE_NO")].mUIHelper.display_width = "70";
+                    }
+
                     /*
                     ld.cols[ld.getColPos("CODE")].mTitle = Util.getLangText("txtCode");
                     ld.cols[ld.getColPos("NAME")].ct_row = "Y";
@@ -495,7 +536,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     // var ditm = Util.execSQLWithData("select reference,descr from items order by reference");
                     // for (var di in ditm)
                     //     itms[ditm[di].REFERENCE] = ditm[di].DESCR;
-                    var fltcols = ["CUST", "tot__" + repcolname];
+                    var fltcols = ["CUST", "INVOICE_NO", "tot__" + repcolname];
 
                     for (var li = 0; li < ld2.cols.length; li++)
                         if (ld2.cols[li].mColName.endsWith("__" + repcolname)) {
@@ -510,6 +551,13 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                         }
                     ld2.cols[ld2.getColPos("CUST")].mSummary = "COUNT_UNIQUE";
                     ld2.cols[ld2.getColPos("CUST")].count_unique_label = "txtCountCust";
+                    if (incIn == "Y") {
+                        ld2.cols[ld2.getColPos("INVOICE_NO")].mSummary = "COUNT_UNIQUE";
+                        ld2.cols[ld2.getColPos("INVOICE_NO")].count_unique_label = "txtCountInvs";
+                        ld2.cols[ld2.getColPos("INVOICE_NO")].mTitle="txtInvNo";
+                        ld.cols[ld.getColPos("INVOICE_NO")].mUIHelper.display_width = "70";
+                    }
+
                     ld2.cols[ld2.getColPos("LOCATION_CODE")].mGrouped = true;
                     ld2.cols[ld2.getColPos("LOCATION_NAME")].mGrouped = true;
                     ld2.cols[ld2.getColPos("tot__" + repcolname)].mTitle = Util.getLangText(rt == "QTY" ? "totalQty" : "amountTxt");
@@ -519,7 +567,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     qr.mLctb.parse(dt2, true);
                     qr.loadData();
                     qr.getControl().setFirstVisibleRow(0);
-                    qr.getControl().setFixedColumnCount(2);
+                    qr.getControl().setFixedColumnCount(3);
 
                 }
             });

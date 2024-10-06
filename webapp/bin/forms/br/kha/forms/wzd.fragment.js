@@ -159,6 +159,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         });
 
         this.txtBranch = new sap.m.Input({
+
             width: "30%", showValueHelp: true,            
             valueHelpRequest: function (e) {
                 var fromdt = UtilGen.getControlValue(that.txtFromDate);
@@ -173,6 +174,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
                     " and  ORD_REF=" + Util.quoted(that.txtRef.getValue()) +
                     ") and  code=" + Util.quoted(that.txtRef.getValue()) +
                     " order by brno";
+                // search multiple select
                 UtilGen.Search.do_quick_search(e, this,
                     sq,
                     "select '' from dual ", that.txtBranchName, function (dt) {
@@ -283,10 +285,10 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.txtTotalDlv.setValue(0);
 
         var loc = that.txtLocations.getValue();
-        var brn = that.txtBranch.getValue();
+        var brn = that.txtBranch.getValue(); 
 
         var locWhere = " ('" + loc + "' like '%\"'||LOCATION_CODE ||'\"%' )";
-        var branWhere = " ('" + brn + "' like '%\"'||ORD_DISCAMT||'\"%' )";
+        var branWhere = " ('" + brn + "' like '%\"'||ORD_DISCAMT||'\"%' )"; 
 
         var sq = "SELECT   o.periodcode," +
             "               o.location_code," +
@@ -330,7 +332,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             " and ord_ref=" + Util.quoted(that.txtRef.getValue()) +
             " and (" + Util.quoted(that.txtBranch.getValue().trim()) + " is null " +
             // " or " + Util.quoted(that.txtBranch.getValue()) + " is null )" +
-            " OR " + branWhere + " ) " +
+            " OR " + branWhere + " ) " + 
             "    GROUP BY   o.periodcode," +
             "               locations.name,o.location_code ," +
             "               o.ord_ref, " +
