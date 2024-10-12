@@ -409,7 +409,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
             if (incIn == "Y")
                 sq = "select location_code,location_name,ord_ref,ord_discamt,BRANCH_NAME branch,sum(:RTYPECOL) :REPCOLNAME , " +
                     " ord_ref||'-'||ord_refnm CUST,BRANCH_NAME||'__:REPCOLNAME' BRANCH_BAL , pur.invoice_no " +
-                    " from joined_corder , "+
+                    " from joined_corder , " +
                     "(select KEYFLD,invoice_no from pur1 where invoice_code=21 ) pur " +
                     "  where " +
                     " pur.keyfld(+)=joined_corder.saleinv and " +
@@ -554,7 +554,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     if (incIn == "Y") {
                         ld2.cols[ld2.getColPos("INVOICE_NO")].mSummary = "COUNT_UNIQUE";
                         ld2.cols[ld2.getColPos("INVOICE_NO")].count_unique_label = "txtCountInvs";
-                        ld2.cols[ld2.getColPos("INVOICE_NO")].mTitle="txtInvNo";
+                        ld2.cols[ld2.getColPos("INVOICE_NO")].mTitle = "txtInvNo";
                         ld.cols[ld.getColPos("INVOICE_NO")].mUIHelper.display_width = "70";
                     }
 
@@ -565,7 +565,12 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     thatForm.frm.objs["ICSBR01@qry2"].filterCols = fltcols;
                     qr.showToolbar.filterCols = fltcols;
                     qr.mLctb.parse(dt2, true);
+
+                    if (incIn == "Y")
+                        qr.mLctb.sortCol(ld.getColPos("INVOICE_NO"), true);
                     qr.loadData();
+
+
                     qr.getControl().setFirstVisibleRow(0);
                     qr.getControl().setFixedColumnCount(3);
 
