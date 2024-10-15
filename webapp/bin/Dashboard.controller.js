@@ -11,6 +11,7 @@ sap.ui.controller('bin.Dashboard', {
         // sap.m.TreeItemBase.prototype.CollapsedIconURI = sap.ui.core.IconPool.getIconURI("add");
         Util.setLanguageModel(this.getView());
         var that = this.getView();
+        var thatC = this;
 
         var keypress = function (event) {
             if (event.keyCode == 27) {
@@ -42,6 +43,7 @@ sap.ui.controller('bin.Dashboard', {
         setTimeout(function () {
             document.removeEventListener("keydown", keypress); //Remove the event listener
             document.addEventListener("keydown", keypress);
+            window.addEventListener("resize", thatC._onWindowResize.bind(thatC));
         });
         //  thatForm.frag.mainPage.attachBrowserEvent("keydown", function (e) {
         //         if (e.key == "ESC")
@@ -73,11 +75,27 @@ sap.ui.controller('bin.Dashboard', {
      * @memberOf bin.Dashboard
      **/
     onExit: function () {
-
+        window.removeEventListener("resize",this._onWindowResize);
     },
     frag_liveChange: function (event) {
     },
     frag_confirm: function (event) {
 
+    },
+    _onWindowResize: function () {
+        var that = this;
+        clearTimeout(this._resizeTimeout);
+        this._resizeTimeout = setTimeout(() => {
+            var oView = that.getView();
+            var aControls = oView.findAggregatedObjects(true);
+            var bControls = aControls;
+            // Force re-rendering of all controls
+            bControls.forEach(function (oControl) {
+                if (oControl.rerender) {
+                    if (oControl instanceof sap.ui.core.HTML)
+                        oControl.rerender();
+                }
+            });
+        }, 200); // Adjust the timeout duration as needed
     }
 });
