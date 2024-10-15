@@ -3,6 +3,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
         "use strict";
         var Util = {
             ajaxPre: "",
+            pgDir: "",
             matchArray: function (str, array) {
                 for (var a in array) {
                     var v = str.match(array[a]);
@@ -1924,7 +1925,24 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     }
                 };
                 return col;
-            }
+            },
+            loadPage: function (pgname, qr2) {
+                var hd = "";
+                $.ajax({
+                    url: Util.pgDir + "/" + pgname,
+                    dataType: "text",
+                    async: false,
+                    success: function (cssText) {
+                        hd = cssText;
+                        //hd = that.translateHtml(hd, pgname);
+                        qr2.setContent(hd);
+                    }
+                });
+                setTimeout(() => {
+                    // that.qr.$().contents().find('#db1').html('<strong> blah </strong>');
+                    // $('#db_cmd_1').html('<strong>Copung </strong>');            
+                }, 100);
+            },
         };
 
         return Util;

@@ -121,7 +121,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             "TIMEFIELD": "sap.m.TimePicker",
             "COMBOBOX": "sap.m.ComboBox",
             "MULTICOMBOBOX": "sap.m.MultiComboBox",
-            "TEXTAREA":"sap.m.TextArea",
+            "TEXTAREA": "sap.m.TextArea",
             "CHECKBOX": "sap.m.CheckBox",
             // "SEARCHFIELD": "SearchText",
             "SEARCHFIELD": "sap.m.SearchField",
@@ -1679,6 +1679,120 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
 
         };
+        FormView.getFactoryFields = {
+            getKeyFld: function () {
+                return {
+                    colname: "keyfld",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: '{\"text\":\"Key ID\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: "",
+                    display_align: "ALIGN_CENTER",
+                    display_style: "keyIdText",
+                    display_format: "",
+                    other_settings: { editable: false, width: "35%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                }
+            },
+            getAttachMentField: function (frag, pPreTxt, pLabelWidth, pInpWidth) {
+                var preTxt = Util.nvl(pPreTxt, "@");
+                var lableWidth = Util.nvl(pLabelWidth, "15%");
+                var inpWidth = Util.nvl(pInpWidth, "35%");
+                return {
+                    colname: "attachment",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: preTxt + '{\"text\":\"Attachment\",\"width\":\"' + lableWidth + '\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: "",
+                    display_align: "ALIGN_BEGIN",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        showValueHelp: true,
+                        editable: false,
+                        width: inpWidth,
+                        valueHelpRequest: function (e) {
+                            if (frag.frm.objs["qry1"].status != FormView.RecordStatus.EDIT &&
+                                frag.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                                return;
+                            UtilGen.Vouchers.attachShowUpload(frag);
+                        }
+                    },
+
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
+                }
+            },
+            getGeneralField: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+                var preTxt = Util.nvl(pPreTxt, "");
+                var lableWidth = Util.nvl(pLabelWidth, "15%");
+                var inpWidth = Util.nvl(pInpWidth, "35%");
+                var labelClass = Util.nvl(pLabelClass, "");
+                var ret = {
+                    colname: pfldNme,
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: preTxt + '{\"text\":\"' + pLabel + '\",\"width\":\"' + lableWidth + '\","textAlign":"End","styleClass":"' + labelClass + '"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: "",
+                    display_align: "ALIGN_BEGIN",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { ...{ width: inpWidth }, ...Util.nvl(otherSet, {}) },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                };
+                return { ...ret, ...Util.nvl(set, {}) };
+            },
+            getNumberInput: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+                var fld = this.getGeneralField(pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet);
+                fld.data_type = FormView.DataType.Number;
+                fld.display_align = "ALIGN_END";
+                return fld;
+            },
+            getMoneyInput: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var fld = this.getGeneralField(pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet);
+                fld.data_type = FormView.DataType.Number;
+                fld.display_format = sett["FORMAT_MONEY_1"];
+                fld.display_align = "ALIGN_END";
+                return fld;
+            },
+            getDateInput: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var fld = this.getGeneralField(pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet);
+                fld.data_type = FormView.DataType.Date
+                fld.display_format = "";
+                fld.class_name = FormView.ClassTypes.DATEFIELD;
+                return fld;
+            },
+            getComboInput: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+                var otherSet2 = Util.nvl(otherSet, {});
+                if (otherSet2["items"] == undefined)
+                    otherSet2 = {
+                        ...otherSet2, ...{
+                            items: {
+                                path: "/",
+                                template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                templateShareable: true
+                            }
+                        }
+                    }
+                var fld = this.getGeneralField(pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet2);
+                fld.class_name = FormView.ClassTypes.COMBOBOX;
+                return fld;
+            },
+        };
+
         return FormView;
     }
 )

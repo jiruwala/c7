@@ -10,6 +10,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <link rel="stylesheet" href="css/prettify.css">
+    <link href="css/bootstrap-4.4.1.css" rel="stylesheet" type="text/css">
     <!--<link rel="stylesheet" href="generic/lib/handsontable.full.min.css">-->
 
 
@@ -42,11 +43,13 @@
 
     <script src="js/print.min.js"></script>
 
+    <!-- <script src="js/jspdf.min.js"></script>
+    <script src="js/html2pdf.bundle.min.js"></script> -->
 
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <link rel="stylesheet" type="text/css" href="js/print.min.js">
-
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    
     <script>
 
         sap.ui.localResources("bin");
@@ -61,10 +64,17 @@
         var SelectText;
         var ReportUtils;
         var printJS;
+        var jsPDF;
+        var html2pdf;
+        var rtrerex;
         setTimeout(function () {
+            $('<div class=loadingDiv>Loading libraries</div>').prependTo(document.body);
+                $("#load").text("");
+
             sap.ui.getCore().attachInit(function () {
                 // pdfjsLib = window['pdfjs-dist/build/pdf'];
                 // pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
+
 
                 Util = sap.ui.require("sap/ui/ce/generic/Util");
                 jQuery.sap.require("sap.m.library");
@@ -103,8 +113,6 @@
                 }).then(function (oComponent) {
                     oCompContainer.setComponent(oComponent);
                 });
-                $('<div class=loadingDiv>Loading libraries</div>').prependTo(document.body);
-                $("#load").text("");
 
                 //            Util.stopSpin();
 
@@ -119,7 +127,8 @@
 </head>
 
 <body class='sapUiBody' id="content">
-    <div id="load">Loading libraries First Time..</div>
+    <div class=loadingDiv>Loading libraries</div>
+    <div id="load">Loading libraries First Time..</div>    
 </body>
 
 </html>

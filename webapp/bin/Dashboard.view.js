@@ -1555,7 +1555,26 @@ sap.ui.jsview('bin.Dashboard', {
         };
         var lblWidth = "25%";
         var txtCode = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: false });
-        var txtName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "49%", editable: false });
+        var txtName = new sap.m.Input({
+            textAlign: sap.ui.core.TextAlign.Begin,
+            width: "49%",
+            editable: false,
+            showValueHelp: true,
+            valueHelpRequest: function (e) {
+                var sq = "select distinct menu_title,menu_titlea,js_command,short_title,short_titlea from c7_menus order by 1";
+                UtilGen.Search.do_quick_search_simple(sq,
+                    ["MENU_TITLE", "MENU_TITLEA", "JS_COMMAND"], function (data) {
+                        var bn = data.KEYFLD;
+                        txtName.setValue(data.MENU_TITLE);
+                        txtName2.setValue(data.MENU_TITLEA);
+                        txtJS.setValue(data.JS_COMMAND);
+                        txtShortTitle1.setValue(data.SHORT_TITLE);
+                        txtShortTitle2.setValue(data.SHORT_TITLEA);
+                    }, { pWidth: "80%" });
+
+
+            }
+        });
         var txtName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "49%", editable: false });
         var txtParentName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "49%", editable: false });
         var chkTypeMenu = new sap.m.CheckBox({

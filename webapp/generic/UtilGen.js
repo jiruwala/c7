@@ -746,6 +746,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             var wd = (totWd / 100) * Util.extractNumber(setx["width"]);
                             setx["width"] = wd + "px";
                         }
+                        if (setx.hasOwnProperty("wrapping")) {
+                            setx["wrapping"] = setx["wrapping"] == "true";
+                        } else
+                            setx["wrapping"] = true;
+
                         if (Util.isCamelCase(setx["text"])) setx["text"] = Util.getLangText(setx["text"]);
                         var lbl = new sap.m.Label(setx);
                         if (setx.hasOwnProperty("styleClass"))
@@ -3774,9 +3779,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     });
                     txt.attachBrowserEvent("keydown", function (e) {
                         if (e.key == 'Enter')
-                        btf.firePress();
+                            btf.firePress();
                     });
-    
+
                 }
 
                 if (Util.nvl(addSpace, false))
