@@ -1965,6 +1965,26 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 oMessageToastDOM.css('color', "maroon");
                 oMessageToastDOM.css('background-color', "#00a4eb");
             },
+            showCustomMessageToast: function (msg, dispAfterdelay, textColor, backColor, fontSize) {
+                if (Util.nvl(dispAfterdelay, 0) > 0)
+                    setTimeout(() => {
+                        sap.m.MessageToast.show(Util.getLangText(msg), {                            
+                        });
+                        var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
+                        oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
+                        oMessageToastDOM.css('background-color', Util.nvl(backColor, "#008080"));
+                        oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+                    }, dispAfterdelay);
+                else {
+                    sap.m.MessageToast.show(Util.getLangText(msg), {
+                    });
+                    var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
+                    oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
+                    oMessageToastDOM.css('background-color', Util.nvl(backColor, "#008080"));
+                    oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+                }
+
+            },
             closeWorking: function (wndx) {
                 var wnd = Util.nvl(wndx, window);
                 var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
@@ -2059,7 +2079,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
 
-                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect) {
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg) {
                     var points = Util.nvl(pPoints, {});
                     var sq = pSq;
                     var multiSelect = Util.nvl(pMultiSelect, false);
@@ -2067,7 +2087,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(data);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns, undefined, titleDlg);
 
 
 

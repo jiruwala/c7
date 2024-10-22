@@ -4,9 +4,13 @@ body {
     overflow-y: hidden;
     /* Hide vertical scrollbar */
     overflow-x: hidden;
+    
     /* Hide horizontal scrollbar */
 }
 
+.sapUiBody{
+    line-height: normal!important;
+}
 iframe {
     overflow-clip-margin: content-box !important;
     overflow: clip !important;
@@ -22,6 +26,11 @@ iframe {
     background-color: lightgreen !important;
     font-weight: bold;
 }
+
+area:-webkit-any-link {
+    cursor: pointer;
+}
+
 .tileLayout {
 	float: left !important;
     background-color: white;
@@ -82,6 +91,7 @@ iframe {
     padding-left: 5px;
     padding-top: 2px;
     padding-bottom: 2px;
+    min-height: 26px;
 }
 .jvForm {
     display: block;
@@ -96,6 +106,9 @@ iframe {
     border-width: thin;
 }
 
+.jvForm2 {  
+    padding-bottom: 10px;  
+}
 
 .alignMiddle25Top {
     position: absolute;

@@ -384,15 +384,15 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                     },
                     {
                         disp: "cost",
-                        exp: "nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
+                        exp: "nvl(SUM(GET_ITEM_COST_FORMULA(refer)* (QTYOUT-QTYIN) ),0) ",
                     },
                     {
                         disp: "profitamt",
-                        exp: "nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
+                        exp: "nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(GET_ITEM_COST_FORMULA(refer)* (QTYOUT-QTYIN) ),0) ",
                     },
                     {
                         disp: "profitmargin",
-                        exp: "round(getavgprice( nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
+                        exp: "round(getavgprice( nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(GET_ITEM_COST_FORMULA(refer)* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE+ADD_AMT_GROSS)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
                     },
 
 

@@ -1351,9 +1351,14 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var sq = this.parseString(lstObj.sql);
 
             var cols = [];
-
-            for (var i in Util.nvl(lstObj.cols, []))
+            var jscmd = "";
+            for (var i in Util.nvl(lstObj.cols, [])) {
                 cols.push(lstObj.cols[i].colname);
+                jscmd += (jscmd.length > 0 ? "," : "") + "{\"" + lstObj.cols[i].colname.toUpperCase() + "\":" + JSON.stringify(lstObj.cols[i]) + "}";
+            }
+            jscmd = JSON.parse("[" + jscmd + "]");
+            // console.log(jscmd);
+
 
             Util.show_list(sq, cols, "", function (data) {
                 // var ss = "";
@@ -1375,7 +1380,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         return false;
 
                 return true;
-            }, "100%", "100%", undefined, Util.nvl(lstObj.multiSelect, false), undefined, undefined, undefined, undefined, undefined, undefined, lstObj.list_para, lstObj.title);
+            }, "100%", "100%", undefined, Util.nvl(lstObj.multiSelect, false), undefined, undefined, undefined, jscmd, undefined, undefined, lstObj.list_para, lstObj.title);
 
         };
         FormView.prototype.validate_data = function (qryName) {
@@ -1680,19 +1685,19 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
         };
         FormView.getFactoryFields = {
-            getKeyFld: function () {
+            getKeyFld: function (pPreTxt, pLabelWidth, pInpWidth) {
                 return {
                     colname: "keyfld",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.LABEL,
-                    title: '{\"text\":\"Key ID\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: Util.nvl(pPreTxt, "") + '{\"text\":\"Key ID\",\"width\":\"' + Util.nvl(pLabelWidth, "15%") + '\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: "",
                     display_align: "ALIGN_CENTER",
                     display_style: "keyIdText",
                     display_format: "",
-                    other_settings: { editable: false, width: "35%" },
+                    other_settings: { editable: false, width: Util.nvl(pInpWidth, "35%") },
                     edit_allowed: false,
                     insert_allowed: false,
                     require: true
@@ -1749,17 +1754,17 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     other_settings: { ...{ width: inpWidth }, ...Util.nvl(otherSet, {}) },
                     edit_allowed: true,
                     insert_allowed: true,
-                    require: true
+                    require: false
                 };
                 return { ...ret, ...Util.nvl(set, {}) };
             },
-            getNumberInput: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+            getNumberField: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
                 var fld = this.getGeneralField(pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet);
                 fld.data_type = FormView.DataType.Number;
                 fld.display_align = "ALIGN_END";
                 return fld;
             },
-            getMoneyInput: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+            getMoneyField: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
                 var sett = sap.ui.getCore().getModel("settings").getData();
                 var fld = this.getGeneralField(pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet);
                 fld.data_type = FormView.DataType.Number;
@@ -1767,7 +1772,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 fld.display_align = "ALIGN_END";
                 return fld;
             },
-            getDateInput: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+            getDateField: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
                 var sett = sap.ui.getCore().getModel("settings").getData();
                 var fld = this.getGeneralField(pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet);
                 fld.data_type = FormView.DataType.Date
@@ -1775,7 +1780,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 fld.class_name = FormView.ClassTypes.DATEFIELD;
                 return fld;
             },
-            getComboInput: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+            getComboField: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
                 var otherSet2 = Util.nvl(otherSet, {});
                 if (otherSet2["items"] == undefined)
                     otherSet2 = {

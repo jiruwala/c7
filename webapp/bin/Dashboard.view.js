@@ -20,6 +20,7 @@ sap.ui.jsview('bin.Dashboard', {
         jQuery.sap.require("sap.f.ShellBar");
         this.addStyleClass("sapUiSizeCompact");
         this.timeInLong = (new Date()).getTime();
+        this.purManageFunc.init(this)
         Util.setLanguageModel(this);
         this.autoHideMenus = true;
         var that = this;
@@ -2143,4 +2144,28 @@ sap.ui.jsview('bin.Dashboard', {
             }, "100%", "100%", undefined, false, undefined, undefined, undefined, js);
         }
     },
+    purManageFunc: {
+        init: function (thisv) {
+            this.thatView = thisv;
+        },
+        openPO: function () {
+            var thatView = this.thatView;
+            var selPokf = thatView.puOrdKeyfld;
+            if (Util.nvl(selPokf, -1) == -1)
+                UtilGen.execCmd('bin.forms.pur.po status=new formType=page formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+            else
+                UtilGen.execCmd('bin.forms.pur.po status=view formType=page keyfld=' + selPokf + ' formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+
+        },
+        openship: function () {
+            var thatView = this.thatView;
+            var selPokf = thatView.puOrdKeyfld;
+            if (Util.nvl(selPokf, -1) == -1)
+                UtilGen.execCmd('bin.forms.pur.poship status=new formType=page formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+            else
+                UtilGen.execCmd('bin.forms.pur.poship status=new formType=page poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+
+        }
+
+    }
 });
