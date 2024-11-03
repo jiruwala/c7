@@ -174,10 +174,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 return jQuery.ajax(params);
             },
             sleep: function (ms) {
-                {
-                    var e = new Date().getTime() + (ms);
-                    while (new Date().getTime() <= e) { }
-                }
+                var e = new Date().getTime() + (ms);
+                while (new Date().getTime() <= e) { }
             },
             getServerValue: function (str) {
                 var ret;
@@ -1053,6 +1051,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     if (dta == undefined) {
                         // qv.setJsonStr("{" + dat.data + "}");
                         qv.setJsonStrMetaData("{" + dat.data + "}");
+                        var showFixBottom = false;
                         var ld = qv.mLctb;
                         if (jsCmd != undefined && jsCmd.length > 0)
                             for (var gi in jsCmd) {
@@ -1064,13 +1063,24 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                                     if (pp == "display_format") {
                                         var c = ld.getColPos(cn);
                                         ld.cols[c].getMUIHelper().display_format = prop[pp];
-                                    }
-                                    if (pp == "hide") {
-                                        var c = ld.getColPos(cn);
-                                        ld.cols[c].mHideCol = prop[pp];
-                                    }
+                                    } else
+                                        if (pp == "hide") {
+                                            var c = ld.getColPos(cn);
+                                            ld.cols[c].mHideCol = prop[pp];
+                                        } else {
+                                            var c = ld.getColPos(cn);
+                                            if (ld.cols[c].hasOwnProperty([pp]))
+                                                ld.cols[c][pp] = prop[pp];
+                                            if (ld.cols[c]["mUIHelper"].hasOwnProperty([pp]))
+                                                ld.cols[c]["mUIHelper"][pp] = prop[pp];
+                                        }
+                                    if (pp == "mSummary")
+                                        showFixBottom = true;
+
                                 }
                             }
+                        if (showFixBottom)
+                            qv.getControl().setFixedBottomRowCount(1);
                         qv.mLctb.parse("{" + dat.data + "}", true);
                     }
                     else

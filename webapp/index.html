@@ -15,120 +15,85 @@
 
 
     <title>CHAINEL</title>
-    <script id="sap-ui-bootstrap" src='resources/sap-ui-core.js' data-sap-ui-theme="sap_fiori_3" data-sap-ui-libs=""
-        data-sap-ui-xx-bindingSyntax="complex" data-sap-ui-preload="asynch" data-sap-ui-language="en"
-        data-sap-ui-compatVersion="edge" data-sap-ui-resourceroots='{
-				"sap.ui.ce": "./",
-				"bin":"./bin",
-			    "lg":"./bin/forms/lg"
+    <style>
+        .loadingDiv {
+            position: fixed;
+            top: 30%;
+            left: 30%;
+            right: 30%;
+            bottom: 50%;
+            border: medium solid grey;
+            background-color: yellow;
+            font-family: "72", Arial, Helvetica, sans-serif;
+            font-size: large;
+            text-align: center;
+            vertical-align: middle;
+            padding-top: 5%;
+        }
 
-			}'>
-            </script>
+        .blinkingSplash {
+            animation: blinkingTextSplash 1.25s infinite;
+        }
 
-    <script src="generic/UtilGen.js"></script>
-    <script src="generic/Util.js"></script>
-    <script src="generic/ReportUtils.js"></script>
-    <script src="generic/LocalTableData.js"></script>
-    <script src="generic/Gauge.js"></script>
-    <script src="generic/DecimalFormat.js"></script>
-    <script src="generic/SimpleDateFormat.js"></script>
-    <script src="generic/QueryView.js"></script>
-    <script src="generic/FormView.js"></script>
-    <script src="generic/ReportView.js"></script>
-    <!--<script src="generic/lib/handsontable.full.js"></script>-->
-    <script src="generic/GridView.js"></script>
-    <script src="generic/SearchText.js"></script>
-    <script src="generic/SelectTextRenderer.js"></script>
-    <script src="generic/SelectText.js"></script>
+        @keyframes blinkingTextSplash {
+            50% {
+                opacity: 0;
+            }
+        }
 
-    <script src="js/print.min.js"></script>
-
-    <!-- <script src="js/jspdf.min.js"></script>
-    <script src="js/html2pdf.bundle.min.js"></script> -->
-
-    <link rel="stylesheet" type="text/css" href="css/style.css">
-    <link rel="stylesheet" type="text/css" href="js/print.min.js">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
-    
-    <script>
-
-        sap.ui.localResources("bin");
-        sap.ui.localResources("i18n");
-        var UtilGen;
-        var Util;
-        var LocalTableData;
-        var Gauge;
-        var QueryView;
-        var GridView;
-        var SearchText;
-        var SelectText;
-        var ReportUtils;
-        var printJS;
-        var jsPDF;
-        var html2pdf;
-        var rtrerex;
-        setTimeout(function () {
-            $('<div class=loadingDiv>Loading libraries</div>').prependTo(document.body);
-                $("#load").text("");
-
-            sap.ui.getCore().attachInit(function () {
-                // pdfjsLib = window['pdfjs-dist/build/pdf'];
-                // pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
-
-
-                Util = sap.ui.require("sap/ui/ce/generic/Util");
-                jQuery.sap.require("sap.m.library");
-                jQuery.sap.require("sap.uxap.library");
-
-                UtilGen = sap.ui.require("sap/ui/ce/generic/UtilGen");
-                ReportUtils = sap.ui.require("sap/ui/ce/generic/ReportUtils");
-                SearchText = sap.ui.require("sap/ui/ce/generic/SearchText");
-                SelectText = sap.ui.require("sap/ui/ce/generic/SelectText");
-
-                LocalTableData = sap.ui.require("sap/ui/ce/generic/LocalTableData");
-                Gauge = sap.ui.require("sap/ui/ce/generic/Gauge");
-                QueryView = sap.ui.require("sap/ui/ce/generic/QueryView");
-                FormView = sap.ui.require("sap/ui/ce/generic/FormView");
-                ReportView = sap.ui.require("sap/ui/ce/generic/ReportView");
-                GridView = sap.ui.require("sap/ui/ce/generic/GridView");
-
-
-                var oCompContainer = new sap.ui.core.ComponentContainer({
-                    height: "100%",
-                    settings: {
-                        id: "sap.ui.ce"
-                    }
-                }
-                );
-
-                new sap.m.Shell({
-                    app: oCompContainer,
-                    showLogout: false
-                }).placeAt("content");
-
-                var oComponent = sap.ui.component({
-                    name: "sap.ui.ce.bin",
-                    manifestFirst: true,
-                    async: true
-                }).then(function (oComponent) {
-                    oCompContainer.setComponent(oComponent);
-                });
-
-                //            Util.stopSpin();
-
-            });
-        },100);
-        window.onbeforeunload = function (e) {
-            return 'Are you sure you want to leave? ';
-        };
-
-    </script>
-
+        .centerImg {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 165px;
+        }
+    </style>
 </head>
 
 <body class='sapUiBody' id="content">
-    <div class=loadingDiv>Loading libraries</div>
-    <div id="load">Loading libraries First Time..</div>    
+    <div id="loadlib" class="loadingDiv">Loading libraries</div>
+    <div style="text-align: center;" id="load"><span class="blinkingSplash"><br>Loading libraries First Time..<br><br> </span>
+    </div>
+    <img id="imgChn" class="centerImg" style="align-items: center;" src="css/chn.png" alt="" maxwidth="165px" maxheight="50px" />
+
 </body>
+<script>document.getElementById("loadlib").innerHTML = "Loading System Libraries...." </script>
+<script id="sap-ui-bootstrap" src='resources/sap-ui-core.js' data-sap-ui-theme="sap_fiori_3" data-sap-ui-libs=""
+    data-sap-ui-xx-bindingSyntax="complex" data-sap-ui-preload="asynch" data-sap-ui-language="en"
+    data-sap-ui-compatVersion="edge" data-sap-ui-resourceroots='{
+    "sap.ui.ce": "./",
+    "bin":"./bin",
+    "lg":"./bin/forms/lg"
+
+}'>
+</script>
+<script>document.getElementById("loadlib").innerHTML = "Loading Utilities..." </script>
+<script src="generic/UtilGen.js"></script>
+<script src="generic/Util.js"></script>
+<script src="generic/ReportUtils.js"></script>
+<script src="generic/LocalTableData.js"></script>
+<script src="generic/Gauge.js"></script>
+<script src="generic/DecimalFormat.js"></script>
+<script src="generic/SimpleDateFormat.js"></script>
+<script src="generic/QueryView.js"></script>
+<script src="generic/FormView.js"></script>
+<script src="generic/ReportView.js"></script>
+<!--<script src="generic/lib/handsontable.full.js"></script>-->
+<script src="generic/GridView.js"></script>
+<script src="generic/SearchText.js"></script>
+<script src="generic/SelectTextRenderer.js"></script>
+<script src="generic/SelectText.js"></script>
+
+<script>document.getElementById("loadlib").innerHTML = "Loading Resources..." </script>
+<script src="js/print.min.js"></script>
+
+<!-- <script src="js/jspdf.min.js"></script>
+<script src="js/html2pdf.bundle.min.js"></script> -->
+
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<link rel="stylesheet" type="text/css" href="js/print.min.js">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+
+<script type="text/javascript" src="index.js"></script>
 
 </html>

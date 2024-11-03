@@ -18,8 +18,10 @@ sap.ui.jsview('bin.Dashboard', {
         jQuery.sap.require("sap.ui.layout.library");
         jQuery.sap.require("sap.ui.commons.library");
         jQuery.sap.require("sap.f.ShellBar");
+
         this.addStyleClass("sapUiSizeCompact");
         this.timeInLong = (new Date()).getTime();
+        this.purManageFunc.init(this)
         Util.setLanguageModel(this);
         this.autoHideMenus = true;
         var that = this;
@@ -2143,4 +2145,82 @@ sap.ui.jsview('bin.Dashboard', {
             }, "100%", "100%", undefined, false, undefined, undefined, undefined, js);
         }
     },
+    purManageFunc: {
+        init: function (thisv) {
+            this.thatView = thisv;
+        },
+        openPO: function () {
+            var thatView = this.thatView;
+            var selPokf = thatView.puOrdKeyfld;
+            if (Util.nvl(selPokf, -1) == -1)
+                UtilGen.execCmd('bin.forms.pur.po status=new formType=page formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+            else
+                UtilGen.execCmd('bin.forms.pur.po status=view formType=page keyfld=' + selPokf + ' formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+
+        },
+        openship: function () {
+            var thatView = this.thatView;
+            var selPokf = thatView.puOrdKeyfld;
+            if (Util.nvl(selPokf, -1) == -1)
+                UtilGen.execCmd('bin.forms.pur.poship status=new formType=page formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+            else
+                UtilGen.execCmd('bin.forms.pur.poship status=new formType=page poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+
+        },
+        openPoGr: function () {
+            var thatView = this.thatView;
+            var selPokf = thatView.puOrdKeyfld;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var callPoGr = function (kf) {
+                UtilGen.execCmd('bin.forms.pur.podlv status=new formType=page shipKF=' + kf + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+            };
+            var genDefaultShip = function () {
+                var kf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_purship ");
+                var dtPo = UtilGen.PurchaseOrderFunc.checkPOStatus(selPokf, true);
+                var insq = UtilGen.getInsertRowStringByObj(
+                    "C7_PURSHIP",
+                    {
+                        "KEYFLD": kf,
+                        "PO_KEYFLD": selPokf,
+                        "TRIP_NO": 1,
+                        "SHIP_NAME": "'SHIPMENT # 1'",
+                        "ARRIVAL_DATE_PORT": "TRUNC(SYSDATE)",
+                        "CREATED_TIME": "SYSDATE",
+                        "USERNM": Util.quoted(sett["LOGON_USER"]),
+                        "MODIFIED_TIME": "SYSDATE",
+                    });
+                var dt = Util.execSQL(insq);
+                if (dt.ret != "SUCCESS")
+                    FormView.err("cant create new shipment for this PO !");
+                return kf;
+            };
+
+            if (Util.nvl(selPokf, -1) == -1)
+                FormView.err("Must select PO and create Shipment !");
+            else {
+                var noship = Util.getSQLValue("select nvl(count(*),0) from c7_purship where po_keyfld=" + selPokf);
+                if (noship <= 0) {
+                    var dtPo = UtilGen.PurchaseOrderFunc.checkPOStatus(selPokf, true);
+                    Util.simpleConfirmDialog("No any shipment found, generate default ??", function (oAction) {
+                        callPoGr(genDefaultShip());
+                    });
+                }
+                else if (noship == 1) {
+                    var kf = Util.getSQLValue("select keyfld from c7_purship where po_keyfld=" + selPokf + "  order by keyfld desc ");
+                    callPoGr(kf);
+                }
+                else if (noship > 1) {
+                    var sq = "select ORD_no pono ,po_status, trip_no, ship_type,ship_name,ord_ref REFERENCE,ord_refnm REF_NAME,keyfld from C7_SHIP_PO where po_keyfld=" + selPokf + "  order by keyfld desc ";
+                    UtilGen.Search.do_quick_search_simple(sq,
+                        ["PONO", "TRIP_NO", "SHIP_NAME", "REFERENCE", "REF_NAME"], function (data) {
+                            callPoGr(data.KEYFLD);
+                        }, { pWidth: "60%" });
+
+                }
+                //
+            }
+
+        },
+
+    }
 });

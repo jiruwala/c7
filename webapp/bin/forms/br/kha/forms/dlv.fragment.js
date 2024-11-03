@@ -396,7 +396,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
-
+                        
                     }
 
                 },

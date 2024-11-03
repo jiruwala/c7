@@ -1965,6 +1965,26 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 oMessageToastDOM.css('color', "maroon");
                 oMessageToastDOM.css('background-color', "#00a4eb");
             },
+            showCustomMessageToast: function (msg, dispAfterdelay, textColor, backColor, fontSize) {
+                if (Util.nvl(dispAfterdelay, 0) > 0)
+                    setTimeout(() => {
+                        sap.m.MessageToast.show(Util.getLangText(msg), {
+                        });
+                        var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
+                        oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
+                        oMessageToastDOM.css('background-color', Util.nvl(backColor, "#008080"));
+                        oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+                    }, dispAfterdelay);
+                else {
+                    sap.m.MessageToast.show(Util.getLangText(msg), {
+                    });
+                    var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
+                    oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
+                    oMessageToastDOM.css('background-color', Util.nvl(backColor, "#008080"));
+                    oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+                }
+
+            },
             closeWorking: function (wndx) {
                 var wnd = Util.nvl(wndx, window);
                 var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
@@ -2059,7 +2079,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
 
-                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect) {
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg) {
                     var points = Util.nvl(pPoints, {});
                     var sq = pSq;
                     var multiSelect = Util.nvl(pMultiSelect, false);
@@ -2067,7 +2087,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(data);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns, undefined, titleDlg);
 
 
 
@@ -3638,7 +3658,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd) {
+            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd) {
                 qrj.createToolbar("", [],
                     // EVENT ON APPLY PERSONALIZATION
                     function (prsn, qv) {
@@ -3740,8 +3760,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 btAddRow.attachBrowserEvent("mousedown", onAdd);
                 qrj.showToolbar.toolbar.removeAllContent();
                 qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
-                qrj.showToolbar.toolbar.addContent(btAddRow);
-                qrj.showToolbar.toolbar.addContent(btDelRow);
+                if (Util.nvl(showAdd, true))
+                    qrj.showToolbar.toolbar.addContent(btAddRow);
+                if (Util.nvl(showDel, true))
+                    qrj.showToolbar.toolbar.addContent(btDelRow);
                 if (Util.nvl(addSpace, false))
                     qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                 if (Util.nvl(findCols, []).length > 0) {
@@ -3889,6 +3911,26 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     .replaceAll(":NOTIFY_TYPE", Util.nvl(setx.notify_type, ""));
                 return sqx;
             },
+            PurchaseOrderFunc: {
+                init: function (frag) {
+                    this.frag = frag;
+                },
+                //return data ORD_FLAG,ORD_NO
+                checkPOStatus: function (poKf, pRaiseErr) {
+                    var raiseErr = Util.nvl(pRaiseErr, true);
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no from pord1 where keyfld=" + poKf, "No data found !");
+                    if (!raiseErr) return podt[0];
+
+                    if (podt[0].ORD_FLAG < 0)
+                        FormView.err("PO is not avaialble !");
+                    if (podt[0].ORD_FLAG == 1)
+                        FormView.err("PO is not approved !");
+                    if (podt[0].ORD_FLAG >= 3)
+                        FormView.err("PO is closed !");
+                    return podt[0];
+
+                }
+            }
 
         };
 

@@ -56,7 +56,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "select o2.*,((o2.ord_price-o2.ORD_DISCAMT)*(o2.ord_allqty/o2.ord_pack)) amount from pord2 o2 where O2.KEYFLD=':qry1.keyfld' and ord_code=" + thatForm.vars.vou_code + " order by ord_pos ";
+        var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount from pord2 o2 where O2.KEYFLD=':qry1.keyfld' and ord_code=" + thatForm.vars.vou_code + " order by ord_pos ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
@@ -118,7 +118,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from pord1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
+                        dml: "select pord1.*,b_name branchname from pord1,cbranch b where b.code=ord_ref and b.brno=ord_branchno and ord_code=" + thatForm.vars.vou_code + " and pord1.keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
                         update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA'],
                         insert_exclude_fields: ['branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA'],
@@ -156,7 +156,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         insert_exclude_fields: ['AMOUNT'],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
-                            "LOCATION_CODE": sett["CURRENT_PERIOD"],//":qry1.location_code",
+                            "LOCATION_CODE": ":qry1.location_code",
                             "ORD_NO": ":qry1.ord_no",
                             "ORD_CODE": thatForm.vars.vou_code,
                             "ORD_DATE": ":qry1.ord_date",
@@ -295,10 +295,13 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
 
+                        var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from pord1");
                         var newKNo = Util.getSQLValue("select nvl(max(ord_no),0)+1 from pord1 where ord_code=" + that.vars.vou_code);
                         var dt = thatForm.view.today_date.getDateValue();
+
+                        UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
                         UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_no"].obj, newKNo, newKNo, true);
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
@@ -473,11 +476,46 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     insert_allowed: true,
                     require: false
                 },
+                location_code: {
+                    colname: "location_code",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"locationTxt\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        editable: true, width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectionChange: function (e) {
+                            vl = UtilGen.getControlValue(this);
+                            var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
+                            UtilGen.setControlValue(objOrd, "", "", true);
+                            if (vl != "") {
+                                var nwOn = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 " +
+                                    " where ord_code=" + thatForm.vars.vou_code + " and location_code=" + Util.quoted(vl));
+                                UtilGen.setControlValue(objOrd, nwOn, nwOn);
+                            }
+                        },
+                    },
+
+                    edit_allowed: false,
+                    insert_allowed: true,
+                    require: true,
+                    list: "select code,name  from locations order by code"
+                },
                 ord_no: {
                     colname: "ord_no",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"txtNo\",\"width\":\"15%\","textAlign":"End","styleClass":"redText boldText"}',
+                    title: '@{\"text\":\"txtNo\",\"width\":\"15%\","textAlign":"End","styleClass":"redText boldText"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -493,7 +531,29 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     colname: "ord_date",
                     data_type: FormView.DataType.Date,
                     class_name: FormView.ClassTypes.DATEFIELD,
-                    title: '@{\"text\":\"ordDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '{\"text\":\"ordDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        width: "35%",
+                        minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
+                        change: function () {
+                        }
+                    },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                },
+                ord_shpdt: {
+                    colname: "ord_shpdt",
+                    data_type: FormView.DataType.Date,
+                    class_name: FormView.ClassTypes.DATEFIELD,
+                    title: '@{\"text\":\"dlvDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -564,33 +624,81 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     require: true,
                     keyboardFocus: false,
                 },
-                ord_shpdt: {
-                    colname: "ord_shpdt",
-                    data_type: FormView.DataType.Date,
-                    class_name: FormView.ClassTypes.DATEFIELD,
-                    title: '@{\"text\":\"dlvDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                attn: {
+                    colname: "attn",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"txtAttn\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
-                    display_align: "ALIGN_RIGHT",
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "35%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
+                },
+                ord_branchno: {// branch no
+                    colname: "ord_branchno",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtBranch\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_START",
                     display_style: "",
                     display_format: "",
                     other_settings: {
-                        width: "35%",
-                        minDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_from),
-                        change: function () {
+                        editable: true, width: "15%",
+                        showValueHelp: true,
+                        change: function (e) {
+                            var locval = UtilGen.getControlValue(thatForm.frm.objs["qry1.ord_ref"].obj)
+                            var sq = "select b_name name from cbranch where code=':CUSTCODE' and brno = ':CODE'".replaceAll(":CUSTCODE", locval);
+                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_branchno"].obj, undefined, thatForm.frm.objs["qry1.branchname"].obj);
+
+                        },
+                        valueHelpRequest: function (e) {
+                            var btns = [new sap.m.Button({
+                                text: 'New Branch ', press: function () {
+                                    thatForm.helperFunc.showBranch(this);
+                                }
+                            })];
+                            var locval = UtilGen.getControlValue(thatForm.frm.objs["qry1.ord_ref"].obj)
+                            UtilGen.Search.do_quick_search(e, this,
+                                "select brno code,b_name  title,AREA,BLOCK,JEDDA,QASIMA from cbranch where code=':locationx' order by brno ".replaceAll(":locationx", locval),
+                                "select brno code,b_name title from cbranch where code=':locationx' and brno=:CODE".replaceAll(":locationx", locval), thatForm.frm.objs["qry1.branchname"].obj, undefined, { pWidth: "80%" }, btns);
                         }
+
                     },
-                    list: undefined,
                     edit_allowed: true,
                     insert_allowed: true,
-                    require: true,
+                    require: true
+                },
+                branchname: {
+                    colname: "branchname",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "19%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false,
+                    keyboardFocus: false,
                 },
                 ord_empno: {
                     colname: "ord_empno",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"txtDriver\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"txtEmp\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -639,22 +747,6 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     require: false,
                     keyboardFocus: false,
                 },
-                attn: {
-                    colname: "attn",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"txtAttn\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: "",
-                    other_settings: { editable: true, width: "35%" },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: false
-                },
                 reference: {
                     colname: "reference",
                     data_type: FormView.DataType.String,
@@ -699,21 +791,35 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     cols: [
                         {
                             colname: "ORD_NO",
+                            mTitle: Util.getLangText("titPurOrd")
+                        },
+                        {
+                            colname: "PO_STATUS",
+                            mTitle: Util.getLangText("puPoStatus")
+                        },
+                        {
+                            colname: "ORD_DATE",
+                            display_format: "SHORT_DATE_FORMAT",
+                            mTitle: Util.getLangText("ordDate")
                         },
                         {
                             colname: "ORD_REF",
+                            mTitle: Util.getLangText("refCode")
                         },
                         {
-                            colname: "ORD_REFNM"
+                            colname: "ORD_REFNM",
+                            mTitle: Util.getLangText("refName")
                         },
                         {
                             colname: 'KEYFLD',
                             return_field: "pac",
+                            hide: true
                         },
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
+                    sql: "select ord_no,DECODE (ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status,ord_date,ord_ref,ord_refnm,keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
+                        " and location_code=':qry1.location_code' " +
                         " order by o1.ord_date desc,ord_no desc",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
@@ -848,12 +954,26 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
 
             }
-
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
             if (sqcnt == 0) FormView.err("Save Denied : Customer is invalid !");
             sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
             if (sqcnt > 0) FormView.err("Save Denied : Parent customer not allowed !");
+
+            //branch
+            var brno = thatForm.frm.getFieldValue("qry1.ord_branchno");
+            var sqcnt = Util.getSQLValue("select nvl(count(*),0) from cbranch where code='" + cod + "' and brno=" + brno);
+            if (sqcnt == 0) FormView.err("Save Denied : Branch no is invalid !");
+            //employee
+            var driv = thatForm.frm.getFieldValue("qry1.ord_empno");
+            var sqcnt = Util.getSQLValue("select nvl(count(*),0) from salesp where no='" + driv + "'");
+            if (sqcnt == 0) FormView.err("Save Denied : Emp no is invalid !");
+
+            // location
+            var loc = thatForm.frm.getFieldValue("qry1.location_code");
+            var sqcnt = Util.getSQLValue("select nvl(count(*),0) from locations where code='" + loc + "'");
+            if (sqcnt == 0) FormView.err("Save Denied : Location no is invalid !");
+
 
 
             // items
