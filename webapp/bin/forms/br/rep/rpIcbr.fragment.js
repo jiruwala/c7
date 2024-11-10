@@ -396,7 +396,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
             var rtypecol = rt == "QTY" ? "ORD_PKQTY" : "(qty_x*price_x)";
             var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
             var sq = "select location_code,location_name,ord_ref,ord_discamt,BRANCH_NAME branch,sum(:RTYPECOL) :REPCOLNAME , " +
-                " ord_ref||'-'||ord_refnm CUST,BRANCH_NAME||'__:REPCOLNAME' BRANCH_BAL " +
+                " ord_ref||'-'||trim(ord_refnm) CUST,BRANCH_NAME||'__:REPCOLNAME' BRANCH_BAL " +
                 " from joined_corder where " +
                 " ORD_DATE>=:parameter.fromdate " +
                 " AND ORD_DATE<=:parameter.todate  " +
@@ -404,11 +404,11 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                 " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
                 " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                 " group by  location_code,location_name,ord_ref,ord_discamt ,BRANCH_NAME, " +
-                " ord_ref||'-'||ord_refnm , ord_ship||'__:REPCOLNAME'" +
+                " ord_ref||'-'||trim(ord_refnm) , ord_ship||'__:REPCOLNAME'" +
                 " order by location_code,ord_ref,ord_discamt";
             if (incIn == "Y")
                 sq = "select location_code,location_name,ord_ref,ord_discamt,BRANCH_NAME branch,sum(:RTYPECOL) :REPCOLNAME , " +
-                    " ord_ref||'-'||ord_refnm CUST,BRANCH_NAME||'__:REPCOLNAME' BRANCH_BAL , pur.invoice_no " +
+                    " ord_ref||'-'||trim(ord_refnm) CUST,BRANCH_NAME||'__:REPCOLNAME' BRANCH_BAL , pur.invoice_no " +
                     " from joined_corder , " +
                     "(select KEYFLD,invoice_no from pur1 where invoice_code=21 ) pur " +
                     "  where " +
@@ -419,7 +419,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
                     " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                     " group by  location_code,location_name,ord_ref ,ord_discamt,BRANCH_NAME,pur.invoice_no, " +
-                    " ord_ref||'-'||ord_refnm , ord_ship||'__:REPCOLNAME'" +
+                    " ord_ref||'-'||trim(ord_refnm) , ord_ship||'__:REPCOLNAME'" +
                     " order by location_code,ord_ref,ord_discamt";
 
             sq = sq.replaceAll(":RTYPECOL", rtypecol)
