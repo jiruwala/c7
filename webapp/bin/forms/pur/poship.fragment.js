@@ -499,7 +499,14 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                             mnus.push(new sap.m.MenuItem({
                                 text: "Landing Cost",
                                 press: function () {
-                                    that2.helperFunc.showLandingCost();
+                                    if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                                        that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                        Util.simpleConfirmDialog(Util.getLangText("msgSaveFormData"), function (oAction) {
+                                            that2.frm.cmdButtons.cmdSave.firePress();
+                                            that2.helperFunc.showLandingCost();
+                                        });
+                                    } else
+                                        that2.helperFunc.showLandingCost();
                                 }
                             }))
                             var mnu = new sap.m.Menu({
@@ -585,7 +592,8 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     selPoKkf(data.KEYFLD);
                 }, { pWidth: "80%" }, undefined, false, "Select PO for new shipment ");
         },
-        showLandingCost: function () {
+        showLandingCost: function (pDlg, pPg) {
+            var dlg = Util.nvl(pDlg, undefined);
             var that2 = this.thatForm;
             var thisFunc = this;
             var generateCmds = function () {
@@ -626,7 +634,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                 this.qc.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                 this.qc.getControl().setFixedBottomRowCount(0);
                 this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
-                UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], false, undefined, undefined, false, false);
+                UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], true, undefined, undefined, false, false);
                 this.qc.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                 this.qc.insertable = false;
                 this.qc.deletable = false;
@@ -637,6 +645,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             var cc = that2.frm.getFieldValue("qry1.keyfld");
 
             var fetchData = function () {
+
                 var qv = thisFunc.qc;
                 var dt = Util.execSQL("select code,title,0 amount from C7_POCOSTINFO ");
                 if (dt.ret == "SUCCESS") {
@@ -647,49 +656,80 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                 }
             }
 
-            var pg = new sap.m.Page({
+            var pg = Util.nvl(pPg, new sap.m.Page({
                 showHeader: true,
                 content: [],
                 showFooter: true
-            }).addStyleClass("sapUiSizeCompact");
-            var cmdClose = new sap.m.ToggleButton({
+            }).addStyleClass("sapUiSizeCompact"));
+            var cmdClose = new sap.m.Button({
                 text: Util.getLangText("cmdDone"),
                 icon: "sap-icon://accept",
-                pressed: false,
                 press: function () {
                     dlg.close();
                 }
 
             });
+
+            var cmdEdit = new sap.m.ToggleButton({
+                text: Util.getLangText("editRec"),
+                icon: "sap-icon://edit",
+                pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
+                    || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
+                press: function () {
+                    if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                        that2.frm.cmdButtons.cmdEdit.setPressed(true);
+                        that2.frm.cmdButtons.cmdEdit.firePress();
+                        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) {
+                            that2.frm.cmdButtons.cmdEdit.setPressed(true);
+                            this.setPressed(true);
+                        }
+                        else {
+                            that2.frm.cmdButtons.cmdEdit.setPressed(false);
+                            this.setPressed(false);
+                        }
+                    }
+
+                    // seteditale();
+                }
+
+            });
+
             Util.destroyID("txtRM" + that2.timeInLong, that2.view);
             var txtSumRM = new sap.m.Text(that2.view.createId("txtRM" + that2.timeInLong), { width: "300px", text: "0" }).addStyleClass("redText boldText");
 
             var tbHeader = new sap.m.Toolbar();
+
+            UtilGen.clearPage(pg);
+            pg.removeAllHeaderContent();
             pg.setFooter(tbHeader);
             pg.removeAllHeaderContent();
             pg.addHeaderContent(this.qc.showToolbar.toolbar);
             pg.addContent(this.qc.getControl());
             tbHeader.addContent(cmdClose);
+            tbHeader.addContent(cmdEdit);
             tbHeader.addContent(new sap.m.ToolbarSpacer());
             tbHeader.addContent(txtSumRM);
 
             var tit = Util.getLangText("titLandCost");
             if (cc != "")
                 tit = Util.getLangText("titLandCost") + " - " + that2.frm.getFieldValue("qry1.ship_name") + " / " + that2.frm.getFieldValue("qry1.trip_no");
+            if (dlg == undefined) {
+                var dlg = new sap.m.Dialog({
+                    title: tit,
+                    content: pg,
+                    contentWidth: "80%",
+                    contentHeight: "400px",
 
-            var dlg = new sap.m.Dialog({
-                title: tit,
-                content: pg,
-                contentWidth: "80%",
-                contentHeight: "400px",
+                });
+                dlg.open();
 
-            });
+                dlg.attachAfterClose(function () {
+                    if (thisFunc.qc != undefined)
+                        thisFunc.qc.updateDataToTable();
+                });
+            }
             fetchData();
-            dlg.open();
-            dlg.attachAfterClose(function () {
-                if (thisFunc.qc != undefined)
-                    thisFunc.qc.updateDataToTable();
-            });
+
             setTimeout(function () {
                 if (thisFunc.qc != undefined)
                     thisFunc.qc.updateDataToControl();
@@ -701,21 +741,343 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
         showSpedning: function (dlg, pg, kf) {
             var thisFunc = this;
             var that2 = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var cc = that2.frm.getFieldValue("qry1.keyfld");
+            var pok = undefined;
+
+            if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT)
+                FormView.err("Must be in EDIT mode !");
+
+            var validateShipPo = function () {
+                pok = Util.getSQLValue("select po_keyfld from c7_purship where keyfld=" + cc);
+                if (Util.nvl(pok, '') == '')
+                    FormView.err("Shipment have not found !");
+                var flg = Util.getSQLValue("select nvl(max(ord_flag),-1) from pord1 where ord_code=11 and keyfld=" + pok);
+                if (flg != 2) FormView.err("PO is not approved or may be closed  !");
+            }
+            validateShipPo();
             UtilGen.clearPage(pg);
             pg.removeAllHeaderContent();
             thisFunc.qc = undefined;
+
+            var txtTit = new sap.m.Title({ text: "Total Amount : " }).addStyleClass("boldText redText");
             var tb = new sap.m.Toolbar({
                 content: [
+                    txtTit,
+                    new sap.m.Button({
+                        text: "Cancel & Back",
+                        press: function () {
+                            that2.fetchCustItems = false;
+                            // insertOrUpd();
+                            thisFunc.showLandingCost(dlg, pg);
+                        }
+                    }),
                     new sap.m.Button({
                         text: "Save & Back",
                         press: function () {
                             that2.fetchCustItems = false;
-                            thisFunc.showLandingCost();
+                            insertOrUpd();
+                            thisFunc.showLandingCost(dlg, pg);
                         }
                     })
                 ]
-            });            
+            });
+
+            var fe = [];
+            var mp = {};
+            var kfldQry = Util.nvl(kf, -1);
+            var addFe = function (ar) {
+                mp[ar[1].colname] = ar[1];
+                fe = [...fe, ...ar.slice(0)];
+            }
+            var getVal = (str) => {
+                if (mp[str].getDateValue != undefined)
+                    return mp[str].getDateValue();
+                return mp[str].getValue();
+            }
+            var checkEmptyVal = function (ostrs) {
+                for (var o in ostrs)
+                    if (Util.nvl(getVal(ostrs[o]), "") == "") {
+                        setTimeout(() => { mp[ostrs[o]].focus(); }, 150);
+                        FormView.err("Must have value ! ");
+                    }
+            }
+            var newRec = function () {
+                validateShipPo();
+                var dt = that2.view.today_date.getDateValue();
+                mp["keyfld"].setValue(Util.getSQLValue("select nvl(max(keyfld),0)+1 from C7_POLANDCOST"));
+                mp["attachment"].setValue("");
+                mp["trans_no"].setValue(Util.getSQLValue("select nvl(max(trans_no),0)+1 from C7_POLANDCOST where pship_keyfld=" + cc));
+                mp["trans_date"].setDateValue(new Date(dt.toDateString()));
+                mp["landcost_code"].setValue("");
+                mp["landcostname"].setValue("");
+                mp["descra"].setValue("");
+                mp["descr"].setValue("");
+                mp["reference"].setValue("");
+                mp["vendor_ref"].setValue("");
+                mp["vendorname"].setValue("");
+                mp["amount"].setValue("0.000");
+                setTimeout(() => {
+                    mp["trans_no"].focus();
+                }, 100);
+            }
+            var validateBeforeSave = function () {
+                checkEmptyVal(["trans_no", "trans_date", "landcost_code", "vendor_ref", "reference", "expense_ac", "expensename", "descr"]);                               
+            }
+            var insertOrUpd = function () {
+                var sq = "";
+                validateShipPo();
+                validateBeforeSave();
+                getDataLandcost();
+                var colval = {
+                    "keyfld": "(select nvl(max(keyfld),0)+1 from C7_POLANDCOST)",
+                    "pship_keyfld": cc,
+                    "trans_no": Util.extractNumber(getVal("trans_no")), //"(select nvl(max(trans_no),0)+1 from C7_POLANDCOST where pship_keyfld=" + cc + ")",
+                    "trans_date": Util.toOraDateString(getVal("trans_date")),
+                    "landcost_code": Util.quoted(getVal("landcost_code")),
+                    "descra": Util.quoted(getVal("descra")),
+                    "descr": Util.quoted(getVal("descr")),
+                    "reference": Util.quoted(getVal("reference")),
+                    "vendor_ref": Util.quoted(getVal("vendor_ref")),
+                    "amount": Util.extractNumber(getVal("amount")),
+                    "expense_ac": Util.quoted(getVal("expense_ac")),
+                    "costcent": Util.quoted(getVal("costcent")),
+                    "CREATED_TIME": "SYSDATE",
+                    "USERNM": Util.quoted(sett["LOGON_USER"]),
+                    "MODIFIED_TIME": "SYSDATE",
+                }
+                if (kfldQry != -1) {
+                    colval["keyfld"] = getVal("keyfld");
+                    colval["trans_no"] = getVal("trans_no");
+                    sq = UtilGen.getUpdateRowStringByObj("C7_POLANDCOST", colval, " keyfld=" + getVal("keyfld"));
+                } else {
+                    sq = UtilGen.getInsertRowStringByObj("C7_POLANDCOST", colval);
+                }
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS")
+                    FormView.msgSuccess(Util.getLangText("msgSaved"));
+                else FormView.err("err ! Not saved !");
+
+            }
+            var getDataLandcost = function (focusOnerr) {
+                var dtxM = Util.execSQLWithData("select expense_ac,(select max(name) from acaccount where accno=C7_POCOSTINFO.expense_ac) exp_nm," +
+                    "(select max(title) from accostcent1 where code=C7_POCOSTINFO.costcent) cstname," +
+                    " costcent from C7_POCOSTINFO where code='" + getVal("landcost_code") + "'", "Data not found !");
+                if (dtxM.length <= 0) {
+                    if (Util.nvl(focusOnerr, false))
+                        setTimeout(() => { mp["landcost_code"].setValue(""); mp["landcost_code"].focus(); }, 150);
+                    FormView.err("no landcost code found !");
+                }
+                if (Util.nvl(dtxM[0].EXP_NM, "") == "") {
+                    if (Util.nvl(focusOnerr, false))
+                        setTimeout(() => { mp["landcost_code"].focus(); }, 150);
+                    FormView.err("no expense a/c  found !");
+                }
+
+                mp["expense_ac"].setValue(dtxM[0].EXPENSE_AC);
+                mp["costcent"].setValue(dtxM[0].COSTCENT);
+                mp["costcentname"].setValue(Util.nvl(dtxM[0].CSTNAME, ""));
+                mp["expensename"].setValue(Util.nvl(dtxM[0].EXP_NM, ""));
+            }
+
+            //Amount
+            //keyfld                    attachment
+            //trans_no                  trans_date
+            //landcost_codd/name        reference
+            //vendor_ref/name           amount
+            //descr                     descra
+            //----------------------------------
+
+
+            //keyfld
+
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "keyfld", "", "keyId", "15%", "", "35%",
+                {
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    display_style: "keyIdText",
+                }));
+            //attachment
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "attachment", "@", "Attachment", "15%", "", "35%",
+                {
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                },
+                {
+                    showValueHelp: true,
+                    valueHelpRequest: function (e) {
+                        // if (frag.frm.objs["qry1"].status != FormView.RecordStatus.EDIT &&
+                        //     frag.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                        //     return;
+                        // UtilGen.Vouchers.attachShowUpload(frag);
+                        sap.m.MessageToast.show("attached clicked....");
+                    }
+                }
+            ));
+            //trans_no
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "trans_no", "", "transNo", "15%", "", "35%",
+                {
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                },
+            ));
+            //trans_date
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "trans_date", "@", "transDate", "15%", "", "35%",
+                {
+                    data_type: FormView.DataType.Date,
+                    class_name: FormView.ClassTypes.DATEFIELD,
+                },
+            ));
+            //landcost_code
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "landcost_code", "", "txtLandCostCode", "15%", "", "12%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                },
+                {
+                    showValueHelp: true,
+                    change: function (e) {
+                        var sq = "select title from C7_POCOSTINFO where code = :CODE";
+                        UtilGen.Search.getLOVSearchField(sq, mp["landcost_code"], undefined, mp["landcostname"]);
+                        getDataLandcost(true);
+
+                    },
+                    valueHelpRequest: function (e) {
+                        UtilGen.Search.do_quick_search(e, this,
+                            "select code, title from C7_POCOSTINFO  order by 1 ",
+                            "select code, title from C7_POCOSTINFO where code=:CODE", mp["landcostname"], undefined, undefined, undefined);
+                    }
+                }
+            ));
+            //name
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "landcostname", "@", "", "1%", "", "22%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    keyboardFocus: false
+                },
+                { editable: false }
+            ));
+            //refefence
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "reference", "@", "referenceNo", "15%", "", "35%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                },
+            ));
+            //vendor_ref
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "vendor_ref", "", "txtSupplier", "15%", "", "12%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                },
+                {
+                    showValueHelp: true,
+                    change: function (e) {
+                        var sq = "select name from c_ycust where code = :CODE";
+                        UtilGen.Search.getLOVSearchField(sq, mp["vendor_ref"], undefined, mp["vendorname"]);
+                    },
+                    valueHelpRequest: function (e) {
+                        UtilGen.Search.do_quick_search(e, this,
+                            "select code, name title from c_ycust where childcount=0 and flag=1 and issupp='Y' order by path ",
+                            "select code, name title from c_ycust where childcount=0 and code=:CODE", mp["vendorname"], undefined, undefined, undefined);
+                    }
+
+
+                }
+            ));
+            //vendorname
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "vendorname", "@", "", "1%", "", "22%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    keyboardFocus: false
+                },
+                {
+                    editable: false
+                }
+            ));
+            //amount
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "amount", "@", "amountTxt", "15%", "", "35%",
+                {
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    display_format: sett["FORMAT_MONEY_1"]
+
+                },
+            ));
+            //descr
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "descr", "", "txtDescren", "15%", "", "35%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                },
+            ));
+            //descra
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "descra", "@", "txtDescrar", "15%", "", "35%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                },
+            ));
+            fe.push(Util.getLabelTxt("Acc Info", "100%", "#", "boldText sapUiSmallMarginTop sapUiSmallMarginBottom", "Center"));
+
+            //expense_ac
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "expense_ac", "", "txtExpenseAc", "15%", "", "12%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                }, { editable: false }
+            ));
+            //expensename
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "expensename", "@", "", "1%", "", "22%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                }, { editable: false }
+            ));
+            //costcent
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "costcent", "@", "costCent", "15%", "", "12%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                }, { editable: false }
+            ));
+            //costcentname
+            addFe(FormView.getFactoryControls.getGeneralControls(
+                "costcentname", "@", "", "1%", "", "22%",
+                {
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                }, { editable: false }
+            ));
+
+
+
+            Util.navEnter(fe);
+            newRec();
+
+            var wdt = dlg.$().width() - 100;
+            if (wdt > 800) wdt = 800;
+            if (wdt < 200) wdt = 400;
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, { width: wdt + "px" }, "sapUiSizeCompact", "");
             pg.addHeaderContent(tb);
+            pg.addContent(cnt);
         }
     }
     ,

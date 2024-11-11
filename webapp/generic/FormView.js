@@ -1690,6 +1690,75 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
 
         };
+
+        FormView.getFactoryControls = {
+            getControls: function (pOSett) {
+                var timeInLong = (new Date()).getTime();
+                var oSett = Util.nvl(pOSett, {});
+                var set = oSett.other_settings;
+                var fe = [];
+                var objx = UtilGen.addControl(fe,
+                    oSett.title, eval(oSett.class_name),
+                    oSett.name.replace(".", '') + timeInLong,
+                    set, oSett.data_type,
+                    oSett.display_format, UtilGen.DBView, undefined, oSett.list);
+                if (set.hasOwnProperty("trueValues"))
+                    objx.trueValues = set["trueValues"];
+                if (oSett.hasOwnProperty("trueValues"))
+                    objx.trueValues = oSett.trueValues;
+                if (!oSett.keyboardFocus)
+                    objx.dontEnterFocus = true;
+
+                if (objx instanceof sap.m.Input && objx.getShowValueHelp()) {
+                    objx.attachBrowserEvent("keydown", function (oEvent) {
+                        if (this.getEditable() && oEvent.key == 'F9') {
+                            this.fireValueHelpRequest(oEvent);
+                        }
+                    });
+                }
+                objx.colname = oSett.name;
+                objx.addStyleClass(oSett.display_style);
+                if (objx instanceof sap.m.Text) {
+                    objx.setValue = function (vl) {
+                        this.setText(vl);
+                    }
+                    objx.getValue = function (vl) {
+                        return this.getText();
+                    }
+
+                }
+
+                return fe;
+
+            },
+            getGeneralControls: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+                var preTxt = Util.nvl(pPreTxt, "");
+                var lableWidth = Util.nvl(pLabelWidth, "15%");
+                var inpWidth = Util.nvl(pInpWidth, "35%");
+                var labelClass = Util.nvl(pLabelClass, "");
+                var ret = {
+                    colname: pfldNme,
+                    name: pfldNme,
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: preTxt + '{\"text\":\"' + pLabel + '\",\"width\":\"' + lableWidth + '\","textAlign":"End","styleClass":"' + labelClass + '"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: "",
+                    display_align: "ALIGN_BEGIN",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { ...{ width: inpWidth }, ...Util.nvl(otherSet, {}) },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    keyboardFocus:true
+                };
+                var objs = this.getControls({ ...ret, ...Util.nvl(set, {}) });
+                return objs;
+            },
+
+        }
         FormView.getFactoryFields = {
             getKeyFld: function (pPreTxt, pLabelWidth, pInpWidth) {
                 return {
@@ -1726,7 +1795,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     display_format: "",
                     other_settings: {
                         showValueHelp: true,
-                        editable: false,
                         width: inpWidth,
                         valueHelpRequest: function (e) {
                             if (frag.frm.objs["qry1"].status != FormView.RecordStatus.EDIT &&

@@ -1479,6 +1479,19 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 return sq1 + "(" + sq2 + ") values (" + sq3 + ")";
 
             },
+            getUpdateRowStringByObj: function (tblName, colValues, pWhere) {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+
+                var sq1 = "update " + tblName + " ";
+                var sq2 = "";
+                var sq3 = "";
+
+                for (var key in colValues)
+                    sq2 += (sq2.length > 0 ? "," : "") + key + " = " + Util.nvl(colValues[key], 'null');
+
+                return sq1 + " set " + sq2 + " where " + Util.nvl(pWhere, "");                
+            },
 
             showErrorNoVal: function (obj, msg) {
                 var ob = [];
