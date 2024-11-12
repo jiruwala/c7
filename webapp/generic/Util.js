@@ -1069,9 +1069,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                                             ld.cols[c].mHideCol = prop[pp];
                                         } else {
                                             var c = ld.getColPos(cn);
-                                            if (ld.cols[c].hasOwnProperty([pp]))
+                                            if (c >= 0 && ld.cols[c].hasOwnProperty([pp]))
                                                 ld.cols[c][pp] = prop[pp];
-                                            if (ld.cols[c]["mUIHelper"].hasOwnProperty([pp]))
+                                            if (c >= 0 && ld.cols[c]["mUIHelper"].hasOwnProperty([pp]))
                                                 ld.cols[c]["mUIHelper"][pp] = prop[pp];
                                         }
                                     if (pp == "mSummary")

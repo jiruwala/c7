@@ -1479,6 +1479,19 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 return sq1 + "(" + sq2 + ") values (" + sq3 + ")";
 
             },
+            getUpdateRowStringByObj: function (tblName, colValues, pWhere) {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+
+                var sq1 = "update " + tblName + " ";
+                var sq2 = "";
+                var sq3 = "";
+
+                for (var key in colValues)
+                    sq2 += (sq2.length > 0 ? "," : "") + key + " = " + Util.nvl(colValues[key], 'null');
+
+                return sq1 + " set " + sq2 + " where " + Util.nvl(pWhere, "");                
+            },
 
             showErrorNoVal: function (obj, msg) {
                 var ob = [];
@@ -1968,7 +1981,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             showCustomMessageToast: function (msg, dispAfterdelay, textColor, backColor, fontSize) {
                 if (Util.nvl(dispAfterdelay, 0) > 0)
                     setTimeout(() => {
-                        sap.m.MessageToast.show(Util.getLangText(msg), {                            
+                        sap.m.MessageToast.show(Util.getLangText(msg), {
                         });
                         var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
                         oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
@@ -3658,7 +3671,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd) {
+            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd) {
                 qrj.createToolbar("", [],
                     // EVENT ON APPLY PERSONALIZATION
                     function (prsn, qv) {
@@ -3760,8 +3773,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 btAddRow.attachBrowserEvent("mousedown", onAdd);
                 qrj.showToolbar.toolbar.removeAllContent();
                 qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
-                qrj.showToolbar.toolbar.addContent(btAddRow);
-                qrj.showToolbar.toolbar.addContent(btDelRow);
+                if (Util.nvl(showAdd, true))
+                    qrj.showToolbar.toolbar.addContent(btAddRow);
+                if (Util.nvl(showDel, true))
+                    qrj.showToolbar.toolbar.addContent(btDelRow);
                 if (Util.nvl(addSpace, false))
                     qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                 if (Util.nvl(findCols, []).length > 0) {
@@ -3909,6 +3924,26 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     .replaceAll(":NOTIFY_TYPE", Util.nvl(setx.notify_type, ""));
                 return sqx;
             },
+            PurchaseOrderFunc: {
+                init: function (frag) {
+                    this.frag = frag;
+                },
+                //return data ORD_FLAG,ORD_NO
+                checkPOStatus: function (poKf, pRaiseErr) {
+                    var raiseErr = Util.nvl(pRaiseErr, true);
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no from pord1 where keyfld=" + poKf, "No data found !");
+                    if (!raiseErr) return podt[0];
+
+                    if (podt[0].ORD_FLAG < 0)
+                        FormView.err("PO is not avaialble !");
+                    if (podt[0].ORD_FLAG == 1)
+                        FormView.err("PO is not approved !");
+                    if (podt[0].ORD_FLAG >= 3)
+                        FormView.err("PO is closed !");
+                    return podt[0];
+
+                }
+            }
 
         };
 
