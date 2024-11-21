@@ -116,7 +116,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         qr.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
         qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
         qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
-        qr.getControl().setFixedBottomRowCount(0);
+        qr.getControl().setFixedBottomRowCount(1);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(7);
         var filtercol = [];
@@ -223,24 +223,39 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "ITEM_DESCR", "mTitle", "descrTxt");
             Util.setColProp(qv, "ITEM_DESCR", "display_width", 120);
             Util.setColProp(qv, "ORD_PACKD", "mTitle", "itemPackD");
-            Util.setColProp(qv, "ORD_PACKD", "display_width", 50);
-            Util.setColProp(qv, "ORD_UNITD", "mTitle", "itemUnitD");
-            Util.setColProp(qv, "ORD_UNITD", "display_width", 50);
+            Util.setColProp(qv, "ORD_PACKD", "display_width", 70);
+            Util.setColProp(qv, "ORD_UNITD", "mHideCol", true);
+            // Util.setColProp(qv, "ORD_UNITD", "mTitle", "itemUnitD");
+            // Util.setColProp(qv, "ORD_UNITD", "display_width", 60);
+
+            Util.setColProp(qv, "ORD_PKQTY", "mTitleParent", "Purchase Order");
+            Util.setColProp(qv, "ORD_PKQTY", "mTitleParentSpan", 3);
             Util.setColProp(qv, "ORD_PKQTY", "mTitle", "itemPackQty");
-            Util.setColProp(qv, "ORD_PKQTY", "display_width", 70);
+            Util.setColProp(qv, "ORD_PKQTY", "display_width", 90);
+
             Util.setColProp(qv, "ORD_PRICE", "mTitle", "txtPrice");
-            Util.setColProp(qv, "ORD_PRICE", "display_width", 60);
+            Util.setColProp(qv, "ORD_PRICE", "display_width", 80);
             Util.setColProp(qv, "ORD_PRICE", "display_format", cstFormat);
-            
+            Util.setColProp(qv, "ORD_PRICE", "display_align", "ALIGN_END");
+            Util.setColProp(qv, "ORD_PRICE", "mTitleParent", "Purchase Order");
+            // Util.setColProp(qv, "ORD_PRICE", "mTitleParentSpan", 3);            
+
             Util.setColProp(qv, "ORD_AMOUNT", "mTitle", "amountTxt");
             Util.setColProp(qv, "ORD_AMOUNT", "display_width", 80);
             Util.setColProp(qv, "ORD_AMOUNT", "display_format", "MONEY_FORMAT");
+            Util.setColProp(qv, "ORD_AMOUNT", "mTitleParent", "Purchase Order");
+            // Util.setColProp(qv, "ORD_PRICE", "mTitleParentSpan", 3);            
+            Util.setColProp(qv, "ORD_AMOUNT", "mSummary", "SUM");
+
 
             Util.setColProp(qv, "RCVD_PKQTY", "mTitle", "");
+
             Util.setColProp(qv, "RCVD_PKQTY", "display_width", 60);
-            Util.setColProp(qv, "RCVD_COST", "mTitle", "");
+            Util.setColProp(qv, "RCVD_COST", "mTitle", "itemPackCost");
             Util.setColProp(qv, "RCVD_COST", "display_width", 80);
             Util.setColProp(qv, "RCVD_COST", "display_format", cstFormat);
+            Util.setColProp(qv, "RCVD_COST", "display_align", "ALIGN_END");
+
             Util.setColProp(qv, "RCVD_AMT", "mTitle", "");
             Util.setColProp(qv, "RCVD_AMT", "display_width", 80);
             Util.setColProp(qv, "RCVD_AMT", "display_format", "MONEY_FORMAT");
