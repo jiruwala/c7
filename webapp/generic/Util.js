@@ -1069,9 +1069,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                                             ld.cols[c].mHideCol = prop[pp];
                                         } else {
                                             var c = ld.getColPos(cn);
-                                            if (ld.cols[c].hasOwnProperty([pp]))
+                                            if (c >= 0 && ld.cols[c].hasOwnProperty([pp]))
                                                 ld.cols[c][pp] = prop[pp];
-                                            if (ld.cols[c]["mUIHelper"].hasOwnProperty([pp]))
+                                            if (c >= 0 && ld.cols[c]["mUIHelper"].hasOwnProperty([pp]))
                                                 ld.cols[c]["mUIHelper"][pp] = prop[pp];
                                         }
                                     if (pp == "mSummary")
@@ -1953,6 +1953,15 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     // $('#db_cmd_1').html('<strong>Copung </strong>');            
                 }, 100);
             },
+            setColProp: (qv, colnm, propStr, pVal) => {
+                var val = pVal;
+                if (propStr == "mTitle")
+                    val = Util.getLangText(val);
+                if (qv.mLctb.cols[qv.mLctb.getColPos(colnm)].hasOwnProperty(propStr))
+                    qv.mLctb.cols[qv.mLctb.getColPos(colnm)][propStr] = val
+                else if (qv.mLctb.cols[qv.mLctb.getColPos(colnm)].mUIHelper.hasOwnProperty(propStr))
+                    qv.mLctb.cols[qv.mLctb.getColPos(colnm)].mUIHelper[propStr] = val;
+            }
         };
 
         return Util;
