@@ -127,11 +127,13 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                             "ORD_CODE": thatForm.vars.vou_code,
                             "modified_time": "sysdate",
                             "created_time": "sysdate",
-                            "usernm": Util.quoted(sett["LOGON_USER"])
+                            "usernm": Util.quoted(sett["LOGON_USER"]),
+                            "ORD_AMT": ":qry2.totamt",
 
                         },
                         update_default_values: {
-                            "modified_time": "sysdate"
+                            "modified_time": "sysdate",
+                            "ORD_AMT": ":qry2.totamt",
                         },
                         table_name: "pord1",
                         edit_allowed: true,
@@ -407,7 +409,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     colname: "totamt",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"Total DR\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                    title: '@{\"text\":\"Total\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
                     title2: "Total ",
                     canvas: "default_canvas",
                     display_width: sumSpan,

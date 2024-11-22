@@ -1953,6 +1953,15 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     // $('#db_cmd_1').html('<strong>Copung </strong>');            
                 }, 100);
             },
+            setColProp: (qv, colnm, propStr, pVal) => {
+                var val = pVal;
+                if (propStr == "mTitle" || propStr == "mTitleParent")
+                    val = Util.getLangText(val);
+                if (qv.mLctb.cols[qv.mLctb.getColPos(colnm)].hasOwnProperty(propStr))
+                    qv.mLctb.cols[qv.mLctb.getColPos(colnm)][propStr] = val
+                else if (qv.mLctb.cols[qv.mLctb.getColPos(colnm)].mUIHelper.hasOwnProperty(propStr))
+                    qv.mLctb.cols[qv.mLctb.getColPos(colnm)].mUIHelper[propStr] = val;
+            }
         };
 
         return Util;

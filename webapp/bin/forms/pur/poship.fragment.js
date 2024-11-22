@@ -538,7 +538,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
 
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
                 skf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_purship");
-                qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
+                qry.formview.setFieldValue("qry1.keyfld", skf, skf, true);
                 qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
             }
 
@@ -558,7 +558,6 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
         },
         checkPOselected: function (qry) {
             var thatForm = this.thatForm;
-
             if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) {
                 FormView.err("You can only select PO when Form is in NEW mode ");
             }

@@ -110,7 +110,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
                                 qry.formview.setFormReadOnly();
                                 var pn = Util.getSQLValue("select invoice_no from pur1 where keyfld=" + kfld);
                                 that.view.byId("txtMsg" + thatForm.timeInLong).setText('Purchase # ' + pn);
-
                             }
                         }
                     },
@@ -695,25 +694,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
         var that = this;
         var fe = [];
         var titSpan = "XL2 L4 M4 S12";
-        var codSpan = "XL3 L2 M2 S12";
-
-
-        // this.cs = {};
-        // this.cs.code = UtilGen.addControl(fe, "Code", sap.m.Input, "Cs" + this.timeInLong + "_",
-        //     {
-        //         enabled: true,
-        //         layoutData: new sap.ui.layout.GridData({span: codSpan}),
-        //     }, "string", undefined, this.view);
-        // this.cs.title = UtilGen.addControl(fe, "@Title", sap.m.Input, "cs" + this.timeInLong + "_",
-        //     {
-        //         enabled: true,
-        //         layoutData: new sap.ui.layout.GridData({span: titSpan}),
-        //     }, "string", undefined, this.view);
-        //
-        //
-        // return UtilGen.formCreate("", true, fe);
-        // return UtilGen.formCreate("", true, fe, undefined, undefined, [1, 1, 1]);
-
+        var codSpan = "XL3 L2 M2 S12";        
     }
     ,
     loadData: function () {
@@ -746,7 +727,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.pord", {
     }
     ,
     validateSave: function () {
-
         return true;
     }
     ,
