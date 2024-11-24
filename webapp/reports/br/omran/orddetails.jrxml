@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="orddetails" language="groovy" pageWidth="680" pageHeight="396" columnWidth="680" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="b5ac15f9-7843-4e53-9579-505bbd92a6d0">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="orddetails" language="groovy" pageWidth="609" pageHeight="396" columnWidth="609" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="b5ac15f9-7843-4e53-9579-505bbd92a6d0">
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ora"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="cm"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="cm"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="kh7"/>
 	<template><![CDATA["voucherStyle.jrtx"]]></template>
 	<parameter name="KEYFLD" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
@@ -17,9 +17,10 @@
 	<queryString>
 		<![CDATA[SELECT C.LOCATION_CODE, C.PERIODCODE, C.ORD_NO, C.ORD_CODE, C.ORD_REF, C.ORD_REFNM, C.ORD_DATE, C.ORD_SHIP, C.ORD_SHPDT, C.ORD_AMT, C.ORD_DISCAMT, C.ORD_FLAG, C.ORD_EMPNO, C.YEAR, C.REMARKS, C.PAYTERM, C.VALIDATIY, C.ATTN, C.KEYFLD, C.DELIVEREDQTY, C.ORDERDQTY, C.SALEINV, C.ONAME, C.ROUNDS, C.TMPLANTLEAVE, C.TMSITEARRIVAL, C.TMMIXINGSTART, C.TMSITELEAVE, C.TMOFPLANARRIVAL, C.SANDQTY, C.STONEQTY, C.CEMENTQTY, C.BLOCK, C.STREET, C.JEDDA, C.AREA, C.BLDG, C.TEL, C.OP_NO, C.TYPOFCEM, C.TRUCKMIX, C.CHEMADD, C.QTYWATER, C.TQTY, C.WGHT, C.JOBNO, C.SALETYP, C.STRA, C.ORDERED_KEY, C.USERNM, C.CREATDT, C.SALESP, C.SALE_PRICE, C.SLNAME, C.PLANT_NAME, C.PRODUCTION_TYPE, C.SAND_TYPE, C.AGG_TYPE, C.CAST_TYPE, C.ISSUE_KEYFLD, C.ISSUE_NO, C.ISSUE_PLANT_NO, I.PACKD ORD_PACKD, 
 I.UNITD ORD_UNITD, 
-I.PACK ORD_PACK, C.ORD_POS,ORD_UNQTY, ORD_PKQTY ,
+I.PACK ORD_PACK, C.ORD_POS,0 ORD_UNQTY, TQTY ORD_PKQTY ,
 I.DESCR, I.DESCRA,I.PARTNO,
-(select descr1 from items where reference=c.ord_ship) d1
+(select descr1 from items where reference=c.ord_ship) d1,
+f_words_num(tqty)||' '||i.packd qtw
 FROM 
 C_ORDER1 C,ITEMS I
 WHERE ORD_SHIP=I.REFERENCE
@@ -314,14 +315,18 @@ ORDER BY ORD_POS]]>
 		<property name="com.jaspersoft.studio.field.name" value="D1"/>
 		<property name="com.jaspersoft.studio.field.label" value="D1"/>
 	</field>
+	<field name="QTW" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="QTW"/>
+		<property name="com.jaspersoft.studio.field.label" value="QTW"/>
+	</field>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
 	<detail>
-		<band height="29" splitType="Prevent">
+		<band height="25" splitType="Prevent">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strHeader" x="360" y="5" width="134" height="19" uuid="ca21741b-60f6-49e1-a83b-5116e76bcc22">
+				<reportElement style="strHeader" x="260" y="1" width="109" height="19" uuid="ca21741b-60f6-49e1-a83b-5116e76bcc22">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box>
@@ -331,12 +336,12 @@ ORDER BY ORD_POS]]>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{DESCRA}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strHeader" x="120" y="5" width="227" height="19" uuid="4771fac7-4c73-49e0-a4a5-450ba38f5d8d">
+				<reportElement style="strHeader" x="160" y="1" width="106" height="19" uuid="4771fac7-4c73-49e0-a4a5-450ba38f5d8d">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
 				<box>
@@ -346,12 +351,12 @@ ORDER BY ORD_POS]]>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{PARTNO}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight" pattern="#,##0.00" isBlankWhenNull="true">
-				<reportElement style="strColHeader" x="564" y="3" width="56" height="19" uuid="64525551-7f2b-40a9-a5c4-866a85dc4dd7">
+				<reportElement x="370" y="1" width="60" height="19" uuid="64525551-7f2b-40a9-a5c4-866a85dc4dd7">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
 				<box>
@@ -360,25 +365,25 @@ ORDER BY ORD_POS]]>
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{ORD_UNQTY}]]></textFieldExpression>
-			</textField>
-			<textField textAdjust="StretchHeight" pattern="#,##0.00" isBlankWhenNull="true">
-				<reportElement style="strColHeader" x="500" y="5" width="67" height="19" uuid="96e79457-5ee1-4a2b-ab35-d637cd50d223">
-					<property name="com.jaspersoft.studio.unit.y" value="px"/>
-				</reportElement>
-				<box>
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{ORD_PKQTY}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement style="strHeader" x="20" y="3" width="143" height="19" uuid="aa3f7159-6769-48b6-933e-dcba6d3a92c7">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{QTW}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
