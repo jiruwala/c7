@@ -206,12 +206,17 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var that = this;
         var qv = this.qcDet;
         var cstFormat = "#,##0.00000";
-        var sq = "SELECT ORD_POS,ORD_REFER,ITEM_DESCR,ORD_PACKD," +
-            " ORD_UNITD,ORD_ALLQTY/ORD_PACK ORD_PKQTY,ORD_PRICE," +
-            " ORD_PRICE*(ORD_ALLQTY/ORD_PACK) ORD_AMOUNT,0 RCVD_PKQTY," +
+        var sq = "SELECT ORD_POS,ORD_REFER,ITEM_DESCR," +
+            " CASE WHEN ORD_PACK>1 THEN ORD_PACKD||'x'||ORD_UNITD ELSE ORD_PACKD END ORD_PACKD, " +
+            " ORD_PACK,ORD_ALLQTY/ORD_PACK ORD_PKQTY,ORD_PRICE," +
+            " ORD_PRICE*(ORD_ALLQTY/ORD_PACK) ORD_AMOUNT," +
+            " NVL(RCVD_ALLQTY,0)/ORD_PACK RCVD_PKQTY ," +
             " 0 RCVD_COST,0 RCVD_AMT,0 RCVD_P,0 VARIA_QTY,0 VARIA_AMT  " +
-            " FROM PORD_JOINED " +
+            " FROM PORD_JOINED p ," +
+            " (SELECT ORD_SHIP,SUM(TQTY) RCVD_ALLQTY FROM C_ORDER1 WHERE PORD1_KEYFLD="
+            + that.selKf + " GROUP BY ORD_SHIP ) C " +
             " where keyfld=" + that.selKf +
+            " AND C.ORD_SHIP(+)=P.ORD_REFER " +
             " order by ord_pos";
         var dt = Util.execSQL(sq);
         if (dt.ret == "SUCCESS") {
@@ -224,52 +229,104 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "ITEM_DESCR", "display_width", 120);
             Util.setColProp(qv, "ORD_PACKD", "mTitle", "itemPackD");
             Util.setColProp(qv, "ORD_PACKD", "display_width", 70);
-            Util.setColProp(qv, "ORD_UNITD", "mHideCol", true);
+            Util.setColProp(qv, "ORD_PACK", "mTitle", "itemPack");
+            Util.setColProp(qv, "ORD_PACK", "display_width", 50);
+
+            // Util.setColProp(qv, "ORD_UNITD", "mHideCol", true);
             // Util.setColProp(qv, "ORD_UNITD", "mTitle", "itemUnitD");
             // Util.setColProp(qv, "ORD_UNITD", "display_width", 60);
 
-            Util.setColProp(qv, "ORD_PKQTY", "mTitleParent", "Purchase Order");
+            Util.setColProp(qv, "ORD_PKQTY", "mTitleParent", "titPurOrd");
             Util.setColProp(qv, "ORD_PKQTY", "mTitleParentSpan", 3);
             Util.setColProp(qv, "ORD_PKQTY", "mTitle", "itemPackQty");
             Util.setColProp(qv, "ORD_PKQTY", "display_width", 90);
+            Util.setColProp(qv, "ORD_PKQTY", "display_style", "background-color:#d8bfd8;");
 
             Util.setColProp(qv, "ORD_PRICE", "mTitle", "txtPrice");
             Util.setColProp(qv, "ORD_PRICE", "display_width", 80);
             Util.setColProp(qv, "ORD_PRICE", "display_format", cstFormat);
             Util.setColProp(qv, "ORD_PRICE", "display_align", "ALIGN_END");
-            Util.setColProp(qv, "ORD_PRICE", "mTitleParent", "Purchase Order");
+            Util.setColProp(qv, "ORD_PRICE", "mTitleParent", "titPurOrd");
+            Util.setColProp(qv, "ORD_PRICE", "display_style", "background-color:#d8bfd8;");
             // Util.setColProp(qv, "ORD_PRICE", "mTitleParentSpan", 3);            
 
             Util.setColProp(qv, "ORD_AMOUNT", "mTitle", "amountTxt");
             Util.setColProp(qv, "ORD_AMOUNT", "display_width", 80);
             Util.setColProp(qv, "ORD_AMOUNT", "display_format", "MONEY_FORMAT");
-            Util.setColProp(qv, "ORD_AMOUNT", "mTitleParent", "Purchase Order");
-            // Util.setColProp(qv, "ORD_PRICE", "mTitleParentSpan", 3);            
+            Util.setColProp(qv, "ORD_AMOUNT", "mTitleParent", "titPurOrd");
             Util.setColProp(qv, "ORD_AMOUNT", "mSummary", "SUM");
+            Util.setColProp(qv, "ORD_AMOUNT", "display_style", "background-color:#d8bfd8;");
 
+            Util.setColProp(qv, "RCVD_PKQTY", "mTitleParent", "goodsRecieved");
+            Util.setColProp(qv, "RCVD_PKQTY", "mTitleParentSpan", 4);
+            Util.setColProp(qv, "RCVD_PKQTY", "display_style", "background-color:khaki;");
 
-            Util.setColProp(qv, "RCVD_PKQTY", "mTitle", "");
-
+            Util.setColProp(qv, "RCVD_PKQTY", "mTitle", "itemPackQty");
             Util.setColProp(qv, "RCVD_PKQTY", "display_width", 60);
+            Util.setColProp(qv, "RCVD_COST", "mTitleParent", "goodsRecieved");
             Util.setColProp(qv, "RCVD_COST", "mTitle", "itemPackCost");
             Util.setColProp(qv, "RCVD_COST", "display_width", 80);
             Util.setColProp(qv, "RCVD_COST", "display_format", cstFormat);
             Util.setColProp(qv, "RCVD_COST", "display_align", "ALIGN_END");
+            Util.setColProp(qv, "RCVD_COST", "display_style", "background-color:khaki;");
 
-            Util.setColProp(qv, "RCVD_AMT", "mTitle", "");
+
+            Util.setColProp(qv, "RCVD_AMT", "mTitleParent", "goodsRecieved");
+            Util.setColProp(qv, "RCVD_AMT", "mTitle", "amountTxt");
             Util.setColProp(qv, "RCVD_AMT", "display_width", 80);
             Util.setColProp(qv, "RCVD_AMT", "display_format", "MONEY_FORMAT");
-            Util.setColProp(qv, "RCVD_P", "mTitle", "");
-            Util.setColProp(qv, "RCVD_P", "display_width", 50);
-            Util.setColProp(qv, "VARIA_QTY", "mTitle", "");
-            Util.setColProp(qv, "VARIA_QTY", "display_width", 60);
-            Util.setColProp(qv, "VARIA_AMT", "mTitle", "");
-            Util.setColProp(qv, "VARIA_AMT", "display_width", 80);
+            Util.setColProp(qv, "RCVD_AMT", "mSummary", "SUM");
+            Util.setColProp(qv, "RCVD_AMT", "display_style", "background-color:khaki;");
 
+            Util.setColProp(qv, "RCVD_P", "mTitle", "txtRecvdP");
+            Util.setColProp(qv, "RCVD_P", "mTitleParent", "goodsRecieved");
+            Util.setColProp(qv, "RCVD_P", "display_width", 50);
+            Util.setColProp(qv, "RCVD_P", "display_style", "background-color:khaki;");
+
+            Util.setColProp(qv, "VARIA_QTY", "mTitleParent", "txtVariance");
+            Util.setColProp(qv, "VARIA_QTY", "mTitleParentSpan", 2);
+            Util.setColProp(qv, "VARIA_QTY", "mTitle", "itemPackQty");
+            Util.setColProp(qv, "VARIA_QTY", "display_width", 60);
+            Util.setColProp(qv, "VARIA_QTY", "display_style", "background-color:#e6e6fa;");
+
+
+            Util.setColProp(qv, "VARIA_AMT", "mTitleParent", "txtVariance");
+            Util.setColProp(qv, "VARIA_AMT", "mTitle", "amountTxt");
+            Util.setColProp(qv, "VARIA_AMT", "display_width", 80);
+            Util.setColProp(qv, "VARIA_AMT", "display_format", "MONEY_FORMAT");
+            Util.setColProp(qv, "VARIA_AMT", "mSummary", "SUM");
+            Util.setColProp(qv, "VARIA_AMT", "display_style", "background-color:#e6e6fa;");
             qv.mLctb.parse("{" + dt.data + "}", true);
+
+
+            that.calcSumDetails();
             qv.loadData();
         }
 
+    },
+    calcSumDetails: function () {
+        var that = this;
+        var qv = this.qcDet;
+        var ld = qv.mLctb;
+        var kdcost = Util.extractNumber(that.mp["kdcost"].getValue());
+
+        for (var i = 0; i < ld.rows.length; i++) {
+            var pprice = ld.getFieldValue(i, "ORD_PRICE");
+            var rqt = ld.getFieldValue(i, "RCVD_PKQTY");
+            var oqt = ld.getFieldValue(i, "ORD_PKQTY");
+            var varr = oqt - rqt;
+            var vamat = (varr * pprice);
+
+            var rprice = pprice * kdcost;
+            var ramt = rprice * rqt;
+            var rpt = rqt > 0 && oqt > 0 ? Math.round((rqt / oqt) * 100) : 0; //(250/2500)*100
+
+            ld.setFieldValue(i, "RCVD_COST", rprice);
+            ld.setFieldValue(i, "RCVD_AMT", ramt);
+            ld.setFieldValue(i, "RCVD_P", rpt + " %");
+            ld.setFieldValue(i, "VARIA_QTY", varr);
+            ld.setFieldValue(i, "VARIA_AMT", vamat);
+        }
     },
     createInfoPage: function () {
         var that = this;
@@ -391,7 +448,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             }, { editable: false }
         ));
         addFe(FormView.getFactoryControls.getGeneralControls(
-            "other_expenses", "@", "landingCost", "15%", "", "35%",
+            "other_expenses", "@", "landingCostShort", "15%", "", "35%",
             {
                 data_type: FormView.DataType.Number,
                 class_name: FormView.ClassTypes.TEXTFIELD,
@@ -439,7 +496,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         qr.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
         qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
         qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
-        qr.getControl().setFixedBottomRowCount(0);
+        qr.getControl().setFixedBottomRowCount(1);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(7);
         var filtercol = [];
@@ -492,13 +549,13 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var thatForm = this;
         thatForm.selKf = -1;
         thatForm.joApp.toDetail(thatForm.mainPage, "slide");
-        var sq = "SELECT KEYFLD,ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ORD_AMT-ORD_DISCAMT NET_AMT,'0%' RECIEVED FROM PORD1 WHERE ORD_CODE=11 AND ORD_FLAG=2 order by ord_no";
+        var sq = "SELECT ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ORD_AMT-ORD_DISCAMT NET_AMT,'0%' RECIEVED,KEYFLD FROM PORD1 WHERE ORD_CODE=11 AND ORD_FLAG=2 order by ord_no";
         var dt = Util.execSQL(sq);
         var qv = this.qc;
         if (dt.ret == "SUCCESS") {
             qv.setJsonStrMetaData("{" + dt.data + "}");
 
-            qv.mLctb.cols[qv.mLctb.getColPos("KEYFLD")].mColHide = true;
+            qv.mLctb.cols[qv.mLctb.getColPos("KEYFLD")].mHideCol = true;
 
             qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_DATE")].getMUIHelper().display_format = "SHORT_DATE_FORMAT";
@@ -509,6 +566,8 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_REFNM")].getMUIHelper().display_width = 120;
             qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].getMUIHelper().display_width = 100;
             qv.mLctb.cols[qv.mLctb.getColPos("RECIEVED")].getMUIHelper().display_width = 70;
+            qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].mSummary = "SUM";
+            qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].getMUIHelper().display_style = "background-color:lightgrey;";
 
 
 
@@ -541,6 +600,3 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
     }
 
 });
-
-
-

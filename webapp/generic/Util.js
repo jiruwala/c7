@@ -1955,7 +1955,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             },
             setColProp: (qv, colnm, propStr, pVal) => {
                 var val = pVal;
-                if (propStr == "mTitle")
+                if (propStr == "mTitle" || propStr == "mTitleParent")
                     val = Util.getLangText(val);
                 if (qv.mLctb.cols[qv.mLctb.getColPos(colnm)].hasOwnProperty(propStr))
                     qv.mLctb.cols[qv.mLctb.getColPos(colnm)][propStr] = val
