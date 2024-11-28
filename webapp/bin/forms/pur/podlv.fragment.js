@@ -447,10 +447,11 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
 
                 },
                 beforeExeSql: function (frm, sq) {
+                    var gkf = thatForm.frm.getFieldValue("qry1.keyfld");
                     var kf = thatForm.frm.getFieldValue("qry1.pship_keyfld");
                     var pokf = Util.getSQLValue("select po_keyfld from c7_purship where keyfld=" + kf);
                     var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, true);
-                    var sq1 = " c7_updatePODelivery(" + pokf + ");";
+                    var sq1 = " c7_updatePODelivery(" + pokf + ");" + " c7_po_gr(" + gkf + ");";
                     return sq + sq1;
                 },
             };

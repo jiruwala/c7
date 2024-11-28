@@ -990,6 +990,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                 } else {
                     sq = UtilGen.getInsertRowStringByObj("C7_POLANDCOST", colval);
                 }
+                sq = "begin " + sq + "; C7_PO_SHIPCOST_JV(" + getVal("keyfld") + ") ; end; ";
                 var dt = Util.execSQL(sq);
                 if (dt.ret == "SUCCESS")
                     FormView.msgSuccess(Util.getLangText("msgSaved"));
@@ -1173,7 +1174,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
 
             //expense_ac
             addFe(FormView.getFactoryControls.getGeneralControls(
-                "expense_ac", "", "txtExpenseAc", "15%", "", "12%",
+                "expense_ac", "", "txtInventoryAc", "15%", "", "12%",
                 {
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,

@@ -273,7 +273,7 @@
                     { require: false }, {}),
 
                 expense_ac: FormView.getFactoryFields.getGeneralField(
-                    "expense_ac", "", "txtExpenseAc", "15%", "", "15%",
+                    "expense_ac", "", "txtInventoryAc", "15%", "", "15%",
                     {
                         data_type: FormView.DataType.String,
                         class_name: FormView.ClassTypes.TEXTFIELD,

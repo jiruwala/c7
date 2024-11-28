@@ -1490,7 +1490,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 for (var key in colValues)
                     sq2 += (sq2.length > 0 ? "," : "") + key + " = " + Util.nvl(colValues[key], 'null');
 
-                return sq1 + " set " + sq2 + " where " + Util.nvl(pWhere, "");                
+                return sq1 + " set " + sq2 + " where " + Util.nvl(pWhere, "");
             },
 
             showErrorNoVal: function (obj, msg) {
@@ -2120,7 +2120,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     else {
                         UtilGen.setControlValue(control, vl, vl, false);
                         UtilGen.setControlValue(titObj, nm, nm, false);
+
                     }
+                    if (Util.nvl(nm, "") == "" &&
+                        typeof control.focus != "undefined" && typeof control.setValue != "undefined")
+                        setTimeout(() => { control.setValue(""); control.focus(); }, 150);
+
                 }
             },
             Vouchers: {
