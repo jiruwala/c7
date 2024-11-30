@@ -426,7 +426,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var sett = sap.ui.getCore().getModel("settings").getData();
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var view = this.view;
-        var formCss = {
+        var formCss = { 
             width: "750px",
             cssText: [
                 "padding-left:10px ;" +
@@ -499,7 +499,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         //ord_ref+ord_refnm           landing_cost
         //kd_cost                     total
 
-        addFe(FormView.getFactoryControls.getGeneralControls(
+        addFe(FormView.getFactoryControls.getGeneralControls( 
             "ord_no", "", "txtPoNo", "15%", "", "10%",
             {
                 data_type: FormView.DataType.Number,

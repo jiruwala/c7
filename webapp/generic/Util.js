@@ -970,6 +970,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
             },
             showSearchTable: function (sql, container, pflcol, fnOnselect, multiSelect, ppms, dta, jsCmd, refreshCmd, listParaCmd) {
+
                 if (container instanceof sap.m.VBox)
                     container.removeAllItems();
                 else {
@@ -977,6 +978,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     container.removeAllContent();
                 }
                 var tm = new Date().getTime();
+                var autoresizecol = true;
                 var listKey = listParaCmd != undefined ? listParaCmd.getSelectedKey() : "";
 
                 var qv = new QueryView("searchTbl" + tm);
@@ -1071,10 +1073,13 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                                             ld.cols[c].mHideCol = prop[pp];
                                         } else {
                                             var c = ld.getColPos(cn);
-                                            if (c >= 0 && ld.cols[c].hasOwnProperty([pp]))
+                                            if (c >= 0 && ld.cols[c].hasOwnProperty(pp))
                                                 ld.cols[c][pp] = prop[pp];
-                                            if (c >= 0 && ld.cols[c]["mUIHelper"].hasOwnProperty([pp]))
+                                            if (c >= 0 && ld.cols[c]["mUIHelper"].hasOwnProperty(pp)) {
                                                 ld.cols[c]["mUIHelper"][pp] = prop[pp];
+                                                if (pp == "display_width")
+                                                    autoresizecol = false;
+                                            }
                                         }
                                     if (pp == "mSummary")
                                         showFixBottom = true;
@@ -1105,7 +1110,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     qv.loadData();
                     if (qv.queryType == "tree")
                         qv.getControl().expandToLevel(10);
-                    qv.autoResizeColumns("100%");
+                    if (autoresizecol)
+                        qv.autoResizeColumns("100%");
                     if (container instanceof sap.m.VBox)
                         container.addItem(qv.getControl());
                     else
