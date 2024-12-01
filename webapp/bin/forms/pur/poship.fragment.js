@@ -655,22 +655,6 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                         mnus.push(new sap.m.MenuItem({
                             text: Util.getLangText("txtPOLCaddCosting") + "..",
                             press: function () {
-                                // var pokeyfld = thatForm.frm.getFieldValue("qry1.po_keyfld");
-                                // var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokeyfld, false);
-                                // if (podt.ORD_FLAG == 3) {
-                                //     thisFunc.showSpedning(dlg, pg, -1);
-                                //     return;
-                                // }
-                                // if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT) {
-
-                                //     Util.simpleConfirmDialog(Util.getLangText("This form is not in EDIT mode, do you want to edit ?"), function (oAction) {
-                                //         var ed = that2.view.byId("cmdEditSpend" + that2.timeInLong);
-                                //         ed.firePress();
-                                //         setTimeout(function () {
-                                //             thisFunc.showSpedning(dlg, pg, -1);
-                                //         }, 100);
-                                //     });
-                                // } else
                                 thisFunc.showSpedning(dlg, pg, -1);
 
                             }
