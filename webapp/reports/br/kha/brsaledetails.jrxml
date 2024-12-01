@@ -5,7 +5,7 @@
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ora"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="kh7"/>
 	<template><![CDATA["voucherStyle.jrtx"]]></template>
 	<parameter name="KEYFLD" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
@@ -13,7 +13,7 @@
 	<parameter name="TOTAL_IN_WORDS" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="CURRENCY_FORMAT" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
-		<![CDATA[SELECT PUR2.REFER, PUR2.TYPE,INVOICE_NO,o.attn,
+		<![CDATA[SELECT PUR2.REFER, PUR2.TYPE,INVOICE_NO,max(( select b_name from cbranch where brno=ord_discamt and code=ord_ref)) attn,
 ITEMS.DESCR, PUR2.PACKD, sum(PUR2.ALLQTY) allqty, PUR2.PRICE, sum(PUR2.DISC_AMT) DISC_AMT2,PUR2.PACK,
 sum((PUR2.PRICE)*PUR2.ALLQTY/PUR2.PACK) AMOUNT,sum(ALLQTY/PUR2.PACK) PKX
 FROM pur2, ITEMS,c_order1 o
@@ -21,7 +21,7 @@ WHERE PUR2.INVOICE_CODE=21
 and pur2.ordwas=o.keyfld and o.ord_pos=orderno
  AND  (ITEMS.REFERENCE=PUR2.REFER)
  and pur2.keyfld=$P{KEYFLD}
- group by pur2.refer,pur2.type,pur2.invoice_no,items.descr,pur2.packd,pur2.price,pur2.pack,o.attn
+ group by pur2.refer,pur2.type,pur2.invoice_no,items.descr,pur2.packd,pur2.price,pur2.pack
 ORDER BY PUR2.refer]]>
 	</queryString>
 	<field name="REFER" class="java.lang.String">
@@ -279,7 +279,7 @@ ORDER BY PUR2.refer]]>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PACKD}]]></textFieldExpression>
 				</textField>
-				<textField pattern="">
+				<textField pattern="#,##0.00#;(#,##0.00#-)">
 					<reportElement style="strHeader" x="350" y="1" width="39" height="21" uuid="1c263516-fabe-4b3a-bf6d-46c8dd74e7b4">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
@@ -290,7 +290,7 @@ ORDER BY PUR2.refer]]>
 						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font isBold="true"/>
+						<font size="8" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PKX}]]></textFieldExpression>
 				</textField>

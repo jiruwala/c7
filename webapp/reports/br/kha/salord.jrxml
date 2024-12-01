@@ -203,13 +203,13 @@ ORDER BY "ORDER1"."ORD_NO" DESC]]>
 						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
+					<textElement textAlignment="Left" verticalAlignment="Middle">
 						<font size="16" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{ORD_REF}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="282" y="131" width="291" height="20" uuid="8a01396d-67cf-4232-bbaf-54b3502e1185"/>
+					<reportElement style="strHeader" x="130" y="131" width="443" height="20" uuid="8a01396d-67cf-4232-bbaf-54b3502e1185"/>
 					<box>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -219,7 +219,7 @@ ORDER BY "ORDER1"."ORD_NO" DESC]]>
 					<textElement textAlignment="Right" verticalAlignment="Bottom">
 						<font fontName="DejaVu Sans" size="12" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{ORD_REFNM}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{ORD_REFNM} +" / "+$F{B_NAME}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 					<reportElement style="strHeader" x="401" y="167" width="151" height="20" uuid="1507cd1b-0bb3-4190-8b9d-4a5ce2420537"/>
