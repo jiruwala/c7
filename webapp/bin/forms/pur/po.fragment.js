@@ -735,7 +735,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         showValueHelp: true,
                         change: function (e) {
                             var sq = "select name from c_ycust where  code = ':CODE'";
-                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);
+                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);                            
                         },
                         valueHelpRequest: function (e) {
                             var btns = [new sap.m.Button({

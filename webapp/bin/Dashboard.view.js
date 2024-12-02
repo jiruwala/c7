@@ -2167,12 +2167,24 @@ sap.ui.jsview('bin.Dashboard', {
                 UtilGen.execCmd('bin.forms.pur.poship status=new formType=page poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
 
         },
+        openPoWzd: function () {
+            var thatView = this.thatView;
+            var selPokf = thatView.puOrdKeyfld;
+            if (Util.nvl(selPokf, -1) == -1)
+                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+            else
+                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+
+        },
         openPoGr: function () {
             var thatView = this.thatView;
             var selPokf = thatView.puOrdKeyfld;
             var sett = sap.ui.getCore().getModel("settings").getData();
             var callPoGr = function (kf) {
-                UtilGen.execCmd('bin.forms.pur.podlv status=new formType=page shipKF=' + kf + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                if (kf != undefined)
+                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=page shipKF=' + kf + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                else
+                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=page formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
             };
             var genDefaultShip = function () {
                 var kf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_purship ");
@@ -2196,7 +2208,7 @@ sap.ui.jsview('bin.Dashboard', {
             };
 
             if (Util.nvl(selPokf, -1) == -1)
-                FormView.err("Must select PO and create Shipment !");
+                callPoGr();
             else {
                 var noship = Util.getSQLValue("select nvl(count(*),0) from c7_purship where po_keyfld=" + selPokf);
                 if (noship <= 0) {
@@ -2221,6 +2233,9 @@ sap.ui.jsview('bin.Dashboard', {
             }
 
         },
+        openPoCls: function () {
+
+        }
 
     }
 });

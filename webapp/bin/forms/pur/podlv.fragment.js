@@ -396,8 +396,8 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                             var tbl = evtx.getSource().getParent().getParent(); // get table control.
                             var input = evtx.getSource();
                             var row = evtx.getSource().getParent();
-                            var sq = "SELECT P.ORD_POS,I.REFERENCE,I.DESCR,P.ORD_PACKD PACKING," +
-                                " P.ORD_ALLQTY/P.ORD_PACK ORDERED_QTY,DELIVEREDQTY/P.ORD_PACK RECEIVED_QTY " +
+                            var sq = "SELECT P.ORD_POS,I.REFERENCE,I.DESCR,P.ORD_PACKD PACKING" +
+                                "  " +
                                 ", ORD_PRICE FROM PORD2 P,ITEMS I WHERE P.ORD_CODE=11 AND " +
                                 " P.KEYFLD=" + pokf +
                                 " AND  I.REFERENCE=P.ORD_REFER ORDER BY ORD_POS";
@@ -417,7 +417,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                     ld.setFieldValue(idx, "ORD_SHIP", data[i].REFERENCE);
                                     ld.setFieldValue(idx, "DESCR", data[i].DESCR);
                                     ld.setFieldValue(idx, "PACKD", data[i].PACKING);
-                                    ld.setFieldValue(idx, "ORD_PKQTY", data[i].ORDERED_QTY);
+                                    ld.setFieldValue(idx, "ORD_PKQTY", 1);
                                     ld.setFieldValue(idx, "ORD_UNQTY", 0);
                                     ld.setFieldValue(idx, "SALE_PRICE", data[i].ORD_PRICE);
                                 }
@@ -646,7 +646,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     colname: "ord_reference",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"poNo\",\"width\":\"15%\","textAlign":"End","styleClass":"boldText"}',
+                    title: '@{\"text\":\"referenceNo\",\"width\":\"15%\","textAlign":"End","styleClass":"boldText"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -1110,7 +1110,11 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                 FormView.err("You can only select Shipment when Form is in NEW mode ");
 
             var selPoKkf = function (pokf, shKf) {
-                var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, true);
+                var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, false);
+                if (podt.ORD_FLAG != 2) {
+                    UtilGen.showCustomMessageToast("Cant create on CLOSED or NOT APPROVED PO", 100, "red", "#fff");
+                    return;
+                }
                 var str = "";
                 str = podt.ORD_FLAG == 1 ? "Not-Approved" :
                     podt.ORD_FLAG == 2 ? "Opened" :
@@ -1148,6 +1152,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                 qry.formview.setFieldValue("qry1.stra", sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
                 thatForm.helperFunc.validity.updateFieldsEditing(false);
             }
+
             thatForm.helperFunc.validity.updateFieldsEditing(true);
             var shkf = thatForm.oController.shipKF;
             if (Util.nvl(shkf, '') != '') {

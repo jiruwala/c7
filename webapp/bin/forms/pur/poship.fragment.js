@@ -891,7 +891,14 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     if (mp[kys[k]].setEditable != undefined)
                         mp[kys[k]].setEditable(ed);
                 }
-                // if (kfldQry != -1) mp["trans_no"].setEditable(false);
+                if (ed) {
+                    mp["expense_ac"].setEditable(false);
+                    mp["expensename"].setEditable(false);
+                    mp["costcent"].setEditable(false);
+                    mp["costcentname"].setEditable(false);
+                }
+
+                if (ed && kfldQry != -1) mp["trans_no"].setEditable(false);
             }
             var validateShipPo = function () {
                 pok = Util.getSQLValue("select po_keyfld from c7_purship where keyfld=" + cc);
@@ -1053,24 +1060,30 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
 
             }
             var getDataLandcost = function (focusOnerr) {
-                var dtxM = Util.execSQLWithData("select expense_ac,(select max(name) from acaccount where accno=C7_POCOSTINFO.expense_ac) exp_nm," +
-                    "(select max(title) from accostcent1 where code=C7_POCOSTINFO.costcent) cstname," +
-                    " costcent from C7_POCOSTINFO where code='" + getVal("landcost_code") + "'", "Data not found !");
+                var pokeyfld = that2.frm.getFieldValue("qry1.po_keyfld");
+                var sq = "select p.gr_ac,a.name acname from pord1 p,acaccount a,C7_POCOSTINFO i " +
+                    "where gr_ac=a.accno and p.keyfld=" + pokeyfld +
+                    " and i.code='" + getVal("landcost_code") + "'";
+
+                // var dtxM = Util.execSQLWithData("select expense_ac,(select max(name) from acaccount where accno=C7_POCOSTINFO.expense_ac) exp_nm," +
+                //     "(select max(title) from accostcent1 where code=C7_POCOSTINFO.costcent) cstname," +
+                //     " costcent from C7_POCOSTINFO where code='" + getVal("landcost_code") + "'", "Data not found !");
+                var dtxM = Util.execSQLWithData(sq);
                 if (dtxM.length <= 0) {
                     if (Util.nvl(focusOnerr, false))
                         setTimeout(() => { mp["landcost_code"].setValue(""); mp["landcost_code"].focus(); }, 150);
                     FormView.err("no landcost code found !");
                 }
-                if (Util.nvl(dtxM[0].EXP_NM, "") == "") {
+                if (Util.nvl(dtxM[0].ACNAME, "") == "") {
                     if (Util.nvl(focusOnerr, false))
                         setTimeout(() => { mp["landcost_code"].focus(); }, 150);
-                    FormView.err("no expense a/c  found !");
+                    FormView.err("no GR a/c  found !");
                 }
 
-                mp["expense_ac"].setValue(dtxM[0].EXPENSE_AC);
-                mp["costcent"].setValue(dtxM[0].COSTCENT);
-                mp["costcentname"].setValue(Util.nvl(dtxM[0].CSTNAME, ""));
-                mp["expensename"].setValue(Util.nvl(dtxM[0].EXP_NM, ""));
+                mp["expense_ac"].setValue(dtxM[0].GR_AC);
+                mp["costcent"].setValue('');
+                mp["costcentname"].setValue('');
+                mp["expensename"].setValue(Util.nvl(dtxM[0].ACNAME, ""));
             }
 
             //Amount
@@ -1229,7 +1242,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
 
             //expense_ac
             addFe(FormView.getFactoryControls.getGeneralControls(
-                "expense_ac", "", "txtInventoryAc", "15%", "", "12%",
+                "expense_ac", "", "txtGrAc", "15%", "", "12%",
                 {
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,

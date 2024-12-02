@@ -1235,7 +1235,6 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
                 if (txtStartDate.getValue() != "" && txtItem.getValue() != "" && parseFloat(txtNewPrice.getValue()) > 0) ed = true;
                 if (lastDate != undefined && sdf.format(lastDate) == sdf.format(txtStartDate.getDateValue())) ed = false;
-
                 btAp.setEnabled(ed);
             }
             var txtStartDate = new sap.m.DatePicker({

@@ -180,7 +180,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var dt = Util.execSQLWithData("select *from pord1 where keyfld=" + that.selKf, "No data found ..");
         var setVal = (varr, str) => {
             if (varr == "close_date") {
-                that.mp[varr].setDateValue(str);
+                that.mp[varr].setDateValue(new Date((Util.nvl(str, "") + "").replaceAll(".", ":")));
                 return;
             }
             that.mp[varr].setValue(str);
@@ -633,7 +633,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         // qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
         qr.getControl().setFixedBottomRowCount(1);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-        qr.getControl().setVisibleRowCount(7);
+        qr.getControl().setVisibleRowCount(4);
         var filtercol = [];
         UtilGen.createDefaultToolbar2(qr, filtercol, false);
         qr.insertable = false;
