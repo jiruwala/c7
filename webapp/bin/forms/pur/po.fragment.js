@@ -723,7 +723,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     colname: "ord_ref",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"txtSupp\",\"width\":\"15%\","textAlign":"End","styleClass":"darkBlueText boldText"}',
+                    title: '{\"text\":\"txtSupplier\",\"width\":\"15%\","textAlign":"End","styleClass":"darkBlueText boldText"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
