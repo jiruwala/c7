@@ -82,7 +82,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
                 "background-color:#faebd7"
             ]
         };
-        this.tit = new sap.m.Text({ height: "25px", width: "100%", text: Util.getLangText("titPurWzd") }).addStyleClass("titleFontWithoutPad");
+        this.tit = new sap.m.Text({ height: "25px", width: "100%", text: Util.getLangText("titPoClose") }).addStyleClass("titleFontWithoutPad");
         this.txtLocations = new sap.m.ComboBox(
             {
                 width: "50%",
@@ -93,7 +93,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
                     templateShareable: true
                 },
                 selectionChange: function (ev) {
-
+                    that.loadData();
                 },
                 value: "-1"
             });
@@ -179,6 +179,10 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         if (Util.nvl(that.selKf, -1) == -1) FormView.err("PO is not selected !");
         var dt = Util.execSQLWithData("select *from pord1 where keyfld=" + that.selKf, "No data found ..");
         var setVal = (varr, str) => {
+            if (varr == "close_date") {
+                that.mp[varr].setDateValue(new Date((Util.nvl(str, "") + "").replaceAll(".", ":")));
+                return;
+            }
             that.mp[varr].setValue(str);
         };
         var kys = Object.keys(that.mp);
@@ -200,6 +204,11 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         setVal("other_expenses", df.format(ex));
         setVal("totalamt", df.format(totamt));
         setVal("kdcost", df2.format(kdcost));
+        var lstdt = Util.getSQLValue(("select trunc(c7_po_transMaxDate(:pokfld)) from dual")
+            .replaceAll(":pokfld", that.selKf));
+
+        setVal("close_date", new Date(lstdt.replaceAll(".", ":")));
+        setVal("closed_by", sett["LOGON_USER"]);
         that.load_detailPageData();
     },
     load_detailPageData: function () {
@@ -300,7 +309,101 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
 
 
             that.calcSumDetails();
+
+            qv.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
+                var oModel = this.getControl().getModel();
+                var rcvqt = Util.extractNumber(oModel.getProperty("RCVD_PKQTY", currentRowContext));
+                var ordqt = Util.extractNumber(oModel.getProperty("ORD_PKQTY", currentRowContext));
+                if (rcvqt != ordqt)
+                    for (var i = startCell; i < endCell; i++) {
+                        qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "red");
+                        qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("color", "red");
+                    }
+
+            }
+
+            var cmdclik = function (obj) {
+                var tbl = obj.getParent().getParent();
+                var mdl = tbl.getModel();
+                var rr = tbl.getRows().indexOf(obj.getParent());
+                var rowStart = tbl.getFirstVisibleRow();
+                var rfr = tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "ORD_REFER")].getText();
+                var oqt = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "ORD_PKQTY")].getText());
+                var rqt = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "RCVD_PKQTY")].getText());
+                var mnu = new sap.m.Menu();
+                if (oqt != rqt) {
+                    mnu.removeAllItems();
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Ammend PO qty..",
+                        customData: { key: rfr },
+                        press: function () {
+                            var rfr = this.getCustomData()[0].getKey();
+                            // UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpostDlv=Y inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                            that.ammendPOqty(rfr, obj);
+                        }
+                    }));
+                }
+
+                if (mnu.getItems().length > 0)
+                    mnu.openBy(obj);
+            };
+            for (var cl = 0; cl < qv.mLctb.cols.length; cl++)
+                qv.mLctb.cols[cl].commandLinkClick = cmdclik;
+
             qv.loadData();
+        }
+
+    },
+    ammendAllQty: function (pOnlyNotMatch) {
+        var that = this;
+        var ld = that.qcDet.mLctb;
+        var onlyNotMatch = Util.nvl(pOnlyNotMatch, true);
+        var showAmendQt = function (rfr) {
+            that.ammendPOqty(rfr);
+        };
+        for (var l = 0; l < ld.rows.length; l++) {
+            var rfr = ld.getFieldValue(l, "ORD_REFER");
+            var grQty = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where PORD1_KEYFLD=" + that.selKf + " and ord_ship='" + rfr + "'");
+            var poQty = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where keyfld=" + that.selKf + " and ord_refer='" + rfr + "'");
+        }
+    },
+    ammendPOqty: function (rfr) {
+        var that = this;
+        var ld = that.qcDet.mLctb;
+        var rn = ld.find("ORD_REFER", rfr);
+        if (rn < 0) FormView.err("Err! Not found item " + rfr);
+        var des = "PO # " + that.mp["ord_no"].getValue() + ld.getFieldValue(rn, "DESCR") + " - " + rfr;
+        var msg = "";
+        var grQty = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where PORD1_KEYFLD=" + that.selKf + " and ord_ship='" + rfr + "'");
+        var poQty = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where keyfld=" + that.selKf + " and ord_refer='" + rfr + "'");
+        msg = ""
+        UtilGen.inputDialog(des, "Purchase Order qty " + ld.getFieldValue(rn, "ORD_PACKD") + " : " + poQty, grQty, function (str) {
+            if (Util.nvl(str, "") == "")
+                doCancel();
+
+            doOk(str);
+            return true;
+        }, function () {
+            doCancel();
+            return true;
+        }, undefined, undefined, {});
+        var doCancel = function () {
+            return;
+        };
+        var doOk = function (qt) {
+            var qty = Util.extractNumber(qt + "");
+            var pkd = ld.getFieldValue(rn, "ORD_PACKD");
+            var sq = "update pord2 set ord_unqty=0,ord_allqty=:qty, ord_pkqty=:qty where keyfld=:keyfld and ord_refer=':refer' ; ";
+            sq += "update pord1 set ORDERDQTY=(select sum(ord_allqty) from pord2 where pord2.keyfld=':keyfld') where pord1.keyfld=':keyfld' ;";
+            sq = sq.replaceAll(":keyfld", that.selKf)
+                .replaceAll(":refer", rfr)
+                .replaceAll(":qty", qty);
+            var dt = Util.execSQL("begin " + sq + " end;");
+            if (dt.ret == "SUCCESS")
+                FormView.msgSuccess(qty + " " + pkd + "  Updated ,# " + rfr + "-" + ld.getFieldValue(rn, "DESCR"));
+            else
+                FormView.err("Can't ammend quanity for " + rfr + "-" + ld.getFieldValue(rn, "DESCR"));
+            that.load_detailPage();
         }
 
     },
@@ -309,7 +412,6 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var qv = this.qcDet;
         var ld = qv.mLctb;
         var kdcost = Util.extractNumber(that.mp["kdcost"].getValue());
-
         for (var i = 0; i < ld.rows.length; i++) {
             var pprice = ld.getFieldValue(i, "ORD_PRICE");
             var rqt = ld.getFieldValue(i, "RCVD_PKQTY");
@@ -402,10 +504,50 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             mp[ar[1].colname] = ar[1];
             fe = [...fe, ...ar.slice(0)];
         }
+        //location  type             closing_date / close by
         //ord_no+ord_date             net_amt
         //ord_ref+ord_refnm           landing_cost
         //kd_cost                     total
-
+        //description                 closed_by
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "location_code", "", "locationTxt", "15%", "", "10%",
+            {
+                data_type: FormView.DataType.String,
+                class_name: FormView.ClassTypes.COMBOBOX,
+                list: "select code,name  from locations order by code"
+            }, {
+            items: {
+                path: "/",
+                template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                templateShareable: true
+            },
+        }
+        ));
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "ord_type", "@", "txtOrdType", "10%", "", "15%",
+            {
+                data_type: FormView.DataType.String,
+                class_name: FormView.ClassTypes.TEXTFIELD,
+                display_style: "",
+            }, { editable: false }
+        ));
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "close_date", "@", "closeDate", "15%", "", "15%",
+            {
+                data_type: FormView.DataType.Date,
+                class_name: FormView.ClassTypes.DATEFIELD,
+                display_style: "",
+                display_format: ""
+            }, { editable: true }
+        ));
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "closed_by", "@", "closedBy", "10%", "", "10%",
+            {
+                data_type: FormView.DataType.String,
+                class_name: FormView.ClassTypes.TEXTFIELD,
+                display_style: "",
+            }, { editable: false }
+        ));
         addFe(FormView.getFactoryControls.getGeneralControls(
             "ord_no", "", "txtPoNo", "15%", "", "10%",
             {
@@ -414,7 +556,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
                 display_style: "keyIdText",
             }));
         addFe(FormView.getFactoryControls.getGeneralControls(
-            "ord_date", "@", "txtPoNo", "10%", "", "15%",
+            "ord_date", "@", "ordDate", "10%", "", "15%",
             {
                 data_type: FormView.DataType.String,
                 class_name: FormView.ClassTypes.TEXTFIELD,
@@ -476,39 +618,44 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var dlg = that.oController.getForm().getParent();
         if (Util.nvl(dlg, undefined) != undefined && dlg instanceof sap.m.Dialog && Util.nvl(dlg.$().width(), 0) > 0) {
             wdt = dlg.$().width() - 100;
-            if (wdt > 800) wdt = 800;
+            if (wdt > 900) wdt = 900;
             if (wdt < 200) wdt = 400;
         }
-
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, { width: wdt + "px" }, "sapUiSizeCompact", "");
-        // pg.addHeaderContent(tb);
-
-
-
-
         this.detailPage.addContent(cnt);
-
         that.qcDet = new QueryView("qv" + that.timeInLong);
         var qr = that.qcDet;
         qr.getControl().setEditable(true);
         qr.getControl().view = view;
         qr.view = view;
         qr.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
-        qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
-        qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
+        // qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+        // qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
         qr.getControl().setFixedBottomRowCount(1);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-        qr.getControl().setVisibleRowCount(7);
+        qr.getControl().setVisibleRowCount(4);
         var filtercol = [];
         UtilGen.createDefaultToolbar2(qr, filtercol, false);
         qr.insertable = false;
         qr.deletable = false;
 
+        this.detailPage.addContent(this.qr.showToolbar.toolbar);
         this.detailPage.addContent(qr.getControl());
+        this.qr.showToolbar.toolbar.addContent(new sap.m.Button({
+            text: "Ammend Qty..",
+            press: function () {
+                Util.simpleConfirmDialog("Only ammend Qty not received  equal to PO ?", function (oAction) {
+                    that.ammendAllQty(true);
+                }, function () {
+                    that.ammendAllQty(false);
+                });
+            }
+        }));
 
         Util.navEnter(fe);
 
         Util.destroyID("cmdNext2", that.view);
+
         this.detailPage.setFooter(new sap.m.Toolbar({
             content: [
                 new sap.m.ToolbarSpacer(),
@@ -520,10 +667,15 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
                     }
                 }),
                 new sap.m.Button(that.view.createId("cmdNext2"), {
-                    text: "Next",
+                    text: "Finish",
                     press: function () {
-                        that.joApp.toDetail(that.infoPage, "slide");
-                        that.load_infoPage();
+                        // that.joApp.toDetail(that.infoPage, "slide");
+                        that.validateDetail();
+                        Util.simpleConfirmDialog("Do you want to CLOSE this PO ?", function (oAction) {
+                            that.validateDetail();
+                            that.generatePur();
+                        });
+                        // that.load_infoPage();
                     }
                 }),
                 new sap.m.Button({
@@ -534,6 +686,38 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
                 })
             ]
         }));
+    },
+    validateDetail: function () {
+        var that = this;
+        var grQty = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where pord1_keyfld=" + that.selKf);
+        var poQty = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where keyfld=" + that.selKf);
+        if (poQty == 0 || grQty != poQty)
+            FormView.err("Err ! Quanitty of PO and Good receipt not matched !");
+    },
+    generatePur: function () {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+
+        if (Util.nvl(that.selKf, -1) <= -1)
+            FormView.err("PO is not selected !");
+        var cls = that.mp["close_date"].getDateValue();
+        if (Util.nvl(cls, undefined) == undefined) FormView.err("Must enter Close date !");
+        var mxdt = Util.getSQLValue(("select trunc(c7_po_transMaxDate(:pokfld)) from dual")
+            .replaceAll(":pokfld", that.selKf));
+        var mxdt = new Date(mxdt.replaceAll(".", ":"));
+        if (cls < mxdt)
+            FormView.err("Date suppose more than " + sdf.format(mxdt))
+        var sq1 = " update pord1 set close_date=" + Util.toOraDateString(cls) + ",closed_by='" + sett["LOGON_USER"] + "' where keyfld=" + that.selKf + "; "
+        var sq = "begin " + sq1 + "c7_po_close(" + that.selKf + "); end;";
+        var dtPo = UtilGen.PurchaseOrderFunc.checkPOStatus(that.selKf, true);
+        var dt = Util.execSQL(sq);
+        if (dt.ret == "SUCCESS") {
+            that.joApp.toDetail(that.mainPage, "slide");
+            that.loadData();
+            FormView.msgSuccess("PO # " + that.mp["ord_no"].getValue() + " , Closed successfully !");
+        }
+
     },
     setFormEditable: function () {
 
@@ -549,7 +733,11 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var thatForm = this;
         thatForm.selKf = -1;
         thatForm.joApp.toDetail(thatForm.mainPage, "slide");
-        var sq = "SELECT ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ORD_AMT-ORD_DISCAMT NET_AMT,'0%' RECIEVED,KEYFLD FROM PORD1 WHERE ORD_CODE=11 AND ORD_FLAG=2 order by ord_no";
+        var loc = this.txtLocations.getSelectedKey();
+        var sq = ("SELECT ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM," +
+            " ORD_AMT-ORD_DISCAMT NET_AMT,'0%' RECIEVED,KEYFLD FROM PORD1 " +
+            " WHERE location_code=':loc' and ORD_CODE=11 AND " +
+            " ORD_FLAG=2 order by ord_no").replaceAll(":loc", loc);
         var dt = Util.execSQL(sq);
         var qv = this.qc;
         if (dt.ret == "SUCCESS") {
@@ -583,6 +771,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
 
             qv.mLctb.parse("{" + dt.data + "}", true);
             qv.loadData();
+
         }
 
     },

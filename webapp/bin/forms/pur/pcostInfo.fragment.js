@@ -1,4 +1,4 @@
-   sap.ui.jsfragment("bin.forms.pur.pcostInfo", {
+sap.ui.jsfragment("bin.forms.pur.pcostInfo", {
 
     createContent: function (oController) {
         var that = this;
@@ -101,8 +101,8 @@
                         name: "qry1",
                         dml: "select *from c7_pocostinfo where code=':pac'",
                         where_clause: " code=':code'",
-                        update_exclude_fields: ["code", "costcentname", "expensename", "attachment"],
-                        insert_exclude_fields: ["costcentname", "expensename", "attachment"],
+                        update_exclude_fields: ["code", "attachment"],
+                        insert_exclude_fields: ["attachment"],
                         insert_default_values: {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
@@ -180,7 +180,7 @@
             var thatForm = this.thatForm;
             var that = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
-            
+
             return {
                 afterExeSql: function (oSql) {
                     // thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.code"));
@@ -271,75 +271,6 @@
                 title_2: FormView.getFactoryFields.getGeneralField(
                     "title_2", "", "titleTxt2", "15%", "", "35%",
                     { require: false }, {}),
-
-                expense_ac: FormView.getFactoryFields.getGeneralField(
-                    "expense_ac", "", "txtExpenseAc", "15%", "", "15%",
-                    {
-                        data_type: FormView.DataType.String,
-                        class_name: FormView.ClassTypes.TEXTFIELD,
-                        require: true
-                    },
-                    {
-                        showValueHelp: true,
-                        change: function (e) {
-                            var expnm = that.frm.objs["qry1.expensename"].obj;
-                            var sq = "select name title from ACACCOUNT where CHILDCOUNT=0 AND ACCNO = :CODE";
-                            UtilGen.Search.getLOVSearchField(sq, this, undefined, expnm);
-
-                        },
-                        valueHelpRequest: function (e) {
-                            var expnm = that.frm.objs["qry1.expensename"].obj;
-                            UtilGen.Search.do_quick_search(e, this,
-                                "select accno code, name title from acaccount where childcount=0 and actype=0  order by path ",
-                                "select accno code, name title from acaccount where actype=0 and childcount=0 and accno=:CODE", expnm, undefined, undefined, undefined);
-                        }
-                    }
-                ),
-                expensename: FormView.getFactoryFields.getGeneralField(
-                    "expensename", "@", "", "1%", "", "19%",
-                    {
-                        data_type: FormView.DataType.String,
-                        class_name: FormView.ClassTypes.TEXTFIELD,
-                        keyboardFocus: false,
-                        edit_allowed: false,
-                        insert_allowed: false,
-                    },
-                    { editable: false }
-                ),
-                costcent: FormView.getFactoryFields.getGeneralField(
-                    "costcent", "", "costCent", "15%", "", "15%",
-                    {
-                        data_type: FormView.DataType.String,
-                        class_name: FormView.ClassTypes.TEXTFIELD,
-                    },
-                    {
-                        showValueHelp: true,
-                        change: function (e) {
-                            var expnm = that.frm.objs["qry1.costcentname"].obj;
-                            var sq = "select title from accostcent1 where code = :CODE";
-                            UtilGen.Search.getLOVSearchField(sq, this, undefined, expnm);
-
-                        },
-                        valueHelpRequest: function (e) {
-                            var expnm = that.frm.objs["qry1.costcentname"].obj;
-                            UtilGen.Search.do_quick_search(e, this,
-                                "select code, title from accostcent1 order by path ",
-                                "select code, title from accostcent1 where code=:CODE", expnm, undefined, undefined, undefined);
-                        }
-                    }
-                ),
-                costcentname: FormView.getFactoryFields.getGeneralField(
-                    "costcentname", "@", "", "1%", "", "19%",
-                    {
-                        data_type: FormView.DataType.String,
-                        class_name: FormView.ClassTypes.TEXTFIELD,
-                        keyboardFocus: false,
-                        edit_allowed: false,
-                        insert_allowed: false,
-
-                    },
-                    { editable: false }
-                )
             };
         },
         getCommands: function () {
@@ -383,7 +314,7 @@
                     list_name:
                         "list1"
                 }
-                
+
                 ,
                 {
                     name: "cmdClose",

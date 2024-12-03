@@ -352,6 +352,8 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
 
             }
 
+            
+
             qv.mLctb.parse("{" + dt.data + "}", true);
             // setPriceData();
             qv.loadData();

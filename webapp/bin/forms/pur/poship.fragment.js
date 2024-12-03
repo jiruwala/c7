@@ -33,6 +33,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             showHeader: false,
             content: []
         });
+
         this.createView();
         this.loadData();
         this.joApp.addDetailPage(this.mainPage);
@@ -77,7 +78,18 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     Util.destroyID("rcvdTxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redText boldText");
-                    var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" }));
+                    var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" })).addStyleClass("linkLabel");
+                    txt.attachBrowserEvent("click", function () {
+                        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                            that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                            Util.simpleConfirmDialog(Util.getLangText("msgSaveFormData"), function (oAction) {
+                                that2.frm.cmdButtons.cmdSave.firePress();
+                                that2.helperFunc.showLandingCost();
+                            });
+                        } else
+                            that2.helperFunc.showLandingCost();
+
+                    });
                     var hb = new sap.m.Toolbar({
                         content: [txt, new sap.m.ToolbarSpacer(), txtMsg]
 
@@ -163,23 +175,33 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             var thatForm = this.thatForm;
             var that = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
+            var df = new DecimalFormat(sett['FORMAT_MONEY_1']);
             return {
                 afterLoadQry: function (qry) {
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                     qry.formview.setFieldValue("pacPo", qry.formview.getFieldValue("po_keyfld"));
+
                     thatForm.fetchCustItems = false;
                     if (qry.name == "qry1") {
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         var pokf = qry.formview.getFieldValue("po_keyfld");
                         if (Util.nvl(pokf, "") != "") {
                             var str = "";
-                            var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, true);
+                            var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, false);
                             str = podt.ORD_FLAG == 1 ? "Not-Approved" :
                                 podt.ORD_FLAG == 2 ? "Opened" :
                                     podt.ORD_FLAG >= 3 ? "Closed" : "Closed !";
                             that.view.byId("txtMsg" + thatForm.timeInLong).setText("PO #" + podt.ORD_NO + " , " + str);
+                            thatForm.oController.poKeyFld = pokf;
                         }
                         that.helperFunc.showTripCmds();
+                        if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined) {
+                            thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("");
+                            var cst = Util.getSQLValue("select nvl(sum(amount),0) from c7_polandcost where pship_keyfld =" + qry.formview.getFieldValue("keyfld"));
+                            thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Land Cost : " + df.format(cst));
+                        }
+
+
                         // UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.ord_empno"].obj, undefined, that.frm.objs["qry1.txt_empname"].obj);
                         // var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
                         // if (Util.nvl(aproved, 1) == 2) {
@@ -382,7 +404,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     cols: [
                         {
                             colname: "PONO",
-                            mTitle: Util.getLangText("titPurOrd")
+                            mTitle: Util.getLangText("titPurOrd"),
                         },
                         {
                             colname: "PO_STATUS",
@@ -600,17 +622,17 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             }
             var pokf = thatForm.oController.poKeyFld;
 
-            if (Util.nvl(pokf, '') != '') {
+            if (Util.nvl(pokf, '') != '' && UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, false).ORD_FLAG == 2) {
                 selPoKkf(pokf);
                 getShipDataIfExist(pokf);
                 return;
             }
             UtilGen.showCustomMessageToast("puMsgSelectPO", 100);
-            var sq = "SELECT ORD_NO,TO_CHAR(ORD_DATE,'DD/MM/RRRR') ORD_DATE,ORD_REF,ORD_REFNM,KEYFLD FROM PORD1 WHERE ORD_CODE=11 and ord_flag=2 ORDER BY KEYFLD desc ";
+            var sq = "SELECT ORD_NO,TO_CHAR(ORD_DATE,'DD/MM/RRRR') ORD_DATE,ORD_REF,ORD_REFNM,ord_amt,KEYFLD FROM PORD1 WHERE ORD_CODE=11 and ord_flag=2 ORDER BY KEYFLD desc ";
             UtilGen.Search.do_quick_search_simple(sq,
-                ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM"], function (data) {
+                ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM", "ORD_AMT"], function (data) {
+                    thatForm.oController.poKeyFld = data.KEYFLD;
                     selPoKkf(data.KEYFLD);
-
                 }, { pWidth: "80%" }, undefined, false, "Select PO for new shipment ");
         },
         showLandingCost: function (pDlg, pPg) {
@@ -633,16 +655,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                         mnus.push(new sap.m.MenuItem({
                             text: Util.getLangText("txtPOLCaddCosting") + "..",
                             press: function () {
-                                if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT) {
-                                    Util.simpleConfirmDialog(Util.getLangText("This form is not in EDIT mode, do you want to edit ?"), function (oAction) {
-                                        var ed = that2.view.byId("cmdEditSpend" + that2.timeInLong);
-                                        ed.firePress();
-                                        setTimeout(function () {
-                                            thisFunc.showSpedning(dlg, pg, -1);
-                                        }, 100);
-                                    });
-                                } else
-                                    thisFunc.showSpedning(dlg, pg, -1);
+                                thisFunc.showSpedning(dlg, pg, -1);
 
                             }
 
@@ -674,7 +687,17 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             this.qc.showToolbar.toolbar.addContent(generateCmds());
 
             var cc = that2.frm.getFieldValue("qry1.keyfld");
+            var calcSum = function () {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
 
+                var sumAmt = 0;
+                var qv = thisFunc.qc;
+                var ld = qv.mLctb;
+                for (var i = 0; i < ld.rows.length; i++)
+                    sumAmt += Util.extractNumber(ld.getFieldValue(i, "AMOUNT"));
+                that2.view.byId("txtRM" + that2.timeInLong).setText("Amount : " + df.format(sumAmt));
+            };
             var fetchData = function () {
 
                 var qv = thisFunc.qc;
@@ -694,6 +717,10 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     qv.mLctb.parse("{" + dt.data + "}", true);
                     qv.loadData();
                     that2.fetchCustItems = true;
+                    setTimeout(() => {
+                        calcSum();
+                    });
+
                 }
             }
             var pg = Util.nvl(pPg, new sap.m.Page({
@@ -726,13 +753,20 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                             that2.frm.cmdButtons.cmdEdit.setPressed(false);
                             this.setPressed(false);
                         }
+                        setTimeout(function () {
+                            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) {
+                                thisFunc.showSpedning(dlg, pg, -1);
+                            }
+                        })
                     }
 
                     // seteditale();
                 }
 
             });
-
+            var pokeyfld = that2.frm.getFieldValue("qry1.po_keyfld");
+            if (UtilGen.PurchaseOrderFunc.checkPOStatus(pokeyfld, false).ORD_FLAG != 2)
+                cmdEdit.setEnabled(false);
             Util.destroyID("txtRM" + that2.timeInLong, that2.view);
             var txtSumRM = new sap.m.Text(that2.view.createId("txtRM" + that2.timeInLong), { width: "300px", text: "0" }).addStyleClass("redText boldText");
 
@@ -783,14 +817,18 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             var view = that2.view;
             var sett = sap.ui.getCore().getModel("settings").getData();
             var cc = that2.frm.getFieldValue("qry1.keyfld");
+            var pokeyfld = that2.frm.getFieldValue("qry1.po_keyfld");
             var pok = undefined;
             var fe = [];
             var mp = {};
+            // var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokeyfld, false);
             var kfldQry = Util.nvl(kf, -1);
+            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW && kfldQry == -1) {
+                var kf = Util.getSQLValue("select nvl(max(keyfld),-1) from c7_polandcost where pship_keyfld=" + cc);
+                if (kf == -1) FormView.err("PO is not opened !");
+                kfldQry = kf;
+            }
 
-
-            if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT)
-                FormView.err("Must be in EDIT mode !");
             var getListCmd = function () {
                 Util.destroyID(view.createId("btSpendList" + that2.timeInLong));
                 var btctg = new sap.m.Button(view.createId("btSpendList" + that2.timeInLong), {
@@ -798,6 +836,8 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     customData: [{ key: -1 }],
                     icon: "sap-icon://megamenu",
                     press: function () {
+                        var pokeyfld = that2.frm.getFieldValue("qry1.po_keyfld");
+                        var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokeyfld, false);
                         var mnus = [];
                         var loadasctg = function () {
                         }
@@ -822,17 +862,18 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
 
                             }));
                         }
-                        mnus.push(new sap.m.MenuItem({
-                            text: "Add Spending..",
-                            customData: [{ key: -1 }, { key: "Add Spending.." }],
-                            press: function () {
-                                var ed = that2.view.byId("btSpendList" + that2.timeInLong);
-                                var des = this.getCustomData()[1].getKey();
-                                ed.setText(des);
-                                kfldQry = this.getCustomData()[0].getKey();
-                                loadData();
-                            }
-                        }));
+                        if (podt.ORD_FLAG == 2)
+                            mnus.push(new sap.m.MenuItem({
+                                text: "Add Spending..",
+                                customData: [{ key: -1 }, { key: "Add Spending.." }],
+                                press: function () {
+                                    var ed = that2.view.byId("btSpendList" + that2.timeInLong);
+                                    var des = this.getCustomData()[1].getKey();
+                                    ed.setText(des);
+                                    kfldQry = this.getCustomData()[0].getKey();
+                                    loadData();
+                                }
+                            }));
                         var mnu = new sap.m.Menu({
                             items: mnus
                         }
@@ -847,10 +888,17 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                 // if (mp == undefined) return;
                 var kys = Object.keys(mp);
                 for (var k in kys) {
-                    if (kys[k].setEditable != undefined)
-                        kys[k].setEditable(true);
+                    if (mp[kys[k]].setEditable != undefined)
+                        mp[kys[k]].setEditable(ed);
                 }
-                if (kfldQry != -1) mp["trans_no"].setEditable(false);
+                if (ed) {
+                    mp["expense_ac"].setEditable(false);
+                    mp["expensename"].setEditable(false);
+                    mp["costcent"].setEditable(false);
+                    mp["costcentname"].setEditable(false);
+                }
+
+                if (ed && kfldQry != -1) mp["trans_no"].setEditable(false);
             }
             var validateShipPo = function () {
                 pok = Util.getSQLValue("select po_keyfld from c7_purship where keyfld=" + cc);
@@ -863,7 +911,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     if (view.byId("cmdSpendSaveBack" + that2.timeInLong) != undefined)
                         view.byId("cmdSpendSaveBack" + that2.timeInLong).setEnabled(false);
                     setEnableMps(false);
-                    FormView.err("PO is not approved or may be closed  !");
+                    sap.m.MessageToast.show("PO is not approved or may be closed  !");
                 }
             }
             // validateShipPo();
@@ -920,7 +968,12 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                 var dt = that2.view.today_date.getDateValue();
                 var df = new DecimalFormat(sett['FORMAT_MONEY_1']);
                 if (kfldQry == -1) {
-                    mp["trans_no"].setEditable(true);
+                    if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT)
+                        setEnableMps(false);
+                    else {
+                        setEnableMps(true);
+                        mp["trans_no"].setEditable(true);
+                    }
                     mp["keyfld"].setValue(Util.getSQLValue("select nvl(max(keyfld),0)+1 from C7_POLANDCOST"));
                     mp["attachment"].setValue("");
                     mp["trans_no"].setValue(Util.getSQLValue("select nvl(max(trans_no),0)+1 from C7_POLANDCOST where pship_keyfld=" + cc));
@@ -933,8 +986,14 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     mp["vendor_ref"].setValue("");
                     mp["vendorname"].setValue("");
                     mp["amount"].setValue("0.000");
+                    that2.view.byId("btSpendList" + that2.timeInLong).setText("New Spending..");
                 } else {
-                    mp["trans_no"].setEditable(false);
+                    if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT)
+                        setEnableMps(false);
+                    else {
+                        setEnableMps(true);
+                        mp["trans_no"].setEditable(false);
+                    }
                     var dtx = Util.execSQLWithData("select *from C7_POLANDCOST where keyfld=" + kfldQry);
                     mp["keyfld"].setValue(dtx[0].KEYFLD);
                     mp["attachment"].setValue("");
@@ -951,7 +1010,9 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     mp["expense_ac"].setValue(dtx[0].EXPENSE_AC);
                     mp["expensename"].setValue(Util.getSQLValue("select name from acaccount where accno='" + dtx[0].EXPENSE_AC + "'"));
                     mp["costcent"].setValue(dtx[0].COSTCENT);
-                    mp["costcentname"].setValue(Util.getSQLValue("select title from accostcent1 where accno='" + dtx[0].COSTCENT + "'"));
+                    mp["costcentname"].setValue(Util.getSQLValue("select title from accostcent1 where code='" + dtx[0].COSTCENT + "'"));
+                    var des = 'NO# ' + dtx[0].TRANS_NO + ' ,' + mp["landcostname"].getValue() + ' , Amount # ' + Util.extractNumber(dtx[0].AMOUNT);
+                    that2.view.byId("btSpendList" + that2.timeInLong).setText(des);
                 }
                 setTimeout(() => {
                     mp["trans_no"].focus();
@@ -960,6 +1021,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             var validateBeforeSave = function () {
                 checkEmptyVal(["trans_no", "trans_date", "landcost_code", "vendor_ref", "reference", "expense_ac", "expensename", "descr"]);
             }
+
             var insertOrUpd = function () {
                 var sq = "";
                 validateShipPo();
@@ -990,6 +1052,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                 } else {
                     sq = UtilGen.getInsertRowStringByObj("C7_POLANDCOST", colval);
                 }
+                sq = "begin " + sq + "; C7_PO_SHIPCOST_JV(" + getVal("keyfld") + ") ; end; ";
                 var dt = Util.execSQL(sq);
                 if (dt.ret == "SUCCESS")
                     FormView.msgSuccess(Util.getLangText("msgSaved"));
@@ -997,24 +1060,30 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
 
             }
             var getDataLandcost = function (focusOnerr) {
-                var dtxM = Util.execSQLWithData("select expense_ac,(select max(name) from acaccount where accno=C7_POCOSTINFO.expense_ac) exp_nm," +
-                    "(select max(title) from accostcent1 where code=C7_POCOSTINFO.costcent) cstname," +
-                    " costcent from C7_POCOSTINFO where code='" + getVal("landcost_code") + "'", "Data not found !");
+                var pokeyfld = that2.frm.getFieldValue("qry1.po_keyfld");
+                var sq = "select p.gr_ac,a.name acname from pord1 p,acaccount a,C7_POCOSTINFO i " +
+                    "where gr_ac=a.accno and p.keyfld=" + pokeyfld +
+                    " and i.code='" + getVal("landcost_code") + "'";
+
+                // var dtxM = Util.execSQLWithData("select expense_ac,(select max(name) from acaccount where accno=C7_POCOSTINFO.expense_ac) exp_nm," +
+                //     "(select max(title) from accostcent1 where code=C7_POCOSTINFO.costcent) cstname," +
+                //     " costcent from C7_POCOSTINFO where code='" + getVal("landcost_code") + "'", "Data not found !");
+                var dtxM = Util.execSQLWithData(sq);
                 if (dtxM.length <= 0) {
                     if (Util.nvl(focusOnerr, false))
                         setTimeout(() => { mp["landcost_code"].setValue(""); mp["landcost_code"].focus(); }, 150);
                     FormView.err("no landcost code found !");
                 }
-                if (Util.nvl(dtxM[0].EXP_NM, "") == "") {
+                if (Util.nvl(dtxM[0].ACNAME, "") == "") {
                     if (Util.nvl(focusOnerr, false))
                         setTimeout(() => { mp["landcost_code"].focus(); }, 150);
-                    FormView.err("no expense a/c  found !");
+                    FormView.err("no GR a/c  found !");
                 }
 
-                mp["expense_ac"].setValue(dtxM[0].EXPENSE_AC);
-                mp["costcent"].setValue(dtxM[0].COSTCENT);
-                mp["costcentname"].setValue(Util.nvl(dtxM[0].CSTNAME, ""));
-                mp["expensename"].setValue(Util.nvl(dtxM[0].EXP_NM, ""));
+                mp["expense_ac"].setValue(dtxM[0].GR_AC);
+                mp["costcent"].setValue('');
+                mp["costcentname"].setValue('');
+                mp["expensename"].setValue(Util.nvl(dtxM[0].ACNAME, ""));
             }
 
             //Amount
@@ -1173,7 +1242,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
 
             //expense_ac
             addFe(FormView.getFactoryControls.getGeneralControls(
-                "expense_ac", "", "txtExpenseAc", "15%", "", "12%",
+                "expense_ac", "", "txtGrAc", "15%", "", "12%",
                 {
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
@@ -1226,6 +1295,8 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             if (Util.nvl(pokeyfld, "") == "") return;
             var dtx = Util.execSQLWithData("select trip_no,keyfld from c7_purship where po_keyfld=" + pokeyfld + " order by trip_no");
             var bts = [];
+            var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokeyfld, false);
+
             for (var d = 0; d < dtx.length; d++)
                 bts.push(new sap.m.ToggleButton({
                     text: "Trip # " + dtx[d].TRIP_NO,
@@ -1242,22 +1313,23 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
 
                     }
                 }));
-            bts.push(new sap.m.ToggleButton(view.createId("tripcmds_new" + thatForm.timeInLong), {
-                text: "New trip..",
-                customData: [{ key: -1 }],
-                pressed: false,
-                press: function () {
-                    var pokeyfld = thatForm.frm.getFieldValue("qry1.po_keyfld");
-                    if (Util.nvl(pokeyfld, -1) == -1)
-                        FormView.err("Err !, No PO is assigned !");
-                    thatForm.oController.poKeyFld = pokeyfld;
-                    thatForm.frm.cmdButtons.cmdNew.firePress();
-                    setTimeout(() => {
-                        checkPressed();
-                    });
+            if (podt.ORD_FLAG == 2)
+                bts.push(new sap.m.ToggleButton(view.createId("tripcmds_new" + thatForm.timeInLong), {
+                    text: "New trip..",
+                    customData: [{ key: -1 }],
+                    pressed: false,
+                    press: function () {
+                        var pokeyfld = thatForm.frm.getFieldValue("qry1.po_keyfld");
+                        if (Util.nvl(pokeyfld, -1) == -1)
+                            FormView.err("Err !, No PO is assigned !");
+                        thatForm.oController.poKeyFld = pokeyfld;
+                        thatForm.frm.cmdButtons.cmdNew.firePress();
+                        setTimeout(() => {
+                            checkPressed();
+                        });
 
-                }
-            }));
+                    }
+                }));
             var hb = new sap.m.Toolbar(view.createId("tripcmds" + thatForm.timeInLong),
                 {
                     content: bts
