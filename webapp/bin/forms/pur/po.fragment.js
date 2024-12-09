@@ -735,7 +735,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         showValueHelp: true,
                         change: function (e) {
                             var sq = "select name from c_ycust where  code = ':CODE'";
-                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);                            
+                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);
                         },
                         valueHelpRequest: function (e) {
                             var btns = [new sap.m.Button({
@@ -978,16 +978,16 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         {
                             colname: "ord_amt",
                             display_format: "MONEY_FORMAT",
-                            display_width:150,
+                            display_width: 150,
                             mSummary: "SUM"
 
                         }
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,DECODE (ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status,ord_date,ord_ref,ord_refnm,ord_amt,keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
-                        " and location_code=':qry1.location_code' " +
-                        " and ord_flag=^^list_key " +
-                        " order by o1.ord_date desc,ord_no desc",
+                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,keyfld,location_code from c_order1 o1 where " +
+                        " location_code=':qry1.location_code' and " +
+                        " ord_code =" + that2.vars.vou_code +
+                        " order by ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1)",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;

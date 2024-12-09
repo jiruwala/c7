@@ -1333,6 +1333,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         var fld = flds[i].obj;
                         if (fld != undefined) {
                             UtilGen.setControlValue(fld, "", "", false);
+                            if ((Util.nvl(fld.default_value), "") != "" && qryObj.status == FormView.RecordStatus.NEW)
+                                UtilGen.setControlValue(fld, fld.default_value, fld.default_value, false);
                         }
                     }
                 } else if (qryObj.showType == FormView.QueryShowType.QUERYVIEW)
@@ -1586,10 +1588,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var ohma = "";
             // hma = " h mm a";
             // ohma = " HH MI AM";
+            var hms = " h mm a";
 
 
             var sett = sap.ui.getCore().getModel("settings").getData();
             var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + hma);
+            var sdft = new simpleDateFormat(hms);
+
             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
 
             var kys = [];
@@ -1619,6 +1624,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         val = "to_date('" + sdf.format(tbl[key].getDateValue()) + "','" + sett["ENGLISH_DATE_FORMAT"] + ohma + "')";
                     if (tbl[key] instanceof sap.m.DatePicker && tbl[key].getDateValue() == undefined)
                         val = "null";
+                    if (tbl[key] instanceof sap.m.TimePicker && tbl[key].getDateValue() != undefined)
+                        val = "to_date('" + sdft.format(tbl[key].getDateValue()) + "','HH12 MI am')";
+                    if (tbl[key] instanceof sap.m.TimePicker && tbl[key].getDateValue() == undefined)
+                        val = "null";
                     if (tbl[key].field_type != undefined && tbl[key].field_type == "number")
                         val = Util.extractNumber(tbl[key].getValue());
                     if (tbl[key].field_type != undefined && tbl[key].field_type == "money")
@@ -1644,12 +1653,12 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var ohma = "";
             // hma = " h mm a";
             // ohma = " HH MI AM";
-
+            var hms = " h mm a";
 
             var sett = sap.ui.getCore().getModel("settings").getData();
             var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + hma);
             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-
+            var sdft = new simpleDateFormat(hms);
             var kys = [];
             var str = "";
             var vl = "";
@@ -1675,6 +1684,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     if (tbl[key] instanceof sap.m.DatePicker && tbl[key].getDateValue() != undefined)
                         val = "to_date('" + sdf.format(tbl[key].getDateValue()) + "','" + sett["ENGLISH_DATE_FORMAT"] + ohma + "')";
                     if (tbl[key] instanceof sap.m.DatePicker && tbl[key].getDateValue() == undefined)
+                        val = "null";
+                    if (tbl[key] instanceof sap.m.TimePicker && tbl[key].getDateValue() != undefined)
+                        val = "to_date('" + sdft.format(tbl[key].getDateValue()) + "','HH12 MI am')";
+                    if (tbl[key] instanceof sap.m.TimePicker && tbl[key].getDateValue() == undefined)
                         val = "null";
                     if (tbl[key].field_type != undefined && tbl[key].field_type == "number")
                         val = Util.extractNumber(tbl[key].getValue());
@@ -1752,7 +1765,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false,
-                    keyboardFocus:true
+                    keyboardFocus: true
                 };
                 var objs = this.getControls({ ...ret, ...Util.nvl(set, {}) });
                 return objs;
@@ -1870,6 +1883,110 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 fld.class_name = FormView.ClassTypes.COMBOBOX;
                 return fld;
             },
+            getTextField: function (pfldNme, pPreTxt, pText, pInpWidth, set, otherSet) {
+                var fld = this.getGeneralField(pfldNme, pPreTxt, "", "0px", "", pInpWidth, set, otherSet);
+                fld.data_type = FormView.DataType.String;
+                fld.class_name = FormView.ClassTypes.LABEL;
+                fld.display_align = "ALIGN_BEGIN";
+                fld.default_value = Util.getLangText(pText);
+                return fld;
+            },
+            getSettingsGeneral: function (pSet) {
+                var thatForm = pSet.thatForm;
+                var ordref = Util.nvl(pSet.code, "qry1.refer");
+                var ordrefnm = Util.nvl(pSet.name, "qry1.descr");
+                var sqChange = pSet.sqlChange;
+                var sqList = pSet.sqlList;
+                var sqListChange = pSet.sqlListChange;
+                var set = {
+                    showValueHelp: true,
+                    change: function (e) {
+                        if (pSet.fnBeforeChange != undefined)
+                            pSet.fnBeforeChange(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
+                        var sq = (Util.isFunction(sqChange) ? sqChange() : sqChange);
+                        UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs[ordref].obj, undefined, thatForm.frm.objs[ordrefnm].obj);
+
+                        if (pSet.fnAfteUpdate != undefined)
+                            pSet.fnAfteUpdate(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
+
+                    },
+                    valueHelpRequest: function (e) {
+                        if (pSet.fnBeforeValHelp != undefined)
+                            pSet.fnBeforeValHelp(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
+
+                        UtilGen.Search.do_quick_search(thatForm.frm.objs[ordref].obj, this,
+                            (Util.isFunction(sqList) ? sqList() : sqList),
+                            (Util.isFunction(sqListChange) ? sqListChange() : sqListChange), thatForm.frm.objs[ordrefnm].obj, undefined, undefined, undefined);
+                        if (pSet.fnAfterValHelp != undefined)
+                            pSet.fnAfterValHelp(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
+                    }
+                }
+                return set;
+            },
+            getSettingsOrdRef: function (pSet) {
+                var thatForm = pSet.thatForm;
+                var ordref = Util.nvl(pSet.ord_ref, "qry1.ord_ref");
+                var ordrefnm = Util.nvl(pSet.ord_ref, "qry1.ord_refnm");
+                return this.getSettingsGeneral({
+                    thatForm: pSet, thatForm,
+                    fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
+                    fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
+                    fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
+                    fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
+                    code: ordref,
+                    name: ordrefnm,
+                    sqlChange: "select name from c_ycust where  code = ':CODE'",
+                    sqlList: "select code,name title from c_ycust where iscust='Y'  order by path ",
+                    sqlListChange: "select code,name title from c_ycust where code=:CODE",
+                });
+            },
+            getSettingsBr: function (pSet) {
+                var thatForm = pSet.thatForm;
+                var ordref = Util.nvl(pSet.ord_ref, "qry1.ord_ref");
+                var brno = Util.nvl(pSet.ord_discamt, "qry1.ord_discamt");
+                var brname = Util.nvl(pSet.branchname, "qry1.branchname");
+
+                return this.getSettingsGeneral({
+                    thatForm: pSet, thatForm,
+                    fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
+                    fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
+                    fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
+                    fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
+                    code: brno,
+                    name: brname,
+                    sqlChange: function () {
+                        var locval = UtilGen.getControlValue(thatForm.frm.objs[ordref].obj);
+                        return "select b_name name from cbranch where code=':CUSTCODE' and brno = ':CODE'".replaceAll(":CUSTCODE", locval);
+                    },
+                    sqlList: function () {
+                        var locval = UtilGen.getControlValue(thatForm.frm.objs[ordref].obj);
+                        return "select brno code,b_name title,AREA,BLOCK,JEDDA,QASIMA from cbranch where code=':locationx' order by brno ".replaceAll(":locationx", locval);
+                    },
+                    sqlListChange: function () {
+                        var locval = UtilGen.getControlValue(thatForm.frm.objs[ordref].obj);
+                        return "select brno code,b_name title from cbranch where code=':locationx' and brno=:CODE".replaceAll(":locationx", locval);
+                    }
+                });
+
+            },
+
+            getSettingsItem: function (pSet) {
+                var thatForm = pSet.thatForm;
+
+                return this.getSettingsGeneral({
+                    thatForm: pSet, thatForm,
+                    fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
+                    fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
+                    fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
+                    fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
+                    code: Util.nvl(pSet.refer, "qry1.refer"),
+                    name: Util.nvl(pSet.descr, "qry1.descr"),
+                    sqlChange: "select descr name from items where  reference = ':CODE'",
+                    sqlList: "select reference code,descr  title from items where flag=1  order by descr2 ",
+                    sqlListChange: "select reference code,descr  title from items where reference=:CODE",
+                });
+            },
+
         };
 
         return FormView;
