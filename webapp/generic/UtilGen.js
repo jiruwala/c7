@@ -3971,5 +3971,3 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
         return UtilGen;
     });
-
-

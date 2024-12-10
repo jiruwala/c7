@@ -1822,7 +1822,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     require: false
                 }
             },
-            getGeneralField: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet) {
+            getGeneralField: function (pfldNme, pPreTxt, pLabel, pLabelWidth, pLabelClass, pInpWidth, set, otherSet, pLabelAlign) {
                 var preTxt = Util.nvl(pPreTxt, "");
                 var lableWidth = Util.nvl(pLabelWidth, "15%");
                 var inpWidth = Util.nvl(pInpWidth, "35%");
@@ -1831,7 +1831,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     colname: pfldNme,
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: preTxt + '{\"text\":\"' + pLabel + '\",\"width\":\"' + lableWidth + '\","textAlign":"End","styleClass":"' + labelClass + '"}',
+                    title: preTxt + '{\"text\":\"' + pLabel + '\",\"width\":\"' + lableWidth + '\","textAlign":"' + Util.nvl(pLabelAlign, "End") + '","styleClass":"' + labelClass + '"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: "",
@@ -1883,12 +1883,18 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 fld.class_name = FormView.ClassTypes.COMBOBOX;
                 return fld;
             },
-            getTextField: function (pfldNme, pPreTxt, pText, pInpWidth, set, otherSet) {
-                var fld = this.getGeneralField(pfldNme, pPreTxt, "", "0px", "", pInpWidth, set, otherSet);
+            getTextField: function (pfldNme, pPreTxt, pText, pInpWidth, pLabelClass, set, otherSet) {
+                var os = {
+                    ...{
+                        text: Util.getLangText(pText)
+                    }, ...otherSet
+                };
+                var fld = this.getGeneralField(pfldNme, pPreTxt, pText, pInpWidth, pLabelClass, "0px", set, os, "Center");
                 fld.data_type = FormView.DataType.String;
                 fld.class_name = FormView.ClassTypes.LABEL;
                 fld.display_align = "ALIGN_BEGIN";
-                fld.default_value = Util.getLangText(pText);
+                // fld.default_value = Util.getLangText(pText);
+
                 return fld;
             },
             getSettingsGeneral: function (pSet) {
@@ -1993,6 +1999,4 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
     }
 )
     ;
-
-
 

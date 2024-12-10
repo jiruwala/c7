@@ -7,6 +7,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         this.qryStr = Util.nvl(oController.code, "");
         this.timeInLong = (new Date()).getTime();
         this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
+        this.isDialog = false;
+        try {
+            that.isDialog = (that.oController.getForm().getParent() instanceof sap.m.Dialog);
+        } catch (e) { };
         this.helperFunc.init(this);
         this.vars = {
             keyfld: -1,
@@ -67,19 +71,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 title: Util.getLangText("dlvNoteBR"),
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
-                formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: lavender;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
-                },
+                // width: { "S": 500, "M": 650, "L": 750 },
+                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
@@ -118,8 +111,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         name: "qry1",
                         dml: "select *from c_order1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname'],
-                        insert_exclude_fields: ['branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname'],
+                        update_exclude_fields: ['keyfld', 'branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv0", "lblLv00", "lblLv", "lblLv2", "lblLv3", "lblLv4", "lblLv5"],
+                        insert_exclude_fields: ['branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv", "lblLv0", "lblLv00", "lblLv2", "lblLv3", "lblLv4", "lblLv5"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "ORD_CODE": thatForm.vars.vou_code,
@@ -457,7 +450,16 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     }
                 });
             };
-
+            var getListSettings = function (ordref, lsttype) {
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    code: ordref,
+                    name: ordref,
+                    sqlChange: "select name title from relists where idlist='" + lsttype + "' and name=':CODE'",
+                    sqlList: "select name code from relists where idlist='" + lsttype + "' order by name",
+                    sqlListChange: "select name code,name title from relists where idlist='" + lsttype + "' and name=:CODE",
+                });
+            }
 
             //keyfid,15-10|location_code,10-15               ord_date,15-15|ord_no,5-15
             //ord_ref,15-12|ord_refnm,1-22                   ord_discamt,15-12|branchname,1-22
@@ -505,7 +507,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 }),
                 //2
                 ord_ref: FormView.getFactoryFields.getGeneralField(
-                    "ord_ref", "", "txtCust", "15%", "", "12%",
+                    "ord_ref", "", "txtCust", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -526,7 +528,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         insert_allowed: true,
                     }, {}),
                 ord_discamt: FormView.getFactoryFields.getGeneralField(
-                    "ord_discamt", "@", "txtBranch", "15%", "", "12%",
+                    "ord_discamt", "@", "txtBranch", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -545,7 +547,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                 //3
                 ord_ship: FormView.getFactoryFields.getGeneralField(
-                    "ord_ship", "", "itemTxt", "15%", "", "12%",
+                    "ord_ship", "", "itemTxt", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -561,7 +563,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                     }, {}),
                 ord_pkqty: FormView.getFactoryFields.getNumberField(
-                    "ord_pkqty", "@", "itemPackQty", "15%", "", "22%",
+                    "ord_pkqty", "@", "itemPackQty", "15%", "violetText", "22%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -610,7 +612,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                 //5                
                 ord_empno: FormView.getFactoryFields.getGeneralField(
-                    "ord_empno", "", "txtDriver", "15%", "", "12%",
+                    "ord_empno", "", "txtDriver", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -675,22 +677,22 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                     }, {}),
                 //7
-                validatiy: FormView.getFactoryFields.getComboField(
-                    "validatiy", "", "Mixture", "15%", "", "35%",
+                validatiy: FormView.getFactoryFields.getGeneralField(
+                    "validatiy", "", "Mixture", "15%", "violetText", "35%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true,
                         list: "select name code,name from relists where idlist='MIXERS' order by name",
-                    }, {}), //mixture
-                payterm: FormView.getFactoryFields.getComboField(
+                    }, getListSettings("qry1.validatiy", "MIXERS")), //mixture
+                payterm: FormView.getFactoryFields.getGeneralField(
                     "payterm", "@", "Pump", "15%", "", "35%",
                     {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         list: "select name code,name from relists where idlist='PUMPS' order by name",
-                    }, {}), // pump
+                    }, getListSettings("qry1.payterm", "PUMPS")), // pump
 
                 //8                    
                 remarks: FormView.getFactoryFields.getGeneralField(
@@ -708,11 +710,63 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         insert_allowed: true,
                         list: "select no code,name  from store order by no",
                     }, {}),
-
-                lblLv: FormView.getFactoryFields.getTextField("lblLv", "", "txtDlvPlantLeave", "20%", {}, {}),
-                lblLv2: FormView.getFactoryFields.getTextField("lblLv2", "", "txtLeave", "20%", {}, {}),
+                lblLv0: FormView.getFactoryFields.getTextField("lblLv0", "", "", "15%", "", {}, {}),
+                lblLv: FormView.getFactoryFields.getTextField("lblLv", "@", "txtDlvPlantLeave", "17%", "boldText", {}, {}),
+                lblLv2: FormView.getFactoryFields.getTextField("lblLv2", "@", "txtDlvPlantArrive", "17%", "boldText", {}, {}),
+                lblLv3: FormView.getFactoryFields.getTextField("lblLv3", "@", "txtDlvStartBatch", "17%", "boldText", {}, {}),
+                lblLv4: FormView.getFactoryFields.getTextField("lblLv4", "@", "txtDlvTimeSite", "17%", "boldText", {}, {}),
+                lblLv5: FormView.getFactoryFields.getTextField("lblLv5", "@", "txtDlvTimeSiteArrive", "17%", "boldText", {}, {}),
+                lblLv00: FormView.getFactoryFields.getTextField("lblLv00", "", "", "15%", "", {}, {}),
                 tmplantleave: FormView.getFactoryFields.getGeneralField(
-                    "tmplantleave", "", "", "0px%", "", "20%",
+                    "tmplantleave", "@", "", "0px%", "", "17%",
+                    {
+                        data_type: FormView.DataType.Date,
+                        class_name: FormView.ClassTypes.TIMEFIELD,
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    displayFormat: "hh:mm a",
+                    valueFormat: "hh:mm a"
+                }),
+                tmsitearrival: FormView.getFactoryFields.getGeneralField(
+                    "tmsitearrival", "@", "", "0px%", "", "17%",
+                    {
+                        data_type: FormView.DataType.Date,
+                        class_name: FormView.ClassTypes.TIMEFIELD,
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    displayFormat: "hh:mm a",
+                    valueFormat: "hh:mm a"
+                }),
+                tmmixingstart: FormView.getFactoryFields.getGeneralField(
+                    "tmmixingstart", "@", "", "0px%", "", "17%",
+                    {
+                        data_type: FormView.DataType.Date,
+                        class_name: FormView.ClassTypes.TIMEFIELD,
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    displayFormat: "hh:mm a",
+                    valueFormat: "hh:mm a"
+                }),
+                tmsiteleave: FormView.getFactoryFields.getGeneralField(
+                    "tmsiteleave", "@", "", "0px%", "", "17%",
+                    {
+                        data_type: FormView.DataType.Date,
+                        class_name: FormView.ClassTypes.TIMEFIELD,
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    displayFormat: "hh:mm a",
+                    valueFormat: "hh:mm a"
+                }),
+                tmofplanarrival: FormView.getFactoryFields.getGeneralField(
+                    "tmofplanarrival", "@", "", "0px%", "", "17%",
                     {
                         data_type: FormView.DataType.Date,
                         class_name: FormView.ClassTypes.TIMEFIELD,
@@ -724,6 +778,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     valueFormat: "hh:mm a"
                 }),
             };
+
         },
         getList: function () {
             var that2 = this.thatForm;
