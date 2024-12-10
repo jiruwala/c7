@@ -523,6 +523,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     return comp.getDateValue();
                 if (comp instanceof sap.m.DateTimePicker)
                     return comp.getDateValue();
+                if (comp instanceof sap.m.TimePicker)
+                    return comp.getDateValue();
                 if (comp instanceof sap.m.ComboBox)
                     return this.nvl(comp.getSelectedKey(), comp.getValue());
                 if (comp instanceof sap.m.MultiComboBox) {
@@ -610,7 +612,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         comp.getCustomData()[0].setKey(customVal);
 
 
-                } else if (comp instanceof sap.m.DatePicker) {
+                } else if ((comp instanceof sap.m.DatePicker) ||
+                    (comp instanceof sap.m.TimePicker)) {
 
                     if (this.nvl(pVal, "").length == 0)
                         comp.setDateValue(null);
@@ -932,6 +935,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 var hma = "";
                 var ohma = "";
+                var hms = " h mm a";
                 if (datesWithTime) {
                     hma = " h mm a";
                     ohma = " HH MI AM"
@@ -939,7 +943,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 var sett = sap.ui.getCore().getModel("settings").getData();
                 var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + hma);
                 var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-
+                var sdft = new simpleDateFormat(hms);
 
                 var kys = [];
                 var str = "";
@@ -973,6 +977,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             val = "to_date('" + sdf.format(tbl[key].getDateValue()) + "','" + sett["ENGLISH_DATE_FORMAT"] + ohma + "')";
                         if (tbl[key] instanceof sap.m.DatePicker && tbl[key].getDateValue() == undefined)
                             val = "null";
+
+                        if (tbl[key] instanceof sap.m.TimePicker && tbl[key].getDateValue() != undefined)
+                            val = "to_date('" + sdft.format(tbl[key].getDateValue()) + "','HH12 MI am')";
+                        if (tbl[key] instanceof sap.m.TimePicker && tbl[key].getDateValue() == undefined)
+                            val = "null";
+
                         if (tbl[key].field_type != undefined && tbl[key].field_type == "number")
                             val = tbl[key].getValue();
                         if (tbl[key].field_type != undefined && tbl[key].field_type == "money")
@@ -990,6 +1000,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 var hma = "";
                 var ohma = "";
+                var hms = " h mm a";
                 if (datesWithTime) {
                     hma = " h mm a";
                     ohma = " HH MI AM"
@@ -998,10 +1009,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 var sett = sap.ui.getCore().getModel("settings").getData();
                 var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + hma);
                 var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-
+                var sdft = new simpleDateFormat(hms);
                 var kys = [];
                 var str = "";
                 var vl = "";
+
+
 
                 // add additional fields and values to vls.
                 if (flds != undefined)
@@ -1018,6 +1031,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (tbl[key] instanceof sap.m.DatePicker && tbl[key].getDateValue() != undefined)
                             val = "to_date('" + sdf.format(tbl[key].getDateValue()) + "','" + sett["ENGLISH_DATE_FORMAT"] + ohma + "')";
                         if (tbl[key] instanceof sap.m.DatePicker && tbl[key].getDateValue() == undefined)
+                            val = "null";
+                        if (tbl[key] instanceof sap.m.TimePicker && tbl[key].getDateValue() != undefined)
+                            val = "to_date('" + sdft.format(tbl[key].getDateValue()) + "','HH12 MI am')";
+                        if (tbl[key] instanceof sap.m.TimePicker && tbl[key].getDateValue() == undefined)
                             val = "null";
                         if (tbl[key].field_type != undefined && tbl[key].field_type == "number")
                             val = tbl[key].getValue();
@@ -3954,5 +3971,3 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
         return UtilGen;
     });
-
-

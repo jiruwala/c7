@@ -765,7 +765,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                         }
                                         var control = this;
                                         var pacnm = thatForm.frm.objs["qry1.salesname"].obj
-                                        var sq = "select no,name from salesp where order by NO ";
+                                        var sq = "select no,name from salesp where type='S' order by NO ";
                                         Util.showSearchList(sq, "NAME", "NO", function (valx, val) {
                                             UtilGen.setControlValue(control, valx, valx, true);
                                             UtilGen.setControlValue(pacnm, val, val, true);

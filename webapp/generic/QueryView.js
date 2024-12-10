@@ -1316,7 +1316,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             if (this.mLctb.cols.length > 0 && this.mLctb.cols[0].mGrouped)
                 this.getControl().getColumns()[0].setVisible(false);
 
-            if (this.mLctb.cols.length > 0 && this.mLctb.cols[1].mGrouped)
+            if (this.mLctb.cols.length > 1 && this.mLctb.cols[1].mGrouped)
                 this.getControl().getColumns()[1].setVisible(false);
 
 

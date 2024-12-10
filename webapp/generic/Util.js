@@ -12,6 +12,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return null;
             },
+            isFunction: function (functionToCheck) {
+                return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+            },
             objToStr: function (obj) {
                 var str = '';
                 for (var p in obj) {
