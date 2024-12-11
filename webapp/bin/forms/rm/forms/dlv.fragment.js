@@ -7,6 +7,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         this.qryStr = Util.nvl(oController.code, "");
         this.timeInLong = (new Date()).getTime();
         this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
+        this.isDialog = false;
+        try {
+            that.isDialog = (that.oController.getForm().getParent() instanceof sap.m.Dialog);
+        } catch (e) { };
         this.helperFunc.init(this);
         this.vars = {
             keyfld: -1,
@@ -67,19 +71,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 title: Util.getLangText("dlvNoteBR"),
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
-                formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: lavender;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
-                },
+                // width: { "S": 500, "M": 650, "L": 750 },
+                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
@@ -314,17 +307,48 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     var sq1 = "";
                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                     var rfr = thatForm.frm.getFieldValue("qry1.ord_ship");
+                    var sq2 = thatForm.frm.parseString("select GET_ITEM_PRICE2(':qry1.ord_ship',':qry1.ord_ref',':qry1.ord_discamt',:qry1.ord_date ) from dual");
+                    var pr = Util.getSQLValue(sq2);
                     var dt = Util.execSQLWithData("select packd,unitd,pack from items where reference='" + rfr + "'", "Item # " + rfr + " not a valid !");
-                    var sq1 = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack where keyfld=:kf and ord_pos=:pos ; "
+                    var sq1 = "update c_order1 set sale_price=:price , ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack where keyfld=:kf and ord_pos=:pos ; "
                         .replaceAll(":pkd", dt[0].PACKD)
                         .replaceAll(":unitd", dt[0].UNITD)
                         .replaceAll(":pack", dt[0].PACK)
                         .replaceAll(":kf", kf)
-                        .replaceAll(":pos", 1);
+                        .replaceAll(":pos", 1)
+                        .replaceAll(":price", Util.nvl(pr, 0));
+                        
+                    var sqOr = "";
+                    var crdt = Util.getSQLValue("select created_time from order1 where keyfld=" + kf);
+                    if (Util.nvl(crdt, undefined) != undefined)
+                        crdt = Util.toOraDateTimeString(new Date((crdt + "").replaceAll(".", ":")));
+                    var cols = {
+                        "keyfld": ":qry1.keyfld",
+                        "periodcode": Util.quoted(sett["CURRENT_PERIOD"]),
+                        "location_code": "':qry1.location_code'",
+                        "stra": ":qry1.stra",
+                        "ord_no": ":qry1.ord_no",
+                        "ord_code": thatForm.vars.vou_code,
+                        "ord_refnm": "':qry1.ord_refnm'",
+                        "ord_ref": "':qry1.ord_ref'",
+                        "ord_discamt": ":qry1.ord_discamt",
+                        "ord_date": ":qry1.ord_date",
+                        "ord_ship": "':qry1.ord_ship'",
+                        "ord_empno": ":qry1.ord_empno",
+                        "remarks": "':qry1.remarks'",
+                        "payterm": "':qry1.payterm'",
+                        "validatiy": "':qry1.validatiy'",
+                        "attn": "':qry1.branchname'",
+                        "created_time": Util.nvl(crdt, "sysdate"),
+                        "modified_time": "sysdate",
+                        "usernm": Util.quoted(sett["LOGON_USER"]),
+                        "ord_amt": "0",
+                    }
+                    sqOr = "delete from order1 where ord_code=9 and keyfld=:qry1.keyfld;";
+                    sqOr += UtilGen.getInsertRowStringByObj("order1", cols);
+                    sqOr = thatForm.frm.parseString(sqOr);
 
-
-
-                    return sq + sq1;
+                    return sq + sq1 + sqOr + ";";
                 }
             };
         },
@@ -457,16 +481,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     }
                 });
             };
-            var getMixerSetting = function () {
-                return FormView.getFactoryFields.getSettingsGeneral({
-                    thatForm: thatForm,
-                    code: "qry1.validatiy",
-                    name: "qry1.validatiy",
-                    sqlChange: "select name title from relists where idlist='MIXERS' and name=':CODE'",
-                    sqlList: "select name code from relists where idlist='MIXERS' order by name",
-                    sqlListChange: "select name code,name title from relists where idlist='MIXERS' and name=:CODE",
-                });
-            }
+
 
             //keyfid,15-10|location_code,10-15               ord_date,15-15|ord_no,5-15
             //ord_ref,15-12|ord_refnm,1-22                   ord_discamt,15-12|branchname,1-22
@@ -691,15 +706,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         edit_allowed: true,
                         insert_allowed: true,
                         list: "select name code,name from relists where idlist='MIXERS' order by name",
-                    }, getMixerSetting()), //mixture
-                payterm: FormView.getFactoryFields.getComboField(
+                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.validatiy", "MIXERS")), //mixture
+                payterm: FormView.getFactoryFields.getGeneralField(
                     "payterm", "@", "Pump", "15%", "", "35%",
                     {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         list: "select name code,name from relists where idlist='PUMPS' order by name",
-                    }, {}), // pump
+                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.payterm", "PUMPS")), // pump
 
                 //8                    
                 remarks: FormView.getFactoryFields.getGeneralField(
@@ -844,6 +859,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         " o1.ord_discamt, c.b_name," +
                         " o1.ord_ship, o1.tqty||' '||o1.ord_packd tqty, o1.keyfld,o1.location_code from c_order1 o1,cbranch c where " +
                         " o1.location_code=':qry1.location_code' and " +
+                        " o1.ord_ref=c.code and " +
                         " c.brno=o1.ord_discamt and " +
                         " o1.ord_code =" + that2.vars.vou_code +
                         " order by o1.ord_date desc,o1.ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1)",
@@ -949,7 +965,21 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
             ];
         },
+        canEdiOrDel: function (raiseErr) {
+            var thatForm = this.thatForm;
+            var qry = thatForm.frm.objs["qry1"];
+            if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW)
+                return true;
+            var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+            var ret = Util.nvl(
+                Util.getSQLValue("select saleinv from c_order1 where keyfld=" + kf), "") == "";
 
+            if (!ret && Util.nvl(raiseErr, true)) {
+                var invno = Util.getSQLValue("select invoice_no from pur1 where keyfld=" + salinv)
+                FormView.err("Err !, Invoice existed for this delivery !");
+            }
+            return ret;
+        },
         beforeSaveValidateQry: function (qry) {
             var thatForm = this.thatForm;
             var flg = "";
@@ -959,7 +989,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
                 qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
             }
-
+            thatForm.helperFunc.canEdiOrDel(true);
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
 
             //customer flag=1 and 
@@ -1021,6 +1051,16 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     FormView.err("Save Denied : Sales Man is invalid !");
                 }
             }
+            var mx = thatForm.frm.getFieldValue("qry1.validatiy");
+            mx = Util.getSQLValue("select name code,name from relists where idlist='MIXERS' and name='" + mx + "'");
+            if (Util.nvl(mx, "") == "")
+                FormView.err("Err !, Mixtures : " + mx + " not found !");
+            mx = thatForm.frm.getFieldValue("qry1.payterm");
+            mx = Util.getSQLValue("select name code,name from relists where idlist='PUMPS' and name='" + mx + "'");
+            if (Util.nvl(mx, "") == "")
+                FormView.err("Err !, Pump : " + mx + " not found !");
+
+
         },
         fetchItem: function () {
             var rfrFld = "ord_no";
