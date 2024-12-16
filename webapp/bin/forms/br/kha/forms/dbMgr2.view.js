@@ -215,8 +215,6 @@ sap.ui.jsview("bin.forms.br.kha.forms.dbMgr2", {
                 return true;
             }, undefined, undefined, { type: sap.m.InputType.Password });
         } else doOk();
-
-
     },
     createView: function () {
         var that = this;

@@ -1942,7 +1942,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     code: ordref,
                     name: ordrefnm,
                     sqlChange: "select name from c_ycust where  code = ':CODE'",
-                    sqlList: "select code,name title from c_ycust where iscust='Y'  order by path ",
+                    sqlList: "select code,name title from c_ycust where flag=1 and iscust='Y'  order by path ",
                     sqlListChange: "select code,name title from c_ycust where code=:CODE",
                 });
             },

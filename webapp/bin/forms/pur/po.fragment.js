@@ -1124,7 +1124,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             var thatForm = this.thatForm;
             var flg = "";
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
-
+                
             }
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
