@@ -1972,6 +1972,16 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     qv.mLctb.cols[qv.mLctb.getColPos(colnm)][propStr] = val
                 else if (qv.mLctb.cols[qv.mLctb.getColPos(colnm)].mUIHelper.hasOwnProperty(propStr))
                     qv.mLctb.cols[qv.mLctb.getColPos(colnm)].mUIHelper[propStr] = val;
+            },
+            setColProperties: (qv, colnm, props) => {
+                // var val = pVal;
+                if (props == undefined) return;
+                var kys = Object.keys(props);
+                for (var k in kys) {
+                    var propStr = kys[k];
+                    var val = props[propStr];
+                    Util.setColProp(qv, colnm, propStr, val);
+                }                 
             }
         };
 

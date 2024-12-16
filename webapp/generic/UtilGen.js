@@ -3862,6 +3862,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             inputDialog: function (title, msg, val, fnOk, fnCancel, width, height, pSet) {
                 var setInp = { ...{ value: Util.nvl(val, "") }, ...Util.nvl(pSet, {}) };
                 var inp = new sap.m.Input(setInp);
+                setTimeout(() => {
+                    inp.selectText(0, 999);
+                });
+
                 var vb = new sap.m.VBox({
                     // alignItems: sap.m.FlexAlignItems.Center,
                     items: [new sap.m.Title({ text: Util.getLangText(msg) }), inp]

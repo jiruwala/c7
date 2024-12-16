@@ -1942,7 +1942,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     code: ordref,
                     name: ordrefnm,
                     sqlChange: "select name from c_ycust where  code = ':CODE'",
-                    sqlList: "select code,name title from c_ycust where iscust='Y'  order by path ",
+                    sqlList: "select code,name title from c_ycust where flag=1 and iscust='Y'  order by path ",
                     sqlListChange: "select code,name title from c_ycust where code=:CODE",
                 });
             },
@@ -1975,7 +1975,16 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 });
 
             },
-
+            getListSettings: function (thatForm, ordref, lsttype) {
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    code: ordref,
+                    name: ordref,
+                    sqlChange: "select name title from relists where idlist='" + lsttype + "' and name=':CODE'",
+                    sqlList: "select name code from relists where idlist='" + lsttype + "' order by name",
+                    sqlListChange: "select name code,name title from relists where idlist='" + lsttype + "' and name=:CODE",
+                });
+            },
             getSettingsItem: function (pSet) {
                 var thatForm = pSet.thatForm;
 
