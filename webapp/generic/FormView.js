@@ -121,7 +121,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             "TIMEFIELD": "sap.m.TimePicker",
             "COMBOBOX": "sap.m.ComboBox",
             "MULTICOMBOBOX": "sap.m.MultiComboBox",
-            "TEXTAREA":"sap.m.TextArea",
+            "TEXTAREA": "sap.m.TextArea",
             "CHECKBOX": "sap.m.CheckBox",
             // "SEARCHFIELD": "SearchText",
             "SEARCHFIELD": "sap.m.SearchField",
@@ -828,8 +828,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                 }
             });
+            if (that.frag != undefined && that.frag.mainPage != undefined)
+                that.frag.mainPage.attachBrowserEvent("keydown", function (oEvent) {
+                    if (that.isFormEditable() && oEvent.key == 'F10') {
+                        that.cmdButtons.cmdSave.firePress();
+                    }
 
-
+                });
         };
         FormView.prototype.printReport = function (rpt, saveData) {
             var that = this;

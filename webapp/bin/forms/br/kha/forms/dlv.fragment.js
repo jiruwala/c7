@@ -597,7 +597,13 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             vl = UtilGen.getControlValue(this);
                             var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
                             var ordtyp = thatForm.frm.objs["qry1.ord_type"].obj.getValue();
+
                             UtilGen.setControlValue(objOrd, "", "", true);
+                            UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_ref"].obj, "", "", true);
+                            UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_ref"].obj, "", "", true);
+                            UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_refnm"].obj, "", "", true);
+                            UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_discamt"].obj, "", "", true);
+                            thatForm.frm.objs["qry1.ord_type"].obj.fireChange();
                             if (vl != "") {
                                 var nwOn = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 " +
                                     " where  ord_code=" + thatForm.vars.vou_code + " and location_code=" + Util.quoted(vl) +
@@ -731,7 +737,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             var objrfnm = thatForm.frm.objs["qry1.ord_refnm"].obj;
                             var ordtyp = thatForm.frm.objs["qry1.ord_type"].obj.getValue();
                             var objEmp = thatForm.frm.objs["qry1.ord_empno"].obj;
-                            
+
                             var objTel = thatForm.frm.objs["qry1.ord_ship"].obj;
                             var objV = thatForm.frm.objs["qry1.payterm"].obj;
                             var dtxM = Util.execSQLWithData("select mobile,vehicleno,HADDR from salesp where no=" + objEmp.getValue());
@@ -1846,7 +1852,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             setTimeout(function () {
                 var rfr = thatForm.frm.getFieldValue("qry1." + rfrFld);
                 var loc = thatForm.frm.getFieldValue("qry1.location_code");
-                var qr = Util.execSQLWithData("select keyfld,ord_refnm from order1 where ORD_CODE=9 AND " + rfrFld + "='" + rfr + "'");
+                var typ = thatForm.frm.getFieldValue("qry1.ord_type");
+                var qr = Util.execSQLWithData("select keyfld,ord_refnm from order1 where ORD_CODE=9 AND " + rfrFld + "='" + rfr + "' and location_code='" + loc + "' and ord_type='" + typ + "'");
                 if (Util.nvl(qr, "") == "" || qr.length == 0)
                     return;
                 var rfrx = qr[0].KEYFLD;
