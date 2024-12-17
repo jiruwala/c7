@@ -422,6 +422,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             var getSettingSalesp = function (ordref, ordrefnm, typ) {
                 return FormView.getFactoryFields.getSettingsGeneral({
                     thatForm: thatForm,
+                    getBtns: function () {
+                        
+                        return undefined;
+                    },
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
                     sqlChange: "select name from salesp where no = ':CODE'",
@@ -901,7 +905,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                             if (Util.nvl(saleinv, '') != '') {
                                 var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
                                 that2.view.byId("txtMsg" + that2.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
-                                // that2.frm.setFormReadOnly();
                                 return false;
                             }
                         }
