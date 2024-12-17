@@ -377,7 +377,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                     "mTitle": "locationTxt",
                     "display_width": 60,
                 });
-
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
 

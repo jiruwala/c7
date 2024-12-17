@@ -1981,7 +1981,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     var propStr = kys[k];
                     var val = props[propStr];
                     Util.setColProp(qv, colnm, propStr, val);
-                }
+                }                 
             }
         };
 
