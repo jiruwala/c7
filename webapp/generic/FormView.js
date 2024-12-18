@@ -829,7 +829,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                 }
             });
+            if (that.frag != undefined && that.frag.mainPage != undefined)
+                that.frag.mainPage.attachBrowserEvent("keydown", function (oEvent) {
+                    if (that.isFormEditable() && oEvent.key == 'F10') {
+                        that.cmdButtons.cmdSave.firePress();
+                    }
 
+                });
 
         };
         FormView.prototype.printReport = function (rpt, saveData) {
@@ -1919,10 +1925,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     valueHelpRequest: function (e) {
                         if (pSet.fnBeforeValHelp != undefined)
                             pSet.fnBeforeValHelp(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
-
+                        var btns = (pSet.getBtns != undefined ? pSet.getBtns() : undefined);
                         UtilGen.Search.do_quick_search(thatForm.frm.objs[ordref].obj, this,
                             (Util.isFunction(sqList) ? sqList() : sqList),
-                            (Util.isFunction(sqListChange) ? sqListChange() : sqListChange), thatForm.frm.objs[ordrefnm].obj, undefined, undefined, undefined);
+                            (Util.isFunction(sqListChange) ? sqListChange() : sqListChange), thatForm.frm.objs[ordrefnm].obj, undefined, undefined, btns);
                         if (pSet.fnAfterValHelp != undefined)
                             pSet.fnAfterValHelp(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
                     }

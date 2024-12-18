@@ -265,7 +265,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             Util.getLabelTxt("", "1%", "@"), this.txtProdName,
             Util.getLabelTxt("", "100%", "#"), new sap.m.VBox({ height: "20px" }),
             Util.getLabelTxt("wzdSepDate", "20%"), this.chkSepDate,
-            Util.getLabelTxt("recheckPrice", "20%"), this.recheckPrice,
+            // Util.getLabelTxt("recheckPrice", "20%"), this.recheckPrice,
 
         ]
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");
@@ -336,17 +336,18 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
 
             var sql = "SELECT   location_code," +
                 "              c_order1.ord_ref," +
-                "              ord_code," +
                 "              c_order1.ord_refnm," +
                 "              max(trunc(sysdate)) ord_date," +
                 "              c_order1.ord_ship," +
+                "              c_custitems.descr itemname," +
+                "              sale_price , " +
                 "              c_order1.ord_discamt," +
-                "              SUM (c_order1.tqty) qnty," +
                 "              MAX (nvl(c_order1.attn,cbranch.b_name)) bname," +
                 "              c_custitems.packd," +
                 "              c_custitems.unitd," +
-                "              COUNT (c_order1.ord_no) counting," +
-                "              sale_price" +
+                "              SUM (c_order1.tqty) qnty," +
+                "              COUNT (c_order1.ord_no) counting ," +
+                "              ord_code " +
                 "       FROM   c_order1," +
                 "              items c_custitems," +
                 "              cbranch WHERE " +
@@ -364,19 +365,74 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "              c_custitems.packd," +
                 "              c_custitems.unitd," +
                 "              ord_code," +
-                "              sale_price" +
-                "";
+                "              sale_price , " +
+                "              c_custitems.descr";
             var qv = that.qvRef;
             var dt = Util.execSQL(sql);
             if (dt.ret == "SUCCESS") {
 
                 qv.setJsonStrMetaData("{" + dt.data + "}");
                 Util.setColProp(qv, "ORD_CODE", "mHideCol", true);
+                Util.setColProp(qv, "UNITD", "mHideCol", true);
 
                 Util.setColProperties(qv, "LOCATION_CODE", {
                     "mTitle": "locationTxt",
-                    "display_width": 60,
+                    "display_width": 70,
                 });
+                Util.setColProperties(qv, "ORD_REF", {
+                    "mTitle": "txtCode",
+                    "display_width": 80
+                });
+                Util.setColProperties(qv, "ORD_REFNM", {
+                    "mTitle": "txtName",
+                    "display_width": 150
+                });
+                Util.setColProperties(qv, "ORD_DATE", {
+                    "mTitle": "ordDate",
+                    "display_width": 80,
+                    "display_format": "SHORT_DATE_FORMAT"
+                });
+                Util.setColProperties(qv, "ORD_SHIP", {
+                    "mTitle": "itemTxt",
+                    "display_width": 80
+                });
+                Util.setColProperties(qv, "ITEMNAME", {
+                    "mTitle": "descrTxt",
+                    "display_width": 135
+                });
+                Util.setColProperties(qv, "ORD_DISCAMT", {
+                    "mTitle": "txtBranch",
+                    "display_width": 65
+                });
+
+                Util.setColProperties(qv, "BNAME", {
+                    "mTitle": "branchNmTxt",
+                    "display_width": 130
+                });
+
+                Util.setColProperties(qv, "QNTY", {
+                    "mTitle": "itemPackQty",
+                    "display_width": 80,
+                    "display_align": "ALIGN_CENTER",
+                    "display_style": "background-color:khaki;"
+                });
+                Util.setColProperties(qv, "PACKD", {
+                    "mTitle": "itemPackD",
+                    "display_width": 100
+                });
+
+                Util.setColProperties(qv, "COUNTING", {
+                    "mTitle": "txtCounts",
+                    "display_width": 70,
+                    "display_align": "ALIGN_CENTER",
+                });
+                Util.setColProperties(qv, "SALE_PRICE", {
+                    "mTitle": "txtPrice",
+                    "display_width": 100,
+                    "display_format": "MONEY_FORMAT",
+                    "display_style": "background-color:lightgrey;"
+                });
+
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
 
@@ -396,9 +452,12 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
 
         if (fromdt == null || todt == null) { that.joApp.to(that.mainPage, "slide"); return; };
 
-        var slices = that.qvRef.getControl().getSelectedIndices();
-        var slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
-
+        var slices = [];
+        var slicesof = [];
+        if (that.qvRef != undefined && that.qvRef.mLctb.rows.length > 0) {
+            slices = that.qvRef.getControl().getSelectedIndices();
+            slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
+        }
         if (Util.nvl(that.txtRef.getValue(), "") == "" &&
             that.qvRef.getControl().getSelectedIndices().length < 0) {
             that.joApp.to(that.detailPageRef, "slide");
@@ -774,21 +833,35 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
     createDetailPageRef: function () {
         var that = this;
         var sett = sap.ui.getCore().getModel("settings").getData();
+        var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
         var view = this.view;
         var codSpan = "XL3 L3 M3 S12";
+        var fromdt = UtilGen.getControlValue(that.txtFromDate);
+        var todt = UtilGen.getControlValue(that.txtToDate);
+
         UtilGen.clearPage(this.detailPageRef);
         this.qvRef = new QueryView("qrDeRef" + this.timeInLong);
         // this.qv.getControl().addStyleClass("sapUiSizeCondensed");
-        this.qvRef.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowSelector);
+        this.qvRef.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
         this.qvRef.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
         this.qvRef.getControl().setAlternateRowColors(true);
-        this.qvRef.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-        that.qvRef.getControl().setVisibleRowCount(5);
+        this.qvRef.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Interactive);
+        that.qvRef.getControl().setVisibleRowCount(6);
         this.qvRef.getControl().setFixedBottomRowCount(0);
 
 
         var sc = new sap.m.ScrollContainer({ width: "100%", height: "100%", vertical: true, content: this.qvRef.getControl() });
         this.detailPageRef.addContent(sc);
+
+        this.detailPageRef.removeAllHeaderContent();
+        this.detailPageRef.addHeaderContent(
+            new sap.m.Title(
+                {
+                    text: Util.getLangText("fromDate") +
+                        " - " + sdf.format(fromdt) + " " +
+                        Util.getLangText("toDate") + " - " +
+                        sdf.format(todt)
+                }).addStyleClass("redText boldText"));
 
         Util.destroyID("cmdNext21", that.view);
         this.detailPageRef.setFooter(new sap.m.Toolbar({
@@ -930,8 +1003,13 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             that.joApp.toDetail(that.detailPage, "slide");
             FormView.err("No Any delivery selected !");
         }
-        var slices = this.qvRef.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
-        var slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
+
+        var slices = [];
+        var slicesof = [];
+        if (that.qvRef != undefined && that.qvRef.mLctb.rows.length > 0) {
+            slices = that.qvRef.getControl().getSelectedIndices();
+            slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
+        }
 
         var rn = (slices.length > 0 ? slicesof[slices[0]] : -1);
 
@@ -947,7 +1025,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             selBrName = that.qvRef.mLctb.getFieldValue(rn, "BNAME");
             selProd = that.qvRef.mLctb.getFieldValue(rn, "ORD_SHIP");
         }
-
         var refName = selCustName + " - " + selCust;
         var bName = + selBrName + " - " + selBrno;
 

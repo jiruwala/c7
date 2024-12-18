@@ -422,6 +422,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             var getSettingSalesp = function (ordref, ordrefnm, typ) {
                 return FormView.getFactoryFields.getSettingsGeneral({
                     thatForm: thatForm,
+                    getBtns: function () {
+                        return [new sap.m.Button({
+                            text: Util.getLangText('newRecord'),
+                            press: function () {
+                                thatForm.helperFunc.showEmpsWnd(this, typ);
+                            }
+                        })];
+                    },
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
                     sqlChange: "select name from salesp where no = ':CODE'",
@@ -901,7 +909,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                             if (Util.nvl(saleinv, '') != '') {
                                 var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
                                 that2.view.byId("txtMsg" + that2.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
-                                // that2.frm.setFormReadOnly();
                                 return false;
                             }
                         }
@@ -1208,7 +1215,125 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 }
             }
             fnExe(0);
-        }
+        },
+        showEmpsWnd: function (obj, empType) {
+            var thatForm = this.thatForm;
+            var empTypeWrd = {
+                "D": "Driver",
+                "E": "Employee",
+                "DI": "Dispatcher",
+                "S": "Sales man ",
+                "O": "Operator"
+            };
+
+            var vb = new sap.m.VBox();
+            var btAp = new sap.m.Button({
+                text: Util.getLangText("saveRec"),
+                enabled: false,
+                press: function () {
+                    saveData();
+                }
+            });
+            var enableDisableSave = function () {
+                var ed = false;
+                if (txtNo.getValue() != "" && txtName.getValue() != "") ed = true;
+                btAp.setEnabled(ed);
+            }
+
+            var txtNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: true });
+            var txtName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "55%", editable: true });
+            var txtName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "55%", editable: true });
+            var txtVehicleNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
+            var txtMobile = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: true });
+
+            txtNo.attachLiveChange(enableDisableSave);
+            txtName.attachLiveChange(enableDisableSave);
+
+            var checkDriverExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(name),'') from salesp where no=" + txtNo.getValue());
+                if (pmsg == Util.nvl(exis, '') != '')
+                    FormView.err("Emp No Existed .with name " + exis);
+                return (msg ? true : pmsg);
+            };
+
+            var checkNameExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(no||''),'') from salesp where upper(name)=upper('" + txtName.getValue() + "')");
+                if (msg && Util.nvl(exis, '') != '')
+                    FormView.err("Emp NAME Existed .with NO # " + exis);
+                return (msg ? true : pmsg);
+            };
+
+
+            txtNo.attachChange(function () {
+                checkDriverExist(true);
+            });
+            txtName.attachChange(function () {
+                checkNameExist(true);
+            });
+            var saveData = function () {
+                checkDriverExist(true);
+                checkNameExist(true);
+                var sq = "Insert into salesp (NO,NAME,NAMEA,TYPE,VEHICLENO,MOBILE) VALUES  " +
+                    " (:NO,':NAME',':NAMEA',':EMPTYPE',':VEHICLENO',':MOBILE') ";
+                sq = sq.replaceAll(":NO", txtNo.getValue())
+                    .replaceAll(":NAME", txtName.getValue())
+                    .replaceAll(":EMPTYPE", empType)
+                    .replaceAll(":NAMEA", txtName2.getValue())
+                    .replaceAll(":VEHICLENO", txtVehicleNo.getValue())
+                    .replaceAll(":MOBILE", txtVehicleNo.getValue());
+
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS") {
+                    sap.m.MessageToast.show("Successfully Saved new, refresh list ");
+                    dlg.close();
+                }
+
+            }
+            var fe = [
+                Util.getLabelTxt("txtDriverNo", "15%"), txtNo,
+                Util.getLabelTxt("txtDriverName", "10%", "@"), txtName,
+                Util.getLabelTxt("txtDriverName2", "45%", ""), txtName2,
+                Util.getLabelTxt("txtVehicleNo", "15%"), txtVehicleNo,
+                Util.getLabelTxt("txtMobile", "30%", "@"), txtMobile,
+            ];
+            var newNo = Util.getSQLValue("select nvl(max(no),0)+1 from salesp");
+            txtNo.setValue(newNo + "");
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: { "S": 280, "M": 380, "L": 480 },
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+            cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            vb.addItem(cnt);
+            Util.navEnter(fe);
+            var dlg = new sap.m.Dialog({
+                title: "New " + empTypeWrd[empType],//Util.getLangText("newDriverText"),
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 500 }) + "px",
+                contentHeight: "150px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    btAp,
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdClose"),
+                        press: function () {
+                            dlg.close();
+                        }
+                    })
+
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+        },
     }
     ,
 
