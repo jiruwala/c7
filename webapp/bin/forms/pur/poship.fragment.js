@@ -92,7 +92,6 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     });
                     var hb = new sap.m.Toolbar({
                         content: [txt, new sap.m.ToolbarSpacer(), txtMsg]
-
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
@@ -628,12 +627,59 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                 return;
             }
             UtilGen.showCustomMessageToast("puMsgSelectPO", 100);
-            var sq = "SELECT ORD_NO,TO_CHAR(ORD_DATE,'DD/MM/RRRR') ORD_DATE,ORD_REF,ORD_REFNM,ord_amt,KEYFLD FROM PORD1 WHERE ORD_CODE=11 and ord_flag=2 ORDER BY KEYFLD desc ";
+            var sq = "SELECT ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ord_amt,KEYFLD FROM PORD1 WHERE ORD_CODE=11 and ord_flag=2 ORDER BY KEYFLD desc ";
             UtilGen.Search.do_quick_search_simple(sq,
                 ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM", "ORD_AMT"], function (data) {
                     thatForm.oController.poKeyFld = data.KEYFLD;
                     selPoKkf(data.KEYFLD);
-                }, { pWidth: "80%" }, undefined, false, "Select PO for new shipment ");
+                }, { pWidth: "80%" }, undefined, false, Util.getLangText("puPoSelPOShip"), [
+                {
+                    ORD_NO: {
+                        colname: "ORD_NO",
+                        display_width: 80,
+                        mTitle: Util.getLangText("titPurOrd"),
+                    }
+                },
+                {
+                    ORD_DATE: {
+                        colname: "ORD_DATE",
+                        display_format: "SHORT_DATE_FORMAT",
+                        mTitle: Util.getLangText("ordDate"),
+                        display_width: 100
+                    }
+                },
+                {
+                    ORD_REF: {
+                        colname: "ORD_REF",
+                        mTitle: Util.getLangText("refCode"),
+                        display_width: 100,
+                    }
+                },
+                {
+                    ORD_REFNM: {
+                        colname: "ORD_REFNM",
+                        mTitle: Util.getLangText("refName"),
+                        display_width: 250
+
+                    }
+                },
+                {
+                    KEYFLD: {
+                        colname: 'KEYFLD',
+                        return_field: "pac",
+                        hide: true
+                    }
+                },
+                {
+                    ORD_AMT: {
+                        colname: "ORD_AMT",
+                        display_format: "MONEY_FORMAT",
+                        mTitle: Util.getLangText("amountTxt"),
+                        display_width: 120,
+                        mSummary: "SUM"
+                    }
+                }
+            ]);
         },
         showLandingCost: function (pDlg, pPg) {
             var dlg = Util.nvl(pDlg, undefined);
@@ -656,9 +702,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                             text: Util.getLangText("txtPOLCaddCosting") + "..",
                             press: function () {
                                 thisFunc.showSpedning(dlg, pg, -1);
-
                             }
-
                         }));
                         var mnu = new sap.m.Menu({
                             items: mnus
@@ -943,6 +987,15 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                             insertOrUpd();
                             thisFunc.showLandingCost(dlg, pg);
                         }
+                    }),
+                    new sap.m.Button(view.createId("cmdSpendDel" + that2.timeInLong), {
+                        text: "Delete",
+                        icon: "sap-icon://delete",
+                        press: function () {
+                            that2.fetchCustItems = false;
+                            delRec();
+                            thisFunc.showLandingCost(dlg, pg);
+                        }
                     })
                 ]
             });
@@ -1021,7 +1074,15 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             var validateBeforeSave = function () {
                 checkEmptyVal(["trans_no", "trans_date", "landcost_code", "vendor_ref", "reference", "expense_ac", "expensename", "descr"]);
             }
+            var delRec = function () {
+                var sq = "";
+                validateShipPo();
+                Util.simpleConfirmDialog(Util.getLangText("msgSaveFormData"), function (oAction) {
+                    if (kfldQry == -1)
+                        Util.execSQL("delete from C7_POLANDCOST where keyfld=" + kfldQry);
 
+                });
+            }
             var insertOrUpd = function () {
                 var sq = "";
                 validateShipPo();

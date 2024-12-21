@@ -735,7 +735,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         showValueHelp: true,
                         change: function (e) {
                             var sq = "select name from c_ycust where  code = ':CODE'";
-                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);                            
+                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);
                         },
                         valueHelpRequest: function (e) {
                             var btns = [new sap.m.Button({
@@ -950,7 +950,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         },
                         {
                             colname: "PO_STATUS",
-                            mTitle: Util.getLangText("puPoStatus"),
+                            mTitle: Util.getLangText("txtStatus"),
                             display_width: 100,
                         },
                         {
@@ -978,7 +978,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         {
                             colname: "ord_amt",
                             display_format: "MONEY_FORMAT",
-                            display_width:150,
+                            mTitle: Util.getLangText("amountTxt"),
+                            display_width: 120,
                             mSummary: "SUM"
 
                         }
