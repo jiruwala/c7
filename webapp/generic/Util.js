@@ -1029,8 +1029,11 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         qv.getControl().focus();
                     }
 
-                    if (evt.key == "ArrowDown") {
-                        qv.getControl().focus();
+                    if (evt.key == "Enter") {
+                        console.log("press enter");
+                        if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {
+                            qv.getControl().setSelectedIndex(0);
+                        }
                     }
 
                 });

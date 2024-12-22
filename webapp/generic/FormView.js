@@ -385,6 +385,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 cmd.objType = FormView.ObjTypes.COMMAND_BUTTON;
                 cmd.obj = Util.nvl(cmds[i].obj, undefined);
                 cmd.onPress = Util.nvl(cmds[i].onPress, undefined);
+                cmd.afterPrint = Util.nvl(cmds[i].afterPrint, undefined);
                 cmd.list_name = Util.nvl(cmds[i].list_name, undefined);
                 this.form.commands.push(cmd);
                 this.objs[cmds[i].name] = cmd;
@@ -788,13 +789,16 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 text: Util.getLangText("printRec"),
                 visible: true,
                 press: function (e) {
-
                     var ob = that.getObjectByObj(this);
                     if (ob.onPress != undefined) {
                         ob.onPress(e);
                         return;
                     }
-
+                    var exeAfterrep = function (repname) {
+                        if (ob.afterPrint != undefined) {
+                            ob.afterPrint(repname);
+                        }
+                    };
 
                     if (Util.nvl(that.reportMenus, []).length <= 0) return;
 
@@ -811,6 +815,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                     var pms = "";
                                     var sett = sap.ui.getCore().getModel("settings").getData();
                                     that.printReport(cd, true);
+                                    exeAfterrep(cd);
                                 }
                             }));
                         new sap.m.Menu({
@@ -822,7 +827,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         var pms = "";
                         var sett = sap.ui.getCore().getModel("settings").getData();
                         that.printReport(cd, true);
-
+                        exeAfterrep(cd);
                     }
 
 

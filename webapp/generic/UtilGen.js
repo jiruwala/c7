@@ -3774,9 +3774,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     });
                     txt.attachBrowserEvent("keydown", function (e) {
                         if (e.key == 'Enter')
-                        btf.firePress();
+                            btf.firePress();
                     });
-    
+
                 }
 
                 if (Util.nvl(addSpace, false))
@@ -3853,6 +3853,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 dlg.open();
                 setTimeout(function () {
                     inp.focus();
+                    inp.selectText(0, 999);
                 }, 100);
             },
 
