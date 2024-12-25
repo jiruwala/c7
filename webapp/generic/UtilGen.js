@@ -2056,7 +2056,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
             },
             Search: {
-                do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect, pPoints, btns, pMulteSelect) {
+                do_quick_search: function (e, control, pSq, pSqGetTitle, titObj, eventAfterSelect, pPoints, btns, pMulteSelect, pListPara, titDialog) {
                     var points = Util.nvl(pPoints, {});
                     // if (e.getParameters().clearButtonPressed || e.getParameters().refreshButtonPressed) {
                     UtilGen.setControlValue(control, "", "", false);
@@ -2105,7 +2105,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(acn, nm);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns, pListPara, titDialog);
 
                 },
 

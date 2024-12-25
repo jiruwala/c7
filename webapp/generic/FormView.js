@@ -1904,6 +1904,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 var sqChange = pSet.sqlChange;
                 var sqList = pSet.sqlList;
                 var sqListChange = pSet.sqlListChange;
+                var pListPara = pSet.pListPara;
                 var set = {
                     showValueHelp: true,
                     change: function (e) {
@@ -1911,7 +1912,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             pSet.fnBeforeChange(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
                         var sq = (Util.isFunction(sqChange) ? sqChange() : sqChange);
                         UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs[ordref].obj, undefined, thatForm.frm.objs[ordrefnm].obj);
-
                         if (pSet.fnAfteUpdate != undefined)
                             pSet.fnAfteUpdate(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
 
@@ -1922,7 +1922,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         var btns = (pSet.getBtns != undefined ? pSet.getBtns() : undefined);
                         UtilGen.Search.do_quick_search(thatForm.frm.objs[ordref].obj, this,
                             (Util.isFunction(sqList) ? sqList() : sqList),
-                            (Util.isFunction(sqListChange) ? sqListChange() : sqListChange), thatForm.frm.objs[ordrefnm].obj, undefined, undefined, btns);
+                            (Util.isFunction(sqListChange) ? sqListChange() : sqListChange), thatForm.frm.objs[ordrefnm].obj, undefined, undefined, btns, undefined, pListPara);
                         if (pSet.fnAfterValHelp != undefined)
                             pSet.fnAfterValHelp(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
                     }
@@ -1943,6 +1943,27 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     name: ordrefnm,
                     sqlChange: "select name from c_ycust where  code = ':CODE'",
                     sqlList: "select code,name title from c_ycust where flag=1 and iscust='Y'  order by path ",
+                    sqlListChange: "select code,name title from c_ycust where code=:CODE",
+                });
+            },
+            getSettingsOrdRef2: function (pSet) {
+                var thatForm = pSet.thatForm;
+                var ordref = Util.nvl(pSet.ord_ref, "qry1.ord_ref");
+                var ordrefnm = Util.nvl(pSet.ord_ref, "qry1.ord_refnm");
+                return this.getSettingsGeneral({
+                    thatForm: pSet, thatForm,
+                    fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
+                    fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
+                    fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
+                    fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
+                    code: ordref,
+                    name: ordrefnm,
+                    pListPara: {
+                        selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                        defaultKey: "ACTIVE",
+                    },
+                    sqlChange: "select name from c_ycust where  code = ':CODE'",
+                    sqlList: "select code,name title from c_ycust where flag=1 and iscust='Y' and (mov_type='^^list_key' or    '^^list_key'='ALL')   order by path ",
                     sqlListChange: "select code,name title from c_ycust where code=:CODE",
                 });
             },

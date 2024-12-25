@@ -440,48 +440,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             var getSettingContItems = function (seq) {
                 var ordref = "qry1.ord_ship";
                 var ordrefnm = "qry1.itemname";
-                var getSqlChange = function (seq) {
-                    var locval = thatForm.frm.objs[ordref].obj.getValue();
-                    var sq = thatForm.frm.parseString("select nvl(count(*),0) " +
-                        " from c_contract_items " +
-                        " where cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
-                        " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate");
-                    var sqChange = thatForm.frm.parseString("select descr name " +
-                        " from c_contract_items " +
-                        " where refer='CODE' and cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
-                        " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate").replaceAll("'CODE'", "':CODE'");
-                    var sqlLst = thatForm.frm.parseString("select refer code ,descr title ,price " +
-                        " from c_contract_items " +
-                        " where cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
-                        " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate order by 1");
-                    var sqLstChange = thatForm.frm.parseString("select refer code,descr title " +
-                        " from c_contract_items " +
-                        " where refer='CODE' and cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
-                        " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate").replaceAll("'CODE'", ":CODE");
-                    var cnt = Util.getSQLValue(sq);
-                    if (cnt < 0) {
-                        sq = "select nvl(count(*),0) from C_CUSTOMER_ITEMS where code=':qry1.ord_ref' and ':qry1.ord_ship'=refer";
-                        sq = thatForm.frm.parseString(sq);
-                        cnt = Util.getSQLValue(sq);
-                    }
-                    if (cnt < 0) FormView.err("No Contract or price forund for this customer and branch !");
-                    if (seq == 1)
-                        return sqChange;
-                    else if (seq == 2) {
-                        return sqlLst;
-                    } else if (seq == 3) {
-                        return sqLstChange;
-                    }
 
-
-                };
                 return FormView.getFactoryFields.getSettingsGeneral({
                     thatForm: thatForm,
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
-                    sqlChange: function () { return getSqlChange(1); },
-                    sqlList: function () { return getSqlChange(2); },
-                    sqlListChange: function () { return getSqlChange(3); },
+                    sqlChange: function () { return thatForm.helperFunc.getSqlChange(1); },
+                    sqlList: function () { return thatForm.helperFunc.getSqlChange(2); },
+                    sqlListChange: function () { return thatForm.helperFunc.getSqlChange(3); },
                     fnAfteUpdate: function () {
                         var locval = thatForm.frm.objs[ordref].obj.getValue();
                         var s = Util.getSQLValue("select packd from items where reference='" + locval + "'");
@@ -542,7 +508,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
-                    }, FormView.getFactoryFields.getSettingsOrdRef({
+                    }, FormView.getFactoryFields.getSettingsOrdRef2({
                         thatForm: thatForm,
                         fnAfteUpdate: function () {
                             var locval = thatForm.frm.objs["qry1.ord_ref"].obj.getValue();
@@ -1111,35 +1077,112 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
             });
         },
+        getSqlChange: function (seq) {
+            var thatForm = this.thatForm;
+            var locval = thatForm.frm.objs["qry1.ord_ref"].obj.getValue();
+            var sq = thatForm.frm.parseString("select nvl(count(*),0) " +
+                " from c_contract_items " +
+                " where cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
+                " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate");
+            var sqChange = thatForm.frm.parseString("select descr name " +
+                " from c_contract_items " +
+                " where refer='CODE' and cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
+                " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate").replaceAll("'CODE'", "':CODE'");
+            var sqlLst = thatForm.frm.parseString("select refer code ,descr title ,price " +
+                " from c_contract_items " +
+                " where cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
+                " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate order by 1");
+            var sqLstChange = thatForm.frm.parseString("select refer code,descr title " +
+                " from c_contract_items " +
+                " where refer='CODE' and cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
+                " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate").replaceAll("'CODE'", ":CODE");
+            var cnt = Util.getSQLValue(sq);
+            if (cnt <= 0) {
+                sq = "select nvl(count(*),0) from C_CUSTOMER_ITEMS where code=':qry1.ord_ref'";
+                sq = thatForm.frm.parseString(sq);
+                cnt = Util.getSQLValue(sq);
+                sqChange = thatForm.frm.parseString("select descr name from C_CUSTOMER_ITEMS" +
+                    " where code=':qry1.ord_ref' and refer='CODE'").replaceAll("'CODE'", "':CODE'");
+                sqlLst = thatForm.frm.parseString("select refer code,descr title,price from C_CUSTOMER_ITEMS" +
+                    " where code=':qry1.ord_ref'");
+                sqLstChange = thatForm.frm.parseString("select refer code,descr title from C_CUSTOMER_ITEMS" +
+                    " where code=':qry1.ord_ref' and refer='CODE'").replaceAll("'CODE'", ":CODE")
+            }
+            if (cnt <= 0) {
+                sqChange = thatForm.frm.parseString("select descr name from items " +
+                    " where reference='CODE'").replaceAll("'CODE'", "':CODE'");
+                sqlLst = thatForm.frm.parseString("select reference code,descr title,price1 price from items " +
+                    " order by descr2 ");
+                sqLstChange = thatForm.frm.parseString("select reference code,descr title from items" +
+                    " where reference='CODE'").replaceAll("'CODE'", ":CODE")
+            }
+            if (seq == 1)
+                return sqChange;
+            else if (seq == 2) {
+                return sqlLst;
+            } else if (seq == 3) {
+                return sqLstChange;
+            }
+
+
+        },
         enterQuckEntry: function () {
             var thatForm = this.thatForm;
             if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
                 FormView.err("Form is not in NEW record status");
 
             this.qr = ["ord_ref", "ord_discamt", "ord_ship"];
+            var getSqlItem = function (sn) {
+                return thatForm.helperFunc.getSqlChange(sn);
+            };
+
+
             var qryStr = [
 
-                { //customer and branch
+                { //customer
                     sql:
-                        "SELECT C_YCUST.CODE,C_YCUST.NAME,BRNO,B_NAME FROM C_YCUST ,CBRANCH WHERE C_YCUST.CODE=CBRANCH.CODE  " +
-                        " ORDER BY C_YCUST.CODE,CBRANCH.BRNO ",
+                        "SELECT C_YCUST.CODE,C_YCUST.NAME FROM C_YCUST WHERE iscust='Y' and " +
+                        " (mov_type='^^list_key' or    '^^list_key'='ALL')  " +
+                        " ORDER BY C_YCUST.path ",
                     return:
                     {
                         code: "qry1.ord_ref",
+                        // brno: "qry1.ord_discamt",
+                    }
+                    ,
+                    listPara: {
+                        selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                        defaultKey: "ACTIVE",
+                    },
+                    cols: ["CODE", "NAME"],
+                    width: "60%",
+                    height: "80%",
+                    title: Util.getLangText("txtCountCust")
+
+                },
+                { // branch
+                    sql:
+                        "SELECT brno,b_name FROM cbranch WHERE  " +
+                        " code=':qry1.ord_ref' " +
+                        " ORDER BY CBRANCH.BRNO ",
+                    return:
+                    {
+                        // code: "qry1.ord_ref",
                         brno: "qry1.ord_discamt",
                     }
                     ,
-                    cols: ["CODE", "NAME", "BRNO", "B_NAME"],
+                    listPara: {
+                        selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                        defaultKey: "ACTIVE",
+                    },
+                    cols: ["BRNO", "B_NAME"],
                     width: "60%",
                     height: "80%",
                     title: Util.getLangText("txtCountCust")
 
                 },
                 { //items
-                    sql: "select refer code ,descr title ,price " +
-                        " from c_contract_items " +
-                        " where cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
-                        " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate order by 1",
+                    sql: getSqlItem,
                     return:
                     {
                         code: "qry1.ord_ship",
@@ -1187,7 +1230,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 var itemcode = thatForm.frm.objs["qry1.ord_ship"].obj.getValue();
                 var itemname = thatForm.frm.objs["qry1.itemname"].obj.getValue();
 
-                var sqlist = thatForm.frm.parseString(qryStr[cn].sql);
+                var sqlist = Util.isFunction(qryStr[cn].sql) ? qryStr[cn].sql(2) : thatForm.frm.parseString(qryStr[cn].sql);
                 if (sqlist != "qtyInput")
                     Util.show_list(sqlist, qryStr[cn].cols, "", function (data) {
                         var rets = Object.keys(qryStr[cn].return);
@@ -1200,7 +1243,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         }
                         fnExe(++cn);
                         return true;
-                    }, qryStr[cn].width, qryStr[cn].height, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined, qryStr[cn].title);
+                    }, qryStr[cn].width, qryStr[cn].height, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, qryStr[cn].listPara, qryStr[cn].title);
                 if (sqlist == "qtyInput") {
                     UtilGen.inputDialog(custcode + " / " + custname,
                         itemcode + " / " + itemname, 0, function (str) {
