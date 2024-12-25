@@ -1032,7 +1032,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     if (evt.key == "Enter") {
                         console.log("press enter");
                         if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {
-                            qv.getControl().setSelectedIndex(0);
+                            setTimeout(() => {
+                                qv.getControl().setSelectionInterval(1, 0);
+                            });
                         }
                     }
 

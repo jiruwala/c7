@@ -646,8 +646,14 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                                 UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_ref"].obj, dtx[0].ACCNO);
                                 var nm = Util.getSQLValue("select name from c_ycust where code='" + dtx[0].ACCNO + "'");
                                 UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_refnm"].obj, nm);
-                                if (Util.nvl(dtx[0].ACCNO, '') != "")
+
+                                if (Util.nvl(dtx[0].ACCNO, '') != "") {
+                                    var on = Util.getSQLValue("select nvl(min(brno),1) from cbranch where code='" + dtx[0].ACCNO + "'");
+                                    UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_discamt"].obj, on, on, true);
                                     thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
+                                }
+                                else
+                                    UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_discamt"].obj, "", "", true);
                                 var nwOn = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 " +
                                     " where  ord_code=" + thatForm.vars.vou_code + " and location_code=" + Util.quoted(locval) +
                                     " and ord_type='" + ordtyp + "'");
@@ -847,7 +853,6 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '') {
                                 thatForm.frm.objs["qry1.ord_ref"].obj.setValue("");
                                 FormView.err(Util.getLangText("msgBRMustEnterOrdType"));
-
                             }
 
                             var sq = "select name from c_ycust where  code = ':CODE'";
@@ -1740,6 +1745,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             var qryStr = [
 
                 { //location
+                    name: "location",
                     sql:
                         "select code,name from locations order by code",
                     return:
@@ -1752,35 +1758,70 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     title: Util.getLangText("locationTxt")
 
                 },
-                { //customer and branch
+                { //type
+                    name: "type",
                     sql:
-                        "SELECT C_YCUST.CODE,C_YCUST.NAME,BRNO,B_NAME FROM C_YCUST ,CBRANCH WHERE C_YCUST.CODE=CBRANCH.CODE  " +
-                        " ORDER BY C_YCUST.CODE,CBRANCH.BRNO ",
+                        "select no code,descr title from invoicetype where location_code=':qry1.location_code' order by no ",
+                    return:
+                    {
+                        code: "qry1.ord_type",
+                    },
+                    cols: ["CODE", "NAME"],
+                    width: "300px",
+                    height: "400px",
+                    title: Util.getLangText("txtOrdType")
+
+                },
+
+                { //customer
+                    name: "customer",
+                    sql:
+                        "SELECT C_YCUST.CODE,C_YCUST.NAME FROM C_YCUST where iscust='Y' " +
+                        " ORDER BY C_YCUST.path",
                     return:
                     {
                         code: "qry1.ord_ref",
-                        brno: "qry1.ord_discamt",
+                        name: "qry1.ord_refnm",
                     },
-                    cols: ["CODE", "NAME", "BRNO", "B_NAME"],
+                    cols: ["CODE", "NAME"],
                     width: "60%",
                     height: "80%",
                     title: Util.getLangText("txtCountCust")
-
+                },
+                { //branch
+                    name: "branch",
+                    sql:
+                        "SELECT BRNO,B_NAME FROM CBRANCH " +
+                        " where code=':qry1.ord_ref'" +
+                        " ORDER BY CBRANCH.BRNO ",
+                    return:
+                    {
+                        // code: "qry1.ord_ref",
+                        brno: "qry1.ord_discamt",
+                    },
+                    cols: ["BRNO", "B_NAME"],
+                    width: "50%",
+                    height: "60%",
+                    title: Util.getLangText("txtBranch")
                 },
                 { //items
-                    sql: "select refer code ,descr title ,price " +
-                        " from c_contract_items " +
-                        " where cust_code=':qry1.ord_ref' and branch_no=':qry1.ord_discamt' " +
-                        " and :qry1.ord_date >= startdate and :qry1.ord_date <= enddate order by 1",
+                    name: "items",
+                    sql: "SELECT REFERENCE code,DESCR title ,get_item_price2(reference,':qry1.ord_ref',':qry1.ord_discamt',:qry1.ord_date) price  FROM ITEMS WHERE FLAG=1 ORDER BY DESCR2",
                     cols: ["CODE", "TITLE"],
                     width: "500px",
                     height: "500px",
                     title: Util.getLangText("custItems"),
                 },
                 { //qty
+                    name: "qtyInput",
                     sql: "qtyInput"
                 },
+                { //price
+                    name: "priceInput",
+                    sql: "priceInput"
+                },
                 { //driver
+                    name: "driver",
                     sql: "select no code,name title from salesp where type='D'  order by no ",
                     return:
                     {
@@ -1799,6 +1840,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     setTimeout(() => {
                         var ob = thatForm.frm.objs["qry1.ord_ship"].obj;
                         ob.focus();
+                        if (thatForm.frm.getFieldValue("qry1.ord_type") == 2)
+                            thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(true);
                     }, 600);
                     return;
                 }
@@ -1809,30 +1852,37 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 // var itemname = thatForm.frm.objs["qry1.itemname"].obj.getValue();
                 // that.cn = cn;
                 var sqlist = thatForm.frm.parseString(qryStr[cn].sql);
-                if (sqlist != "qtyInput") {
-                    Util.show_list(sqlist, qryStr[cn].cols, "", function (data) {
-                        // var cn = that.cn;                        
-                        if (qryStr[cn].title == Util.getLangText("custItems")) {
-                            if (qr.mLctb.rows.length > 0) {
-                                var cnx = qv.getControl().getRows()[0].getCells()[1];
-                                cnx.focus();
-                                // cnx.fireValueHelpRequest({ fromSuggestions: true });
-                                cnx.setValue(data.CODE);
-                                cnx.fireChange({ value: data.CODE });
-                            }
-                        } else {
-                            var rets = Object.keys(qryStr[cn].return);
-                            for (var r in rets) {
-                                var ky = rets[r];
-                                var val = qryStr[cn].return[ky];
-                                thatForm.frm.objs[val].obj.setValue(data[ky.toUpperCase()]);
-                                thatForm.frm.setFieldValue(val, data[ky.toUpperCase()], data[ky.toUpperCase()], true);
-                                thatForm.frm.objs[val].obj.fireChange();
-                            }
-                        }
+                if (!sqlist.endsWith("Input")) {
+                    if ((thatForm.frm.getFieldValue("qry1.ord_type") == 2 && qryStr[cn].name == "customer")
+                        || (qryStr[cn].name == "branch" && thatForm.frm.getFieldValue("qry1.ord_type") == 2)) {
+                        console.log('selected customer/branch by cash ..');
                         fnExe(++cn);
                         return true;
-                    }, qryStr[cn].width, qryStr[cn].height, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined, qryStr[cn].title);
+                    } else
+                        Util.show_list(sqlist, qryStr[cn].cols, "", function (data) {
+                            // var cn = that.cn;                        
+                            if (qryStr[cn].title == Util.getLangText("custItems")) {
+                                if (qr.mLctb.rows.length > 0) {
+                                    var cnx = qv.getControl().getRows()[0].getCells()[1];
+                                    cnx.focus();
+                                    // cnx.fireValueHelpRequest({ fromSuggestions: true });
+                                    cnx.setValue(data.CODE);
+                                    cnx.fireChange({ value: data.CODE });
+                                }
+                            } else {
+                                var rets = Object.keys(qryStr[cn].return);
+                                for (var r in rets) {
+                                    var ky = rets[r];
+                                    var val = qryStr[cn].return[ky];
+                                    thatForm.frm.objs[val].obj.setValue(data[ky.toUpperCase()]);
+                                    thatForm.frm.setFieldValue(val, data[ky.toUpperCase()], data[ky.toUpperCase()], true);
+                                    thatForm.frm.objs[val].obj.fireChange({ value: data[ky.toUpperCase()] });
+                                }
+                            }
+                            fnExe(++cn);
+                            return true;
+                        }, qryStr[cn].width, qryStr[cn].height, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined, qryStr[cn].title);
+
                 }
                 if (sqlist == "qtyInput") {
                     UtilGen.inputDialog(custcode + " / " + custname,
@@ -1851,6 +1901,28 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             return true;
                         }, function () {
                             FormView.err("Must enter QTY !");
+                        }, undefined, undefined, {});
+                }
+                if (sqlist == "priceInput") {
+                    var prx = Util.extractNumber(qv.getControl().getRows()[0].getCells()[6].getValue());
+                    UtilGen.inputDialog("PRICE  " + custcode + " / " + custname,
+                        qv.getControl().getRows()[0].getCells()[1].getValue()
+                        + " / " + qv.getControl().getRows()[0].getCells()[2].getText(), prx, function (str) {
+                            var qt = Util.extractNumber(str);
+                            if (qt < 0) { FormView.msgCustom("Err !, Must enter valid price !"); return false; }
+                            // thatForm.frm.setFieldValue("qry1.ord_pkqty", qt, qt, true);
+                            if (qr.mLctb.rows.length >= 0) {
+                                var cnx = qv.getControl().getRows()[0].getCells()[6];
+                                cnx.focus();
+                                cnx.setValue(qt);
+                                cnx.fireChange({ value: qt });
+                            }
+                            fnExe(++cn);
+                            return true;
+                        }, function () {
+                            FormView.err("Must enter PRICE !");
+                            fnExe(++cn);
+                            return true;
                         }, undefined, undefined, {});
                 }
 
