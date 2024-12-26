@@ -42,7 +42,12 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 that.oController.getForm().getParent().setShowHeader(false);
 
         }, 10);
+        this.mainPage.attachBrowserEvent("keydown", function (oEvent) {
+            if (that.frm.isFormEditable() && oEvent.key == 'F2') {
+                that.helperFunc.enterQuckEntry();
+            }
 
+        });
         return this.joApp;
     },
     createView: function () {
@@ -87,7 +92,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText blinking");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" }));
                     var cmdQuickEntry = new sap.m.Button(thatForm.view.createId("cmdQE" + thatForm.timeInLong), {
-                        text: "Quick Entry",
+                        text: "Quick Entry [F2]",
                         press: function () {
                             thatForm.helperFunc.enterQuckEntry();
                         }
@@ -1822,7 +1827,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 },
                 { //driver
                     name: "driver",
-                    sql: "select no code,name title from salesp where type='D'  order by no ",
+                    sql: "select no code,name title from salesp  order by no ",
                     return:
                     {
                         code: "qry1.ord_empno",
@@ -1903,7 +1908,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             FormView.err("Must enter QTY !");
                         }, undefined, undefined, {});
                 }
-                if (sqlist == "priceInput") {
+                if (sqlist == "priceInput" && thatForm.frm.getFieldValue("qry1.ord_type") == 2) {
                     var prx = Util.extractNumber(qv.getControl().getRows()[0].getCells()[6].getValue());
                     UtilGen.inputDialog("PRICE  " + custcode + " / " + custname,
                         qv.getControl().getRows()[0].getCells()[1].getValue()
@@ -1924,6 +1929,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             fnExe(++cn);
                             return true;
                         }, undefined, undefined, {});
+                } else if (sqlist == "priceInput") {
+                    fnExe(++cn);
                 }
 
             }
