@@ -1031,6 +1031,14 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     }
                 });
                 searchField.attachBrowserEvent("keydown", function (evt) {
+                    if (evt.key == "Enter") {
+                        if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {
+                            qv.getControl().setSelectedIndex(0);
+                            setTimeout(() => {
+                                qv.getControl().setSelectionInterval(1, 0);
+                            });
+                        }
+                    }
                     if (evt.key == "ArrowDown") {
                         qv.getControl().focus();
                     }
@@ -1981,7 +1989,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     var propStr = kys[k];
                     var val = props[propStr];
                     Util.setColProp(qv, colnm, propStr, val);
-                }                 
+                }
             }
         };
 

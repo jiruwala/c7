@@ -346,6 +346,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             that.view.byId("numtxt" + thatForm.timeInLong).setText("");
                             that.frm.objs["qry1.etype"].obj.setSelectedItem(that.frm.objs["qry1.etype"].obj.getItems()[0]);
                             that.frm.objs["qry1.type"].obj.setSelectedItem(that.frm.objs["qry1.type"].obj.getItems()[0]);
+                            that.frm.objs["qry1.mov_type"].obj.setSelectedItem(that.frm.objs["qry1.mov_type"].obj.getItems()[0]);
                         }
                     },
                     beforeDeleteValidate: function (frm) {
@@ -595,7 +596,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                     showValueHelp: true,
                                     valueHelpRequest: function (e) {
                                         UtilGen.Search.do_quick_search(e, this,
-                                            "select code,name title from c_ycust where usecount=0 order by path ",
+                                            "select code,name title from c_ycust where mov_type='ACTIVE' and usecount=0 order by path ",
                                             "select code,name title from c_ycust where usecount=0 and code=:CODE", thatForm.frm.objs["qry1.parentcustname"].obj, undefined, undefined, undefined);
 
                                     },
@@ -755,7 +756,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_style: "",
                                 display_format: "",
                                 other_settings: {
-                                    width: "20%",
+                                    width: "15%",
                                     showValueHelp: true,
                                     valueHelpRequest: function (e) {
                                         if (e.getParameters().clearButtonPressed || e.getParameters().refreshButtonPressed) {
@@ -789,10 +790,35 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "64%" },
+                                other_settings: { width: "39%" },
                                 edit_allowed: false,
                                 insert_allowed: false,
                                 require: false,
+                            },
+                            mov_type: {
+                                colname: "mov_type",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '@{\"text\":\"Status\",\"width\":\"10%\","textAlign":"End","styleClass":"boldText"}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: {
+                                    width: "20%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                list: "@ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal"
+
                             },
                             tit1: {
                                 colname: "tit1",
@@ -1029,6 +1055,10 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                         name: 'list1',
                         title: "List ",
                         list_type: "sql",
+                        list_para: {
+                            selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                            defaultKey: "ACTIVE",
+                        },
                         cols: [
                             {
                                 colname: 'CODE',
@@ -1038,7 +1068,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "NAME",
                             },
                         ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                        sql: "select code, name from c_ycust order by path",
+                        sql: "select code, name from c_ycust where (mov_type='^^list_key' or    '^^list_key'='ALL')  order by path",
                         afterSelect: function (data) {
                             that2.frm.loadData(undefined, "view");
                             return true;

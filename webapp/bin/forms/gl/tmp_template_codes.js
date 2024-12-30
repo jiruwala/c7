@@ -112,9 +112,57 @@ var a = {
         var sett = sap.ui.getCore().getModel("settings").getData();
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
-                
+
         UtilGen.Search.do_quick_search(e, this,
             "select Accno code,Name title from acaccount where childcount=0 and isbankcash='Y' order by path ",
             "select accno code,name title from acaccount where accno=:CODE", that.frm.objs["qry1.codename"].obj);
     }
 }
+
+
+
+var gj = new sap.m.Panel({
+    height: "180px",
+    backgroundDesign: "Solid",
+    headerToolbar: new sap.m.Toolbar({
+        content: [
+            new sap.m.Text({ text: "Daily Production" }).addStyleClass("guageTitle"),
+            new sap.m.Button({ text: ":", press: function () { UtilGen.DashboardWidget.inputTarget(20); } })
+        ]
+    }).addStyleClass("guagePanel"),
+    content: [
+        UtilGen.DashboardWidget.getGauge(20)
+    ]
+}).addStyleClass("guagePanel")
+
+var gj3 = new sap.m.SlideTile({
+    class: "sapUiTinyMarginBegin sapUiTinyMarginTop",
+    tiles: [
+        new sap.m.GenericTile({
+            frameType: "OneByOne",
+            press: function () { },
+            tileContent: [
+                new sap.m.TileContent({
+                    footer: "August 21, 2016",
+                    content: new sap.m.NewsContent({
+                        contentText: "SAP Unveils Powerful New Player Comparison Tool Exclusively on NFL.com",
+                        subheader: "Today, SAP News"
+                    })
+                })
+            ]
+        }),
+        new sap.m.GenericTile({
+            frameType: "OneByOne",
+            press: function () { },
+            tileContent: [
+                new sap.m.TileContent({
+                    footer: "August 21, 2016",
+                    content: new sap.m.NewsContent({
+                        contentText: "Wind Map: Monitoring Real-Time and Forecasted Wind Conditions across the Globe",
+                        subheader: "Today, SAP News"
+                    })
+                })
+            ]
+        })
+    ]
+});

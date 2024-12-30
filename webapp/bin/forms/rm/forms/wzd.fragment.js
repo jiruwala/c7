@@ -265,7 +265,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             Util.getLabelTxt("", "1%", "@"), this.txtProdName,
             Util.getLabelTxt("", "100%", "#"), new sap.m.VBox({ height: "20px" }),
             Util.getLabelTxt("wzdSepDate", "20%"), this.chkSepDate,
-            // Util.getLabelTxt("recheckPrice", "20%"), this.recheckPrice,
+            Util.getLabelTxt("recheckPrice", "20%"), this.recheckPrice,
 
         ]
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");
@@ -452,12 +452,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
 
         if (fromdt == null || todt == null) { that.joApp.to(that.mainPage, "slide"); return; };
 
-        var slices = [];
-        var slicesof = [];
-        if (that.qvRef != undefined && that.qvRef.mLctb.rows.length > 0) {
-            slices = that.qvRef.getControl().getSelectedIndices();
-            slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
-        }
+        var slices = that.qvRef.getControl().getSelectedIndices();
+        var slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
+
         if (Util.nvl(that.txtRef.getValue(), "") == "" &&
             that.qvRef.getControl().getSelectedIndices().length < 0) {
             that.joApp.to(that.detailPageRef, "slide");
@@ -1003,13 +1000,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             that.joApp.toDetail(that.detailPage, "slide");
             FormView.err("No Any delivery selected !");
         }
-
-        var slices = [];
-        var slicesof = [];
-        if (that.qvRef != undefined && that.qvRef.mLctb.rows.length > 0) {
-            slices = that.qvRef.getControl().getSelectedIndices();
-            slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
-        }
+        var slices = this.qvRef.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
+        var slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
 
         var rn = (slices.length > 0 ? slicesof[slices[0]] : -1);
 
@@ -1025,6 +1017,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             selBrName = that.qvRef.mLctb.getFieldValue(rn, "BNAME");
             selProd = that.qvRef.mLctb.getFieldValue(rn, "ORD_SHIP");
         }
+
         var refName = selCustName + " - " + selCust;
         var bName = + selBrName + " - " + selBrno;
 
