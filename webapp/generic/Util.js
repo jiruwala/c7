@@ -1032,9 +1032,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 });
                 searchField.attachBrowserEvent("keydown", function (evt) {
                     if (evt.key == "Enter") {
-                        if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {
-                            qv.getControl().setSelectedIndex(0);
+                        if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {                            
                             setTimeout(() => {
+                                qv.getControl().setSelectedIndex(0);
                                 qv.getControl().setSelectionInterval(1, 0);
                             });
                         }

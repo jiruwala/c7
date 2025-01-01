@@ -1241,7 +1241,12 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             ]
             this.cn = 0;
             var fnExe = function (cn) {
-                if (cn >= qryStr.length) return;
+                if (cn >= qryStr.length) {
+                    setTimeout(() => {
+                        thatForm.frm.objs["qry1.ord_ref"].obj.focus();
+                    }, 200);
+                    return;
+                }
                 var custcode = thatForm.frm.objs["qry1.ord_ref"].obj.getValue();
                 var custname = thatForm.frm.objs["qry1.ord_refnm"].obj.getValue();
                 var itemcode = thatForm.frm.objs["qry1.ord_ship"].obj.getValue();
