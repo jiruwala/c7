@@ -785,7 +785,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             "                 null, 0,'',x.PAYTERM,x.ord_date ) ;" +
             "     totamt:=totamt+(x.TQTY*pr);                " +
             " " +
-            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld;" +
+            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld  and ord_pos=x.ord_pos; " +
             "   update ORDER1 set SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
             " " +
             " end loop;" +

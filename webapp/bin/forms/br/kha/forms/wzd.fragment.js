@@ -926,9 +926,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             "     totamt:= totamt + ((x.qty_x) * (pr) ); " +
             " " +
             "  if x.pack_x=1 then " +
-            "   update C_ORDER1 set price_2=pr, SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
+            "   update C_ORDER1 set price_2=pr, SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld and ord_pos=x.ord_pos; " +
             " else " +
-            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
+            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld and ord_pos=x.ord_pos; " +
             " end if;" +
             "   update ORDER1 set SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
             " " +
