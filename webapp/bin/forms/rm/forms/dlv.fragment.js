@@ -312,11 +312,12 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 },
                 beforePrint: function (rptName, params) {
                     var no = that.frm.getFieldValue("qry1.ord_no");
-                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
+                    var loc = that.frm.getFieldValue("qry1.location_code");
+                    return params + "&_para_plocation=" + loc + "&_para_pfromno=" + no + "&_para_ptono=" + no;
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
-
+                                                                                                                                                                                                
                     }
                 },
                 beforeExeSql: function (frm, sq) {

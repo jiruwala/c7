@@ -7,7 +7,7 @@
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="cm"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="cm"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="kh7"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ora"/>
 	<template><![CDATA["voucherStyle.jrtx"]]></template>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["D:\\yaali\\products\\channelPlus_others\\channel_reports\\"]]></defaultValueExpression>
@@ -43,7 +43,7 @@ ORDER1.VALIDATIY, ORDER1.ATTN, ORDER1.SALEINV,  CBRANCH.B_NAME,CBRANCH.BLOCK,
 CBRANCH.STREET, CBRANCH.JEDDA, CBRANCH.AREA, CBRANCH.TEL,
 (SELECT POWER FROM ITEMS WHERE REFERENCE=ORDER1.ORD_SHIP) WGHT,
 (SELECT PARTNO FROM ITEMS WHERE REFERENCE=ORDER1.ORD_SHIP) TYPEOFCEM,
-CBRANCH.QASIMA,
+CBRANCH.QASIMA,nvl(cbranch.area,cbranch.b_name) area2,
 to_char(TMPLANTLEAVE,'HH24:MI') TMPLANTLEAVE,
 (select max(name) from salesp where no=order1.ord_empno) driv_name,
 (select max(descr) from items where reference=order1.chem_refer) chem_name,
@@ -172,6 +172,10 @@ ORDER BY "ORDER1"."ORD_NO" DESC]]>
 		<property name="com.jaspersoft.studio.field.name" value="QASIMA"/>
 		<property name="com.jaspersoft.studio.field.label" value="QASIMA"/>
 	</field>
+	<field name="AREA2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="AREA2"/>
+		<property name="com.jaspersoft.studio.field.label" value="AREA2"/>
+	</field>
 	<field name="TMPLANTLEAVE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="TMPLANTLEAVE"/>
 		<property name="com.jaspersoft.studio.field.label" value="TMPLANTLEAVE"/>
@@ -255,7 +259,7 @@ ORDER BY "ORDER1"."ORD_NO" DESC]]>
 					<textElement textAlignment="Right" verticalAlignment="Bottom">
 						<font fontName="DejaVu Sans" size="12" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{ATTN}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{AREA2}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 					<reportElement style="strHeader" x="344" y="359" width="100" height="20" uuid="e31c8087-6ca8-4627-a83c-49c3a94f7472"/>
