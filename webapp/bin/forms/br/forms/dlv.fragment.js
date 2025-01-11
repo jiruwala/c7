@@ -557,7 +557,6 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     default_value: sett["DEFAULT_STORE"],
                     other_settings: {
                         editable: true, width: "30%",
-
                         items: {
                             path: "/",
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),

@@ -1905,6 +1905,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 var sqList = pSet.sqlList;
                 var sqListChange = pSet.sqlListChange;
                 var pListPara = pSet.pListPara;
+                var pPoints = pSet.pPoints;
                 var set = {
                     showValueHelp: true,
                     change: function (e) {
@@ -1922,7 +1923,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         var btns = (pSet.getBtns != undefined ? pSet.getBtns() : undefined);
                         UtilGen.Search.do_quick_search(thatForm.frm.objs[ordref].obj, this,
                             (Util.isFunction(sqList) ? sqList() : sqList),
-                            (Util.isFunction(sqListChange) ? sqListChange() : sqListChange), thatForm.frm.objs[ordrefnm].obj, undefined, undefined, btns, undefined, pListPara);
+                            (Util.isFunction(sqListChange) ? sqListChange() : sqListChange), thatForm.frm.objs[ordrefnm].obj, undefined, pPoints, btns, undefined, pListPara);
                         if (pSet.fnAfterValHelp != undefined)
                             pSet.fnAfterValHelp(thatForm.frm.objs[ordref].obj, thatForm.frm.objs[ordrefnm].obj);
                     }
@@ -1981,6 +1982,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
                     code: brno,
                     name: brname,
+                    pPoints: {
+                        pWidth: "80%"
+                    },
                     sqlChange: function () {
                         var locval = UtilGen.getControlValue(thatForm.frm.objs[ordref].obj);
                         return "select b_name name from cbranch where code=':CUSTCODE' and brno = ':CODE'".replaceAll(":CUSTCODE", locval);

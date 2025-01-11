@@ -47,6 +47,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
         }, 10);
 
+        this.mainPage.attachBrowserEvent("keydown", function (oEvent) {
+            if (that.frm.isFormEditable() && oEvent.key == 'F2') {
+                that.helperFunc.enterQuckEntry();
+            }
+        });
         return this.joApp;
     },
     createView: function () {
@@ -62,7 +67,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         var sumSpan2 = "XL2 L6 M6 S12";
         var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + that.vars.vou_code + " ORDER BY O1.ORD_POS ";
-
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.frm;
@@ -77,16 +81,25 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("cmdQE" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("btci" + thatForm.timeInLong, thatForm.view);
+
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText blinking");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" }));
                     var cmdQuickEntry = new sap.m.Button(thatForm.view.createId("cmdQE" + thatForm.timeInLong), {
-                        text: "Quick Entry",
+                        text: "Quick Entry [F2]",
                         press: function () {
                             thatForm.helperFunc.enterQuckEntry();
                         }
                     });
+                    var btCustItems = new sap.m.Button(thatForm.view.createId("btci" + thatForm.timeInLong), {
+                        text: Util.getLangText("rawItems"),
+                        press: function () {
+                            thatForm.showRawItems();
+                        }
+                    });
+
                     var hb = new sap.m.Toolbar({
-                        content: [txt, new sap.m.ToolbarSpacer(), cmdQuickEntry, txtMsg]
+                        content: [txt, btCustItems, new sap.m.ToolbarSpacer(), cmdQuickEntry, txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
@@ -119,9 +132,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                             "ORD_FLAG": 1,
                             "ORD_UNITD": "'PCS'",
                             "ORD_PACK": 1,
-                            "ORD_POS": 1
+                            "ORD_POS": 1,
+                            "ATTN": "':qry1.branchname'"
                         },
                         update_default_values: {
+                            "ATTN": "':qry1.branchname'"
                         },
                         table_name: "C_ORDER1",
                         edit_allowed: true,
@@ -154,6 +169,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
     createViewHeader: function () {
     },
+
     helperFunc: {
         init: function (frm) {
             this.thatForm = frm;
@@ -295,7 +311,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 },
                 beforePrint: function (rptName, params) {
                     var no = that.frm.getFieldValue("qry1.ord_no");
-                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
+                    var loc = that.frm.getFieldValue("qry1.location_code");
+                    return params + "&_para_plocation=" + loc + "&_para_pfromno=" + no + "&_para_ptono=" + no;
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
@@ -1162,7 +1179,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 },
                 { // branch
                     sql:
-                        "SELECT brno,b_name FROM cbranch WHERE  " +
+                        "SELECT brno,b_name||' - '||area b_name FROM cbranch WHERE  " +
                         " code=':qry1.ord_ref' " +
                         " ORDER BY CBRANCH.BRNO ",
                     return:
@@ -1224,7 +1241,12 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             ]
             this.cn = 0;
             var fnExe = function (cn) {
-                if (cn >= qryStr.length) return;
+                if (cn >= qryStr.length) {
+                    setTimeout(() => {
+                        thatForm.frm.objs["qry1.ord_ref"].obj.focus();
+                    }, 200);
+                    return;
+                }
                 var custcode = thatForm.frm.objs["qry1.ord_ref"].obj.getValue();
                 var custname = thatForm.frm.objs["qry1.ord_refnm"].obj.getValue();
                 var itemcode = thatForm.frm.objs["qry1.ord_ship"].obj.getValue();
@@ -1379,13 +1401,364 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         },
     }
     ,
+    showRawItems: function () {
+        var that2 = this;
+        var generateCtgs = function () {
+            var view = that2.view;
+            Util.destroyID(view.createId("btCtg" + that2.timeInLong));
+            var btctg = new sap.m.Button(view.createId("btCtg" + that2.timeInLong), {
+                text: "DEFAULT",
+                customData: [{ key: "DEFAULT" }],
+                icon: "sap-icon://megamenu",
+                press: function () {
+                    var mnus = [];
+                    var loadasctg = function () {
+                        that2.fetchCustItems = false;
+                        fetchData();
+                    }
+                    mnus.push(new sap.m.MenuItem({
+                        text: Util.getLangText("txtNewCtg") + "..",
+                        press: function () {
+                            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
+                                || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                UtilGen.inputDialog("New Category", "Enter New Cateogry", "", function (str) {
+                                    if (Util.nvl(str, "") == "")
+                                        return false;
+                                    btctg.getCustomData()[0].setKey(str);
+                                    btctg.setText(str);
+                                    setTimeout(() => {
+                                        that2.qc.getControl().focus();
+                                    }, 500);
+                                    return true;
+                                })
+                            } else sap.m.MessageToast.show("Form must be in EDIT mode !");
+                        }
+                    }));
+                    if (btctg.getCustomData()[0].getKey() != "DEFAULT")
+                        mnus.push(new sap.m.MenuItem({
+                            text: "DEFAULT",
+                            press: function () {
+                                btctg.getCustomData()[0].setKey("DEFAULT");
+                                btctg.setText("DEFAULT");
+                                loadasctg()
+                            }
+                        }));
+                    var dtx = Util.execSQLWithData("select distinct ctg from masterasm where baseitem='" + that2.frm.getFieldValue("qry1.ord_ship") + "'");
+                    for (var di in dtx) {
+                        if (dtx[di].CTG != "DEFAULT")
+                            mnus.push(new sap.m.MenuItem({
+                                text: dtx[di].CTG,
+                                customData: [{ key: dtx[di].CTG }],
+                                press: function () {
+                                    var dd = this.getCustomData()[0].getKey();
+                                    btctg.getCustomData()[0].setKey(dd);
+                                    btctg.setText(dd);
+                                    loadasctg()
+                                }
+                            }));
+                    }
+                    var mnu = new sap.m.Menu({
+                        title: "",
+                        items: mnus
+                    });
+                    mnu.openBy(this);
+                }
+            });
+            return btctg;
+        };
+
+        if (this.qc == undefined) {
+            this.qc = new QueryView("qrRawitems" + that2.timeInLong);
+            this.qc.getControl().setEditable(true);
+            this.qc.getControl().view = that2.view;
+            this.qc.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+            this.qc.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+            this.qc.getControl().setFixedBottomRowCount(0);
+            this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], false);
+            this.qc.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
+            this.qc.insertable = true;
+            this.qc.deletable = true;
+        }
+
+        this.qc.showToolbar.toolbar.addContent(generateCtgs());
+
+        if (that2.fetchCustItems == false)
+            that2.qc.reset();
+        var cc = "";
+        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+            that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+            cc = that2.frm.getFieldValue("qry1.ord_ship");
+        }
+
+        var eventCalc = function (qv, cx, rowno, reAmt) {
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+
+            if (reAmt)
+                qv.updateDataToTable();
+
+            var ld = qv.mLctb;
+            var sumAmt = 0;
+
+            for (var i = 0; i < ld.rows.length; i++) {
+                var pr = Util.extractNumber(ld.getFieldValue(i, "PKCOST"));
+                var pk = Util.extractNumber(ld.getFieldValue(i, "PACK"));
+                var allqty = (Util.extractNumber(ld.getFieldValue(i, "PKQTY")) * pk) + Util.extractNumber(ld.getFieldValue(i, "QTY"));
+                var amt = (pr / pk) * allqty;
+                if (reAmt)
+                    ld.setFieldValue(i, "AMOUNT", amt)
+                sumAmt += amt;
+            }
+
+            // thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
+            that2.view.byId("txtRM" + that2.timeInLong).setText("Amount : " + df.format(sumAmt));
+            if (reAmt)
+                qv.updateDataToControl();
+
+        };
+
+        var seteditale = function () {
+            if (!(that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+                sap.m.MessageToast.show("Must Form EDIT or NEW mode to edit and add items ! ");
+                cmdEdit.setPressed(false);
+                that2.qc.editable = false
+                setTimeout(function () {
+                    that2.qc.colorRows();
+                });
+                return;
+            }
+
+            if (cmdEdit.getPressed())
+                that2.qc.editable = true;
+            else
+                that2.qc.editable = false
+            fetchData();
+            setTimeout(function () {
+                that2.qc.colorRows();
+            });
+        }
+        var fetchData = function () {
+            var qv = that2.qc;
+            if (that2.fetchCustItems) {
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                    that2.qc.eventCalc = eventCalc;
+                    eventCalc(qv, undefined, 0, true);
+                });
+                return;
+            }
+
+            var dt = Util.execSQL("SELECT M.REFER,I.DESCR, M.PACKD, " +
+                " M.PACK, M.UNITD, M.PKQTY, M.QTY,round(GET_ITEM_COST(M.REFER)*I.PACK,5) PKCOST," +
+                " GET_ITEM_COST(M.REFER)*M.ALLQTY AMOUNT FROM MASTERASM M,ITEMS I " +
+                " WHERE I.REFERENCE=M.REFER " +
+                " and m.ctg='" + that2.view.byId("btCtg" + that2.timeInLong).getCustomData()[0].getKey() + "' " +
+                " and m.baseitem='" + that2.frm.getFieldValue("qry1.ord_ship") + "'" +
+                " order by m.refer "
+            );
+            if (dt.ret == "SUCCESS") {
+                qv.setJsonStrMetaData("{" + dt.data + "}");
+
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("PKQTY")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("QTY")].mColClass = "sap.m.Input";
+
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].getMUIHelper().display_width = 100;
+                qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].getMUIHelper().display_width = 200;
+                qv.mLctb.cols[qv.mLctb.getColPos("PACKD")].getMUIHelper().display_width = 50;
+                qv.mLctb.cols[qv.mLctb.getColPos("UNITD")].getMUIHelper().display_width = 50;
+                qv.mLctb.cols[qv.mLctb.getColPos("PACK")].getMUIHelper().display_width = 40;
+                qv.mLctb.cols[qv.mLctb.getColPos("PKQTY")].getMUIHelper().display_width = 80;
+                qv.mLctb.cols[qv.mLctb.getColPos("QTY")].getMUIHelper().display_width = 80;
+                qv.mLctb.cols[qv.mLctb.getColPos("PKCOST")].getMUIHelper().display_width = 120;
+                qv.mLctb.cols[qv.mLctb.getColPos("AMOUNT")].getMUIHelper().display_width = 120;
+
+                qv.mLctb.cols[qv.mLctb.getColPos("AMOUNT")].getMUIHelper().display_format = "MONEY_FORMAT";
+                // qv.mLctb.cols[qv.mLctb.getColPos("PKCOST")].getMUIHelper().display_format = "#,##0.00000";
+
+                // qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].mTitle = "Price Sell";
+                // qv.mLctb.cols[qv.mLctb.getColPos("PRICE_BUY")].mTitle = "Price Buy";
+
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].eValidateColumn = function (evtx) {
+                    var row = evtx.getSource().getParent();
+                    var column_no = evtx.getSource().getParent().indexOfCell(evtx.getSource());
+                    var columns = evtx.getSource().getParent().getParent().getColumns();
+                    var table = evtx.getSource().getParent().getParent(); // get table control.
+                    var oModel = table.getModel();
+                    var rowStart = table.getFirstVisibleRow(); //starting Row index
+                    var currentRowoIndexContext = table.getContextByIndex(rowStart + table.indexOfRow(row));
+                    var newValue = evtx.getSource().getValue();
+
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/DESCR', "");
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/PACKD', "");
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/PACK', "1");
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/PKCOST', "0");
+
+                    var dtxM = Util.execSQLWithData("select descr,packd,unitd,pack,round(GET_ITEM_COST(REFERENCE),5) PKCOST from items where reference='" + newValue + "' ")
+                    if (dtxM != undefined && dtxM.length > 0) {
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/DESCR', dtxM[0].DESCR);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/PACKD', dtxM[0].PACKD);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/UNITD', dtxM[0].UNITD);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/PACK', dtxM[0].PACK);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/PKCOST', dtxM[0].PKCOST);
+                    }
+                };
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].mSearchSQL = "select reference code,descr title from items order by descr2";
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].eOnSearch = function (evtx) {
+                    var input = evtx.getSource();
+                    UtilGen.Search.do_quick_search(evtx, input,
+                        "select reference code,descr title,round(get_item_cost(reference),5) pkcost from items order by descr2 ",
+                        "select reference code,descr title from items  where reference=:CODE", undefined, function () {
+                            input.fireChange();
+                        },
+                        {
+                            pWidth: "600px", pHeight: "400px",
+                            "background-color": 'blue',
+                            "dialogStyle": "cyanDialog"
+                        });
+
+
+                }
+                var qtValidate = function (evtx) {
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+
+                    var row = evtx.getSource().getParent();
+                    var column_no = evtx.getSource().getParent().indexOfCell(evtx.getSource());
+                    var columns = evtx.getSource().getParent().getParent().getColumns();
+                    var table = evtx.getSource().getParent().getParent(); // get table control.
+                    var oModel = table.getModel();
+                    var rowStart = table.getFirstVisibleRow(); //starting Row index
+                    var currentRowoIndexContext = table.getContextByIndex(rowStart + table.indexOfRow(row));
+
+                    var pr = parseFloat(oModel.getProperty(currentRowoIndexContext.sPath + '/PKCOST'));
+                    var pqt = parseFloat(oModel.getProperty(currentRowoIndexContext.sPath + '/PKQTY'));
+                    var qt = parseFloat(oModel.getProperty(currentRowoIndexContext.sPath + '/QTY'));
+                    var pk = parseFloat(oModel.getProperty(currentRowoIndexContext.sPath + '/PACK'));
+                    var amt = (pr / pk) * (qt + (pqt * pk));
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/AMOUNT', df.format(amt));
+                    eventCalc(qv, undefined, 0, true);
+
+                };
+                qv.mLctb.cols[qv.mLctb.getColPos("PKQTY")].eValidateColumn = qtValidate;
+                qv.mLctb.cols[qv.mLctb.getColPos("QTY")].eValidateColumn = qtValidate;
+
+                qv.mLctb.parse("{" + dt.data + "}", true);
+                qv.loadData();
+                that2.fetchCustItems = true;
+
+
+                qv.onAddRow = function (idx, ld) {
+                    ld.setFieldValue(idx, "PKQTY", 0);
+                    ld.setFieldValue(idx, "QTY", 0);
+                    ld.setFieldValue(idx, "PACK_COST", 0);
+                    ld.setFieldValue(idx, "PACK", 1);
+
+                }
+
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+                eventCalc(that2.qc, undefined, undefined, true);
+            }
+        }
+        var pg = new sap.m.Page({
+            showHeader: true,
+            content: [],
+            showFooter: true
+        }).addStyleClass("sapUiSizeCompact");
+        var cmdClose = new sap.m.ToggleButton({
+            text: Util.getLangText("cmdDone"),
+            icon: "sap-icon://accept",
+            pressed: false,
+            press: function () {
+                dlg.close();
+            }
+
+        });
+        var cmdEdit = new sap.m.ToggleButton({
+            text: Util.getLangText("editRec"),
+            icon: "sap-icon://edit",
+            pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
+                || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
+            press: function () {
+                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                    that2.frm.cmdButtons.cmdEdit.setPressed(true);
+                    that2.frm.cmdButtons.cmdEdit.firePress();
+                }
+                seteditale();
+            }
+
+        });
+        var cmdSave = new sap.m.Button({
+            text: Util.getLangText("saveRec"),
+            icon: "sap-icon://save",
+            press: function () {
+                that2.frm.cmdButtons.cmdSave.firePress();
+                cmdEdit.setPressed(false);
+            }
+
+        });
+        Util.destroyID("txtRM" + that2.timeInLong, that2.view);
+        var txtSumRM = new sap.m.Text(that2.view.createId("txtRM" + that2.timeInLong), { width: "300px", text: "0" }).addStyleClass("redText boldText");
+
+        var tbHeader = new sap.m.Toolbar();
+        pg.setFooter(tbHeader);
+        pg.removeAllHeaderContent();
+        pg.addHeaderContent(this.qc.showToolbar.toolbar);
+        pg.addContent(this.qc.getControl());
+        tbHeader.addContent(cmdSave);
+        tbHeader.addContent(cmdEdit);
+        tbHeader.addContent(cmdClose);
+        tbHeader.addContent(new sap.m.ToolbarSpacer());
+        tbHeader.addContent(txtSumRM);
+
+        var tit = Util.getLangText("titRawItems");
+        if (cc != "")
+            tit = Util.getLangText("titRawItems") + " - " + that2.frm.getFieldValue("qry1.itemname") + " / " + that2.frm.getFieldValue("qry1.ord_ship");
+
+        var dlg = new sap.m.Dialog({
+            title: tit,
+            content: pg,
+            contentWidth: "80%",
+            contentHeight: "400px",
+
+        });
+        fetchData();
+        seteditale();
+        dlg.open();
+        dlg.attachAfterClose(function () {
+            that2.qc.updateDataToTable();
+            sap.m.MessageToast.show("Closing  Itmes window..");
+        });
+        that2.qc.eventCalc = eventCalc;
+        eventCalc(that2.qc, undefined, 0, true);
+
+    },
 
     loadData: function () {
         var frag = this;
+        var frag = this;
+        frag.frm.readonly = Util.nvl(frag.oController.readonly, false);
+        if (frag.frm.readonly == "true") frag.frm.readonly = true;
         if (Util.nvl(frag.oController.keyfld, "") != "") {
             frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
             frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+            UtilGen.Vouchers.formLoadData(this);
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }

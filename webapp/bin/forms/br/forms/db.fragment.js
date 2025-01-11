@@ -65,7 +65,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
         qr.getControl().setFixedBottomRowCount(0);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(recs);
-        var filtercol = ["INVOICE_NO", "TYPEDESCR","C_CUS_NO", "INV_REFNM", "ADD_AMT", "DISC_AMT", "INV_AMT", "NET_AMT"]
+        var filtercol = ["INVOICE_NO", "TYPEDESCR", "C_CUS_NO", "INV_REFNM", "ADD_AMT", "DISC_AMT", "INV_AMT", "NET_AMT"]
         UtilGen.createDefaultToolbar2(qr, filtercol, false);
         qr.insertable = false;
         qr.deletable = false;
@@ -157,6 +157,15 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
                 that.loadData();
             }
         });
+        var btClose = new sap.m.Button({
+            icon: "sap-icon://decline",
+            text: "Close",
+            width: "10%",
+            press: function () {
+                that.joApp.backFunction();
+            }
+        });
+
         var fe = [
             Util.getLabelTxt("txtBRTitleDashBoard", "100%", "", "titleFontWithoutPad2 boldText"),
             Util.getLabelTxt("transType", "15%"), kind,
@@ -165,6 +174,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
             Util.getLabelTxt("", "1%", "@"), txtName,
             Util.getLabelTxt("", "1%", "@"), bt1,
             Util.getLabelTxt("", "1%", "@"), bt,
+            Util.getLabelTxt("", "1%", "@"), btClose,
         ];
 
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
@@ -227,7 +237,7 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
             qv.mLctb.cols[qv.mLctb.getColPos("DISC_AMT")].mTitle = Util.getLangText("txtDisc");
             qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].mTitle = Util.getLangText("txtNetAmt");
             qv.mLctb.cols[qv.mLctb.getColPos("TYPEDESCR")].mTitle = Util.getLangText("vouType");
-            
+
 
             qv.mLctb.cols[qv.mLctb.getColPos("KEYFLD")].getMUIHelper().display_width = 0;
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_NO")].getMUIHelper().display_width = 80;

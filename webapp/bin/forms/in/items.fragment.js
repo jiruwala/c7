@@ -138,8 +138,8 @@ sap.ui.jsfragment("bin.forms.in.items", {
                 formSetting: {
                     // width: { "S": 500, "M": 650, "L": 850, "XL": 1000 },
                     width: ((sap.ui.Device.resize.width - 500) > 900 ? 900 : (sap.ui.Device.resize.width - 500)) + "px",
-                    class:"jvForm",
-                    cssText:[],
+                    class: "jvForm",
+                    cssText: [],
                     // cssText: [
                     //     "padding-left:10px;" +
                     //     "padding-top:20px;" +
@@ -750,6 +750,38 @@ sap.ui.jsfragment("bin.forms.in.items", {
                     insert_allowed: false,
                     require: false
                 },
+                partno: {
+                    colname: "partno",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtItemPartNo\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { width: "25%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                power: {
+                    colname: "power",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"txtItemPower\",\"width\":\"30%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { width: "25%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
                 price1: {
                     colname: "price1",
                     data_type: FormView.DataType.Number,
@@ -1227,14 +1259,11 @@ sap.ui.jsfragment("bin.forms.in.items", {
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
                 that2.fetchCustItems = true;
-
-
                 qv.onAddRow = function (idx, ld) {
                     ld.setFieldValue(idx, "PKQTY", 0);
                     ld.setFieldValue(idx, "QTY", 0);
                     ld.setFieldValue(idx, "PACK_COST", 0);
                     ld.setFieldValue(idx, "PACK", 1);
-
                 }
 
                 if (qv.editable && qv.mLctb.rows.length == 0)

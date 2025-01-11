@@ -1,16 +1,15 @@
-
-
 body {
     overflow-y: hidden;
     /* Hide vertical scrollbar */
     overflow-x: hidden;
-    
+
     /* Hide horizontal scrollbar */
 }
 
-.sapUiBody{
-    line-height: normal!important;
+.sapUiBody {
+    line-height: normal !important;
 }
+
 iframe {
     overflow-clip-margin: content-box !important;
     overflow: clip !important;
@@ -18,6 +17,47 @@ iframe {
     border-color: initial;
     border-image: initial;
 }
+
+.sapMTileCnt.News {
+    background-color: #2e8b57;
+}
+.sapMGTHdrContent {
+    background-color: lightyellow;
+}
+.guagePanel {
+    border-radius: 5px;
+    text-align: center;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.guagePanel .sapMIBar {
+    background-color: lightyellow;
+    /* Orange background for the header */
+}
+
+.guagePanel .guageTitle {
+    font-size: 100%;
+    font-weight: bold;
+    color: #00827f;
+}
+
+.guageValNumber {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #007aff;
+}
+
+.guageTitle {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: darkblue;
+}
+
 .colorBlack {
     color: black !important;
 }
@@ -32,7 +72,7 @@ area:-webkit-any-link {
 }
 
 .tileLayout {
-	float: left !important;
+    float: left !important;
     background-color: white;
 }
 
@@ -84,7 +124,8 @@ area:-webkit-any-link {
     background-color: #d8e4bc;
     padding-bottom: 20px;
 }
-.keyIdText{
+
+.keyIdText {
     background: #fffacd;
     border-style: ridge;
     border-width: medium;
@@ -93,12 +134,13 @@ area:-webkit-any-link {
     padding-bottom: 2px;
     min-height: 26px;
 }
+
 .jvForm {
     display: block;
     padding-left: 10px;
     padding-top: 10px;
-    padding-bottom: 10px;    
-    padding-right: 10px;    
+    padding-bottom: 10px;
+    padding-right: 10px;
     border-style: groove;
     border-radius: 15px;
     margin: 10px;
@@ -106,8 +148,8 @@ area:-webkit-any-link {
     border-width: thin;
 }
 
-.jvForm2 {  
-    padding-bottom: 10px;  
+.jvForm2 {
+    padding-bottom: 10px;
 }
 
 .alignMiddle25Top {
@@ -941,7 +983,7 @@ th {
 
 .reportTable .sapUiTableHeaderRow {
     background-color: yellow !important;
-    color:black;
+    color: black;
     font-weight: bold;
     font-size: 16px;
 }
@@ -981,7 +1023,7 @@ th {
 
 .reportTable2 .sapUiTableHeaderCell {
     background-color: #fcf75e !important;
-    color:black;
+    color: black;
     font-size: 16px !important;
     font-weight: bold;
 
@@ -1194,6 +1236,7 @@ th {
 .menuTableAR .sapUiTableRowFirstFixedBottom {
     background-color: #f9f9f9 !important;
 }
+
 .menuTableAR .sapUiTableRowSel {
     background-color: #87ceeb !important;
 }

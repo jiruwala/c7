@@ -1854,8 +1854,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     sp.destroy();
                                     view.app.toDetail(view.pg, "show");
                                     // view.loadData();
-                                    if (view.lstPgs.getItems().length == 1)
-                                        view.loadData_main();
+                                    // if (view.lstPgs.getItems().length == 1) 
+                                    //     view.loadData_main();
                                     UtilGen.DBView.autoShowHideMenu(true, pgx);
                                 };
                             }
@@ -3862,10 +3862,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             inputDialog: function (title, msg, val, fnOk, fnCancel, width, height, pSet) {
                 var setInp = { ...{ value: Util.nvl(val, "") }, ...Util.nvl(pSet, {}) };
                 var inp = new sap.m.Input(setInp);
-                setTimeout(() => {
-                    inp.selectText(0, 999);
-                });
-
                 var vb = new sap.m.VBox({
                     // alignItems: sap.m.FlexAlignItems.Center,
                     items: [new sap.m.Title({ text: Util.getLangText(msg) }), inp]
@@ -3896,7 +3892,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         dlg.close();
                         if (fnCancel != undefined)
                             fnCancel();
-
                     }
                 });
 
@@ -3919,6 +3914,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 dlg.open();
                 setTimeout(function () {
                     inp.focus();
+                    inp.selectText(0, 999);
                 }, 100);
             },
 
@@ -3968,6 +3964,167 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         FormView.err("PO is closed !");
                     return podt[0];
 
+                }
+            },
+            DashboardWidget: {
+                inputGuageTarget: function (kf, title, msg) {
+                    var targetval = Util.getSQLValue("select max_val from c6_db_gauges where keyfld=" + kf);
+                    if (Util.nvl(targetval, '') == "") targetval = 0;
+
+                    UtilGen.inputDialog(title, msg + " : ", targetval, function (str) {
+
+                        var vl = Util.extractNumber(Util.nvl(str, "0"));
+                        var dt = Util.execSQL("update c6_db_gauges set max_val=" + vl + " where keyfld = " + kf);
+                        if (dt.ret == "SUCCESS") {
+                            UtilGen.DBView.loadData_main();
+                        } else return false;
+                    }, function () {
+                        return true;
+                    }, undefined, undefined, {});
+                },
+                getGauge: function (kf, pHeight, pnlClass, pnlClassTit, fnOnMenuClick) {
+                    var gj;
+                    var gjPnl;
+                    var timlong = UtilGen.DBView.timeInLong;
+                    var that = this;
+                    var dt = UtilGen.DBView.today_date.getDateValue();
+                    var sq = {
+                        status: "NONE",
+                        sql: "select *from C6_DB_GAUGES where keyfld='" + kf + "'",
+                        data: null
+                    };
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var df = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+                    var ps = /*"_para_fromdate=@" + df.format((that.byId("fromdate").getDateValue())) +*/
+                        "_para_todate=@" + df.format((dt))
+                        ;
+                    Util.doAjaxGet("gaugedata2?" + ps, "&_keyfld='" + kf + "'", false).done(function (data) {
+                        var gjData = JSON.parse(data).data[0];
+                        var gg;
+                        gj = that.createGauge("gauge_" + kf + "_" + timlong, gjData,
+                            { CELL_HEIGHT: "auto", CELL_WIDTH: "1" });
+
+                        gjPnl = new sap.m.Panel({
+                            height: Util.nvl(pHeight, "180px"),
+                            backgroundDesign: "Solid",
+                            headerToolbar: new sap.m.Toolbar({
+                                content: new sap.m.HBox({
+                                    alignItems: sap.m.FlexAlignItems.Center,
+                                    items: [
+                                        new sap.m.Text({ text: Util.getLangText(gjData.TITLE1) }).addStyleClass(Util.nvl(pnlClassTit, "guageTitle")),
+                                        new sap.m.Button({
+                                            icon: "sap-icon://drop-down-list", press: function () {
+                                                if (fnOnMenuClick == undefined)
+                                                    UtilGen.DashboardWidget.inputGuageTarget(kf, Util.getLangText(gjData.TITLE1), "Enter Target Value");
+                                                else
+                                                    fnOnMenuClick(kf, gjData);
+                                            }
+                                        })
+                                    ]
+                                })
+                            }).addStyleClass(Util.nvl(pnlClass, "guagePanel")),
+                            content: [
+                                gj
+                            ]
+                        }).addStyleClass(Util.nvl(pnlClass, "guagePanel"));
+                        gjPnl.addEventDelegate({
+                            onAfterRendering: function () {
+                                setTimeout(function () {
+                                    var gc = UtilGen.DBView.byId("gauge_" + kf + "_" + timlong + "_parent");
+                                    if (gc.initRendered) {
+                                        gc.initRendered = false;
+                                        return;
+                                    }
+                                    gc.gauge.render();
+                                    gc.gauge.redraw(gjData.SQL_VAL);
+                                }, 500);
+
+                            }
+                        });
+                    });
+                    return gjPnl;
+                }
+                ,
+                createGauge: function (name, gg, rep) {
+                    var that = UtilGen.DBView;
+                    var label = gg.TITLE1, min = gg.MIN_VAL, max = gg.MAX_VAL, vl = gg.SQL_VAL;
+                    var df = new DecimalFormat(gg.VALUE_FORMAT);
+
+
+                    var config =
+                    {
+                        size: 60,
+                        min: undefined != min ? min : 0,
+                        max: undefined != max ? max : 100,
+                        value: 50,
+                        minorTicks: 5,
+                    }
+
+                    var range = config.max - config.min;
+                    config.greenZones = [{ from: config.min, to: config.min + range * 0.75 }];
+                    config.yellowZones = [{ from: config.min + range * 0.75, to: config.min + range * 0.9 }];
+                    config.redZones = [{ from: config.min + range * 0.9, to: config.max }];
+                    // labels inside gauges
+                    var lbls = [];
+                    if (max > 1)
+                        lbls.push(new sap.m.Label({ text: Util.getLangText("txtTarget") + " : " + df.format(max) }));
+                    lbls.push(new sap.m.Label({ text: "" + df.format(vl) }).addStyleClass("guageValNumber"));
+                    if (gg.PRIOR_FUNC_VAL != undefined && gg.PRIOR_FUNC_VAL + "".length > 0) {
+                        var l = Util.nvl(Util.getLangText(gg.PRIOR_LABEL), "Last value") + ": ";
+                        lbls.push(new sap.m.Label({ text: l + df.format(gg.PRIOR_FUNC_VAL) }));
+                        var v = vl - gg.PRIOR_FUNC_VAL;
+                        var ss = String.fromCharCode(11015);
+                        if (v >= 0)
+                            ss = String.fromCharCode(11014);
+                        var lx = new sap.m.Label({ text: ss + " " + df.format(v) });
+                        if (v < 0)
+                            setTimeout(function () {
+                                lx.$().css("color", "red")
+                            }, 500);
+                        else
+                            setTimeout(function () {
+                                lx.$().css("color", "green")
+                            }, 500);
+
+                        lbls.push(lx);
+
+
+                    }
+                    Util.destroyID(name, that);
+                    Util.destroyID(name + "_flex", that);
+                    Util.destroyID(name + "_parent", that);
+                    var oc = new sap.m.Label({
+                        id: that.createId(name),
+                        hAlign: "Right",
+                        layoutData: new sap.ui.layout.GridData({
+                            span: "L2 M6 S10"
+                        })
+                    });
+
+                    var oc2 = new sap.m.FlexBox({
+                        id: that.createId(name + "_flex"),
+                        items: [oc,
+                            new sap.m.VBox({
+                                items: lbls
+                            })]
+                    });
+                    var oGCell1 = new sap.m.FlexBox({
+                        id: that.createId(name + "_parent"),
+                        height: rep.CELL_HEIGHT,
+                        items: [
+                            oc2
+                        ],
+                        customData: [{ key: oc2.getId(), value: gg }]
+                    });
+
+                    var g = new Gauge(that.createId(name), config);
+                    setTimeout(function () {
+                        g.render();
+                        g.redraw(vl);
+                        oGCell1.initRendered = true;
+                    }, 300);
+                    oGCell1.gauge = g;
+                    return oGCell1;
                 }
             }
 
