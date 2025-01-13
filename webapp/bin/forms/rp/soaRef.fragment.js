@@ -61,7 +61,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                     showQueryPage: false,
                     showCustomPara: function (vbPara, rep) {
                     },
-                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(undefined, "400px"),
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(undefined, "470px"),
                     rep: {
                         parameters: thatForm.helperFunc.getParas("SOAREF1"),
                         print_templates: [
@@ -117,7 +117,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                         "pref=" + pcust.getValue() +
                                         " fromdate=@" + sdf.format(fromdt.getDateValue()) +
                                         " todate=@" + sdf.format(todt.getDateValue()) +
-                                        " inclUnpost=" + UtilGen.getControlValue(unpost)+
+                                        " inclUnpost=" + UtilGen.getControlValue(unpost) +
                                         " inclUnpostDlv=" + UtilGen.getControlValue(unpost)
                                         , UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
                                     return "";
@@ -257,12 +257,15 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
 
                         },
                         valueHelpRequest: function (event) {
-                            var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
+                            var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 and (mov_type='^^list_key' or    '^^list_key'='ALL') order by path";
                             Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
                                 return true;
-                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, {
+                                selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                defaultKey: "ACTIVE",
+                            }, "Customers");
                         },
                         width: "35%"
                     },

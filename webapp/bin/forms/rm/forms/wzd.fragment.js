@@ -215,6 +215,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                     brnWhere +
                     " and ord_date>=" + Util.toOraDateString(fromdt) +
                     " and ord_date<=" + Util.toOraDateString(todt) + ")";
+
                 var sq = "select reference code,descr name from items where refefence in " + sqWhere +
                     " and " +
                     " childcounts=0 order by path ";
@@ -452,8 +453,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
 
         if (fromdt == null || todt == null) { that.joApp.to(that.mainPage, "slide"); return; };
 
+
         var slices = that.qvRef.getControl().getSelectedIndices();
-        var slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
+        var slicesof = slices.length > 0 ? that.qvRef.getControl().getBinding("rows").aIndices : 0; //changed here..
 
         if (Util.nvl(that.txtRef.getValue(), "") == "" &&
             that.qvRef.getControl().getSelectedIndices().length < 0) {
@@ -563,7 +565,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "               COUNT (o.ord_no) counting," +
                 "                 sum(tqty) tqty , " +
                 "               GETAVGPRICEDLV(o.keyfld,'N') AVG_PRICE ," +
-                "               NVL (SUM (OP_NO * TQTY), 0) ADD_AMT," +
+                "               NVL (SUM (0), 0) ADD_AMT," +// chyanged to 0 
                 "               GETSUMPRICEDLV(o.keyfld,'N') AMOUNT," +
                 "               SUM(SALE_PRICE*TQTY) +NVL (SUM (OP_NO * TQTY), 0) NET_AMT, " +
                 "               o.ord_discamt," +
@@ -1001,7 +1003,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             FormView.err("No Any delivery selected !");
         }
         var slices = this.qvRef.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
-        var slicesof = that.qvRef.getControl().getBinding("rows").aIndices;
+        var slicesof = slices.length > 0 ? that.qvRef.getControl().getBinding("rows").aIndices : 0; //changed here..
 
         var rn = (slices.length > 0 ? slicesof[slices[0]] : -1);
 

@@ -1180,7 +1180,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 },
                 { // branch
                     sql:
-                        "SELECT brno,b_name FROM cbranch WHERE  " +
+                        "SELECT brno,b_name||' - '||area b_name FROM cbranch WHERE  " +
                         " code=':qry1.ord_ref' " +
                         " ORDER BY CBRANCH.BRNO ",
                     return:
