@@ -168,13 +168,14 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
 
         var fe = [
             Util.getLabelTxt("txtBRTitleDashBoard", "100%", "", "titleFontWithoutPad2 boldText"),
+            Util.getLabelTxt("", "1%", ""), btClose,
             Util.getLabelTxt("transType", "15%"), kind,
             Util.getLabelTxt("txtDaysOff", "15%", "@"), cb,
             Util.getLabelTxt("txtCustSupp", "15%", ""), txtCust,
             Util.getLabelTxt("", "1%", "@"), txtName,
             Util.getLabelTxt("", "1%", "@"), bt1,
             Util.getLabelTxt("", "1%", "@"), bt,
-            Util.getLabelTxt("", "1%", "@"), btClose,
+
         ];
 
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {

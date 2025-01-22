@@ -330,8 +330,8 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         var sett = sap.ui.getCore().getModel("settings").getData();
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var reload = Util.nvl(pReload, false);
-
         if (this.qryStr == "") return;
+
         var dt = Util.execSQL("select 0 pos,max((select max(ord_no) from c_order1 where c_order1.keyfld=p.ordwas)) ord_no ," +
             " max((select max(ord_date) from c_order1 where c_order1.keyfld=p.ordwas)) ord_date ," +
             " (sum((p.price/p.pack)*p.allqty)/sum(p.allqty)) price,sum((p.price/p.pack)*p.allqty) amount,p.ordwas, " +
@@ -341,6 +341,7 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             " p.Keyfld='" + this.qryStr + "'" +
             " group by 0,ordwas" +
             " ORDER BY 2");
+
         if (dt.ret == "SUCCESS") {
             that.qc.setJsonStrMetaData("{" + dt.data + "}");
             that.qc.mLctb.cols[that.qc.mLctb.getColPos("POS")].getMUIHelper().display_width = 40;
@@ -481,9 +482,9 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             "               COUNT (o.ord_no) counting," +
             "               sum(tqty) tqty , " +
             "               (GETAVGPRICEDLV(o.keyfld,'N')) AVG_PRICE ," +
-            "               NVL (SUM (OP_NO * TQTY), 0) ADD_AMT," +
+            "               0 ADD_AMT," +
             "               GETSUMPRICEDLV(o.keyfld,'N') AMOUNT," +
-            "               SUM(SALE_PRICE*TQTY) +NVL (SUM (OP_NO * TQTY), 0) NET_AMT, " +
+            "               SUM(SALE_PRICE*TQTY) NET_AMT, " +
             "               o.ord_discamt," +
             "               cbranch.b_name branchname," +
             "               GETAVGPRICEDLV(o.keyfld) PRICE2 ," +
@@ -500,6 +501,7 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             " and ord_ref=" + Util.quoted(that.cust_code.getValue()) +
             " " + sqw +
             "    GROUP BY   o.periodcode," +
+            "               0," +
             "               location_code," +
             "               o.ord_date ," +
             "               o.ord_discamt ," +
