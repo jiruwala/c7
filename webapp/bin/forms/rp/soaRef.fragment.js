@@ -396,6 +396,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
             var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
             var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
             var incUnpostDlv = thatForm.frm.getFieldValue("parameter.inclUnpostDlv");
+            var qtySql = " max((select NVL(sum(allqty),0) from :PUR2 where keyfld=:ACVOUCHER2.REFERKEYFLD)) tqty ";
             var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
             // if (bk.length > 0) {
             var plsql = "declare ";
@@ -414,7 +415,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
             var sqxAx2 = "select SUM(DEBIT) CRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
                 " A.ACCNO=V.ACCNO AND  " +
                 " V.VOU_DATE<=TODATE :KEYFLD_CONDITION ";
-            var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO FROM :ACVOUCHER2 V, ACACCOUNT A " +
+            var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO " + qtySql + " FROM :ACVOUCHER2 V, ACACCOUNT A " +
                 " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT " +
                 " AND V.ACCNO=A.ACCNO AND (V.COSTCENT=CC or cc is null) " + vflg +
                 " and (branch_no=pbrno or pbrno is null ) " +
@@ -424,7 +425,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
             //     " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
             //     " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
             //     " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
-            var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+            var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":PUR2", "PUR2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
             var sqs1 = [sqxAB.replaceAll(":V_STATMENT_1", "V_STATMENT_1").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
             var sqs2 = [sqxAx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
             var sqs3 = [sqxAx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
@@ -432,6 +433,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
             for (var bi in bk) {
                 sqs.push(sqx.
                     replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                    replaceAll(":PUR2", bk[bi].fiscal_schema).
                     replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
                 sqs1.push(sqxAB.
                     replaceAll(":V_STATMENT_1", bk[bi].fiscal_schema + ".V_STATMENT_1").

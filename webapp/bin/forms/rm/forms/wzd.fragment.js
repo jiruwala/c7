@@ -331,7 +331,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "              c_order1.ord_refnm," +
                 "              c_custitems.descr itemname," +
                 "              c_order1.ord_ship," +
-                "              sale_price , " +
+                "              MAX(GETAVGPRICEDLV(c_order1.keyfld)) SALE_PRICE ," +
                 "              SUM (c_order1.tqty) qnty," +
                 "              c_custitems.packd," +
                 "              MAX (nvl(c_order1.attn,cbranch.b_name)) bname," +
@@ -362,7 +362,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "              ord_code," +
                 "              sale_price , " +
                 "              c_custitems.descr " +
-                "   order by ord_ref ";
+                "   order by ord_refnm ";
             var qv = that.qvRef;
             var dt = Util.execSQL(sql);
             if (dt.ret == "SUCCESS") {
@@ -686,6 +686,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             showDates();
         else
             showDetails();
+        setTimeout(() => {
+            var rl = qv.mLctb.rows.lenngth;
+            qv.getControl().selectAll();
+        }, 100);
 
     },
 
@@ -783,7 +787,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             // Util.getLabelTxt("txtPurWizard", "100%", "#"), new sap.m.VBox({ height: "50px" }),
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
             Util.getLabelTxt("locationTxt", "20%"), this.txtInfoLocations,
-            Util.getLabelTxt("txtInvType", "20%", "@"), this.txtInfoInvType,
+            Util.getLabelTxt("txtOrdType", "20%", "@"), this.txtInfoInvType,
             Util.getLabelTxt("txtInvNo", "20%", ""), this.txtInfoInvNo,
             Util.getLabelTxt("dateTxt", "20%", "@"), this.txtInfoInvDate,
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
