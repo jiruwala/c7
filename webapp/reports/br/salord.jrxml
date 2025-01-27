@@ -218,8 +218,8 @@ ORDER BY "ORDER1"."ORD_NO" DESC]]>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{ORD_REFNM}+" - "+$F{ORD_REF}]]></textFieldExpression>
 				</textField>
-				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="460" y="359" width="90" height="20" uuid="1507cd1b-0bb3-4190-8b9d-4a5ce2420537"/>
+				<textField textAdjust="StretchHeight" pattern="#,##0.#;(#,##0.#-)" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="461" y="359" width="90" height="20" uuid="1507cd1b-0bb3-4190-8b9d-4a5ce2420537"/>
 					<box>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>

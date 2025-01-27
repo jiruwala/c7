@@ -266,7 +266,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             Util.getLabelTxt("", "1%", "@"), this.txtProdName,
             Util.getLabelTxt("", "100%", "#"), new sap.m.VBox({ height: "20px" }),
             Util.getLabelTxt("wzdSepDate", "20%"), this.chkSepDate,
-            Util.getLabelTxt("recheckPrice", "20%"), this.recheckPrice,
+            // Util.getLabelTxt("recheckPrice", "20%"), this.recheckPrice,
 
         ]
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");

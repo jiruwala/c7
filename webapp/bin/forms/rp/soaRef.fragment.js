@@ -59,7 +59,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                     showXLSMenu: true,
                     showHTMLMenu: false,
                     showQueryPage: false,
-                    showCustomPara: function (vbPara, rep) {
+                    showCustomPara: function (vbPara, rep) {                        
                     },
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(undefined, "470px"),
                     rep: {
