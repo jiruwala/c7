@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="brsale" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="brsale" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isSummaryNewPage="true" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
 	<property name="ireport.zoom" value="1.5"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
@@ -8,7 +8,6 @@
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="206"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="784"/>
 	<property name="net.sf.jasperreports.print.create.bookmarks" value="true"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="sr7"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -18,6 +17,7 @@
 	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="kh7"/>
 	<template><![CDATA["voucherStyle.jrtx"]]></template>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="COMPANY_NAME" class="java.lang.String" isForPrompting="false"/>
@@ -50,11 +50,9 @@ PUR1.SLSMN, lpno,duedate,PUR1.memo,c_cus_no,
 PUR1.INV_REF, PUR1.INV_REFNM, PUR1.STRA, PUR1.DISC_AMT,TYPE,DEPTNO,c_branch_no,
 pur1.inv_amt ,pur1.deptno add_amt,(pur1.inv_amt+pur1.deptno)-pur1.disc_amt net_amt,
 (
-  select '  '||b_name || 
-  ' منطقة: '||area||' شارع: '||street||' جدة: '||jedda||' قاسمه : '||qasima||' الهاتف:'||tel
-  from cbranch where code=pur1.c_cus_no and brno=pur1.c_branch_no) addr
-
-,F_WORDS((pur1.inv_amt+pur1.deptno)-pur1.disc_amt) WRDS
+  select area from cbranch where code=pur1.c_cus_no and brno=pur1.c_branch_no) addr
+,F_WORDS((pur1.inv_amt+pur1.deptno)-pur1.disc_amt) WRDS,
+c76_getDlvNums(pur1.keyfld) dlvnums
 FROM pur1
 WHERE PUR1.INVOICE_CODE=21 AND PUR1.INVOICE_NO>= $P{pfromno} 
 AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
@@ -143,13 +141,17 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 		<property name="com.jaspersoft.studio.field.name" value="WRDS"/>
 		<property name="com.jaspersoft.studio.field.label" value="WRDS"/>
 	</field>
+	<field name="DLVNUMS" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="DLVNUMS"/>
+		<property name="com.jaspersoft.studio.field.label" value="DLVNUMS"/>
+	</field>
 	<group name="vou" isStartNewPage="true" isResetPageNumber="true" isReprintHeaderOnEachPage="true">
 		<groupExpression><![CDATA[$F{KEYFLD}]]></groupExpression>
 		<groupHeader>
-			<band height="329">
+			<band height="556">
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<textField pattern="dd/MM/yyyy">
-					<reportElement style="strHeader" x="450" y="204" width="111" height="20" uuid="d219fe6c-5256-494a-adf1-3f02b3f7ef6c"/>
+					<reportElement style="strHeader" x="440" y="160" width="111" height="20" uuid="d219fe6c-5256-494a-adf1-3f02b3f7ef6c"/>
 					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -157,25 +159,12 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font isBold="true"/>
+						<font size="12" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{INVOICE_DATE}]]></textFieldExpression>
 				</textField>
-				<textField pattern="dd/MM/yyyy">
-					<reportElement style="strHeader" x="436" y="161" width="131" height="20" uuid="c227dd6b-a5c2-4c3f-9cb1-10cc55a6d84f"/>
-					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{INVOICE_NO} +"  /   "+ $V{PAGE_NUMBER}]]></textFieldExpression>
-				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="27" y="252" width="513" height="20" uuid="86f2c0e9-2b8d-48f3-bb04-89f2d5fb076a"/>
+					<reportElement style="strHeader" x="27" y="220" width="485" height="20" uuid="86f2c0e9-2b8d-48f3-bb04-89f2d5fb076a"/>
 					<box>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -188,7 +177,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					<textFieldExpression><![CDATA[$F{ADDR}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="47" y="224" width="458" height="20" uuid="919766aa-c4b4-4e79-9f90-1a0a9d49c53d"/>
+					<reportElement style="strHeader" x="54" y="190" width="458" height="20" uuid="919766aa-c4b4-4e79-9f90-1a0a9d49c53d"/>
 					<box>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -201,7 +190,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					<textFieldExpression><![CDATA[$F{INV_REFNM}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="20" y="201" width="250" height="20" uuid="179bdcfc-72b5-4633-8a91-62bdb36b9f13"/>
+					<reportElement style="strHeader" x="50" y="190" width="138" height="20" uuid="179bdcfc-72b5-4633-8a91-62bdb36b9f13"/>
 					<box>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -213,14 +202,8 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{C_CUS_NO}]]></textFieldExpression>
 				</textField>
-			</band>
-		</groupHeader>
-		<groupFooter>
-			<band height="133">
-				<textField>
-					<reportElement style="strHeader" x="443" y="10" width="131" height="20" uuid="68e33dfe-6e2b-4e96-bcad-c14b6bea1cde">
-						<property name="com.jaspersoft.studio.unit.y" value="px"/>
-					</reportElement>
+				<textField pattern="dd/MM/yyyy">
+					<reportElement style="strHeader" x="27" y="154" width="131" height="20" uuid="1ea34e2c-71ca-4bf6-9cfe-0e14443abac5"/>
 					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -228,61 +211,12 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font isBold="true"/>
+						<font size="12" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{INV_AMT}]]></textFieldExpression>
-					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
-				</textField>
-				<textField>
-					<reportElement style="strHeader" x="443" y="30" width="131" height="20" uuid="82066f9b-5d1b-4cff-81fe-f990e82bdb01">
-						<property name="com.jaspersoft.studio.unit.y" value="px"/>
-					</reportElement>
-					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{ADD_AMT}]]></textFieldExpression>
-					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
-				</textField>
-				<textField>
-					<reportElement style="strHeader" x="443" y="52" width="131" height="20" uuid="2f97af56-3017-42fb-874c-d06b4188feca">
-						<property name="com.jaspersoft.studio.unit.y" value="px"/>
-					</reportElement>
-					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{DISC_AMT}]]></textFieldExpression>
-					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
-				</textField>
-				<textField>
-					<reportElement style="strHeader" x="443" y="74" width="131" height="20" uuid="bdce6395-7d3d-4d0b-b5b0-ad39981c05b7">
-						<property name="com.jaspersoft.studio.unit.y" value="px"/>
-					</reportElement>
-					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="14" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{NET_AMT}]]></textFieldExpression>
-					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+					<textFieldExpression><![CDATA[$F{INVOICE_NO}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="20" y="72" width="390" height="20" uuid="ba204ccd-2355-44c8-9df7-59e3b5da3038"/>
+					<reportElement style="strHeader" x="210" y="100" width="170" height="20" uuid="6345076d-feb7-459e-b24a-e61a8262f86e"/>
 					<box>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -292,9 +226,26 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					<textElement textAlignment="Center" verticalAlignment="Bottom">
 						<font fontName="DejaVu Sans" size="12" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{WRDS}]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Credit"]]></textFieldExpression>
 				</textField>
+				<subreport overflowType="NoStretch">
+					<reportElement x="-1" y="269" width="609" height="281" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<subreportParameter name="KEYFLD">
+						<subreportParameterExpression><![CDATA[$F{KEYFLD}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="CURRENCY_FORMAT">
+						<subreportParameterExpression><![CDATA[$P{CURRENCY_FORMAT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{DETAIL_REP}]]></subreportExpression>
+				</subreport>
 			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
 		</groupFooter>
 	</group>
 	<background>
@@ -304,22 +255,98 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 		<band height="16" splitType="Stretch"/>
 	</pageHeader>
 	<detail>
-		<band height="291" splitType="Immediate">
+		<band height="187" splitType="Immediate">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
-			<subreport overflowType="NoStretch">
-				<reportElement x="3" y="0" width="593" height="290" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
-					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement style="strHeader" x="450" y="0" width="131" height="20" uuid="68e33dfe-6e2b-4e96-bcad-c14b6bea1cde">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
-				<subreportParameter name="KEYFLD">
-					<subreportParameterExpression><![CDATA[$F{KEYFLD}]]></subreportParameterExpression>
-				</subreportParameter>
-				<subreportParameter name="CURRENCY_FORMAT">
-					<subreportParameterExpression><![CDATA[$P{CURRENCY_FORMAT}]]></subreportParameterExpression>
-				</subreportParameter>
-				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{DETAIL_REP}]]></subreportExpression>
-			</subreport>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{INV_AMT}]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement style="strHeader" x="450" y="20" width="131" height="20" uuid="82066f9b-5d1b-4cff-81fe-f990e82bdb01">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ADD_AMT}]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement style="strHeader" x="450" y="42" width="131" height="20" uuid="2f97af56-3017-42fb-874c-d06b4188feca">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DISC_AMT}]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement style="strHeader" x="450" y="64" width="131" height="20" uuid="bdce6395-7d3d-4d0b-b5b0-ad39981c05b7">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{NET_AMT}]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement style="strHeader" x="10" y="62" width="430" height="20" uuid="ba204ccd-2355-44c8-9df7-59e3b5da3038"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{WRDS}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement style="strHeader" x="0" y="100" width="601" height="80" uuid="3f60c29d-a2a2-46a4-8c74-0d2f08e8a7be"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DLVNUMS}]]></textFieldExpression>
+			</textField>
 		</band>
 	</detail>
 </jasperReport>

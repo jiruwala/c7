@@ -74,7 +74,12 @@ sap.ui.jsfragment("bin.forms.in.emps", {
             form: {
                 title: "Staff Info",
                 toolbarBG: "#fff0f5",
-                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
+                formSetting: {
+                    class: "",
+                    width: "800px",
+                    cssText: [
+                    ]
+                },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
@@ -242,7 +247,7 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                         if (Util.nvl(vldtt, '') != '')
                             FormView.err("Found in customer " + vldtt);
                         vldtt = Util.getSQLValue(
-                            "select nvl(max(keyfld),'') from pur1 where slsmn=" + no + 
+                            "select nvl(max(keyfld),'') from pur1 where slsmn=" + no +
                             "");
                         if (Util.nvl(vldtt, '') != '')
                             FormView.err("Found in Purchase / Sales KeyId # " + vldtt);
@@ -277,26 +282,114 @@ sap.ui.jsfragment("bin.forms.in.emps", {
             // costcent/name
 
             return {
-                code: FormView.getFactoryFields.getGeneralField(
-                    "no", "", "txtNo", "15%", "", "15%",
-                    {
-                        require: true,
-                        edit_allowed: false
-                    }, {}),
-                title: FormView.getFactoryFields.getGeneralField(
-                    "name", "", "txtName", "15%", "", "35%",
-                    { require: true }, {}),
-                title_2: FormView.getFactoryFields.getGeneralField(
-                    "namea", "", "titleTxt2", "15%", "", "35%",
-                    { require: false }, {}),
-                type: FormView.getFactoryFields.getComboField(
-                    "type", "", "puShipType",
-                    "15%", "", "35%",
-                    {
-                        list: "@E/Employee,D/Drivers,DI/Dispatch,S/Sales man,O/Operators",
-                        require: true
-                    }, {}),
-
+                no: {
+                    colname: "no",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "15%" },
+                    edit_allowed: false,
+                    insert_allowed: true,
+                    require: true
+                },
+                name: {
+                    colname: "name",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtName\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "35%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                namea: {
+                    colname: "namea",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"titleTxt2\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "35%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
+                },
+                type: {
+                    colname: "type",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"puShipType\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "15%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    list: "@E/Employee,D/Drivers,DI/Dispatch,S/Sales man,O/Operators",
+                    other_settings: {
+                        editable: true,
+                        width: "15%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectionChange: function (e) {
+                        },
+                    },
+                },
+                vehicleno: {
+                    colname: "vehicleno",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"Vehicle no\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "15%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
+                },
+                mobile: {
+                    colname: "mobile",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"Tel\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "15%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
+                },
             };
         },
         getCommands: function () {

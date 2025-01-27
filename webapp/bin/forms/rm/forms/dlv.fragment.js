@@ -67,7 +67,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         var sumSpan2 = "XL2 L6 M6 S12";
         var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + that.vars.vou_code + " ORDER BY O1.ORD_POS ";
-
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.frm;
@@ -317,7 +316,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
-                                                                                                                                                                                                
+
                     }
                 },
                 beforeExeSql: function (frm, sq) {

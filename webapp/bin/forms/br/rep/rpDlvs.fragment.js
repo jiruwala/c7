@@ -472,7 +472,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "items",
+                        selectedKey: "none",
                     },
                     list: "@none/None,customers/Customers,items/Items,drivers/Drivers,branches/Branches",
                     edit_allowed: true,
