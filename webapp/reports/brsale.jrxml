@@ -45,7 +45,7 @@
 	<parameter name="vouType" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[SELECT ALL pur1.keyfld,PUR1.INVOICE_NO, PUR1.INVOICE_DATE, 
-DECODE(TYPE,1,'CREDIT',2,'CASH',3,'CHEQUE',4,'K-NET') TYPEE,
+DECODE(TYPE,1,'CREDIT',2,'CASH',3,'CHEQUE',4,'K-NET') TYPEE,ctg,
 PUR1.SLSMN, lpno,duedate,PUR1.memo,c_cus_no,
 PUR1.INV_REF, PUR1.INV_REFNM, PUR1.STRA, PUR1.DISC_AMT,TYPE,DEPTNO,c_branch_no,
 pur1.inv_amt ,pur1.deptno add_amt,(pur1.inv_amt+pur1.deptno)-pur1.disc_amt net_amt,
@@ -72,6 +72,10 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 	<field name="TYPEE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="TYPEE"/>
 		<property name="com.jaspersoft.studio.field.label" value="TYPEE"/>
+	</field>
+	<field name="CTG" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="CTG"/>
+		<property name="com.jaspersoft.studio.field.label" value="CTG"/>
 	</field>
 	<field name="SLSMN" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.name" value="SLSMN"/>
@@ -346,6 +350,32 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 					<font fontName="DejaVu Sans" size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{DLVNUMS}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement style="strHeader" x="27" y="24" width="408" height="20" uuid="8dd3f07e-9dc1-4379-ba19-6815eb3e03fc"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{MEMO}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement style="strHeader" x="27" y="48" width="412" height="20" uuid="b222b280-7ddf-4d5c-8e81-7e6592284ac4"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CTG}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>

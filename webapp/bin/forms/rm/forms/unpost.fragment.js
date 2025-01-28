@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.br.forms.unpost", {
+sap.ui.jsfragment("bin.forms.rm.forms.unpost", {
 
     createContent: function (oController) {
         var that = this;
@@ -217,8 +217,21 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         });
         this.txtPoNo = new sap.m.Input({ width: "25%" });
 
-        Util.fillCombo(that.txtSalesp, "select no code ,name from salesp where type='S' order by no");
+        this.txtItem = new sap.m.Input({ width: "30%", editable: false });
+        this.txtQty = new sap.m.Input({ width: "15%", editable: false });
+        this.txtPrice = new sap.m.Input({
+            width: "15%", editable: false,
 
+        });
+        this.cmdUpdatePrice = new sap.m.Button({
+            text: Util.getLangText("updatePrice"),
+            width: "25%",
+            press: function () {
+                that.updatePrice();
+            }
+        });
+
+        Util.fillCombo(that.txtSalesp, "select no code ,name from salesp where type='S' order by no");
 
         var fe = [
             Util.getLabelTxt("", "100%", "#"),
@@ -244,11 +257,16 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             // Util.getLabelTxt("", "100%", "#"),
             Util.getLabelTxt("txtAddAmtDescr", "25%", ""), this.memo,
             Util.getLabelTxt("txtDiscAmtDescr", "25%", ""), this.ctg,
+            Util.getLabelTxt("itemTxt", "20%", ""), this.txtItem,
+            Util.getLabelTxt("m3Qty", "10%", "@"), this.txtQty,
+            Util.getLabelTxt("txtPrice", "10%", "@"), this.txtPrice,
+            Util.getLabelTxt("", "75%", ""), this.cmdUpdatePrice,
             Util.getLabelTxt("txtSalesPerson", "20%", ""), this.txtSalesp,
             Util.getLabelTxt("txtPoNo", "20%", "@"), this.txtPoNo,
+
         ];
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
-            width: { "S": 380, "M": 580, "L": 580 },
+            width: { "S": 380, "M": 580, "L": 650, "XL": 650 },
             cssText: [
                 "padding-left:5px ;" +
                 "padding-top:3px;" +
@@ -266,6 +284,51 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
 
         Util.navEnter(fe);
         this.location_code.setSelectedIndex(0);
+    },
+    updatePrice: function () {
+        var that = this;
+        var invn = that.invoice_no.getValue();
+        var dt = Util.execSQLWithData("select pur2.refer,i.descr,pur2.price,sum(pur2.allqty/pur2.pack) pkqty from pur2,items i where pur2.refer=i.reference and pur2.keyfld='" + that.qryStr + "' group by pur2.refer, i.descr,pur2.price ");
+        if (dt.length > 1)
+            FormView.err("can't update price due to multiple production in single invoice !");
+        if (dt.length == 0)
+            FormView.err("No data in invoice found !");
+        Util.simpleConfirmDialog("Are you sure , you want to UPDATE PRICE # " + invn + " ? ", function () {
+            var pr = Util.extractNumber(that.txtPrice.getValue());
+            var sq = "begin update c_order1 set sale_price=:sprice where saleinv=:keyfld;" +
+                " update pur2 set price=:sprice where keyfld=:keyfld;" +
+                " c7_UPDATE_DISC_GROSS(:keyfld);" +
+                " x_post_sale_invoice(:keyfld); " +
+                " end;";
+            sq = sq.replaceAll(":keyfld", that.qryStr)
+                .replaceAll(":sprice", pr);
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS") {
+                FormView.msgSuccess(Util.getLangText("msgSaved"));
+                that.loadData();
+                that.printInv();
+            }
+        });
+
+    },
+    showQtynPrice: function () {
+        var that = this;
+        var dt = Util.execSQLWithData("select pur2.refer,i.descr,pur2.price,sum(pur2.allqty/pur2.pack) pkqty from pur2,items i where pur2.refer=i.reference and pur2.keyfld='" + that.qryStr + "' group by pur2.refer, i.descr,pur2.price ");
+        that.txtPrice.setEditable(true);
+        that.cmdUpdatePrice.setEnabled(true);
+        if (dt.length > 1) {
+            that.txtPrice.setEditable(false);
+            that.cmdUpdatePrice.setEnabled(false);
+        }
+        var amt = 0, totqty = 0; itmstr = "";
+        for (var i = 0; i < dt.length; i++) {
+            amt += dt[i].PKQTY * dt[i].PRICE;
+            totqty += dt[i].PKQTY;
+            itmstr += (itmstr.length > 0 ? " / " : "") + dt[i].REFER + "-" + dt[i].DESCR;
+        }
+        that.txtItem.setValue(itmstr);
+        that.txtPrice.setValue(amt / totqty);
+        that.txtQty.setValue(totqty);
     }
     ,
     loadData: function (pReload) {
@@ -275,11 +338,11 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var reload = Util.nvl(pReload, false);
 
+
         if (this.qryStr == "") return;
         var dt = Util.execSQL("select *from PUR1 where Keyfld='" + this.qryStr + "'");
         if (dt.ret == "SUCCESS") {
             var dtx = JSON.parse("{" + dt.data + "}").data;
-
             this.location_code.setValue("");
             this.invoice_no.setValue("");
             this.invoice_type.setValue("");
@@ -319,6 +382,7 @@ sap.ui.jsfragment("bin.forms.br.forms.unpost", {
             this.ctg.setValue(((!reload) ? dtx[0].CTG : Util.extractNumber(that.ctg.getValue())));
             this.memo.setValue(((!reload) ? dtx[0].MEMO : Util.extractNumber(that.memo.getValue())));
             this.net_amt.setValue(df.format(netamt));
+            that.showQtynPrice();
             that.loadData_details(reload);
             this.qc_change = {};
         }

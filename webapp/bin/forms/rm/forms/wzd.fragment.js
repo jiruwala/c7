@@ -124,8 +124,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                     " and " +
                     " childcount=0 order by path ";
 
-
-
                 UtilGen.Search.do_quick_search(e, this,
                     sq,
                     "select code,name title from c_ycust where code=:CODE", that.txtRefName, undefined, undefined, undefined, false);
@@ -326,19 +324,20 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             var ordDates = " ord_date>=" + Util.toOraDateString(fromdt) +
                 " and ord_date<=" + Util.toOraDateString(todt);
 
-            var sql = "SELECT   location_code," +
+            var sql = "SELECT  " +
                 "              c_order1.ord_ref," +
                 "              c_order1.ord_refnm," +
-                "              max(trunc(sysdate)) ord_date," +
-                "              c_order1.ord_ship," +
                 "              c_custitems.descr itemname," +
-                "              sale_price , " +
-                "              c_order1.ord_discamt," +
-                "              MAX (nvl(c_order1.attn,cbranch.b_name)) bname," +
-                "              c_custitems.packd," +
-                "              c_custitems.unitd," +
+                "              c_order1.ord_ship," +
+                "              MAX(GETAVGPRICEDLV(c_order1.keyfld)) SALE_PRICE ," +
                 "              SUM (c_order1.tqty) qnty," +
+                "              c_custitems.packd," +
+                "              MAX (nvl(c_order1.attn,cbranch.b_name)) bname," +
+                "              c_order1.ord_discamt," +
+                "              c_custitems.unitd," +
                 "              COUNT (c_order1.ord_no) counting ," +
+                "              max(trunc(ord_date)) ord_date," +
+                "          location_code," +
                 "              ord_code " +
                 "       FROM   c_order1," +
                 "              items c_custitems," +
@@ -361,7 +360,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "              ord_code," +
                 "              sale_price , " +
                 "              c_custitems.descr " +
-                "   order by ord_ref ";
+                "   order by ord_refnm ";
             var qv = that.qvRef;
             var dt = Util.execSQL(sql);
             if (dt.ret == "SUCCESS") {
@@ -369,6 +368,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 qv.setJsonStrMetaData("{" + dt.data + "}");
                 Util.setColProp(qv, "ORD_CODE", "mHideCol", true);
                 Util.setColProp(qv, "UNITD", "mHideCol", true);
+                Util.setColProp(qv, "PACKD", "mHideCol", true);
 
                 Util.setColProperties(qv, "LOCATION_CODE", {
                     "mTitle": "locationTxt",
@@ -569,7 +569,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "               GETAVGPRICEDLV(o.keyfld,'N') AVG_PRICE ," +
                 "               NVL (SUM (0), 0) ADD_AMT," +// chyanged to 0 
                 "               GETSUMPRICEDLV(o.keyfld,'N') AMOUNT," +
-                "               SUM(SALE_PRICE*TQTY) +NVL (SUM (OP_NO * TQTY), 0) NET_AMT, " +
+                "               SUM(SALE_PRICE*TQTY) NET_AMT, " +
                 "               o.ord_discamt," +
                 "               cbranch.b_name branchname," +
                 "               GETAVGPRICEDLV(o.keyfld) PRICE2 ," +
@@ -684,6 +684,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             showDates();
         else
             showDetails();
+        setTimeout(() => {
+            var rl = qv.mLctb.rows.lenngth;
+            qv.getControl().selectAll();
+        }, 100);
 
     },
 
@@ -767,6 +771,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         this.txtInfoInvDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtInfoInvDate.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtInfoInvDate.setDateValue(UtilGen.parseDefaultValue("$TODAY"));
+        // this.txtInfoInvDate.setDateValue(that.txtFromDate.getDateValue());
 
         this.txtInfoAdd.attachChange(function () {
             that.calcInfoAmt(false);
@@ -780,7 +785,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             // Util.getLabelTxt("txtPurWizard", "100%", "#"), new sap.m.VBox({ height: "50px" }),
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
             Util.getLabelTxt("locationTxt", "20%"), this.txtInfoLocations,
-            Util.getLabelTxt("txtInvType", "20%", "@"), this.txtInfoInvType,
+            Util.getLabelTxt("txtOrdType", "20%", "@"), this.txtInfoInvType,
             Util.getLabelTxt("txtInvNo", "20%", ""), this.txtInfoInvNo,
             Util.getLabelTxt("dateTxt", "20%", "@"), this.txtInfoInvDate,
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
@@ -1021,12 +1026,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         var selBrno = that.txtBranch.getValue();
         var selBrName = that.txtBranchName.getValue();
         var selProd = that.txtProd.getValue();
+        var selDate = that.txtFromDate.getDateValue();
         if (rn >= 0) {
             selCust = that.qvRef.mLctb.getFieldValue(rn, "ORD_REF");
             selCustName = that.qvRef.mLctb.getFieldValue(rn, "ORD_REFNM");
             selBrno = that.qvRef.mLctb.getFieldValue(rn, "ORD_DISCAMT");
             selBrName = that.qvRef.mLctb.getFieldValue(rn, "BNAME");
             selProd = that.qvRef.mLctb.getFieldValue(rn, "ORD_SHIP");
+            selDate = that.qvRef.mLctb.getFieldValue(rn, "ORD_DATE");
         }
 
         var refName = selCustName + " - " + selCust;
@@ -1048,6 +1055,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         that.txtInfoAdd.setValue(adamt);
         that.txtInfoGross.setValue(that.txtTotalAmount.getValue());
         that.txtInfoAmount.setValue(that.txtTotalAmount.getValue());
+        this.txtInfoInvDate.setDateValue(selDate);
 
         if ((selBrno + "").replaceAll('"', "").trim() == "") {
             var br = Util.getSQLValue("select min(brno) from cbranch where code=" + Util.quoted(selCust));
@@ -1125,7 +1133,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 // var sq = "select nvl(sum(op_no*tqty),0) from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
                 // sq = sq.replaceAll(":txtKflds", kfldStr);
                 // var sumadd = Util.getSQLValue(sq);
-                that.txtInfoAdd.setValue(df.format(0));
+                // that.txtInfoAdd.setValue(df.format(0));
             }
 
         }
