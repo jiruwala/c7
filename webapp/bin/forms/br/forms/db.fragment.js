@@ -266,8 +266,8 @@ sap.ui.jsfragment("bin.forms.br.forms.db", {
                 var knd = UtilGen.getControlValue(kind);
                 if (Util.nvl(knd, "") == "") return;
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "KEYFLD")].getText());
-                var frm = knd == 21 ? "bin.forms.br.forms.unpost" : "bin.forms.br.forms.punpost";
-                UtilGen.execCmd(frm + " formTitle=Unposted formType=dialog keyfld=" + kfld + " formSize=620px,400px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                var frm = knd == 21 ? "bin.forms.rm.forms.unpost" : "bin.forms.br.forms.punpost";
+                UtilGen.execCmd(frm + " formTitle=Unposted formType=dialog keyfld=" + kfld + " formSize=700px,500px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
                     // sap.m.MessageToast.show("closing...");
                     that.loadData();
                 });

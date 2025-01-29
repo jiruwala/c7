@@ -124,8 +124,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                     " and " +
                     " childcount=0 order by path ";
 
-
-
                 UtilGen.Search.do_quick_search(e, this,
                     sq,
                     "select code,name title from c_ycust where code=:CODE", that.txtRefName, undefined, undefined, undefined, false);
