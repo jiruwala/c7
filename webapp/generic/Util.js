@@ -1929,6 +1929,17 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     }
                 };
                 return col;
+            },
+            autoConvertValue: function (value) {
+                if (typeof value === "string") {
+                    // Convert to number if it's a valid numeric string
+                    let num = Number(value);
+                    return isNaN(num) ? value : num;
+                } else if (typeof value === "number") {
+                    // Convert number to string
+                    return value;
+                }
+                return value; // Return as is if it's neither number nor string
             }
         };
 

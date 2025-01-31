@@ -1179,7 +1179,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 var oModel = table.getModel();
                                 var rowStart = table.getFirstVisibleRow(); //starting Row index
                                 var currentRowoIndexContext = table.getContextByIndex(rowStart + table.indexOfRow(row));
-                                var newValue = evtx.getParameter("value");
+                                var newValue = evtx.getSource().getValue();//evtx.getParameter("value");
 
                                 var tm = -1;
                                 var clx = -1;
