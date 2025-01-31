@@ -1029,8 +1029,13 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         qv.getControl().focus();
                     }
 
-                    if (evt.key == "ArrowDown") {
-                        qv.getControl().focus();
+                    if (evt.key == "Enter") {
+                        console.log("press enter");
+                        if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {
+                            setTimeout(() => {
+                                qv.getControl().setSelectionInterval(1, 0);
+                            });
+                        }
                     }
 
                 });
@@ -1924,6 +1929,17 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     }
                 };
                 return col;
+            },
+            autoConvertValue: function (value) {
+                if (typeof value === "string") {
+                    // Convert to number if it's a valid numeric string
+                    let num = Number(value);
+                    return isNaN(num) ? value : num;
+                } else if (typeof value === "number") {
+                    // Convert number to string
+                    return value;
+                }
+                return value; // Return as is if it's neither number nor string
             }
         };
 

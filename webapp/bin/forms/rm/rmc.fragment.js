@@ -1,9 +1,11 @@
-SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
+sap.ui.jsfragment("bin.forms.rm.template", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
         this.view = oController.getView();
         this.qryStr = "";
+        // this.joApp = new sap.m.SplitApp({mode: sap.m.SplitAppMode.HideMode,});
+        // this.joApp2 = new sap.m.App();
         this.timeInLong = (new Date()).getTime();
 
         this.helperFunc.init(this);
@@ -34,6 +36,34 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
         var colSpan = "XL2 L2 M2 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var cmdLink = function (obj, rowno, colno, lctb, frm) {
+            // var mdl = frm.objs["CAGE1@qry2"].obj.getControl().getModel();
+            // var rr = frm.objs["CAGE1@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
+            // var cont = frm.objs["CAGE1@qry2"].obj.getControl().getContextByIndex(rr);
+            // var rowid = mdl.getProperty("_rowid", cont);
+            // var ac = Util.nvl(lctb.getFieldValue(rowid, "CODE"), "");
+            // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
+
+            // var mnu = new sap.m.Menu();
+            // mnu.removeAllItems();
+
+            // mnu.addItem(new sap.m.MenuItem({
+            //     text: "SOA A/c -" + ac,
+            //     customData: { key: ac },
+            //     press: function () {
+            //         var CODE = this.getCustomData()[0].getKey();
+            //         UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + CODE + " toacc=" + CODE + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            //     }
+            // }));
+            // mnu.addItem(new sap.m.MenuItem({
+            //     text: "View A/c -" + ac,
+            //     customData: { key: ac },
+            //     press: function () {
+            //         var CODE = this.getCustomData()[0].getKey();
+            //         UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view CODE=" + CODE, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            //     }
+            // }));
+            // mnu.openBy(obj);
+
         }
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};
@@ -42,34 +72,43 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("Item Formula Qty And Costing"),
+            title: "PL By Productions",
             title2: "",
             show_para_pop: false,
             reports: [
                 {
-                    code: "RMC001", // Items Daily Sales
-                    name: Util.getLangText("Item Formula Qty And Costing"),
-                    descr: Util.getLangText("Item Formula Qty And Costing"),
+                    code: "",
+                    name: Util.getLangText(""),
+                    descr: Util.getLangText(""),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
                     showSQLWhereClause: true,
                     showFilterCols: true,
                     showDispCols: true,
-                    // printCSS: "print2.css",
+                    printCSS: "print2.css",
                     onSubTitHTML: function () {
-                        var tbstr = Util.getLangText("Item Formula Qty And Costing");
-                        var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
-                        return ht;
-
+                        // var up = thatForm.frm.getFieldValue("parameter.unposted");
+                        // var tbstr = Util.getLangText("finStat1") + ": " + thatForm.frm.getFieldValue("parameter.acname");
+                        // var ua = Util.getLangText("unAudited");
+                        // var cs = thatForm.frm.getFieldValue("parameter.costcent");
+                        // var csnm = thatForm.frm.getFieldValue("parameter.csname");
+                        // var ht = "<div class='reportTitle'>" + tbstr + (up == "Y" ? " (" + ua + ") " : "") + "</div > ";
+                        // if (cs != "")
+                        //     ht += "<div class='reportTitle2'>" + Util.getLangText("costCent") + " : " + cs + "-" + csnm + "</div > ";
+                        // return ht;
                     },
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
+                    mainParaContainerSetting: ReportUtils.Report.getMainParaContainerSettings(),
                     rep: {
-                        parameters: thatForm.helperFunc.getParas("RMC001"),
+                        parameters: thatForm.helperFunc.getParas("RMPL01"),
                         print_templates: [
+                            {
+                                title: "PL Report",
+                                reportFile: "trans_1",
+                            }
                         ],
                         canvas: [],
                         db: [
@@ -96,8 +135,8 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
 
                                 },
                                 fields: {
-                                    accno2: {
-                                        colname: "accno2",
+                                    accno: {
+                                        colname: "accno",
                                         data_type: FormView.DataType.String,
                                         class_name: FormView.ClassTypes.SCROLLCONTAINER,
                                         title: '',
@@ -109,44 +148,31 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
                                         display_style: "",
                                         display_format: "",
                                         default_value: "",
-                                        other_settings: {
-                                        },
+                                        other_settings: {},
                                         onPrintField: function () {
-                                            return thatForm.qr.getHTMLTable(thatForm.view);
+                                            return thatForm.qr.getContent();
                                         },
                                         afterAddOBject: function () {
-                                            thatForm.qr = new QueryView("lstRepTbl" + that.timeInLong);
-                                            var qr = thatForm.qr;
-                                            qr.getControl().view = thatForm.view;
-                                            qr.getControl().addStyleClass("sapUiSizeCondensed reportTable2 ");
-                                            qr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowOnly);
-                                            qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
-                                            qr.getControl().setAlternateRowColors(false);
-                                            qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-                                            // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
-                                            qr.getControl().setVisibleRowCount(10);
-                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 50, "XL": 35 });
-                                            qr.getControl().setRowHeight(18);
-                                            qr.getControl().attachColumnResize(undefined, function (e) { e.preventDefault(); });
-                                            qr.filterCols = [];
-                                            qr.createToolbar(qr.disp_class, qr.filterCols,
-                                                // EVENT ON APPLY PERSONALIZATION
-                                                function (prsn, qv) {
-                                                },
-                                                // EVENT ON REVERT PERSONALIZATION TO ORIGINAL
-                                                function (qv) {
-                                                }
-                                            );
-                                            this.obj.addContent(qr.showToolbar.toolbar);
-                                            this.obj.addContent(qr.getControl());
-
+                                            var showmonth = thatForm.frm.getFieldValue("parameter.showMonth");
+                                            thatForm.qr = new sap.ui.core.HTML({}).addStyleClass("sapUiSmallMargin");
+                                            var vb = new sap.m.VBox({
+                                                width: "1500px", //(showmonth == "Y" ? "1500px" : "-1px"),
+                                                items: [thatForm.qr]
+                                            }).addStyleClass("sapUiSmallMargin");
+                                            // this.toolbar = that.getToolbar();
+                                            this.obj.addContent(vb);
+                                            thatForm.qr.attachBrowserEvent("click", function (ev) {
+                                                console.log(ev);
+                                            });
 
                                         },
                                         bat7OnSetFieldAddQry: function (qryObj, ps) {
-                                            return thatForm.helperFunc.addQry(qryObj, ps, "RMC001");
+                                            return thatForm.helperFunc.addQryPL3(qryObj, ps, "RMPL01");
+
                                         },
                                         bat7OnSetFieldGetData: function (qryObj) {
-                                            thatForm.helperFunc.getQry(qryObj);
+                                            thatForm.helperFunc.getQryPL3(qryObj);
+
                                         }
                                     },
                                 }
@@ -173,6 +199,7 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
             var view = this.thatForm.view;
             var colSpan = "XL2 L2 M2 S12";
             var sumSpan = "XL2 L2 M2 S12";
+
             var para = {
                 fromdate: {
                     colname: "fromdate",
@@ -209,301 +236,128 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
                     insert_allowed: true,
                     require: true,
                     dispInPara: true,
-                },
+                }
             };
-
             return para;
         },
-        addQry: function (qryObj, ps, repCode) {
+        addQryPL3: function (qryObj, ps, repCode) {
             var thatForm = this.thatForm;
             var fisc = sap.ui.getCore().getModel("fiscalData").getData();
             var ret = true;
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
-            var addQry = function (sq, rn) {
-                Util.doAjaxJson("bat7addQry?" + ps, {
-                    sql: sq,
-                    ret: "",
-                    data: "",
-                    repCode: qryObj.rep.code,
-                    repNo: qryObj.repNo,
-                    command: "",
-                    scheduledAt: "",
-                    p1: "",
-                    p2: "",
-                    qrNo: rn,
-                }, false).done(function (data) {
-                    if (!data.ret == "SUCCESS") {
-                        ret = false;
-                    }
-                });
-            }
-            var sqitm = "select ord_ship,I.DESCR,sum(O.tqty) totqty from c_order1 o,ITEMS I " +
-                " where ord_code=9 AND I.REFERENCE=O.ORD_SHIP " +
-                " and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate " +
-                " group by ord_ship,I.DESCR ORDER BY ORD_SHIP";
+            var bk = UtilGen.getBackYears(fromdt, todt);
+            this.codes = this.assignCodes();
+            var delStr = "delete from temporary where usernm='01' and idno=66105;";
+            var insx = "";
 
-            var sq = "select i.reference,i.descr baseitem,m.refer rfr," +
-                " i2.descr||' - '||m.packd refer,sum(m.allqty/m.pack) qty," +
-                " i2.descr||' - '||m.packd||'__QTY' REFER_QTY " +
-                " from items i, masterasm m,items i2 where m.baseitem=i.reference " +
-                " and m.refer=i2.reference " +
-                " and baseitem in " +
-                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate) " +
-                " group by i.reference,i.descr,m.refer,i2.descr||' - '||m.packd, i2.descr || ' - ' || m.packd || '__QTY' " +
-                " order by 1,rfr";
-            var sqcst = "select i.reference,i.descr baseitem,m.refer rfr," +
-                " i2.descr||' - '||m.packd refer,sum((m.allqty/m.pack)*i2.pkaver) cst," +
-                " i2.descr||' - '||m.packd||'__CST' REFER_CST " +
-                " from items i, masterasm m,items i2 where m.baseitem=i.reference " +
-                " and m.refer=i2.reference " +
-                " and baseitem in " +
-                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate) " +
-                " group by i.reference,i.descr,m.refer,i2.descr||' - '||m.packd, i2.descr || ' - ' || m.packd || '__CST' " +
-                " order by 1,rfr";
-            var sqavg = "select i.reference,i.descr baseitem,m.refer rfr," +
-                " i2.descr||' - '||m.packd refer,max(i2.pkaver) avg," +
-                " i2.descr||' - '||m.packd||'__AVG' REFER_AVG " +
-                " from items i, masterasm m,items i2 where m.baseitem=i.reference " +
-                " and m.refer=i2.reference " +
-                " and baseitem in " +
-                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate) " +
-                " group by i.reference,i.descr,m.refer,i2.descr||' - '||m.packd, i2.descr || ' - ' || m.packd || '__AVG' " +
-                " order by 1,rfr";
-            sq = thatForm.frm.parseString(sq);
-            sqitm = thatForm.frm.parseString(sqitm);
-            sqcst = thatForm.frm.parseString(sqcst);
-            sqavg = thatForm.frm.parseString(sqavg);
-            addQry(sqitm, 1000);
-            addQry(sq, 1001);
-            addQry(sqcst, 1002);
-            addQry(sqavg, 1003);
+            var sq = "select";
+            Util.doAjaxJson("bat7addQry?" + ps, {
+                sql: sq,
+                ret: "",
+                data: "",
+                repCode: qryObj.rep.code,
+                repNo: qryObj.repNo,
+                command: "",
+                scheduledAt: "",
+                p1: "",
+                p2: "",
+                qrNo: 1001,
+            }, false).done(function (data) {
+                if (!data.ret == "SUCCESS") {
+                    ret = false;
+                }
+            });
             return true;
         },
-        getQry: function (qryObj) {
+        getQryPL3: function (qryObj) {
             var thatForm = this.thatForm;
-            var that = this;
             var sett = sap.ui.getCore().getModel("settings").getData();
-            that.ld = undefined;
-            var getQryData = function (qn) {
-                var dat = undefined;
-                Util.doAjaxJson("bat7getData", {
-                    sql: "",
-                    ret: "",
-                    data: "",
-                    repCode: qryObj.rep.code,
-                    repNo: qryObj.repNo,
-                    command: "",
-                    scheduledAt: "",
-                    p1: "",
-                    p2: "",
-                    qrNo: qn,
-                }, false).done(function (dt) {
-                    if (dt.ret == "SUCCESS")
-                        dat = dt;
+            Util.doAjaxJson("bat7getData", {
+                sql: "",
+                ret: "",
+                data: "",
+                repCode: qryObj.rep.code,
+                repNo: qryObj.repNo,
+                command: "",
+                scheduledAt: "",
+                p1: "",
+                p2: "",
+                qrNo: 1001,
+            }, false).done(function (dt) {
+                if (dt.ret == "SUCCESS" && thatForm.qr != undefined) {
+                    var paras = {
+                        mColParent: "PARENTACC",
+                        mColCode: "CODE",
+                        mColName: "DESCR",
+                        mColLevel: "LEVELNO",
+                        mColChild: "CHILDCOUNT"
+                    };
+                    var ld = new LocalTableData();
+                    ld.parseCol("{" + dt.data + "}");
 
-                });
-                return dat;
-            };
-            var doCrossTabLd = function (ld, typ, dtx) {
-                ld.parseCol("{" + dtx.data + "}");
-                ld.cols[ld.getColPos("BASEITEM")].ct_row = "Y";
-                ld.cols[ld.getColPos("REFERENCE")].ct_row = "Y";
-                ld.cols[ld.getColPos("BASEITEM")].mUIHelper.display_width = "100";
-                ld.cols[ld.getColPos("REFER_" + typ)].ct_col = "Y";
-                ld.cols[ld.getColPos(typ)].ct_val = "Y";
-                ld.parse("{" + dtx.data + "}", true);
-                ld.do_cross_tab();
-            };
-            var addItmQtyCols = function () {
-                var lngthSpan = 0;
-                for (var i = 0; i < ldCst.cols.length; i++)
-                    if (ldCst.cols[i].ct_val == "Y" && ldCst.cols[i].mColName != "tot__CST")
-                        lngthSpan++;
-                for (var i = 0; i < ld.cols.length; i++) {
-                    if (ld.cols[i].ct_val == "Y" && ld.cols[i].mColName != "tot__QTY") {
-                        var cx = ldItm.addColumn(ld.cols[i].mColName);
-                        cx.mTitle = ld.cols[i].mTitle;
-                        cx.mTitleParent = "Qty";
-                        cx.ct_val = "Y";
-                        cx.mTitleParentSpan = lngthSpan;
-                        cx.data_type = "number";
-                        cx.mUIHelper.display_width = 80;
-                        cx.mSummary = "SUM";
-                        cx.mUIHelper.display_format = "QTY_FORMAT";
-                        cx.mUIHelper.display_align = "ALIGN_CENTER";
-                        // ldItm.cols.push(cx);
+                    // ld.cols[ld.getColPos("CODE")].mUIHelper.display_width = "180";
+
+                    ld.parse("{" + dt.data + "}", true);
+
+                    var fntsize = Util.getLangDescrAR("16px", "16px");
+                    paras["tableClass"] = "class=\"tbl2\"";
+                    paras["styleTableDetails"] = "style='font-size: " + fntsize + ";font-family: Arial;'";
+                    paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
+                    paras["fnOnCellAddClass"] = function (oData, rowno, col) {
+                        var st = "";
+                        return st;
                     }
-                }
-            }
-            var addItmCostCols = function () {
-                var lngthSpan = 0;
-                for (var i = 0; i < ldCst.cols.length; i++)
-                    if (ldCst.cols[i].ct_val == "Y" && ldCst.cols[i].mColName != "tot__CST")
-                        lngthSpan++;
-                for (var i = 0; i < ldCst.cols.length; i++) {
-                    if (ldCst.cols[i].ct_val == "Y" && ldCst.cols[i].mColName != "tot__CST") {
-                        var cx = ldItm.addColumn(ldCst.cols[i].mColName);
-                        cx.mTitle = ldCst.cols[i].mTitle;
-                        cx.mTitleParent = "Cost Value";
-                        cx.ct_val = "Y";
-                        cx.mTitleParentSpan = lngthSpan;
-                        cx.data_type = "number";
-                        cx.mSummary = "SUM";
-                        cx.mUIHelper.display_width = 90;
-                        cx.mUIHelper.display_format = "MONEY_FORMAT";
-                        cx.mUIHelper.display_align = "ALIGN_END";
-                        cx.mUIHelper.display_style = "background-color:lightgrey;"
-                        // ldItm.cols.push(cx);
-                    }
-                }
-            }
-            var addItmAvgCols = function () {
-                var lngthSpan = 0;
-                for (var i = 0; i < ldAvg.cols.length; i++)
-                    if (ldAvg.cols[i].ct_val == "Y" && ldAvg.cols[i].mColName != "tot__AVG")
-                        lngthSpan++;
-                for (var i = 0; i < ldAvg.cols.length; i++) {
-                    if (ldAvg.cols[i].ct_val == "Y" && ldAvg.cols[i].mColName != "tot__AVG") {
-                        var cx = ldItm.addColumn(ldAvg.cols[i].mColName);
-                        cx.mTitle = ldAvg.cols[i].mTitle;
-                        cx.mTitleParent = "Average Cost";
-                        cx.ct_val = "Y";
-                        cx.mTitleParentSpan = lngthSpan;
-                        cx.data_type = "number";
-                        cx.mUIHelper.display_width = 90;
-                        // cx.mUIHelper.display_format = "MONEY_FORMAT";
-                        cx.mUIHelper.display_align = "ALIGN_END";
-                        cx.mUIHelper.display_style = "background-color:khaki;"
-                        // ldItm.cols.push(cx);
-                    }
-                }
-            }
-            var setItmQtytVals = function () {
-                for (var i = 0; i < ldCst.rows.length; i++) {
-                    var rf = ldCst.getFieldValue(i, "REFERENCE");
-                    var itmrec = ldItm.find("ORD_SHIP", rf);
-                    if (itmrec >= 0) {
-                        for (var j = 0; j < ldCst.cols.length; j++)
-                            if (ldCst.cols[j].ct_val == "Y" && ldCst.cols[j].mColName != "tot__CST") {
-                                var vl = ldCst.getFieldValue(i, ldCst.cols[j].mColName);
-                                if (vl != undefined && vl > 0) {
-                                    var qrx = ldItm.getFieldValue(itmrec, "TOTQTY") * vl;
-                                    ldItm.setFieldValue(itmrec, ldCst.cols[j].mColName, qrx);
-                                }
-                            }
-                    }
-                }
-            };
-            var setItmCosttVals = function () {
-                for (var i = 0; i < ld.rows.length; i++) {
-                    var rf = ld.getFieldValue(i, "REFERENCE");
-                    var itmrec = ldItm.find("ORD_SHIP", rf);
-                    if (itmrec >= 0) {
-                        for (var j = 0; j < ld.cols.length; j++)
-                            if (ld.cols[j].ct_val == "Y" && ld.cols[j].mColName != "tot__CST") {
-                                var vl = ld.getFieldValue(i, ld.cols[j].mColName);
-                                if (vl != undefined && vl > 0) {
-                                    var qrx = ldItm.getFieldValue(itmrec, "TOTQTY") * vl;
-                                    ldItm.setFieldValue(itmrec, ld.cols[j].mColName, qrx);
-                                }
-                            }
-                    }
-                }
-            };
-            var setItmAvgtVals = function () {
-                for (var i = 0; i < ldAvg.rows.length; i++) {
-                    var rf = ldAvg.getFieldValue(i, "REFERENCE");
-                    var itmrec = ldItm.find("ORD_SHIP", rf);
-                    if (itmrec >= 0) {
-                        for (var j = 0; j < ldAvg.cols.length; j++)
-                            if (ldAvg.cols[j].ct_val == "Y" && ldAvg.cols[j].mColName != "tot__AVG") {
-                                var vl = ldAvg.getFieldValue(i, ldAvg.cols[j].mColName);
-                                if (vl != undefined && vl > 0) {
-                                    var qrx = vl;
-                                    ldItm.setFieldValue(itmrec, ldAvg.cols[j].mColName, qrx);
-                                }
-                            }
-                    }
-                }
-            };
-            var deleteEmptyCols = function () {
-                var chkCol = function (colname) {
-                    var empt = true;
-                    for (var j = 0; j < ldItm.rows.length; j++) {
-                        var vl = ldItm.getFieldValue(j, colname);
-                        if (Util.nvl(vl, 0) != 0)
-                            return false;
-                    }
-                    return true;
-                }
-                for (var i = ldItm.cols.length - 1; i >= 0; i--) {
-                    if (ldItm.cols[i].ct_val == "Y") {
-                        if (chkCol(ldItm.cols[i].mColName))
-                            ldItm.deleteCol(i);
+                    paras["fnOnCellClick"] = function (oData, rowno, col) {
+                        var st = "";
+                        // if ((col == "CODE" || col == "DESCR") && oData[rowno]["CODE"] != null) {
+                        //     var sq1="";
+                        //     st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        // }
+                        return st;
                     }
 
+                    paras["fnOnCellAddStyle"] = function (oData, rowno, col) {
+                        if (rowno == -1)
+                            return "border:groove;";
+                        var st = "padding-left:10px;padding-right:10px;";
+                        if (oData[rowno]["CODE"] == "prodqty")
+                            st += "font-weight:bold;color:blue;";
+
+                        // if (oData[rowno]["CODE"].startsWith("com_") ||
+                        //     oData[rowno]["CODE"] == "avgsales")
+                        //     st += "vertical-align:top;font-weight:bold;";
+                        return st;
+                    }
+                    paras["fnOnCellValue"] = function (oData, rowno, col, cellValue) {
+                        var vl = cellValue;
+                        // if (col == "BALANCE" && cellValue != "")
+                        //     vl = oData[rowno]["POST_VAL"] + " " + cellValue + ""
+                        return vl;
+                    };
+                    paras["formatNumber"] = function (oData, rowno, col) {
+                        // if (col == "BALANCE")
+                        //     return new DecimalFormat(sett['FORMAT_MONEY_1']);
+                        return undefined;
+                    }
+                    paras["reFormatNumber"] = true;
+                    paras["hideSubTotals"] = true;
+                    paras["hideTotals"] = false; //(thatForm.frm.getFieldValue("parameter.hideTotals") == "Y");
+                    paras["fnOnAddTotalRow"] = function (footerNode_fg, mapNode_fg) {
+                        // footerNode_fg["LEVELNO"] = mapNode_fg["LEVELNO"];
+                    };
+                    var str = UtilGen.buildJSONTreeWithTotal(ld, paras);
+                    thatForm.qr.setContent(str);
+
                 }
-            }
-
-            var dt = getQryData(1001);
-            var dtCst = getQryData(1002);
-            var dtItm = getQryData(1000);
-            var dtAvg = getQryData(1003);
-
-
-
-
-
-            if (dtItm == undefined) return;
-
-            var qr = thatForm.qr;
-
-
-            var ld = new LocalTableData();
-            var ldCst = new LocalTableData();
-            var ldAvg = new LocalTableData();
-
-            doCrossTabLd(ld, "QTY", dt);
-            doCrossTabLd(ldCst, "CST", dtCst);
-            doCrossTabLd(ldAvg, "AVG", dtAvg);
-
-            var ldItm = qr.mLctb;
-
-            ldItm.parseCol("{" + dtItm.data + "}");
-            addItmQtyCols();
-            addItmCostCols();
-            addItmAvgCols();
-            ldItm.cols[ldItm.getColPos("TOTQTY")].mSummary = "SUM";
-            ldItm.cols[ldItm.getColPos("ORD_SHIP")].mTitle = "Item";
-            ldItm.cols[ldItm.getColPos("TOTQTY")].mTitle = "M3 qty";
-            ldItm.cols[ldItm.getColPos("ORD_SHIP")].mSummary = "COUNT_UNIQUE";
-            ldItm.cols[ldItm.getColPos("ORD_SHIP")].count_unique_label = "Items";
-            ldItm.cols[ldItm.getColPos("TOTQTY")].mUIHelper.display_width = "100";
-
-            ldItm.parse("{" + dtItm.data + "}", true);
-
-            if (ldItm.cols.length == 0 || ldItm.rows.length == 0) {
-                sap.m.MessageToast.show("No data found !");
-                qr.reset();
-                return;
-            }
-
-
-
-            setItmQtytVals();
-            setItmCosttVals();
-            setItmAvgtVals();
-            // deleteEmptyCols();
-            qr.loadData();
-
-            qr.getControl().setFirstVisibleRow(0);
-            qr.getControl().setFixedColumnCount(3);
-
+            });
         },
-
     },
     loadData: function () {
     }
 
-});
+})
+    ;
+
+
+

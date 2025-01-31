@@ -14,6 +14,14 @@ iframe {
     border-color: initial;
     border-image: initial;
 }
+.highlight-row {
+    background-color: #00ffff !important;
+    transition: background-color 0.1s ease-in-out;
+}
+.highlight-row .sapMInputBaseInner {
+    background-color: #00ffff !important;
+    transition: background-color 0.1s ease-in-out;
+}
 .colorBlack {
     color: black !important;
 }

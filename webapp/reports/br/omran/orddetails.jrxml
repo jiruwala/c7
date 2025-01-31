@@ -25,8 +25,7 @@ FROM
 C_ORDER1 C,ITEMS I
 WHERE ORD_SHIP=I.REFERENCE
 and c.keyfld=  $P{KEYFLD} 
-ORDER BY ORD_POS
-]]>
+ORDER BY ORD_POS]]>
 	</queryString>
 	<field name="LOCATION_CODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="LOCATION_CODE"/>
@@ -356,8 +355,8 @@ ORDER BY ORD_POS
 				</textElement>
 				<textFieldExpression><![CDATA[$F{PARTNO}]]></textFieldExpression>
 			</textField>
-			<textField textAdjust="StretchHeight" pattern="###,##0" isBlankWhenNull="true">
-				<reportElement style="strColHeader" x="370" y="1" width="60" height="19" uuid="64525551-7f2b-40a9-a5c4-866a85dc4dd7">
+			<textField textAdjust="StretchHeight" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="370" y="1" width="60" height="19" uuid="64525551-7f2b-40a9-a5c4-866a85dc4dd7">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
 				<box>
@@ -366,7 +365,7 @@ ORDER BY ORD_POS
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{ORD_PKQTY}]]></textFieldExpression>

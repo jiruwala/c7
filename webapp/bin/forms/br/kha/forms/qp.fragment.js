@@ -74,7 +74,25 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
 
         this.mainPage.addContent(this.qr.showToolbar.toolbar);
         this.mainPage.addContent(this.qr.getControl());
-
+        this.totTon = new sap.m.Input({
+            editable: false,
+        });
+        this.totm3 = new sap.m.Input({
+            editable: false,
+        });
+        var hb = new sap.m.HBox({
+            // justifyContent: sap.m.FlexJustifyContent.Center,
+            alignItems: sap.m.FlexAlignItems.Center,
+            alignContent: sap.m.FlexAlignContent.Center,
+            items: [
+                new sap.m.Text({ text: "Total Ton: " }),
+                this.totTon,
+                new sap.m.Text({ text: "Total m3: " }),
+                this.totm3
+            ]
+        })
+        this.mainPage.addContent(new sap.m.VBox({ height: "5px" }));
+        this.mainPage.addContent(hb);
         this.loadData();
     },
 
@@ -280,11 +298,13 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
 
         var ton = (that.chkTonOnly.getSelected() ? "Y" : "N");
         var sq = "SELECT  QTY_2, PRICE_2,'طن' packd_2, C.ORD_DATE," +
+            "(SELECT MAX(PAYTERM) FROM ORDER1 WHERE KEYFLD=C.KEYFLD ) TRUCKNO," +
+            " C.ORD_NO,C.ORD_PKQTY ,C.PACKDX," +
             " ( select NVL(max(PRICEU),0)  from c_contract_items " +
             " where cust_code=c.ord_ref and branch_no=c.ord_discamt and c.ORD_SHIP=refer " +
             " and c.ord_date>=startdate and c.ord_date<=enddate and PRICEU>0 ) price_u, " +
             " C.ORD_SHIP, I.DESCR ITEMNAME, " +
-            " C.ORD_PKQTY ,C.PACKDX,C.ORD_NO, attn, L.NAME LOCATION_NAME, " +
+            "  attn, L.NAME LOCATION_NAME, " +
             " C.LOCATION_CODE,C.KEYFLD,C.ORD_POS, " +
             " ORD_REF, ORD_DISCAMT " +
             " FROM C_ORDER1 C, ITEMS I, LOCATIONS L " +
@@ -321,6 +341,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
             qv.mLctb.cols[qv.mLctb.getColPos("PACKDX")].mTitle = Util.getLangText("itemPackD");
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].mTitle = Util.getLangText("noTxt");
             qv.mLctb.cols[qv.mLctb.getColPos("ATTN")].mTitle = Util.getLangText("branchNmTxt");
+            qv.mLctb.cols[qv.mLctb.getColPos("ORD_DATE")].mTitle = Util.getLangText("ordDate");
+            qv.mLctb.cols[qv.mLctb.getColPos("TRUCKNO")].mTitle = Util.getLangText("truckNo");
 
             qv.mLctb.cols[qv.mLctb.getColPos("LOCATION_CODE")].mHideCol = true;
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_POS")].mHideCol = true;
@@ -332,7 +354,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
 
             qv.mLctb.cols[qv.mLctb.getColPos("QTY_2")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("PRICE_2")].getMUIHelper().display_width = 80;
-            qv.mLctb.cols[qv.mLctb.getColPos("PACKD_2")].getMUIHelper().display_width = 80;
+            qv.mLctb.cols[qv.mLctb.getColPos("PACKD_2")].getMUIHelper().display_width = 40;
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_SHIP")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("ITEMNAME")].getMUIHelper().display_width = 150;
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_PKQTY")].getMUIHelper().display_width = 80;
@@ -354,6 +376,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
                 var pru = Util.extractNumber(oModel.getProperty(currentRowoIndexContext.sPath + '/PRICE_U'));
                 if (newValue > 0 && pru > 0)
                     oModel.setProperty(currentRowoIndexContext.sPath + '/PRICE_2', pru);
+                that.calcSummary();
             }
 
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].commandLinkClick = function (obj) {
@@ -371,11 +394,26 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.qp", {
             qv.loadData();
             qv.getControl().setFirstVisibleRow(0);
             qv.editable = true;
-
+            that.calcSummary();
         }
 
 
 
+    },
+    calcSummary: function () {
+        var that = this;
+        var qv = that.qr;
+        var ld = qv.mLctb;
+
+        var tt = 0;
+        var tm = 0;
+        qv.updateDataToTable();
+        for (var i = 0; i < ld.rows.length; i++) {
+            tt += Util.extractNumber(ld.getFieldValue(i, "QTY_2"));
+            tm += Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
+        }
+        this.totTon.setValue(Math.round(tt, 2));
+        this.totm3.setValue(Math.round(tm, 2));
     },
     updateData: function () {
         var that = this;
