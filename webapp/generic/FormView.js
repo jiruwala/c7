@@ -284,8 +284,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 fd.edit_allowed = Util.nvl(met[f].edit_allowed, true);
                                 fd.insert_allowed = Util.nvl(met[f].insert_allowed, true);
                                 fd.keyboardFocus = Util.nvl(met[f].keyboardFocus, true);
+                                fd.dbQryVal = undefined;
                                 qr.fields[met[f].colname] = fd;
                                 that.objs[fd.name] = fd;
+
                             }
                         }
                     });
@@ -317,8 +319,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         fd.showValueHelp = Util.nvl(met[f].showValueHelp, "");
                         fd.trueValues = Util.nvl(met[f].trueValues, undefined);
                         fd.keyboardFocus = Util.nvl(met[f].keyboardFocus, true);
-                        qr.fields[met[f].colname] = fd;
+                        fd.dbQryVal = undefined;
 
+                        qr.fields[met[f].colname] = fd;
                         this.objs[fd.name] = fd;
                     }
                 }
@@ -1058,15 +1061,19 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
             for (var key in subs) {
                 var vl = dtx[key.toUpperCase()];
-                if (subs[key].obj != undefined)
+                if (subs[key].obj != undefined) {
                     UtilGen.setControlValue(subs[key].obj, "", "", false);
-                if (subs[key].obj != undefined && vl != undefined)
+                    subs[key].dbQryVal = "";
+                }
+                if (subs[key].obj != undefined && vl != undefined) {
                     UtilGen.setControlValue(subs[key].obj, vl, vl, Util.nvl(executeChange, false));
+                    subs[key].dbQryVal = vl;
+                }
                 if (subs[key].obj != undefined && vl != undefined && subs[key].data_type == FormView.DataType.Number && Util.nvl(subs[key].display_format, "") != "") {
                     var df = new DecimalFormat(subs[key].display_format);
                     UtilGen.setControlValue(subs[key].obj, df.format(vl), vl, Util.nvl(executeChange, false));
+                    subs[key].dbQryVal = vl;
                 }
-
             }
 
         };
@@ -1703,7 +1710,57 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
 
         };
+        FormView.prototype.getRawOriginData = function (qryName, pCompareType, incFlds, excFlds) {
+            var str = "";
+            var that = this;
+            var sett = sap.ui.getCore().getModel("settings").getData();
 
+            // it wil set compareType currentValues if not three types, 
+            // currentValues, queryValues,  changedOnly
+            var compareType = Util.nvl(pCompareType, "currentValues");
+            if (compareType != "currentValues"
+                && compareType != "queryValues" &&
+                compareType != "changedOnly"
+            )
+                compareTyp = "currentValues";
+
+            var qryObj = undefined;
+            if (typeof qryName == "string")
+                qryObj = this.objs[qryName];
+            else qryObj = qryName;
+            var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " h mm a");
+            var qrys = (qryObj != undefined ? [qryObj] : this.form.db);
+            for (var o in qrys) {
+                qryObj = qrys[o];
+                if (qryObj.showType == FormView.QueryShowType.FORM) {
+                    var flds = Util.nvl(qryObj.fields, []);
+                    for (var i in flds) {
+                        var fld = flds[i].obj;
+                        if (fld != undefined) {
+                            var vlx = that.getFieldValue(flds[i].name);
+                            if (compareType == "queryValues" && flds[i].dbQryVal == undefined)
+                                continue;
+                            if (compareType == "changedOnly" && flds[i].dbQryVal == undefined)
+                                continue;
+                            if (compareType == "changedOnly" && (flds[i].dbQryVal == vlx || flds[i].dbQryVal == undefined))
+                                continue;
+                            else vlx = flds[i].dbQryVal;
+                            if (compareType == "queryValues" && flds[i].dbQryVal == undefined)
+                                continue;
+                            else vlx = flds[i].dbQryVal;
+                            // var vlx = flds[i].name;
+                            if (vlx instanceof Date)
+                                vlx = sdf.format(vlx);
+                            vlx = Util.nvl((vlx + "").trim(), "null");
+                            var lbl = Util.getTextFromLabel(Util.nvl(flds[i].title, flds[i].name));
+                            if (Util.nvl(lbl, "").trim() != "")
+                                str += (str.length > 0 ? " , " : "") + lbl + " = " + (vlx.replaceAll(":", "."));
+                        }
+                    }
+                }
+                return str;
+            }
+        };
         FormView.getFactoryControls = {
             getControls: function (pOSett) {
                 var timeInLong = (new Date()).getTime();
@@ -2031,6 +2088,5 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
         return FormView;
     }
-)
-    ;
+);
 
