@@ -16,7 +16,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             keyfld: -1,
             flag: 1,  // 1=closed,2 opened,
             vou_code: 9,
-            type: 1
+            type: 1,
+            formname: "rm.forms.dlv"
         };
 
         // this.pgDetail = new sap.m.Page({showHeader: false});
@@ -301,10 +302,27 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 },
                 afterDelRow: function (qry, ld, data) {
                     var delAdd = "";
-                    if (qry.name == "qry1")
+                    if (qry.name == "qry1") {
+                        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                        var ordn = thatForm.frm.getFieldValue("qry1.ord_no");
+                        var loc = thatForm.frm.getFieldValue("qry1.location_code");
+
                         delAdd += "delete from order1 where keyfld=:qry1.keyfld ;";
+                        var sqLog = UtilGen.getInsertLogStr({
+                            grpname: thatForm.vars.formname,
+                            tablename: "ORDER1",
+                            rec_stat: "DELETE",
+                            descr: "DELIVERY NOTE # " + ordn + " LOCATION # " + loc,
+                            pvar1: ordn,
+                            pvar2: "ORD_CODE=9",
+                            pvar3: kf,
+                            notify_type: ""
+                        }, "");
+                        delAdd += sqLog + "";
+                    }
                     if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                         qry.obj.addRow();
+
                     return delAdd;
                 },
                 onCellRender: function (qry, rowno, colno, currentRowContext) {
@@ -324,6 +342,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     // return sq + "update_dlv_add_amt(" + kf + ");";
                     var sq1 = "";
                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                    var ordn = thatForm.frm.getFieldValue("qry1.ord_no");
+                    var loc = thatForm.frm.getFieldValue("qry1.location_code");
                     var rfr = thatForm.frm.getFieldValue("qry1.ord_ship");
                     var sq2 = thatForm.frm.parseString("select GET_ITEM_PRICE2(':qry1.ord_ship',':qry1.ord_ref',':qry1.ord_discamt',:qry1.ord_date ) from dual");
                     var pr = Util.getSQLValue(sq2);
@@ -365,7 +385,19 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     sqOr = "delete from order1 where ord_code=9 and keyfld=:qry1.keyfld;";
                     sqOr += UtilGen.getInsertRowStringByObj("order1", cols);
                     sqOr = thatForm.frm.parseString(sqOr);
-                    return sq + sq1 + sqOr + ";";
+                    var stat = (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) ? "UPDATE" : "INSERT";
+                    var sqLog = UtilGen.getInsertLogStr({
+                        grpname: thatForm.vars.formname,
+                        tablename: "ORDER1",
+                        rec_stat: stat,
+                        descr: "DELIVERY NOTE # " + ordn + " LOCATION # " + loc,
+                        pvar1: ordn,
+                        pvar2: "ORD_CODE=9",
+                        pvar3: kf,
+                        notify_type: "",
+                        advance_data: thatForm.frm.getRawOriginData("qry1")
+                    }, "");
+                    return sq + sq1 + sqOr + ";" + sqLog + "";
                 }
             };
         },
@@ -503,7 +535,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     "ord_date", "@", "ordDate", "15%", "", "18%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true
                     }, {}),
                 ord_no: FormView.getFactoryFields.getGeneralField(
@@ -523,7 +555,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     "ord_ref", "", "txtCust", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true
                     }, FormView.getFactoryFields.getSettingsOrdRef2({
                         thatForm: thatForm,
@@ -548,7 +580,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     "ord_discamt", "@", "txtBranch", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true,
 
                     }, FormView.getFactoryFields.getSettingsBr({
@@ -572,7 +604,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     "ord_ship", "", "itemTxt", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true,
                     }, getSettingContItems()),
                 itemname: FormView.getFactoryFields.getGeneralField(
@@ -588,7 +620,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     "ord_pkqty", "@", "itemPackQty", "15%", "violetText", "22%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true,
                     }, {}),
                 ord_packd: FormView.getFactoryFields.getGeneralField(

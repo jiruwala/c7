@@ -1703,7 +1703,31 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
 
         };
+        FormView.prototype.getRawOriginData = function (qryName, incFlds, excFlds) {
+            var str = "";
+            var qryObj = undefined;
+            if (typeof qryName == "string")
+                qryObj = this.objs[qryName];
+            else qryObj = qryName;
 
+            var qrys = (qryObj != undefined ? [qryObj] : this.form.db);
+            for (var o in qrys) {
+                qryObj = qrys[o];
+                if (qryObj.showType == FormView.QueryShowType.FORM) {
+                    var flds = Util.nvl(qryObj.fields, []);
+                    for (var i in flds) {
+                        var fld = flds[i].obj;
+                        if (fld != undefined) {
+                            console.log(fld[i]);
+                            // UtilGen.setControlValue(fld, "", "", false);
+                            // if ((Util.nvl(fld.default_value), "") != "" && qryObj.status == FormView.RecordStatus.NEW)
+                            //     UtilGen.setControlValue(fld, fld.default_value, fld.default_value, false);
+                        }
+                    }
+                }
+                return str;
+            }
+        };
         FormView.getFactoryControls = {
             getControls: function (pOSett) {
                 var timeInLong = (new Date()).getTime();
@@ -2031,6 +2055,5 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
         return FormView;
     }
-)
-    ;
+);
 
