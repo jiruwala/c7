@@ -2088,6 +2088,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 .replaceAll(":PVAR5", pv5)
                 .replaceAll(":TABLENAME", Util.nvl(tablename, "ACVOUCHER1"))
                 .replaceAll(":NOTIFY_TYPE", Util.nvl(notifyType, ""));
+                
             return sqx;
         }
         var chkAboveCl = function () {
