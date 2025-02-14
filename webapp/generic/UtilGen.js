@@ -3932,7 +3932,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (!log) return "";
                 var sqx = "c7_insert_log_proc(':GRPNAME'," +
                     "':USERNAME',':TABLENAME',':REC_STAT',':DESCR' " +
-                    ",':PVAR1',':PVAR2',':PVAR3',':PVAR4',':PVAR5',':NOTIFY_TYPE'); ";
+                    ",':PVAR1',':PVAR2',':PVAR3',':PVAR4',':PVAR5',':NOTIFY_TYPE',':ADVANCE_DATA'); ";
                 sqx = sqx.replaceAll(":GRPNAME", setx.grpname)
                     .replaceAll(":USERNAME", user)
                     .replaceAll(":TABLENAME", setx.tablename)
@@ -3943,7 +3943,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     .replaceAll(":PVAR3", Util.nvl(setx.pvar3, ""))
                     .replaceAll(":PVAR4", Util.nvl(setx.pvar4, ""))
                     .replaceAll(":PVAR5", Util.nvl(setx.pvar5, ""))
-                    .replaceAll(":NOTIFY_TYPE", Util.nvl(setx.notify_type, ""));
+                    .replaceAll(":NOTIFY_TYPE", Util.nvl(setx.notify_type, ""))
+                    .replaceAll(":ADVANCE_DATA", Util.nvl(setx.advance_data, ""));
                 return sqx;
             },
             PurchaseOrderFunc: {

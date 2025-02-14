@@ -1795,9 +1795,30 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             getLabelTxt: function (ptxt, pwidth, preText, styleText, alignTxt) {
                 return Util.nvl(preText, "") + '{\"text\":\"' + ptxt + '\",\"width\":\"' + Util.nvl(pwidth, "15%") + '\","textAlign":"' + Util.nvl(alignTxt, 'End') + '","styleClass":"' + Util.nvl(styleText, "") + '"}';
             },
-            getTextFromLabel: function () {
-                
-            },            
+            getTextFromLabel: function (ptxt) {
+                if (Util.nvl(ptxt, "") == "") return "";
+                var cn = {};
+                if (typeof ptxt === "string" && !ptxt.startsWith("@") &&
+                    !ptxt.startsWith("#")) {
+                    try {
+                        cn = JSON.parse(ptxt);
+                    } catch (e) {
+                        cn = { text: ptxt };
+                    }
+                } else if (typeof ptxt === "string" &&
+                    (ptxt.startsWith("@") || (ptxt.startsWith("#")))
+                ) {
+                    try {
+                        cn = JSON.parse(ptxt.substring(1));
+                    } catch (e) {
+                        cn = { text: ptxt.substring(1) };
+                    }
+                } else
+                    return ptxt;
+
+                if (Util.isCamelCase(cn["text"])) cn["text"] = Util.getLangText(cn["text"]);
+                return cn["text"];
+            },
             getEmptyLabel: function (pWidth) {
                 var width = {};
                 if (pWidth != undefined) width = { width: pWidth };

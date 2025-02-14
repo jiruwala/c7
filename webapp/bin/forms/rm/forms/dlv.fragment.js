@@ -316,7 +316,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                             pvar1: ordn,
                             pvar2: "ORD_CODE=9",
                             pvar3: kf,
-                            notify_type: ""
+                            notify_type: "",
+                            advance_data: "Previous Data -> " + thatForm.frm.getRawOriginData("qry1", "queryValues")
                         }, "");
                         delAdd += sqLog + "";
                     }
@@ -395,7 +396,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         pvar2: "ORD_CODE=9",
                         pvar3: kf,
                         notify_type: "",
-                        advance_data: thatForm.frm.getRawOriginData("qry1")
+                        advance_data: stat == "UPDATE" ? "Previous Data -> " + thatForm.frm.getRawOriginData("qry1", "changedOnly") : "",
                     }, "");
                     return sq + sq1 + sqOr + ";" + sqLog + "";
                 }
