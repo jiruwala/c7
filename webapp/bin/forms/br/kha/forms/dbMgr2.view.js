@@ -19,7 +19,7 @@ sap.ui.jsview("bin.forms.br.kha.forms.dbMgr2", {
         jQuery.sap.require("sap.ui.layout.library");
         jQuery.sap.require("sap.ui.commons.library");
         jQuery.sap.require("sap.f.ShellBar");
-        this.pgDir = "/";
+        this.pgDir = "/c7/";
         Util.setLanguageModel(this);
         this.helperFunctions.init(this);
         this.timeInLong = (new Date()).getTime();
@@ -215,6 +215,8 @@ sap.ui.jsview("bin.forms.br.kha.forms.dbMgr2", {
                 return true;
             }, undefined, undefined, { type: sap.m.InputType.Password });
         } else doOk();
+
+
     },
     createView: function () {
         var that = this;

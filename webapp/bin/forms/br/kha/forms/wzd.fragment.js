@@ -160,7 +160,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
 
         this.txtBranch = new sap.m.Input({
 
-            width: "30%", showValueHelp: true,            
+            width: "30%", showValueHelp: true,
             valueHelpRequest: function (e) {
                 var fromdt = UtilGen.getControlValue(that.txtFromDate);
                 var todt = UtilGen.getControlValue(that.txtToDate);
@@ -285,10 +285,10 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         this.txtTotalDlv.setValue(0);
 
         var loc = that.txtLocations.getValue();
-        var brn = that.txtBranch.getValue(); 
+        var brn = that.txtBranch.getValue();
 
         var locWhere = " ('" + loc + "' like '%\"'||LOCATION_CODE ||'\"%' )";
-        var branWhere = " ('" + brn + "' like '%\"'||ORD_DISCAMT||'\"%' )"; 
+        var branWhere = " ('" + brn + "' like '%\"'||ORD_DISCAMT||'\"%' )";
 
         var sq = "SELECT   o.periodcode," +
             "               o.location_code," +
@@ -332,7 +332,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             " and ord_ref=" + Util.quoted(that.txtRef.getValue()) +
             " and (" + Util.quoted(that.txtBranch.getValue().trim()) + " is null " +
             // " or " + Util.quoted(that.txtBranch.getValue()) + " is null )" +
-            " OR " + branWhere + " ) " + 
+            " OR " + branWhere + " ) " +
             "    GROUP BY   o.periodcode," +
             "               locations.name,o.location_code ," +
             "               o.ord_ref, " +
@@ -768,7 +768,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         that.txtInfoGross.setValue(that.txtTotalAmount.getValue());
         that.txtInfoAmount.setValue(that.txtTotalAmount.getValue());
 
-        if (that.txtInfoBranch.getValue().trim() == "") {
+        if (that.txtBranchName.getValue().trim() == "") {
             var br = Util.getSQLValue("select min(brno) from cbranch where code=" + Util.quoted(that.txtInfoRef.getValue()));
             var brnam = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtInfoRef.getValue()) + " and brno=" + br);
             that.txtInfoBranch.setValue(br);
@@ -831,21 +831,23 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             var kfldStr = "";
             var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
             var slicesof = that.qv.getControl().getBinding("rows").aIndices;
+            var kfldsAr = [];
             for (var i = 0; i < slices.length; i++) {
                 var kfld = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
+                kfldsAr.push(kfld);
                 kfldStr = kfldStr + (kfldStr.length > 0 ? "," : "") + kfld;
             }
             if (kfldStr.length <= 0)
                 FormView.err("No rows selected !");
-            var sq = "select nvl(sum((o.price_x)*(o.qty_x)),0) from joined_corder o where o.ord_code=9 and o.keyfld in (:txtKflds)";
+            var sq = "select nvl(sum((o.price_x)*(o.qty_x)),0) from joined_corder o where o.ord_code=9 and  (:txtKflds) ";
             if (that.recheckPrice.getSelected())
-                sq = "select nvl(sum((o.price_calc)*(o.qty_x)),0) from joined_corder2 o where o.ord_code=9 and o.keyfld in (:txtKflds)";
-            sq = sq.replaceAll(":txtKflds", kfldStr);
+                sq = "select nvl(sum((o.price_calc)*(o.qty_x)),0) from joined_corder2 o where o.ord_code=9 and (:txtKflds) ";
+            sq = sq.replaceAll(":txtKflds", that.getInsKfs("o.keyfld", kfldsAr));
             var sum = Util.getSQLValue(sq);
             that.txtInfoGross.setValue(df.format(sum));
             if (rfreshAdd) {
-                var sq = "select nvl(sum(op_no*tqty),0) from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
-                sq = sq.replaceAll(":txtKflds", kfldStr);
+                var sq = "select nvl(sum(op_no*tqty),0) from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds)";
+                sq = sq.replaceAll(":txtKflds", that.getInsKfs("o.keyfld", kfldsAr));
                 var sumadd = Util.getSQLValue(sq);
                 that.txtInfoAdd.setValue(df.format(sumadd));
             }
@@ -866,8 +868,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             "pr:=get_item_price2_ton(x.ord_ship,x.ord_ref,x.ord_discamt,x.ord_date);" : "pr:= x.price_2;");
         that.calcInfoAmt(true);
         var jn = (that.recheckPrice.getSelected() ?
-            "cursor ds is select o.*,o.price_calc price_xx from JOINED_CORDER2 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ; " :
-            "cursor ds is select o.*,o.price_x price_xx from JOINED_CORDER o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;");
+            "cursor ds is select o.*,o.price_calc price_xx from JOINED_CORDER2 o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ; " :
+            "cursor ds is select o.*,o.price_x price_xx from JOINED_CORDER o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;");
         var sq = "declare " +
             " pcode varchar2(255):=repair.GETSETUPVALUE_2('CURRENT_PERIOD');" +
             " ploc varchar2(255):=:txtLoc;" +
@@ -924,9 +926,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             "     totamt:= totamt + ((x.qty_x) * (pr) ); " +
             " " +
             "  if x.pack_x=1 then " +
-            "   update C_ORDER1 set price_2=pr, SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
+            "   update C_ORDER1 set price_2=pr, SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld and ord_pos=x.ord_pos; " +
             " else " +
-            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
+            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld and ord_pos=x.ord_pos; " +
             " end if;" +
             "   update ORDER1 set SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
             " " +
@@ -965,9 +967,11 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         var kfldStr = "";
         var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
         var slicesof = that.qv.getControl().getBinding("rows").aIndices;
+        var kfldsAr = [];
         for (var i = 0; i < slices.length; i++) {
             var kfld = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
             kfldStr = kfldStr + (kfldStr.length > 0 ? "," : "") + kfld;
+            kfldsAr.push(kfld);
         }
         if (kfldStr.length <= 0)
             FormView.err("No rows selected !");
@@ -977,7 +981,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             .replaceAll(":txtType", UtilGen.getControlValue(that.txtInfoInvType))
             .replaceAll(":txtStr", "1")
             .replaceAll(":txtRef", Util.quoted(that.txtInfoRef.getValue()))
-            .replaceAll(":txtKflds", kfldStr)
+            .replaceAll(":txtKflds", that.getInsKfs("o.keyfld", kfldsAr))
             .replaceAll(":addamt", Util.extractNumber(that.txtInfoAdd.getValue()))
             .replaceAll(":discamt", Util.extractNumber(that.txtInfoDisc.getValue()))
             .replaceAll(":addescr", that.txtInfoAddRemarks.getValue())
@@ -996,6 +1000,25 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             sap.m.MessageToast.show("Sales generated successfully !");
         }
 
+    },
+    getInsKfs: function (kfldStr, kfs) {
+        var thatForm = this;
+        var chunkSize = 1000;
+        if (kfs.length == 0)
+            return kfldStr + " in () ";
+        var getKfStr = function (kx) {
+            var kkstr = "";
+            for (var i = 0; i < kx.length; i++)
+                kkstr += (kkstr.length > 0 ? "," : "") + kx[i];
+            return kkstr;
+        };
+        var ks = [];
+        for (var i = 0; i < kfs.length; i += chunkSize)
+            ks.push(kfs.slice(i, i + chunkSize));
+        var kstr = "";
+        for (var j = 0; j < ks.length; j++)
+            kstr += (kstr.length > 0 ? " or " : "") + kfldStr + " in (" + getKfStr(ks[j]) + ")";
+        return kstr;
     },
     printInv: function (kfld) {
         var that = this;
