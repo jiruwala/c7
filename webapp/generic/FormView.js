@@ -840,13 +840,16 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                 }
             });
-            if (that.frag != undefined && that.frag.mainPage != undefined)
-                that.frag.mainPage.attachBrowserEvent("keydown", function (oEvent) {
-                    if (that.isFormEditable() && oEvent.key == 'F10') {
-                        that.cmdButtons.cmdSave.firePress();
-                    }
+            setTimeout(() => {
+                if (that.pg != undefined)
+                    that.pg.attachBrowserEvent("keydown", function (oEvent) {
+                        if (that.isFormEditable() && oEvent.key == 'F10') {
+                            that.cmdButtons.cmdSave.firePress();
+                        }
 
-                });
+                    });
+            }
+            );
         };
         FormView.prototype.printReport = function (rpt, saveData) {
             var that = this;
