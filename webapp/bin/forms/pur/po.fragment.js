@@ -950,7 +950,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         },
                         {
                             colname: "PO_STATUS",
-                            mTitle: Util.getLangText("puPoStatus"),
+                            mTitle: Util.getLangText("txtStatus"),
                             display_width: 100,
                         },
                         {
@@ -978,16 +978,17 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         {
                             colname: "ord_amt",
                             display_format: "MONEY_FORMAT",
-                            display_width: 150,
+                            mTitle: Util.getLangText("amountTxt"),
+                            display_width: 120,
                             mSummary: "SUM"
 
                         }
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,keyfld,location_code from c_order1 o1 where " +
-                        " location_code=':qry1.location_code' and " +
-                        " ord_code =" + that2.vars.vou_code +
-                        " order by ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1)",
+                    sql: "select ord_no,DECODE (ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status,ord_date,ord_ref,ord_refnm,ord_amt,keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
+                        " and location_code=':qry1.location_code' " +
+                        " and ord_flag=^^list_key " +
+                        " order by o1.ord_date desc,ord_no desc",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -1124,7 +1125,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             var thatForm = this.thatForm;
             var flg = "";
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
-                
+
             }
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
