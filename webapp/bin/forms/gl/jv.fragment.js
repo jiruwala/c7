@@ -130,6 +130,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                             }
                         }
                         if (qry.name == "qry2") {
+                            thatForm.qryAccs = Util.nvl(thatForm.qryAccs, {});
                             var ld = qry.obj.mLctb;
                             for (var i = 0; i < ld.rows.length; i++)
                                 thatForm.qryAccs[ld.getFieldValue(i, "ACCNO")] = ld.getFieldValue(i, "ACNAME");
@@ -395,7 +396,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "75%", rows: 2,tooltip:"Press shift+enter for another row !" },
+                                other_settings: { width: "75%", rows: 2, tooltip: "Press shift+enter for another row !" },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true

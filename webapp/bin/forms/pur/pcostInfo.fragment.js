@@ -189,8 +189,8 @@ sap.ui.jsfragment("bin.forms.pur.pcostInfo", {
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("code"));
                     if (qry.name == "qry1") {
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
-                        UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.expense_ac"].obj, undefined, that.frm.objs["qry1.expensename"].obj);
-                        UtilGen.Search.getLOVSearchField("select max(title) from accostcent1 where code = :CODE ", qry.formview.objs["qry1.costcent"].obj, undefined, that.frm.objs["qry1.costcentname"].obj);
+                        // UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.expense_ac"].obj, undefined, that.frm.objs["qry1.expensename"].obj);
+                        // UtilGen.Search.getLOVSearchField("select max(title) from accostcent1 where code = :CODE ", qry.formview.objs["qry1.costcent"].obj, undefined, that.frm.objs["qry1.costcentname"].obj);
                     }
                 },
                 beforeLoadQry: function (qry, sql) {
