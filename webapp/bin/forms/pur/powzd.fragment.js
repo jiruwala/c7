@@ -217,9 +217,9 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var cstFormat = "#,##0.00000";
         var sq = "SELECT ORD_POS,ORD_REFER,ITEM_DESCR," +
             " CASE WHEN ORD_PACK>1 THEN ORD_PACKD||'x'||ORD_UNITD ELSE ORD_PACKD END ORD_PACKD, " +
-            " ORD_PACK,ORD_ALLQTY/ORD_PACK ORD_PKQTY,ORD_PRICE," +
+            " ORD_PACK,ORD_ALLQTY/ORD_PACK ORD_PKQTY,ORD_PRICE,ORD_PRICE/ORD_PACK ORD_UPRICE," +
             " ORD_PRICE*(ORD_ALLQTY/ORD_PACK) ORD_AMOUNT," +
-            " NVL(RCVD_ALLQTY,0)/ORD_PACK RCVD_PKQTY ," +
+            " NVL(RCVD_ALLQTY,0)/ORD_PACK RCVD_PKQTY , RCVD_ALLQTY," +
             " 0 RCVD_COST,0 RCVD_AMT,0 RCVD_P,0 VARIA_QTY,0 VARIA_AMT  " +
             " FROM PORD_JOINED p ," +
             " (SELECT ORD_SHIP,SUM(TQTY) RCVD_ALLQTY FROM C_ORDER1 WHERE PORD1_KEYFLD="
@@ -240,7 +240,10 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "ORD_PACKD", "display_width", 70);
             Util.setColProp(qv, "ORD_PACK", "mTitle", "itemPack");
             Util.setColProp(qv, "ORD_PACK", "display_width", 50);
-
+            
+            Util.setColProp(qv, "RCVD_ALLQTY", "mHideCol", true);
+            Util.setColProp(qv, "ORD_UPRICE", "mHideCol", true);
+            
             // Util.setColProp(qv, "ORD_UNITD", "mHideCol", true);
             // Util.setColProp(qv, "ORD_UNITD", "mTitle", "itemUnitD");
             // Util.setColProp(qv, "ORD_UNITD", "display_width", 60);
@@ -289,7 +292,7 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
 
             Util.setColProp(qv, "RCVD_P", "mTitle", "txtRecvdP");
             Util.setColProp(qv, "RCVD_P", "mTitleParent", "goodsRecieved");
-            Util.setColProp(qv, "RCVD_P", "display_width", 50);
+            Util.setColProp(qv, "RCVD_P", "display_width", 55);
             Util.setColProp(qv, "RCVD_P", "display_style", "background-color:khaki;");
 
             Util.setColProp(qv, "VARIA_QTY", "mTitleParent", "txtVariance");

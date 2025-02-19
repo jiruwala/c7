@@ -396,7 +396,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                             var tbl = evtx.getSource().getParent().getParent(); // get table control.
                             var input = evtx.getSource();
                             var row = evtx.getSource().getParent();
-                            var sq = "SELECT P.ORD_POS,I.REFERENCE,I.DESCR,P.ORD_PACKD PACKING" +
+                            var sq = "SELECT P.ORD_POS,I.REFERENCE,I.DESCR,P.ORD_PACKD PACKING,I.PACKD,I.UNITD, I.PACK " +
                                 "  " +
                                 ", ORD_PRICE FROM PORD2 P,ITEMS I WHERE P.ORD_CODE=11 AND " +
                                 " P.KEYFLD=" + pokf +
@@ -417,6 +417,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                     ld.setFieldValue(idx, "ORD_SHIP", data[i].REFERENCE);
                                     ld.setFieldValue(idx, "DESCR", data[i].DESCR);
                                     ld.setFieldValue(idx, "PACKD", data[i].PACKING);
+                                    ld.setFieldValue(idx, "PACK", data[i].PACK);
                                     ld.setFieldValue(idx, "ORD_PKQTY", 1);
                                     ld.setFieldValue(idx, "ORD_UNQTY", 0);
                                     ld.setFieldValue(idx, "SALE_PRICE", data[i].ORD_PRICE);

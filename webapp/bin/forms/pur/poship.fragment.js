@@ -317,13 +317,29 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                     })
                 ,
                 attachment: FormView.getFactoryFields.getAttachMentField(thatForm, "@", "15%", "35%"),
+                //1
                 trip_no: FormView.getFactoryFields.getNumberField(
                     "trip_no", "", "puShiptripno", "15%", "", "35%",
                     { edit_allowed: false })
                 ,
-                arrival_date_port: FormView.getFactoryFields.getDateField(
-                    "arrival_date_port", "@", "puShiparrivaldateport", "15%", "", "35%",
+                ton_port: FormView.getFactoryFields.getGeneralField(
+                    "ton_port", "@", "puShiptonport", "15%", "", "35%",
+                    {}, {}),
+                //2
+                ship_name: FormView.getFactoryFields.getGeneralField(
+                    "ship_name", "", "puShipName", "15%", "", "35%",
                     { require: true }, {}),
+                ship_load: FormView.getFactoryFields.getGeneralField(
+                    "ship_load", "@", "puShipshipload", "15%", "", "35%",
+                    {}, {}),
+                //3                                
+                car_co: FormView.getFactoryFields.getGeneralField(
+                    "car_co", "", "puShipcarco", "15%", "", "35%",
+                    {}, {}),
+                total_paths: FormView.getFactoryFields.getNumberField(
+                    "total_paths", "@", "puShiptotalpaths", "15%", "", "35%",
+                    {}, {}),
+                //4
                 ship_type: FormView.getFactoryFields.getComboField(
                     "ship_type", "", "puShipType",
                     "15%", "", "35%",
@@ -331,65 +347,65 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                         list: "@land/Land,sea/Sea,air/Air",
                         require: true
                     }, {}),
-                ship_name: FormView.getFactoryFields.getGeneralField(
-                    "ship_name", "@", "puShipName", "15%", "", "35%",
-                    { require: true }, {}),
-                discharge_start_date: FormView.getFactoryFields.getDateField(
-                    "discharge_start_date", "", "puShipdischargestartdate", "15%", "", "35%",
-                    { require: true }, {}),
-                discharge_end_date: FormView.getFactoryFields.getDateField(
-                    "discharge_end_date", "@", "puShipdischargeenddate", "15%", "", "35%",
-                    {}, {}),
-                sail_date: FormView.getFactoryFields.getDateField(
-                    "sail_date", "", "puShipsaildate", "15%", "", "35%",
-                    {}, {}),
-                ship_load: FormView.getFactoryFields.getGeneralField(
-                    "ship_load", "@", "puShipshipload", "15%", "", "35%",
-                    {}, {}),
-                total_paths: FormView.getFactoryFields.getNumberField(
-                    "total_paths", "", "puShiptotalpaths", "15%", "", "35%",
-                    {}, {}),
                 unload_store: FormView.getFactoryFields.getGeneralField(
                     "unload_store", "@", "puShipunloadstore", "15%", "", "35%",
                     {}, {}),
+                //5
+                arrival_date_port: FormView.getFactoryFields.getDateField(
+                    "arrival_date_port", "", "puShiparrivaldateport", "15%", "", "35%",
+                    { require: true }, {}),
                 fresh_water: FormView.getFactoryFields.getGeneralField(
-                    "fresh_water", "", "puShipfreshwater", "15%", "", "35%",
+                    "fresh_water", "@", "puShipfreshwater", "15%", "", "35%",
+                    {}, {}),
+                //6
+                enter_berth: FormView.getFactoryFields.getGeneralField(
+                    "enter_berth", "", "puShipenterberth", "15%", "", "35%",
                     {}, {}),
                 n_of_roads: FormView.getFactoryFields.getNumberField(
-                    "n_of_roads", "@", "puShipnofroads", "15%", "", "10%",
+                    "n_of_roads", "@", "puShipnofroads", "15%", "", "35%",
                     {}, {}),
+                //7
+                discharge_start_date: FormView.getFactoryFields.getDateField(
+                    "discharge_start_date", "", "puShipdischargestartdate", "15%", "", "35%",
+                    { require: true }, {}),
                 n_of_discharge: FormView.getFactoryFields.getNumberField(
-                    "n_of_discharge", "@", "puShipnofdischarge", "15%", "", "10%",
+                    "n_of_discharge", "@", "puShipnofdischarge", "15%", "", "35%",
+                    {}, {}),
+                //9
+                discharge_end_date: FormView.getFactoryFields.getDateField(
+                    "discharge_end_date", "", "puShipdischargeenddate", "15%", "", "35%",
                     {}, {}),
                 sign_off: FormView.getFactoryFields.getGeneralField(
-                    "sign_off", "", "puShipsignoff", "15%", "", "35%",
+                    "sign_off", "@", "puShipsignoff", "15%", "", "35%",
                     {}, {}),
+                //10
+                sail_date: FormView.getFactoryFields.getDateField(
+                    "sail_date", "", "puShipsaildate", "15%", "", "35%",
+                    {}, {}),
+
                 start_from: FormView.getFactoryFields.getGeneralField(
-                    "start_from", "@", "puShipstartfrom", "15%", "", "10%",
+                    "start_from", "@", "puShipstartfrom", "15%", "", "35%",
                     {}, {}),
+                //11
                 end_to: FormView.getFactoryFields.getGeneralField(
-                    "end_to", "@", "puShipendto", "15%", "", "10%",
+                    "end_to", "", "puShipendto", "65%", "", "35%",
                     {}, {}),
-                car_co: FormView.getFactoryFields.getGeneralField(
-                    "car_co", "", "puShipcarco", "15%", "", "35%",
-                    {}, {}),
-                enter_berth: FormView.getFactoryFields.getGeneralField(
-                    "enter_berth", "@", "puShipenterberth", "15%", "", "35%",
-                    {}, {}),
-                ton_port: FormView.getFactoryFields.getGeneralField(
-                    "ton_port", "", "puShiptonport", "15%", "", "35%",
-                    {}, {}),
-                signoff: FormView.getFactoryFields.getGeneralField(
-                    "signoff", "@", "puShipsignoff", "15%", "", "10%",
-                    {}, {}),
+
+                //13
                 signin: FormView.getFactoryFields.getGeneralField(
-                    "signin", "@", "puShipsignin", "15%", "", "10%",
+                    "signin", "", "puShipsignin", "65%", "", "35%",
                     {}, {}),
+                //14
+                signoff: FormView.getFactoryFields.getGeneralField(
+                    "signoff", "", "puShipsignoff2", "65%", "", "35%",
+                    {}, {}),
+                //12
                 from_dlv: FormView.getFactoryFields.getGeneralField(
-                    "from_dlv", "", "puShipfromdlv", "15%", "", "35%",
+                    "from_dlv", "", "puShipfromdlv", "65%", "", "35%",
                     {}, {}),
+                //15
                 to_dlv: FormView.getFactoryFields.getGeneralField(
-                    "to_dlv", "@", "puShiptodlv", "15%", "", "35%",
+                    "to_dlv", "", "puShiptodlv", "65%", "", "35%",
                     {}, {}),
             };
         },
@@ -964,6 +980,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             thisFunc.qc = undefined;
             var btList = getListCmd();
             Util.destroyID("cmdSpendSaveBack" + that2.timeInLong, view);
+            Util.destroyID("cmdSpendDel" + that2.timeInLong, view);
             var txtTit = new sap.m.Title({ text: "Total Amount : " }).addStyleClass("boldText redText");
             var tb = new sap.m.Toolbar({
                 content: [
@@ -1077,9 +1094,11 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
             var delRec = function () {
                 var sq = "";
                 validateShipPo();
-                Util.simpleConfirmDialog(Util.getLangText("msgSaveFormData"), function (oAction) {
-                    if (kfldQry == -1)
+                Util.simpleConfirmDialog(Util.getLangText("Are you sure to delete ?"), function (oAction) {
+                    if (kfldQsry != -1) {
                         Util.execSQL("delete from C7_POLANDCOST where keyfld=" + kfldQry);
+                        FormView.msgCustom(Util.getLangText("msgDeleted"), "maroon");
+                    }
 
                 });
             }
