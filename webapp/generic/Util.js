@@ -850,11 +850,19 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     this.busyDialog = undefined;
                 }
             },
+            clearSciNotNumber: function (pvl, fx) {
+                var vl = pvl;
+                if (vl != undefined && typeof pvl == "number" && vl.toString().includes('e'))
+                    vl = parseFloat(pvl.toFixed(6));
+                if (fx != undefined)
+                    vl = vl.toFixed(fx);
+                return vl;
+            },
             getParsedJsonValue: function (pvl, rawValue) {
                 var rv = this.nvl(rawValue, false);
                 var vl = pvl;
                 if (vl != undefined && typeof pvl == "number" && vl.toString().includes('e'))
-                    vl = parseFloat(pvl.toFixed(10));
+                    vl = parseFloat(pvl.toFixed(6));
                 if (!rv)
                     return (typeof vl == "number" ? vl :
                         '"' + Util.nvl(vl, "").replace(/\\n/g, "\\n")
@@ -2012,6 +2020,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
             },
             autoConvertValue: function (value) {
+                /*
+                if (Util.nvl(value, "") == "") return value;
                 if (typeof value === "string") {
                     // Convert to number if it's a valid numeric string
                     let num = Number(value);
@@ -2020,6 +2030,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     // Convert number to string
                     return value;
                 }
+                */
                 return value; // Return as is if it's neither number nor string
             }
         };
