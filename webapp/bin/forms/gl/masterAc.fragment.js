@@ -551,7 +551,7 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
                                 colname: "closeaccname",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"Close A/c\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,

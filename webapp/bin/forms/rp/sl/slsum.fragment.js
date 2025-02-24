@@ -171,7 +171,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
                                             // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
                                             qr.getControl().setVisibleRowCount(10);
-                                            qr.setAutoDispRecords(thatForm.mainPage,{ "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 35, "XL": 20 });
                                             qr.getControl().setRowHeight(18);
                                             qr.filterCols = ["DESCR", "INV_REFNM", "REFER", "LOCATION_NAME", "SLSMN_NAME", "MONTH"];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
@@ -592,12 +592,17 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
 
                         },
                         valueHelpRequest: function (event) {
-                            var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
+                            var sq = "select code,name from c_ycust where iscust='Y' and (mov_type='^^list_key' or    '^^list_key'='ALL') and childcount=0 order by path";
+                            var pListPara = {
+                                selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                defaultKey: "ACTIVE",
+                            };
+
                             Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
                                 return true;
-                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, pListPara);
                         },
                         width: "35%"
                     },

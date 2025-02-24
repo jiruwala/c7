@@ -50,7 +50,7 @@ sap.ui.jsfragment("bin.forms.rm.rep.cb", {
                 customData: { key: ac },
                 press: function () {
                     var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpostDlv=Y inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
                 }
             }));
             mnu.addItem(new sap.m.MenuItem({
@@ -139,11 +139,18 @@ sap.ui.jsfragment("bin.forms.rm.rep.cb", {
 
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select code,name from c_ycust where iscust='Y' order by path", "NAME", "CODE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("CB001@parameter.cust_code", valx, valx, true);
-                                            thatForm.frm.setFieldValue("CB001@parameter.custname", val, val, true);
-                                        });
+                                        var sq = "select code,name from c_ycust where iscust='Y' and (mov_type='^^list_key' or    '^^list_key'='ALL') and childcount=0 order by path";
+                                        var pListPara = {
+                                            selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                            defaultKey: "ACTIVE",
+                                        };
+                                        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                            thatForm.frm.setFieldValue("CB001@parameter.cust_code", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue("CB001@parameter.custname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, pListPara);
                                     },
+
                                     width: "35%"
                                 },
                                 list: undefined,
@@ -169,7 +176,33 @@ sap.ui.jsfragment("bin.forms.rm.rep.cb", {
                                 insert_allowed: false,
                                 require: false,
                                 dispInPara: true,
-                            }
+                            },
+                            pstatus: {
+                                colname: "pstatus",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"clientStatus\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "ACTIVE",
+                                },
+                                list: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
                         },
                         print_templates: [
                         ],
@@ -185,9 +218,10 @@ sap.ui.jsfragment("bin.forms.rm.rep.cb", {
                                 dml: "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ," +
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL," +
                                     " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance," +
-                                    " (select nvl(sum((sale_price+nvl(op_no,0))*tqty),0) from c_order1 " +
+                                    " (select nvl(sum((sale_price)*tqty),0) from c_order1 " +
                                     " where ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
                                     " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code " +
+                                    " and (nvl(':parameter.pstatus','ALL')='ALL' or c_ycust.mov_type=':parameter.pstatus')  " +
                                     " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
                                     " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP,sl.name ,0," +
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code",
@@ -198,7 +232,7 @@ sap.ui.jsfragment("bin.forms.rm.rep.cb", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["CODE", "NAME", "SLSNAME", "TEL","ALLBALANCE","UNPOST_BAL"],
+                                filterCols: ["CODE", "NAME", "SLSNAME", "TEL", "ALLBALANCE", "UNPOST_BAL"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
