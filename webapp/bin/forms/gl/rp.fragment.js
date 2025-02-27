@@ -152,17 +152,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 title: "R&P Card",
                 toolbarBG: Util.nvl(UtilGen.toolBarBackColor, "#d1e189"),
                 formSetting: {
-                    width: { "S": 400, "M": 700, "L": 800 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: lightgreen;" +
-                        "margin: 5px;" +
-                        "border-radius:25px;" +
-                        "background-color:#d1e189;"
-                    ]
+                    width: { "S": 400, "M": 700, "L": 800, "XL": 900 },
+                    class: "rpForm"
                 },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
@@ -313,6 +304,13 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             var par = that.frm.getFieldValue("qry1.parentcustomer");
                             var cod = that.frm.getFieldValue("qry1.code");
                             var acn = that.frm.getFieldValue("qry1.ac_no");
+
+                            var cl = that.frm.getFieldValue("qry1.crd_limit2");
+                            var clr = that.frm.getFieldValue("qry1.crd_limit");
+                            if (cl != 0 && clr != 0 && clr < cl)
+                                FormView.err("Restricted Credit limit " + clr + " must be greater than credit limit " + cl + " !")
+
+
                             if (!that.canCustParent(par))
                                 FormView.err(that.errStr);
                             if (!that.canAccAssign(acn))
@@ -342,6 +340,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             thatForm.fileUpload = undefined;
                             that.frm.setFieldValue("pac", "", "", true);
                             that.frm.setFieldValue("qry1.crd_limit2", 0, 0, true);
+                            that.frm.setFieldValue("qry1.crd_limit", 0, 0, true);
                             that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                             that.view.byId("numtxt" + thatForm.timeInLong).setText("");
                             that.frm.objs["qry1.etype"].obj.setSelectedItem(that.frm.objs["qry1.etype"].obj.getItems()[0]);
@@ -430,11 +429,28 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                         insert_allowed: true,
                         delete_allowed: false,
                         fields: {
+                            flag: {
+                                colname: "flag",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"flagAskLock\",\"width\":\"95%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: { width: "5%", trueValues: ["1", "2"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                trueValues: ["1", "2"]
+                            },
                             iscust: {
                                 colname: "iscust",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"Is Cust\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"isCust\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -451,7 +467,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "issupp",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '@{\"text\":\"Is Supp\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"isSupp\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -468,7 +484,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "isbankcash",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '@{\"text\":\"Bank/Cash\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"isBankCash\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -495,7 +511,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 other_settings: {
                                     showValueHelp: true,
                                     editable: false,
-                                    width: "20%",
+                                    width: "23%",
                                     valueHelpRequest: function (e) {
                                         if (that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT &&
                                             that2.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
@@ -512,7 +528,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "code",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"Code\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"txtCode\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -528,7 +544,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "etype",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.COMBOBOX,
-                                title: '@{\"text\":\"Type\",\"width\":\"30%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"txtType\",\"width\":\"30%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -552,7 +568,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "name",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"Name\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"txtName\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -568,7 +584,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "namea",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"Name 2\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"txtName2\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -584,7 +600,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "parentcustomer",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"Parent\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"parentTxt\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -634,7 +650,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "parentcustname",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\" \",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -642,7 +658,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_style: "",
                                 display_format: "",
                                 other_settings: {
-                                    width: "64%"
+                                    width: "65%"
                                 },
                                 edit_allowed: false,
                                 insert_allowed: false,
@@ -690,14 +706,14 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "acname",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "64%" },
+                                other_settings: { width: "65%" },
                                 edit_allowed: false,
                                 insert_allowed: false,
                                 require: false
@@ -706,7 +722,24 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "crd_limit2",
                                 data_type: FormView.DataType.Number,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"Crd Limit\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"crdLimit\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: sett["FORMAT_MONEY_1"],
+                                default_value: "0",
+                                other_settings: { width: "35%" },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true
+                            },
+                            crd_limit: {
+                                colname: "crd_limit",
+                                data_type: FormView.DataType.Number,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"crdLimitRestrict\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -723,7 +756,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "type",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.COMBOBOX,
-                                title: '@{\"text\":\"Selling\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"Selling\",\"width\":\"65%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -748,7 +781,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "salesp",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"Sales Man\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"txtSalesPerson\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -783,14 +816,14 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "salesname",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "39%" },
+                                other_settings: { width: "40%" },
                                 edit_allowed: false,
                                 insert_allowed: false,
                                 require: false,
@@ -799,7 +832,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "mov_type",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.COMBOBOX,
-                                title: '@{\"text\":\"Status\",\"width\":\"10%\","textAlign":"End","styleClass":"boldText"}',
+                                title: '@{\"text\":\"currentStatus\",\"width\":\"10%\","textAlign":"End","styleClass":"boldText"}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
