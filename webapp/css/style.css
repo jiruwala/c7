@@ -21,9 +21,11 @@ iframe {
 .sapMTileCnt.News {
     background-color: #2e8b57;
 }
+
 .sapMGTHdrContent {
     background-color: lightyellow;
 }
+
 .guagePanel {
     border-radius: 5px;
     text-align: center;
@@ -56,6 +58,18 @@ iframe {
     font-size: 1.25rem;
     font-weight: bold;
     color: darkblue;
+}
+
+.highlight-row {
+    background-color: cyan !important;
+    /* Light Yellow */
+    transition: background-color 0.3s ease-in-out;
+}
+
+.highlight-row .sapMInputBaseInner {
+    background-color: cyan !important;
+    /* Light Yellow */
+    transition: background-color 0.3s ease-in-out;
 }
 
 .colorBlack {
@@ -146,6 +160,20 @@ area:-webkit-any-link {
     margin: 10px;
     border-color: lightgreen;
     border-width: thin;
+}
+
+.rpForm {
+    display: block;
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    border-style: groove;
+    border-radius: 15px;
+    margin: 10px;
+    border-color: darkblue;
+    border-width: thin;
+    background-color: #dcdcdc;
 }
 
 .jvForm2 {

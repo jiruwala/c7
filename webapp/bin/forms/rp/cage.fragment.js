@@ -176,11 +176,16 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         thatForm.frm.setFieldValue("CAGE1@parameter.acname", vlnm, vlnm, false);
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select code accno,name from c_ycust where childcount>0 and iscust='Y' order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("CAGE1@parameter.pcust", valx, valx, true);
-                                            thatForm.frm.setFieldValue("CAGE1@parameter.acname", val, val, true);
-                                        });
-
+                                        var sq = "select code,name from c_ycust where iscust='Y' and (mov_type='^^list_key' or    '^^list_key'='ALL') and childcount=0 order by path";
+                                        var pListPara = {
+                                            selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                            defaultKey: "ACTIVE",
+                                        };
+                                        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                            thatForm.frm.setFieldValue("CAGE1@parameter.pcust", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue("CAGE1@parameter.pcustname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, pListPara);
                                     },
                                     width: "35%"
                                 },
@@ -211,7 +216,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                             pstatus: {
                                 colname: "pstatus",
                                 data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                class_name: FormView.ClassTypes.COMBOBOX,
                                 title: '{\"text\":\"clientStatus\",\"width\":\"15%\","textAlign":"End"}',
                                 title2: "",
                                 display_width: colSpan,
@@ -220,9 +225,15 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 display_format: "",
                                 default_value: "",
                                 other_settings: {
-                                    width: "35%"
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "ACTIVE",
                                 },
-                                list: undefined,
+                                list: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -501,7 +512,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             "PATH, SUM (DEBIT) TOTDEB,SUM (CREDIT) TOTCRD" +
             " FROM   :ACVOUCHER2, c_ycust " +
             " WHERE VOU_DATE <= TODATE and  " +
-            " (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus) and " +
+            " (nvl(pstatus,'ALL')='ALL' or c_ycust.mov_type=pstatus) and " +
             "  acvoucher2.cust_code=code " +
             " and c_ycust.path like parent_path " +
             " AND (cust_code>= fromcust and cust_code<=tocust) " +
@@ -512,7 +523,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             " SUM (DEBIT) TOTDEB, SUM (CREDIT) TOTCRD," +
             " VOU_DATE       FROM   :ACVOUCHER2, c_ycust " +
             " WHERE  VOU_DATE <= TODATE " +
-            " and (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus)  " +
+            " and (nvl(pstatus,'ALL')='ALL' or c_ycust.mov_type=pstatus)  " +
             " and c_ycust.path like parent_path " +
             " AND ACVOUCHER2.cust_code = c_ycust.code and iscust='Y' " +
             " AND (cust_code>= fromcust and cust_code<=tocust) :KEYFLD_CONDITION  " +

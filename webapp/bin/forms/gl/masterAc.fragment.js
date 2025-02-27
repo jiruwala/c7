@@ -274,6 +274,7 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
                                 FormView.err(that.errStr);
                             sqlRow["path"] = Util.quoted(that.generateAcPath(par, ac));
                             sqlRow["levelno"] = (sqlRow["path"]).match((/\\/g) || []).length - 1;
+
                         }
 
                         return "";
@@ -551,7 +552,7 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
                                 colname: "closeaccname",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"Close A/c\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -559,7 +560,7 @@ sap.ui.jsfragment("bin.forms.gl.masterAc", {
                                 display_style: "",
                                 display_format: "",
                                 other_settings: {
-                                    width: "54%",
+                                    width: "55%",
                                 },
                                 edit_allowed: false,
                                 insert_allowed: false,
