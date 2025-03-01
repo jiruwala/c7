@@ -211,8 +211,8 @@ sap.ui.jsfragment("bin.forms.rm.rep.cage", {
                             pstatus: {
                                 colname: "pstatus",
                                 data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"clientStatus\",\"width\":\"15%\","textAlign":"End"}',
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"currentStatus\",\"width\":\"15%\","textAlign":"End"}',
                                 title2: "",
                                 display_width: colSpan,
                                 display_align: "ALIGN_RIGHT",
@@ -220,9 +220,15 @@ sap.ui.jsfragment("bin.forms.rm.rep.cage", {
                                 display_format: "",
                                 default_value: "",
                                 other_settings: {
-                                    width: "35%"
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "ACTIVE",
                                 },
-                                list: undefined,
+                                list: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,

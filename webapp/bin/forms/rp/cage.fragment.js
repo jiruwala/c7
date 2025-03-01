@@ -217,7 +217,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 colname: "pstatus",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.COMBOBOX,
-                                title: '{\"text\":\"clientStatus\",\"width\":\"15%\","textAlign":"End"}',
+                                title: '{\"text\":\"currentStatus\",\"width\":\"15%\","textAlign":"End"}',
                                 title2: "",
                                 display_width: colSpan,
                                 display_align: "ALIGN_RIGHT",
@@ -257,7 +257,24 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
-
+                            showOverDue: {
+                                colname: "showOverDue",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"showOverDue\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "50%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                             {
@@ -319,6 +336,13 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                     var sq = "select *from C6_VAGE where " + (ez == "Y" ? "  bal!=0 and " : " ") +
                                         " usernm=c6_session.get_user_session order by code ";
                                     return sq;
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var so = thatForm.frm.getFieldValue("parameter.showOverDue");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("duedays")].mHideCol = (so != "Y");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("dueamt")].mHideCol = (so != "Y");
+                                    }
                                 },
                                 fields: {
                                     code: {
@@ -390,6 +414,43 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    duedays: {
+                                        colname: "duedays",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "custAgeDueDays",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        valOnZero: "",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    dueamt: {
+                                        colname: "dueamt",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "overDue",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        valOnZero: "",
+                                        display_style: "background-color:lavender;",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     },
                                     b30: {
@@ -598,6 +659,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         paras += " tocust varchar2(100) := ':parameter.to_cust'; ";
         paras += " parent_cust varchar2(255) := ':parameter.pcust'; ";
         paras += " pstatus varchar2(255) := ':parameter.pstatus'; ";
+        paras += " showoverdue varchar2(255) := ':parameter.showOverDue'; ";
         paras += " get_unpostbal varchar2(100) := 'FALSE'; ";
         paras += " slp number ; ";
         paras += " hide_zero varchar2(100) := 'FALSE'; ";
@@ -617,8 +679,6 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         var dt = Util.execSQL(plsql);
         if (dt.ret != "SUCCESS")
             FormView.err("Err. executing sql for multiple years !");
-
-
     }
     ,
     loadData: function () {
