@@ -2187,12 +2187,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         FormView.err("Total DEBIT and CREDIT is not matched !");
 
                 },
-                validateFieldsBeforeSave: function (qry, sqlRow, rn) {
+                validateFieldsBeforeSave: function (qry, sqlRow, rn, that) {
 
 
                     var cc = qry.formview.getFieldValue("qry1.costcent");
                     var cd = qry.formview.getFieldValue("qry1.code");
                     var sm = qry.formview.getFieldValue("qry1.slsmn");
+                    var bk = qry.formview.getFieldValue("qry1.bookserialno");
+                    var no = qry.formview.getFieldValue("qry1.no");
 
                     if (Util.nvl(cc, "") != "") {
                         var dt = Util.getSQLValue("select code from accostcent1 where code=" + Util.quoted(cc));
@@ -2216,8 +2218,27 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             FormView.err("Bank/cash not valid !");
                         }
                     }
-
-
+                    if (that != undefined && Util.nvl(bk, "") != "") {
+                        var vc = that.vars.vou_code;
+                        var vt = that.vars.type;
+                        var kf = qry.formview.getFieldValue("qry1.keyfld");
+                        var dt = Util.getSQLValue("select no from acvoucher1 where vou_code=" + vc + " and type=" + vt + " and bookserialno='" + bk + "' and keyfld!=" + kf);
+                        if (Util.nvl(dt, "") != "") {
+                            UtilGen.errorObj(qry.formview.objs["qry1.bookserialno"].obj);
+                            FormView.err("Manual No :" + bk + " found in voucher #" + dt + " in  ");
+                        }
+                    }
+                    if (that != undefined && qry.status == FormView.RecordStatus.NEW && Util.nvl(no, "") != "") {
+                        var vc = that.vars.vou_code;
+                        var vt = that.vars.type;
+                        var kf = qry.formview.getFieldValue("qry1.keyfld");
+                        var dt = Util.getSQLValue("select no from acvoucher1 where vou_code=" + vc + " and type=" + vt + " and bookserialno='" + bk + "' and keyfld!=" + kf);
+                        var dt = Util.getSQLValue("select descr from acvoucher1 where vou_code=" + vc + " and type=" + vt + " and no='" + no + "'");
+                        if (Util.nvl(dt, "") != "") {
+                            UtilGen.errorObj(qry.formview.objs["qry1.no"].obj);
+                            FormView.err("Descr :" + dt + " found in voucher #" + no + " in  ");
+                        }
+                    }
                 },
                 getNewKF: function (qry, sqlRow, rn) {
                     if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
@@ -3168,6 +3189,31 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // });
 
                 },
+                fetchVoucherByNo: function (manualNo, thatForm) {
+                    var rfrFld = Util.nvl(manualNo, false) ? "bookserialno" : "no";
+                    // var thatForm = this;
+                    if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                        return;
+                    setTimeout(function () {
+                        var rfr = thatForm.frm.getFieldValue("qry1." + rfrFld);
+                        var qr = Util.execSQLWithData("select keyfld,descr,no from acvoucher1 where " +
+                            rfrFld + "='" + rfr + "' and vou_code=" + thatForm.vars.vou_code + " and type=" + thatForm.vars.type);
+                        if (Util.nvl(qr, "") == "" || qr.length == 0)
+                            return;
+                        var rfrx = qr[0].KEYFLD;
+                        var desx = qr[0].DESCR;
+                        if (qr.length == 1)
+                            Util.simpleConfirmDialog("Voucher existed for descr :" + desx + " fetch data ?", function (oAction) {
+                                thatForm.frm.setFieldValue('pac', rfrx);
+                                thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                                thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+
+                            }, undefined, undefined, "OK");
+
+                    });
+
+                },
+
 
             },
             setFormTitle: function (frm, tit, mainPage) {

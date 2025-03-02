@@ -154,7 +154,7 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
 
                             UtilGen.Vouchers.validateTotDrTotCr(qry, sqlRow, rowno);
                             UtilGen.Vouchers.validatePostedVocher(qry, sqlRow, rowno);
-                            UtilGen.Vouchers.validateFieldsBeforeSave(qry, sqlRow, rowno);
+                            UtilGen.Vouchers.validateFieldsBeforeSave(qry, sqlRow, rowno, thatForm);
                             UtilGen.Vouchers.attachSaveQry(that2, "VOU", that2.frm.getFieldValue("qry1.keyfld"));
                         }
 
@@ -318,11 +318,11 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                                     display_align: "ALIGN_CENTER",
                                     display_style: "keyIdText",
                                     display_format: "",
-                                    other_settings: { editable:false,width: "35%" },
+                                    other_settings: { editable: false, width: "35%" },
                                     edit_allowed: false,
                                     insert_allowed: false,
                                     require: true,
-                                    
+
                                 },
                                 attachment: {
                                     colname: "attachment",
@@ -362,10 +362,36 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                                     display_align: "ALIGN_RIGHT",
                                     display_style: "",
                                     display_format: "",
-                                    other_settings: { width: "35%" },
+                                    other_settings: {
+                                        width: "12%",
+                                        change: function () {
+                                            UtilGen.Vouchers.fetchVoucherByNo(false, thatForm);
+                                        }
+                                    },
                                     edit_allowed: false,
                                     insert_allowed: true,
                                     require: true
+                                },
+                                bookserialno: {
+                                    colname: "bookserialno",
+                                    data_type: FormView.DataType.String,
+                                    class_name: FormView.ClassTypes.TEXTFIELD,
+                                    title: '@{\"text\":\"manualNo\",\"width\":\"13%\","textAlign":"End","styleClass":""}',
+                                    title2: "No",
+                                    canvas: "default_canvas",
+                                    display_width: codSpan,
+                                    display_align: "ALIGN_RIGHT",
+                                    display_style: "",
+                                    display_format: "",
+                                    other_settings: {
+                                        width: "10%",
+                                        change: function () {
+                                            UtilGen.Vouchers.fetchVoucherByNo(true, thatForm);
+                                        }
+                                    },
+                                    edit_allowed: true,
+                                    insert_allowed: true,
+                                    require: false
                                 },
                                 vou_date: {
                                     colname: "vou_date",
