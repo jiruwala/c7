@@ -110,6 +110,12 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         this.errStr = "";
 
         if (!Util.isNull(pa)) {
+            var n = Util.getSQLValue("select nvl(count(*),0) from c_ycust where code=" + Util.quoted(pa));
+            if (n <= 0) {
+                this.errStr = "Err ! , parent not existed  !";
+                return false;
+            }
+
             var n = Util.getSQLValue("select nvl(count(*),0) from acvoucher2 where cust_code=" + Util.quoted(pa));
             if (n > 0) {
                 this.errStr = "Err ! , reference in account transaction !";
@@ -441,11 +447,11 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "5%", trueValues: ["1", "2"] },
+                                other_settings: { width: "5%", trueValues: ["2", "1"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
-                                trueValues: ["1", "2"]
+                                trueValues: ["2", "1"]
                             },
                             iscust: {
                                 colname: "iscust",

@@ -284,12 +284,13 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 disp_class: "reportTable2",
                                 dispRecords: -1,
                                 execOnShow: false,
-                                dml: "select a.*,decode(type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type, " +
+                                dml: "select a.*,decode(a.type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type, sls.name salesname , " +
                                     " (select max(descr2) from acvoucher2 where keyfld=a.keyfld and credit>0 ) acc_name " +
-                                    " from ACC_TRANSACTION_up a " +
+                                    " from ACC_TRANSACTION_up a,salesp sls " +
                                     " where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and " +
                                     " (a.accno=':parameter.accno' or ':parameter.accno' is null) and " +
-                                    "  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by keyfld",
+                                    " ( sls.no=a.slsmn(+) ) " +
+                                    " and  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by a.keyfld",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -297,7 +298,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ACCNO", "DESCR2", "CUST_CODE", "VOU_DATE", "CHEQUENO", "RCVFROM", "CREDOT", "NO"],
+                                filterCols: ["ACCNO", "DESCR2", "CUST_CODE", "VOU_DATE", "CHEQUENO", "RCVFROM", "CREDOT", "NO", "SLSNM", "SALESNAME"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     // var oModel = this.getControl().getModel();
@@ -311,6 +312,16 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 },
                                 bat7CustomAddQry: function (qryObj, ps) {
 
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CUST_CODE")].mGrouped = iq == "customers";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DESCR2")].mGrouped = iq == "customers";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SLSMN")].mGrouped = iq == "salesp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SALESNAME")].mGrouped = iq == "salesp";
+
+                                    }
                                 },
                                 fields: {
                                     credit: {
@@ -415,14 +426,14 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                     },
                                     cust_code: {
                                         colname: "cust_code",
-                                        data_type: FormView.DataType.Number,
+                                        data_type: FormView.DataType.String,
                                         class_name: FormView.ClassTypes.LABEL,
                                         title: "Reference",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "150",
-                                        display_align: "ALIGN_RIGHT",
+                                        display_align: "ALIGN_CENTER",
                                         display_style: "",
                                         display_format: "",
                                         default_value: "",
@@ -432,7 +443,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                     },
                                     accno: {
                                         colname: "accno",
-                                        data_type: FormView.DataType.Number,
+                                        data_type: FormView.DataType.String,
                                         class_name: FormView.ClassTypes.LABEL,
                                         title: "Acc No",
                                         title2: "",
@@ -512,6 +523,37 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
+                                    },
+                                    slsmn: {
+                                        colname: "slsmn",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtSalesPerson",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "80",
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                    },
+                                    salesname: {
+                                        colname: "salesname",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtName",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_BEGIN",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+
                                     },
                                     keyfld: {
                                         colname: "keyfld",
