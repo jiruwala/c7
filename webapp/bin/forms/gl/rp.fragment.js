@@ -110,6 +110,12 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         this.errStr = "";
 
         if (!Util.isNull(pa)) {
+            var n = Util.getSQLValue("select nvl(count(*),0) from c_ycust where code=" + Util.quoted(pa));
+            if (n <= 0) {
+                this.errStr = "Err ! , parent not existed  !";
+                return false;
+            }
+
             var n = Util.getSQLValue("select nvl(count(*),0) from acvoucher2 where cust_code=" + Util.quoted(pa));
             if (n > 0) {
                 this.errStr = "Err ! , reference in account transaction !";
@@ -341,6 +347,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             that.frm.setFieldValue("pac", "", "", true);
                             that.frm.setFieldValue("qry1.crd_limit2", 0, 0, true);
                             that.frm.setFieldValue("qry1.crd_limit", 0, 0, true);
+                            that.frm.setFieldValue("qry1.duedays", 0, 0, true);
                             that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                             that.view.byId("numtxt" + thatForm.timeInLong).setText("");
                             that.frm.objs["qry1.etype"].obj.setSelectedItem(that.frm.objs["qry1.etype"].obj.getItems()[0]);
@@ -440,11 +447,11 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "5%", trueValues: ["1", "2"] },
+                                other_settings: { width: "5%", trueValues: ["2", "1"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
-                                trueValues: ["1", "2"]
+                                trueValues: ["2", "1"]
                             },
                             iscust: {
                                 colname: "iscust",
@@ -730,7 +737,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_style: "",
                                 display_format: sett["FORMAT_MONEY_1"],
                                 default_value: "0",
-                                other_settings: { width: "35%" },
+                                other_settings: { width: "20%" },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true
@@ -739,7 +746,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 colname: "crd_limit",
                                 data_type: FormView.DataType.Number,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"crdLimitRestrict\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '@{\"text\":\"crdLimitRestrict\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: codSpan,
@@ -747,10 +754,35 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 display_style: "",
                                 display_format: sett["FORMAT_MONEY_1"],
                                 default_value: "0",
-                                other_settings: { width: "35%" },
+                                other_settings: { width: "20%" },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true
+                            },
+                            duedays: {
+                                colname: "duedays",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '@{\"text\":\"custAgeDueDays\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: codSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: {
+                                    width: "25%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                list: "@0/NONE,30/30 Days,60/60 Days,90/90 Days,120/120 Days,150/150 Days"
+
                             },
                             type: {
                                 colname: "type",

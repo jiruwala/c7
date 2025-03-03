@@ -115,8 +115,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                 beforeLoadQry: function (sql) {
                                     var oy = thatForm.frm.getFieldValue("RPDRIVER1@parameter.showTruck");
                                     var cold = {
-                                        "details": ",NVL(JOINED_CORDER.payterm,vehicleno) vehicleno, haddr ,JOINED_CORDER.location_name, JOINED_CORDER.BRANCH_NAME ",
-                                        "detailsGrp": ",NVL(JOINED_CORDER.payterm,vehicleno), haddr,JOINED_CORDER.location_name , JOINED_CORDER.BRANCH_NAME ",
+                                        "details": ",NVL(JOINED_CORDER.payterm,vehicleno) vehicleno, haddr ,JOINED_CORDER.location_name, JOINED_CORDER.BRANCH_NAME BRANCH_NAME ",
+                                        "detailsGrp": ",NVL(JOINED_CORDER.payterm,vehicleno), haddr,JOINED_CORDER.location_name , JOINED_CORDER.BRANCH_NAME",
                                         "summarysite": ", JOINED_CORDER.BRANCH_NAME ",
                                         "summarysiteGrp": ", JOINED_CORDER.BRANCH_NAME ",
                                     }
@@ -334,7 +334,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "details",
+                        selectedKey: "summary",
                     },
                     edit_allowed: true,
                     insert_allowed: true,
