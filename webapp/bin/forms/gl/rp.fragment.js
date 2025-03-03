@@ -79,14 +79,14 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                     if (Util.nvl(UtilGen.getControlValue(pacc), "") == "")
                         return;
                     var pac = Util.nvl(UtilGen.getControlValue(pacc), "");
-                    var nn = Util.getSQLValue("select to_number(nvl(max(code),0))+1 from c_ycust where parentcustomer=" + Util.quoted(pac));
+                    var nn = Util.getSQLValue("select nvl(max(to_number(code)),0) +1 from c_ycust where parentcustomer=" + Util.quoted(pac));
                     if (nn == 1)
                         nn = pac + "01";
                     UtilGen.setControlValue(accno, nn, nn, true);
                 }, "Select parent Cost center", paccname);
         } else {
             var pac = Util.nvl(UtilGen.getControlValue(pacc), "");
-            var nn = Util.getSQLValue("select to_number(nvl(max(code),0))+1 from c_ycust where parentcustomer=" + Util.quoted(pac));
+            var nn = Util.getSQLValue("select nvl(max(to_number(code)),0)+1 from c_ycust where parentcustomer=" + Util.quoted(pac));
             if (nn == 1)
                 nn = pac + "001";
 

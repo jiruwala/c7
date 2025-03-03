@@ -258,12 +258,17 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
 
                         },
                         valueHelpRequest: function (event) {
-                            var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
+                            var sq = "select code,name from c_ycust where iscust='Y' and (mov_type='^^list_key' or    '^^list_key'='ALL') and childcount=0 order by path";
+                            var pListPara = {
+                                selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                defaultKey: "ACTIVE",
+                            };
+
                             Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
                                 return true;
-                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, pListPara);
                         },
                         width: "35%"
                     },
