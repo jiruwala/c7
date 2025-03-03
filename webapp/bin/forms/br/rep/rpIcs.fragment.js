@@ -259,12 +259,17 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
 
                         },
                         valueHelpRequest: function (event) {
-                            var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
+                            var sq = "select code,name from c_ycust where iscust='Y' and (mov_type='^^list_key' or    '^^list_key'='ALL') and childcount=0 order by path";
+                            var pListPara = {
+                                selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                defaultKey: "ACTIVE",
+                            };
+
                             Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
                                 return true;
-                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, pListPara);
                         },
                         width: "35%"
                     },
@@ -557,7 +562,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcs", {
                     if (incIn == "Y") {
                         ld2.cols[ld2.getColPos("INVOICE_NO")].mSummary = "COUNT_UNIQUE";
                         ld2.cols[ld2.getColPos("INVOICE_NO")].count_unique_label = "txtCountInvs";
-                        ld2.cols[ld2.getColPos("INVOICE_NO")].mTitle="txtInvNo";
+                        ld2.cols[ld2.getColPos("INVOICE_NO")].mTitle = "txtInvNo";
                         ld.cols[ld.getColPos("INVOICE_NO")].mUIHelper.display_width = "70";
                     }
 

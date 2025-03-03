@@ -303,12 +303,60 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 canvasType: ReportView.CanvasType.VBOX,
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
-                                    var bal = parseFloat(oModel.getProperty("BAL", currentRowContext));
+                                    var bal = Util.extractNumber(oModel.getProperty("BAL", currentRowContext));
+                                    var tbl = qv.getControl();
+                                    var cn = UtilGen.getTableColNo(tbl, "BAL");
+                                    var so = thatForm.frm.getFieldValue("parameter.showOverDue");
+                                    var cols = {
+                                        30: "B30",
+                                        60: "B60",
+                                        90: "B90",
+                                        120: "B120",
+                                        150: "B150"
+                                    }
                                     if (bal >= 0)
-                                        qv.getControl().getRows()[dispRow].getCells()[2].$().css("color", "green");
+                                        qv.getControl().getRows()[dispRow].getCells()[cn].$().css("color", "green");
                                     else
-                                        qv.getControl().getRows()[dispRow].getCells()[2].$().css("color", "red");
+                                        qv.getControl().getRows()[dispRow].getCells()[cn].$().css("color", "red");
+                                    if (so == "Y") {
+                                        var od = Util.extractNumber(oModel.getProperty("DUEDAYS", currentRowContext));
+                                        if (od > 0) {
+                                            var flds = [];
+                                            Object.keys(cols).forEach((ky) => {
+                                                if (ky >= od) {
+                                                    flds.push(cols[ky]);
+                                                    var val = Util.extractNumber(oModel.getProperty(cols[ky], currentRowContext));
+                                                    if (val > 0) {
+                                                        qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, cols[ky])].$().css("color", "red");
+                                                        qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, cols[ky])].$().css("background-color", "khaki");
+                                                        qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, cols[ky])].$().parent().css("background-color", "khaki");
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                },
+                                onPrintRenderAdd: function (ld, idx, col) {
+                                    if (idx >= ld.rows.length) return "";
+                                    var od = Util.nvl(ld.getFieldValue(idx, "DUEDAYS"), 0);
+                                    var cols = {
+                                        30: "B30",
+                                        60: "B60",
+                                        90: "B90",
+                                        120: "B120",
+                                        150: "B150"
+                                    };
+                                    if (od > 0) {
+                                        var flds = [];
+                                        Object.keys(cols).forEach((ky) => {
+                                            if (ky >= od)
+                                                flds.push(cols[ky]);
 
+                                        });
+                                    }
+                                    if (od > 0 && flds.indexOf(col.mColName) >= 0 && Util.nvl(ld.getFieldValue(idx, col.mColName), 0) > 0)
+                                        return "background-color:khaki;color:red;";
+                                    return;
 
                                 },
                                 bat7CustomAddQry: function (qryObj, ps) {
