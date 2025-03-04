@@ -219,7 +219,6 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
         var qv = this.qcDet;
 
         var cstFormat = "#,##0.00000";
-        var qtFormat = "#,##0.0";
         var sq = "SELECT ORD_POS,ORD_REFER,ITEM_DESCR," +
             " CASE WHEN ORD_PACK>1 THEN ORD_PACKD||'x'||ORD_UNITD ELSE ORD_PACKD END ORD_PACKD, ORD_UNITD," +
             " ORD_PACK,ORD_ALLQTY/ORD_PACK ORD_PKQTY,(ORD_ALLQTY) ORD_ALLQTY, ORD_PRICE,ORD_PRICE/ORD_PACK ORD_UPRICE," +
@@ -271,14 +270,12 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "ORD_PKQTY", "mTitleParentSpan", 3);
             Util.setColProp(qv, "ORD_PKQTY", "mTitle", "itemPackQty");
             Util.setColProp(qv, "ORD_PKQTY", "display_width", 90);
-            Util.setColProp(qv, "ORD_PKQTY", "display_format", qtFormat);
             Util.setColProp(qv, "ORD_PKQTY", "display_style", "background-color:#d8bfd8;");
 
             Util.setColProp(qv, "ORD_ALLQTY", "mTitleParent", "titPurOrd");
             Util.setColProp(qv, "ORD_ALLQTY", "mTitleParentSpan", 3);
             Util.setColProp(qv, "ORD_ALLQTY", "mTitle", "itemUnitQty");
             Util.setColProp(qv, "ORD_ALLQTY", "display_width", 90);
-            Util.setColProp(qv, "ORD_ALLQTY", "display_format", qtFormat);
             Util.setColProp(qv, "ORD_ALLQTY", "display_style", "background-color:#d8bfd8;");
 
             Util.setColProp(qv, "ORD_PRICE", "mTitle", "txtPrice");
@@ -314,7 +311,6 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "RCVD_PKQTY", "display_style", "background-color:khaki;");
             Util.setColProp(qv, "RCVD_PKQTY", "mTitle", "itemPackQty");
             Util.setColProp(qv, "RCVD_PKQTY", "display_width", 60);
-            Util.setColProp(qv, "RCVD_PKQTY", "display_format", qtFormat);
 
             Util.setColProp(qv, "RCVD_COST", "mTitleParent", "goodsRecieved");
             Util.setColProp(qv, "RCVD_COST", "mTitle", "itemPackCost");
@@ -339,10 +335,8 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "VARIA_QTY", "mTitleParent", "txtVariance");
             Util.setColProp(qv, "VARIA_QTY", "mTitleParentSpan", 2);
             Util.setColProp(qv, "VARIA_QTY", "mTitle", "itemPackQty");
-            Util.setColProp(qv, "VARIA_QTY", "display_width", 80);
+            Util.setColProp(qv, "VARIA_QTY", "display_width", 60);
             Util.setColProp(qv, "VARIA_QTY", "display_style", "background-color:#e6e6fa;");
-            Util.setColProp(qv, "VARIA_QTY", "display_format", qtFormat);
-            
 
 
             Util.setColProp(qv, "VARIA_AMT", "mTitleParent", "txtVariance");

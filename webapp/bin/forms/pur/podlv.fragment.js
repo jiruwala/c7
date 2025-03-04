@@ -418,7 +418,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                     ld.setFieldValue(idx, "DESCR", data[i].DESCR);
                                     ld.setFieldValue(idx, "PACKD", data[i].PACKING);
                                     ld.setFieldValue(idx, "PACK", data[i].PACK);
-                                    ld.setFieldValue(idx, "ORD_PKQTY", 1);
+                                    ld.setFieldValue(idx, "ORD_PKQTY", 0);
                                     ld.setFieldValue(idx, "ORD_UNQTY", 0);
                                     ld.setFieldValue(idx, "SALE_PRICE", data[i].ORD_PRICE);
                                 }
