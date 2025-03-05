@@ -170,13 +170,22 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         press: function () {
                             saveForm(fnExe, "addGr");
                         }
-
-
                     });
+
+                    thatForm.commands.cmdClosePO = new sap.m.Button({
+                        icon: thatForm.rectangleIcon,
+                        wrap: sap.m.FlexWrap.Wrap,
+                        text: Util.getLangText("closePO"),
+                        press: function () {
+                            saveForm(fnExe, "closePO");
+                        }
+                    });
+
                     var hb1 = new sap.m.HBox({
                         items: [thatForm.commands.cmdApprove,
                         thatForm.commands.cmdAddShip,
                         thatForm.commands.cmdAddGR,
+                        thatForm.commands.cmdClosePO,
 
                         ]
                     });
@@ -1184,7 +1193,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                                 ))) {
                                 mnus.push(new sap.m.MenuItem({
                                     icon: "sap-icon://letter",
-                                    text: Util.getLangText("Approve"),
+                                    text: Util.getLangText("poApprove"),
                                     press: function () {
                                         that2.helperFunc.approved();
                                     }
