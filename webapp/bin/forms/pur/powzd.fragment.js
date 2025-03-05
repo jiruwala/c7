@@ -185,9 +185,6 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             }
             that.mp[varr].setValue(str);
         };
-        this.detailPage.removeAllHeaderContent();
-        this.detailPage.addHeaderContent(new sap.m.Title({ text: "Closing PO : " + dt[0].ORD_NO + " / " + dt[0].ORD_REF + "-" + dt[0].ORD_REFNM }).addStyleClass("redText boldText"));
-
         var kys = Object.keys(that.mp);
         for (var k in kys)
             that.mp[kys[k]].setValue("");
@@ -217,11 +214,10 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
     load_detailPageData: function () {
         var that = this;
         var qv = this.qcDet;
-
         var cstFormat = "#,##0.00000";
         var sq = "SELECT ORD_POS,ORD_REFER,ITEM_DESCR," +
-            " CASE WHEN ORD_PACK>1 THEN ORD_PACKD||'x'||ORD_UNITD ELSE ORD_PACKD END ORD_PACKD, ORD_UNITD," +
-            " ORD_PACK,ORD_ALLQTY/ORD_PACK ORD_PKQTY,(ORD_ALLQTY) ORD_ALLQTY, ORD_PRICE,ORD_PRICE/ORD_PACK ORD_UPRICE," +
+            " CASE WHEN ORD_PACK>1 THEN ORD_PACKD||'x'||ORD_UNITD ELSE ORD_PACKD END ORD_PACKD, " +
+            " ORD_PACK,ORD_ALLQTY/ORD_PACK ORD_PKQTY,ORD_PRICE,ORD_PRICE/ORD_PACK ORD_UPRICE," +
             " ORD_PRICE*(ORD_ALLQTY/ORD_PACK) ORD_AMOUNT," +
             " NVL(RCVD_ALLQTY,0)/ORD_PACK RCVD_PKQTY , RCVD_ALLQTY," +
             " 0 RCVD_COST,0 RCVD_AMT,0 RCVD_P,0 VARIA_QTY,0 VARIA_AMT  " +
@@ -244,24 +240,10 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "ORD_PACKD", "display_width", 70);
             Util.setColProp(qv, "ORD_PACK", "mTitle", "itemPack");
             Util.setColProp(qv, "ORD_PACK", "display_width", 50);
-
-            Util.setColProp(qv, "ORD_UNITD", "mTitle", "itemUnitD");
-            Util.setColProp(qv, "ORD_UNITD", "display_width", 70);
-
-
-            if (!that.chkUnit.getSelected()) {
-                Util.setColProp(qv, "RCVD_ALLQTY", "mHideCol", true);
-                Util.setColProp(qv, "ORD_ALLQTY", "mHideCol", true);
-                Util.setColProp(qv, "ORD_UPRICE", "mHideCol", true);
-                Util.setColProp(qv, "ORD_UNITD", "mHideCol", true);
-            } else {
-                Util.setColProp(qv, "RCVD_PKQTY", "mHideCol", true);
-                Util.setColProp(qv, "ORD_PKQTY", "mHideCol", true);
-                Util.setColProp(qv, "ORD_PRICE", "mHideCol", true);
-                Util.setColProp(qv, "ORD_PACKD", "mHideCol", true);
-
-            }
-
+            
+            Util.setColProp(qv, "RCVD_ALLQTY", "mHideCol", true);
+            Util.setColProp(qv, "ORD_UPRICE", "mHideCol", true);
+            
             // Util.setColProp(qv, "ORD_UNITD", "mHideCol", true);
             // Util.setColProp(qv, "ORD_UNITD", "mTitle", "itemUnitD");
             // Util.setColProp(qv, "ORD_UNITD", "display_width", 60);
@@ -272,25 +254,12 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "ORD_PKQTY", "display_width", 90);
             Util.setColProp(qv, "ORD_PKQTY", "display_style", "background-color:#d8bfd8;");
 
-            Util.setColProp(qv, "ORD_ALLQTY", "mTitleParent", "titPurOrd");
-            Util.setColProp(qv, "ORD_ALLQTY", "mTitleParentSpan", 3);
-            Util.setColProp(qv, "ORD_ALLQTY", "mTitle", "itemUnitQty");
-            Util.setColProp(qv, "ORD_ALLQTY", "display_width", 90);
-            Util.setColProp(qv, "ORD_ALLQTY", "display_style", "background-color:#d8bfd8;");
-
             Util.setColProp(qv, "ORD_PRICE", "mTitle", "txtPrice");
             Util.setColProp(qv, "ORD_PRICE", "display_width", 80);
             Util.setColProp(qv, "ORD_PRICE", "display_format", cstFormat);
             Util.setColProp(qv, "ORD_PRICE", "display_align", "ALIGN_END");
             Util.setColProp(qv, "ORD_PRICE", "mTitleParent", "titPurOrd");
             Util.setColProp(qv, "ORD_PRICE", "display_style", "background-color:#d8bfd8;");
-
-            Util.setColProp(qv, "ORD_UPRICE", "mTitle", "txtPrice");
-            Util.setColProp(qv, "ORD_UPRICE", "display_width", 80);
-            Util.setColProp(qv, "ORD_UPRICE", "display_format", cstFormat);
-            Util.setColProp(qv, "ORD_UPRICE", "display_align", "ALIGN_END");
-            Util.setColProp(qv, "ORD_UPRICE", "mTitleParent", "titPurOrd");
-            Util.setColProp(qv, "ORD_UPRICE", "display_style", "background-color:#d8bfd8;");
             // Util.setColProp(qv, "ORD_PRICE", "mTitleParentSpan", 3);            
 
             Util.setColProp(qv, "ORD_AMOUNT", "mTitle", "amountTxt");
@@ -300,18 +269,12 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
             Util.setColProp(qv, "ORD_AMOUNT", "mSummary", "SUM");
             Util.setColProp(qv, "ORD_AMOUNT", "display_style", "background-color:#d8bfd8;");
 
-            Util.setColProp(qv, "RCVD_ALLQTY", "mTitleParent", "goodsRecieved");
-            Util.setColProp(qv, "RCVD_ALLQTY", "mTitleParentSpan", 3);
-            Util.setColProp(qv, "RCVD_ALLQTY", "mTitle", "itemUnitQty");
-            Util.setColProp(qv, "RCVD_ALLQTY", "display_width", 90);
-            Util.setColProp(qv, "RCVD_ALLQTY", "display_style", "background-color:khaki;");
-
             Util.setColProp(qv, "RCVD_PKQTY", "mTitleParent", "goodsRecieved");
-            Util.setColProp(qv, "RCVD_PKQTY", "mTitleParentSpan", 3);
+            Util.setColProp(qv, "RCVD_PKQTY", "mTitleParentSpan", 4);
             Util.setColProp(qv, "RCVD_PKQTY", "display_style", "background-color:khaki;");
+
             Util.setColProp(qv, "RCVD_PKQTY", "mTitle", "itemPackQty");
             Util.setColProp(qv, "RCVD_PKQTY", "display_width", 60);
-
             Util.setColProp(qv, "RCVD_COST", "mTitleParent", "goodsRecieved");
             Util.setColProp(qv, "RCVD_COST", "mTitle", "itemPackCost");
             Util.setColProp(qv, "RCVD_COST", "display_width", 80);
@@ -691,16 +654,11 @@ sap.ui.jsfragment("bin.forms.pur.powzd", {
                 });
             }
         }));
-        that.chkUnit = new sap.m.CheckBox({
-            text: "In Units",
-            selected: false,
-            select: function () {
-                that.load_detailPageData();
-            }
-        });
-        this.qr.showToolbar.toolbar.addContent(that.chkUnit);
+
         Util.navEnter(fe);
+
         Util.destroyID("cmdNext2", that.view);
+
         this.detailPage.setFooter(new sap.m.Toolbar({
             content: [
                 new sap.m.ToolbarSpacer(),

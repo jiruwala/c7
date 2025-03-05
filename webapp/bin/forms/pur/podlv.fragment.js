@@ -313,7 +313,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                         var pos = ld.getFieldValue(rowno, "ORD_POS");
                         var rfnm = ld.getFieldValue(rowno, "ORD_REFNM");
                         var dt = Util.execSQLWithData("select packd,unitd,pack from items where reference='" + rfr + "'", "Item # " + rfr + " not a valid !");
-                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', ord_refnm=':rfnm', tqty=(ord_pkqty*:pack )+ord_unqty where keyfld=:kf and ord_pos=:pos "
+                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', ord_refnm=':rfnm', tqty=ord_pkqty*:pack where keyfld=:kf and ord_pos=:pos "
                             .replaceAll(":pkd", dt[0].PACKD)
                             .replaceAll(":unitd", dt[0].UNITD)
                             .replaceAll(":pack", dt[0].PACK)
@@ -418,7 +418,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                     ld.setFieldValue(idx, "DESCR", data[i].DESCR);
                                     ld.setFieldValue(idx, "PACKD", data[i].PACKING);
                                     ld.setFieldValue(idx, "PACK", data[i].PACK);
-                                    ld.setFieldValue(idx, "ORD_PKQTY", 0);
+                                    ld.setFieldValue(idx, "ORD_PKQTY", 1);
                                     ld.setFieldValue(idx, "ORD_UNQTY", 0);
                                     ld.setFieldValue(idx, "SALE_PRICE", data[i].ORD_PRICE);
                                 }
@@ -866,23 +866,54 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     list_type: "sql",
                     cols: [
                         {
+                            colname: "PONO",
+                            mTitle: Util.getLangText("titPurOrd"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+                        {
                             colname: "ORD_NO",
+                            mTitle: Util.getLangText("txtNo"),
+                            display_width: 75,
+                        },
+                        {
+                            colname: "ORD_DATE",
+                            display_format: "SHORT_DATE_FORMAT",
+                            mTitle: Util.getLangText("ordDate"),
+                            display_width: 75,
+                        },
+                        {
+                            colname: "PO_STATUS",
+                            mTitle: Util.getLangText("puPoStatus"),
+                            display_width: 100,
                         },
                         {
                             colname: "ORD_REF",
+                            mTitle: Util.getLangText("refCode"),
+                            display_width: 75,
                         },
                         {
-                            colname: "ORD_REFNM"
+                            colname: "ORD_REFNM",
+                            mTitle: Util.getLangText("refName"),
+                            display_width: 200,
                         },
                         {
                             colname: 'KEYFLD',
                             return_field: "pac",
+                            hide: true
                         },
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
-                        " order by o1.ord_date desc,ord_no desc",
+                    // sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
+                    // " order by o1.ord_date desc,ord_no desc",
+                    sql: "select po1.ord_no pono,DECODE (po1.ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status," +
+                        "o1.ord_no dlv_no, o1.ord_date,o1.ord_ref,o1.ord_refnm,o1.keyfld from order1 o1,pord1 po1" +
+                        " where o1.ord_code =" + that2.vars.vou_code + " and po1.keyfld=o1.pord1_keyfld " +
+                        (that2.oController.shipKF != undefined ?
+                            " and po1.keyfld='" + that2.oController.shipKF + "' " : "") +
+                        "  order by o1.ord_date desc,po1.ord_no,o1.ord_no desc"
+                    ,
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;

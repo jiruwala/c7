@@ -411,7 +411,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         applyCol: "C7.JV",
                         addRowOnEmpty: true,
                         dml: dmlSq,
-                        dispRecords: { "S": 3, "M": 7, "L": 10, "XL": 12, "XXL": 20 },
+                        dispRecords: { "S": 3, "M": 4, "L": 7, "XL": 12, "XXL": 20 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
@@ -488,9 +488,6 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 sumDr += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "FCDEBIT"), df), 0);
                                 sumCr += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "FCCREDIT"), df), 0);
                             }
-                            sumDr = Util.clearSciNotNumber(sumDr, 5);
-                            sumCr = Util.clearSciNotNumber(sumCr, 5);
-
                             thatForm.frm.setFieldValue('totaldebit', df.format(sumDr));
                             thatForm.frm.setFieldValue('totalcredit', df.format(sumCr));
                             thatForm.frm.setFieldValue('totDiff', df.format(sumDr - sumCr));
