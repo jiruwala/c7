@@ -2158,33 +2158,35 @@ sap.ui.jsview('bin.Dashboard', {
                 UtilGen.execCmd('bin.forms.pur.po status=view formType=page keyfld=' + selPokf + ' formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
 
         },
-        openship: function () {
+        openship: function (poKld, pFormType, fncallback) {
             var thatView = this.thatView;
-            var selPokf = thatView.puOrdKeyfld;
+            var formtype = Util.nvl(pFormType, "page");
+            var selPokf = Util.nvl(poKld, thatView.puOrdKeyfld);
             if (Util.nvl(selPokf, -1) == -1)
-                UtilGen.execCmd('bin.forms.pur.poship status=new formType=page formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                UtilGen.execCmd('bin.forms.pur.poship status=new formType=' + formtype + ' formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
             else
-                UtilGen.execCmd('bin.forms.pur.poship status=new formType=page poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                UtilGen.execCmd('bin.forms.pur.poship status=new formType=' + formtype + ' poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
 
         },
-        openPoWzd: function () {
+        openPoWzd: function (poKld, fncallback) {
             var thatView = this.thatView;
-            var selPokf = thatView.puOrdKeyfld;
+            var selPokf = Util.nvl(poKld, thatView.puOrdKeyfld);
             if (Util.nvl(selPokf, -1) == -1)
-                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
             else
-                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
 
         },
-        openPoGr: function () {
+        openPoGr: function (poKld, pFormType, fncallback) {
             var thatView = this.thatView;
-            var selPokf = thatView.puOrdKeyfld;
+            var formtype = Util.nvl(pFormType, "page");
+            var selPokf = Util.nvl(poKld, thatView.puOrdKeyfld);
             var sett = sap.ui.getCore().getModel("settings").getData();
             var callPoGr = function (kf) {
                 if (kf != undefined)
-                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=page shipKF=' + kf + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=' + formtype + ' shipKF=' + kf + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
                 else
-                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=page formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=' + formtype + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
             };
             var genDefaultShip = function () {
                 var kf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_purship ");

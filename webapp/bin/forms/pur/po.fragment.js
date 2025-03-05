@@ -86,10 +86,48 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     ],
                 },
                 customDisplay: function (vbHeader) {
+
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("rcvdTxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("cmdQE" + thatForm.timeInLong, thatForm.view);
+
+                    var saveForm = function (fnAfterSave, para1) {
+                        if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                            thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                            Util.simpleConfirmDialog(Util.getLangText("msgSaveFormData"), function (oAction) {
+                                thatForm.frm.cmdButtons.cmdSave.firePress();
+                                if (fnAfterSave != undefined)
+                                    fnAfterSave(para1);
+                            });
+
+                        } else fnAfterSave(para1);
+                    }
+                    var fnExe = function (para) {
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                        var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld=" + kf);
+                        if (aproved == 3)
+                            FormView.err("PO is Closed !");
+
+
+                        if (Util.nvl(para == "")) return;
+                        if (para == "approve")
+                            that2.helperFunc.approved();
+                        if (para == "addShip")
+                            UtilGen.DBView.purManageFunc.openship(kf, "dialog", function () {
+                                thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                            });
+
+                        if (para == "addGr")
+                            UtilGen.DBView.purManageFunc.openPoGr(kf, "dialog", function () {
+                                thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                            });
+                        if (para == "closePo") {
+
+                        }
+
+                    }
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText blinking");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" }));
                     var rtxt = new sap.m.Text(thatForm.view.createId("rcvdTxt" + thatForm.timeInLong, { width: "300px", text: "" }));
@@ -104,7 +142,47 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     rtxt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
+
+                    thatForm.rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-left");
+                    thatForm.selectIcon = "sap-icon://accept";
+                    thatForm.commands = {};
+                    thatForm.commands.cmdApprove = new sap.m.Button({
+                        icon: thatForm.rectangleIcon,
+                        wrap: sap.m.FlexWrap.Wrap,
+                        text: Util.getLangText("poApprove"),
+                        press: function () {
+                            saveForm(fnExe, "approve");
+                        }
+                    });
+                    thatForm.commands.cmdAddShip = new sap.m.Button({
+                        icon: thatForm.rectangleIcon,
+                        wrap: sap.m.FlexWrap.Wrap,
+                        text: Util.getLangText("addShipment"),
+                        press: function () {
+                            saveForm(fnExe, "addShip");
+                        }
+
+                    });
+                    thatForm.commands.cmdAddGR = new sap.m.Button({
+                        icon: thatForm.rectangleIcon,
+                        wrap: sap.m.FlexWrap.Wrap,
+                        text: Util.getLangText("addGr"),
+                        press: function () {
+                            saveForm(fnExe, "addGr");
+                        }
+
+
+                    });
+                    var hb1 = new sap.m.HBox({
+                        items: [thatForm.commands.cmdApprove,
+                        thatForm.commands.cmdAddShip,
+                        thatForm.commands.cmdAddGR,
+
+                        ]
+                    });
+
                     vbHeader.addItem(hb);
+                    vbHeader.addItem(hb1);
                 },
                 print_templates: [
                     {
@@ -239,7 +317,44 @@ sap.ui.jsfragment("bin.forms.pur.po", {
         // this.mainPage.addContent(sc);
 
     },
+    enableCommands: function (cmd, pEnableValue) {
+        var thatForm = this;
+        var enableValue = Util.nvl(pEnableValue, true);
+        if (cmd == undefined)
+            Object.keys(thatForm.commands).forEach((cmd) => {
+                thatForm.commands[cmd].setEnabled(enableValue);
+            });
+        else
+            cmd.setEnabled(enableValue);
 
+    },
+    refreshIcons: function (cmd) {
+        var thatForm = this;
+        var checkCommand = function (cmd) {
+            var kf = thatForm.frm.getFieldValue("keyfld");
+            cmd.setIcon(thatForm.rectangleIcon);
+            if (cmd == thatForm.commands.cmdApprove) {
+                var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld='" + kf + "'");
+                if (aproved == 2)
+                    cmd.setIcon(thatForm.selectIcon);
+            }
+            if (cmd == thatForm.commands.cmdAddShip) {
+                var ships = Util.getSQLValue("select count(*) from C7_PURSHIP where po_keyfld='" + kf + "'");
+                if (ships > 0)
+                    cmd.setIcon(thatForm.selectIcon);
+            }
+            if (cmd == thatForm.commands.cmdAddGR) {
+                var dlvs = Util.getSQLValue("select count(*) from order1 where pord1_keyfld='" + kf + "'");
+                if (dlvs > 0)
+                    cmd.setIcon(thatForm.selectIcon);
+            }
+        };
+        if (cmd == undefined) {
+            Object.keys(thatForm.commands).forEach((cmd) => {
+                checkCommand(thatForm.commands[cmd]);
+            });
+        }
+    },
     setFormEditable: function () {
 
     }
@@ -275,12 +390,18 @@ sap.ui.jsfragment("bin.forms.pur.po", {
 
                         cb.setSelectedKey(typ);
 
+                        thatForm.enableCommands(undefined, true);
                         var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
 
-                        if (aproved == 2)
+                        if (aproved == 2) {
                             thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("PO is approved !");
-                        if (aproved == 3)
+                            thatForm.enableCommands(undefined, true);
+                            thatForm.enableCommands(thatForm.commands.cmdApprove, false);
+                        }
+                        if (aproved == 3) {
                             thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("PO is Closed !");
+                            thatForm.enableCommands(undefined, false);
+                        }
 
 
                         var rcvd = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where ord_code=110 and pord1_keyfld=" + qry.formview.getFieldValue("keyfld"));
@@ -288,6 +409,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         var rcvdp = 0;
                         if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
                         thatForm.view.byId("rcvdTxt" + thatForm.timeInLong).setText("Recieved : " + rcvdp + " % ");
+
+                        thatForm.refreshIcons();
                     }
                 },
                 beforeLoadQry: function (qry, sql) {
@@ -337,7 +460,9 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         setTimeout(() => {
                             objOn.fireSelectionChange();
                         });
-
+                        thatForm.enableCommands(undefined, false);
+                        thatForm.enableCommands(thatForm.commands.cmdApprove, true);
+                        thatForm.refreshIcons();
                     }
                 },
                 afterEditRow(qry, index, ld) {
