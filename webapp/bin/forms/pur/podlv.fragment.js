@@ -313,7 +313,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                         var pos = ld.getFieldValue(rowno, "ORD_POS");
                         var rfnm = ld.getFieldValue(rowno, "ORD_REFNM");
                         var dt = Util.execSQLWithData("select packd,unitd,pack from items where reference='" + rfr + "'", "Item # " + rfr + " not a valid !");
-                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', ord_refnm=':rfnm', tqty=ord_pkqty*:pack where keyfld=:kf and ord_pos=:pos "
+                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', ord_refnm=':rfnm', tqty=(ord_pkqty*:pack)+ord_unqty where keyfld=:kf and ord_pos=:pos "
                             .replaceAll(":pkd", dt[0].PACKD)
                             .replaceAll(":unitd", dt[0].UNITD)
                             .replaceAll(":pack", dt[0].PACK)
@@ -418,7 +418,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                     ld.setFieldValue(idx, "DESCR", data[i].DESCR);
                                     ld.setFieldValue(idx, "PACKD", data[i].PACKING);
                                     ld.setFieldValue(idx, "PACK", data[i].PACK);
-                                    ld.setFieldValue(idx, "ORD_PKQTY", 1);
+                                    ld.setFieldValue(idx, "ORD_PKQTY", 0);
                                     ld.setFieldValue(idx, "ORD_UNQTY", 0);
                                     ld.setFieldValue(idx, "SALE_PRICE", data[i].ORD_PRICE);
                                 }
