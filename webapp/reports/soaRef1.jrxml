@@ -457,7 +457,7 @@ ORDER BY   ACCNO]]>
 						<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
 					</textField>
 					<staticText>
-						<reportElement style="strDetails" x="414" y="8" width="87" height="14" uuid="bb9ba735-0674-4e24-910d-1ee4a2752b63">
+						<reportElement style="strDetails" x="432" y="8" width="87" height="14" uuid="bb9ba735-0674-4e24-910d-1ee4a2752b63">
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
 						</reportElement>
 						<box leftPadding="2" rightPadding="2">
@@ -469,7 +469,7 @@ ORDER BY   ACCNO]]>
 						<text><![CDATA[Balance / رصيد]]></text>
 					</staticText>
 					<textField isBlankWhenNull="true">
-						<reportElement style="numQtyRight" x="426" y="24" width="76" height="15" forecolor="#990000" uuid="fec23213-0c83-4a90-b5d7-7608460d37bc">
+						<reportElement style="numQtyRight" x="410" y="24" width="113" height="15" forecolor="#990000" uuid="fec23213-0c83-4a90-b5d7-7608460d37bc">
 							<property name="com.jaspersoft.studio.unit.y" value="px"/>
 							<property name="com.jaspersoft.studio.unit.x" value="px"/>
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -477,7 +477,7 @@ ORDER BY   ACCNO]]>
 						</reportElement>
 						<box leftPadding="2" rightPadding="2"/>
 						<textElement textAlignment="Center">
-							<font fontName="Arial" size="8" isBold="false"/>
+							<font fontName="Arial" size="12" isBold="false"/>
 						</textElement>
 						<textFieldExpression><![CDATA[$F{ACBAL}]]></textFieldExpression>
 						<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
