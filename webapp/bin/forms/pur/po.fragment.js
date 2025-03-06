@@ -123,7 +123,10 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                             UtilGen.DBView.purManageFunc.openPoGr(kf, "dialog", function () {
                                 thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
                             });
-                        if (para == "closePo") {
+                        if (para == "closePO") {
+                            UtilGen.DBView.purManageFunc.openPoWzd(kf, function () {
+                                thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                            });
 
                         }
 
@@ -143,7 +146,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     rtxt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
 
-                    thatForm.rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-left");
+                    thatForm.rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-right");
                     thatForm.selectIcon = "sap-icon://accept";
                     thatForm.commands = {};
                     thatForm.commands.cmdApprove = new sap.m.Button({
@@ -347,6 +350,12 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 if (aproved == 2)
                     cmd.setIcon(thatForm.selectIcon);
             }
+
+            if (cmd == thatForm.commands.cmdClosePO) {
+                var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld='" + kf + "'");
+                if (aproved == 3)
+                    cmd.setIcon(thatForm.selectIcon);
+            }
             if (cmd == thatForm.commands.cmdAddShip) {
                 var ships = Util.getSQLValue("select count(*) from C7_PURSHIP where po_keyfld='" + kf + "'");
                 if (ships > 0)
@@ -454,12 +463,14 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         var objSt = thatForm.frm.objs["qry1.stra"].obj;
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
+                        var objGr = thatForm.frm.objs["qry1.gr_ac"].obj;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from pord1");
                         var newKNo = Util.getSQLValue("select nvl(max(ord_no),0)+1 from pord1 where ord_code=" + that.vars.vou_code);
                         var dt = thatForm.view.today_date.getDateValue();
 
                         UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
                         UtilGen.setControlValue(objSt, sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
+                        UtilGen.setControlValue(objGr, Util.nvl(sett["PO_GR_ACC"], ""), sett["PO_GR_ACC"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
                         UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_no"].obj, newKNo, newKNo, true);
 
