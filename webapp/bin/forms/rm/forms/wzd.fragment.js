@@ -327,15 +327,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             var sql = "SELECT  " +
                 "              c_order1.ord_ref," +
                 "              c_order1.ord_refnm," +
-                "              c_custitems.descr itemname," +
-                "              c_order1.ord_ship," +
+                "              c_custitems.descr itemname," +        
                 "              MAX(GETAVGPRICEDLV(c_order1.keyfld)) SALE_PRICE ," +
                 "              SUM (c_order1.tqty) qnty," +
-                "              c_custitems.packd," +
+                "              COUNT (c_order1.ord_no) counting ," +
+                "              c_custitems.packd," +                
                 "              MAX (nvl(c_order1.attn,cbranch.b_name)) bname," +
+                "              c_order1.ord_ship," +                
                 "              c_order1.ord_discamt," +
                 "              c_custitems.unitd," +
-                "              COUNT (c_order1.ord_no) counting ," +
                 "              max(trunc(ord_date)) ord_date," +
                 "          location_code," +
                 "              ord_code " +
@@ -406,14 +406,16 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 });
 
                 Util.setColProperties(qv, "QNTY", {
-                    "mTitle": "itemPackQty",
+                    "mTitle": "m3Qty",
                     "display_width": 80,
                     "display_align": "ALIGN_CENTER",
                     "display_style": "background-color:khaki;"
                 });
                 Util.setColProperties(qv, "PACKD", {
                     "mTitle": "itemPackD",
-                    "display_width": 100
+                    "display_width": 100,
+                    "mHideCol": true,
+
                 });
 
                 Util.setColProperties(qv, "COUNTING", {
@@ -762,8 +764,30 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         this.txtInfoGross = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass();
         this.txtInfoDisc = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: true }).addStyleClass();
         this.txtInfoAdd = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: true }).addStyleClass();
-        this.txtInfoAddRemarks = new sap.m.Input({ textAlign: endAlign, width: "54%", editable: true }).addStyleClass();
-        this.txtInfoDiscRemarks = new sap.m.Input({ textAlign: endAlign, width: "54%", editable: true }).addStyleClass();
+        this.txtInfoAddRemarks = new sap.m.Input({
+            textAlign: endAlign, width: "54%", editable: true,
+            showValueHelp: true,
+            valueHelpRequest: function (e) {
+                var sq = "select distinct trim(memo) memo from pur1 where invoice_code=21 and memo is not null";
+                UtilGen.Search.do_quick_search_simple(sq,
+                    ["MEMO"], function (data) {
+                        that.txtInfoAddRemarks.setValue(data.MEMO);
+                    }, { pWidth: "50%" });
+            }
+        }).addStyleClass();
+        this.txtInfoDiscRemarks = new sap.m.Input({
+            textAlign: endAlign, width: "54%", editable: true,
+            showValueHelp: true,
+            valueHelpRequest: function (e) {
+                var sq = "select distinct trim(ctg) ctg from pur1 where invoice_code=21 and ctg is not null";
+                UtilGen.Search.do_quick_search_simple(sq,
+                    ["CTG"], function (data) {
+                        that.txtInfoDiscRemarks.setValue(data.CTG);
+                    }, { pWidth: "50%" });
+            }
+
+
+        }).addStyleClass();
         this.txtInfoAmount = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass("yellow");
         this.txtInfoDescr = new sap.m.Input({ width: "80%" });
 
@@ -1026,14 +1050,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         var selBrno = that.txtBranch.getValue();
         var selBrName = that.txtBranchName.getValue();
         var selProd = that.txtProd.getValue();
-        var selDate = that.txtFromDate.getDateValue();
+        var selDate = that.txtToDate.getDateValue();
         if (rn >= 0) {
             selCust = that.qvRef.mLctb.getFieldValue(rn, "ORD_REF");
             selCustName = that.qvRef.mLctb.getFieldValue(rn, "ORD_REFNM");
             selBrno = that.qvRef.mLctb.getFieldValue(rn, "ORD_DISCAMT");
             selBrName = that.qvRef.mLctb.getFieldValue(rn, "BNAME");
             selProd = that.qvRef.mLctb.getFieldValue(rn, "ORD_SHIP");
-            selDate = that.qvRef.mLctb.getFieldValue(rn, "ORD_DATE");
+            // selDate = that.qvRef.mLctb.getFieldValue(rn, "ORD_DATE");
         }
 
         var refName = selCustName + " - " + selCust;
