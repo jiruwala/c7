@@ -175,7 +175,7 @@ ORDER BY   ACCNO]]>
 		<property name="com.jaspersoft.studio.field.name" value="CUST_NAME"/>
 		<property name="com.jaspersoft.studio.field.label" value="CUST_NAME"/>
 	</field>
-	<group name="accgroup" isResetPageNumber="true" isReprintHeaderOnEachPage="true">
+	<group name="accgroup" isReprintHeaderOnEachPage="true" keepTogether="true">
 		<groupExpression><![CDATA[$F{ACCNO}]]></groupExpression>
 		<groupHeader>
 			<band height="202">

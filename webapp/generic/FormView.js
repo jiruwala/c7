@@ -1288,7 +1288,12 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     var flds = { ...Util.nvl(qryObj.fields, []), ...Util.nvl(qryObj.summary, {}) };
                     for (var i in flds) {
                         var fld = flds[i].obj;
-                        this._setQryEditableObj(fld, true);
+                        if (fld != undefined && qryObj.status == FormView.RecordStatus.EDIT &&
+                            Util.nvl(flds[i].edit_allowed, true))
+                            this._setQryEditableObj(fld, true);
+                        if (fld != undefined && qryObj.status == FormView.RecordStatus.NEW &&
+                            Util.nvl(flds[i].insert_allowed, true))
+                            this._setQryEditableObj(fld, true);
                     }
                     if (qryObj.status != FormView.RecordStatus.VIEW && Util.nvl(qryObj.addRowOnEmpty, false) && qryObj.obj.mLctb.rows.length == 0)
                         qryObj.obj.addRow();
