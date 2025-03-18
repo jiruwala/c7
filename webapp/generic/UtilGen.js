@@ -4173,6 +4173,40 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     oGCell1.gauge = g;
                     return oGCell1;
                 }
+            },
+            Security: {
+                canEdit: function (grp, form, pForceful) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    if (!forceful && Util.nvl(sett[grp + "_" + form + "_editable"], 'TRUE') != "TRUE")
+                        return false;
+                    if (forceful && Util.nvl(sett[grp + "_" + form + "_editable"], 'FALSE') != "TRUE")
+                        return false;
+
+                    return true;
+
+                },
+                canDelete: function (grp, form, pForceful) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    if (!forceful && Util.nvl(sett[grp + "_" + form + "_deletable"], 'TRUE') != "TRUE")
+                        return false;
+                    if (forceful && Util.nvl(sett[grp + "_" + form + "_deletable"], 'FALSE') != "TRUE")
+                        return false;
+
+                    return true;
+
+                },
+                isReadOnly: function (grp, form, pForceful) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    if (!forceful && Util.nvl(sett[grp + "_" + form + "_readonly"], 'TRUE') != "TRUE")
+                        return false;
+                    if (forceful && Util.nvl(sett[grp + "_" + form + "_readonly"], 'FALSE') != "TRUE")
+                        return true;
+                    return false;
+                },
+
             }
 
         };

@@ -40,8 +40,12 @@ sap.ui.jsfragment("bin.forms.rm.forms.unpost", {
 
 
         setTimeout(function () {
+
+            Util.destroyID("cmdUpdateInv" + that.timeInLong, this.view);
+            Util.destroyID("cmdDelInv" + that.timeInLong, this.view);
+
             var bts = [
-                new sap.m.Button({
+                new sap.m.Button(that.view.createId("cmdDelInv" + that.timeInLong), {
                     text: Util.getLangText("delRec").toUpperCase(),
                     press: function () {
                         that.deleteInv();
@@ -55,7 +59,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.unpost", {
                         that.printInv();
                     }
                 }),
-                new sap.m.Button({
+                new sap.m.Button(that.view.createId("cmdUpdateInv" + that.timeInLong), {
                     text: Util.getLangText("updateInv"),
                     press: function () {
                         Util.simpleConfirmDialog("Do you want to update this Sales Invoice ?", function (oAction) {
@@ -385,6 +389,19 @@ sap.ui.jsfragment("bin.forms.rm.forms.unpost", {
             that.showQtynPrice();
             that.loadData_details(reload);
             this.qc_change = {};
+        }
+        setTimeout(() => {
+            that.secureInit();
+        }, 300);
+
+
+    },
+    secureInit: function () {
+        var that = this;
+        if (!UtilGen.Security.canEdit("formsec_all", "", true)) {
+            that.cmdUpdatePrice.setEnabled(false);
+            that.view.byId("cmdUpdateInv" + that.timeInLong).setEnabled(false);
+            that.view.byId("cmdDelInv" + that.timeInLong).setEnabled(false);
         }
 
 

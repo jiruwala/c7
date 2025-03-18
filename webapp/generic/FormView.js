@@ -194,6 +194,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             // adding parameters;
             this.form.readonly = Util.nvl(json.form.readonly, false);
             this.form.title = Util.nvl(json.form.title, "");
+            this.form.formName = Util.nvl(json.form.formName, "");
+            this.form.formCtg = Util.nvl(json.form.formCtg, "");
             this.form.titleStyle = Util.nvl(json.form.titleStyle, "");
             this.form.customDisplay = Util.nvl(json.form.customDisplay, undefined);
             this.form.toolbarBG = Util.nvl(json.form.toolbarBG, "lightgrey");
@@ -703,6 +705,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     qryObj.obj.mLctb.parse("{" + data.data + "}", true);
                     qryObj.obj.mLctb.updateRecStatus(LocalTableData.RowStatus.UPDATED);
                     qryObj.obj.loadData();
+
                     if (thatForm.form.events.hasOwnProperty("afterLoadQry"))
                         thatForm.form.events.afterLoadQry(qryObj);
 
@@ -720,7 +723,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var that = this;
             if (this.view == undefined)
                 return;
-
+            that.secure.init(that);
             Util.destroyID("cmdSave" + this.timeInLong, this.view);
             this.cmdButtons.cmdSave = new sap.m.Button(this.view.createId("cmdSave" + this.timeInLong), {
                 icon: "sap-icon://save",
@@ -844,10 +847,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             setTimeout(() => {
                 if (that.pg != undefined)
                     that.pg.attachBrowserEvent("keydown", function (oEvent) {
-                        if (that.isFormEditable() && oEvent.key == 'F10') {
+                        if (that.isFormEditable() && oEvent.key == 'F10' && that.cmdButtons.cmdSave.getVisible()) {
                             that.cmdButtons.cmdSave.firePress();
                         }
-
                     });
             }
             );
@@ -1050,6 +1052,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         this.setQueryStatus(qryObj, Util.nvl(status, FormView.RecordStatus.VIEW));
                 }
             }
+            setTimeout(() => {
+                that.secure.initSec();
+            }, 100);
         };
 
         FormView.prototype.fetchQuery = function (qryName, execBeforeSql) {
@@ -1164,18 +1169,26 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             return sv;
         };
         FormView.prototype.setFormReadOnly = function (pPara) {
-            var pEnabled = Util.nvl(pPara, false);
+            var pEnabled = Util.nvl(pPara, true);
             var qryObj = undefined;
             var qrys = (qryObj != undefined ? [qryObj] : this.form.db);
 
             for (var o in qrys) {
                 qryObj = qrys[o];
-                (pEnabled ? this._setQryEnableForEditing(qryObj) : this._setQryDisableForEditing(qryObj));
-                this.cmdButtons.cmdEdit.setPressed(pEnabled);
-                this.cmdButtons.cmdEdit.setEnabled(pEnabled);
-                this.cmdButtons.cmdDel.setEnabled(pEnabled);
+                (!pEnabled ? this._setQryEnableForEditing(qryObj) : this._setQryDisableForEditing(qryObj));
+                // this.cmdButtons.cmdEdit.setPressed(pEnabled);
+                this.cmdButtons.cmdEdit.setEnabled(!pEnabled);
+                this.cmdButtons.cmdDel.setEnabled(!pEnabled);
+                this.cmdButtons.cmdNew.setEnabled(!pEnabled);
+                this.cmdButtons.cmdSave.setEnabled(!pEnabled);
+
+                this.cmdButtons.cmdEdit.setVisible(!pEnabled);
+                this.cmdButtons.cmdDel.setVisible(!pEnabled);
+                this.cmdButtons.cmdNew.setVisible(!pEnabled);
+                this.cmdButtons.cmdSave.setVisible(!pEnabled);
+
             }
-            this.form.readonly = !pEnabled;
+            this.form.readonly = pEnabled;
 
         };
         FormView.prototype.setQueryStatus = function (qryName, status2) {
@@ -1258,11 +1271,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             thatForm.firstObj.$().find("input").select();
                         }, 700);
                     }
-                }
 
+                }
             }
-        }
-            ;
+            setTimeout(() => {
+                thatForm.secure.initSec();
+            }, 100);
+        };
         FormView.prototype._setQryEnableForEditing = function (qryName) {
             var qryObj = undefined;
             if (typeof qryName == "string")
@@ -1779,6 +1794,36 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 return str;
             }
         };
+        FormView.prototype.secure = {
+            init: function (thatForm) {
+                this.thatForm = thatForm;
+            },
+            initSec: function () {
+                var thatForm = this.thatForm;
+
+                //first check all 
+                if (UtilGen.Security.isReadOnly("formsec_all", "", true) && thatForm.readonly == false) {
+                    thatForm.setFormReadOnly(true);
+                }
+
+                if (!UtilGen.Security.canEdit("formsec_all", "", true) && thatForm.cmdButtons.cmdEdit.getEnabled() == true)
+                    thatForm.cmdButtons.cmdEdit.setEnabled(false);
+
+                if (!UtilGen.Security.canDelete("formsec_all", "", true) && thatForm.cmdButtons.cmdDel.getEnabled() == true)
+                    thatForm.cmdButtons.cmdDel.setEnabled(false);
+
+
+
+                if (Util.nvl(thatForm.formName, "") == "") return;
+
+                // if (UtilGen.Security.isReadOnly(thatForm.formCtg, thatForm.formName)) {
+                //     if (thatForm.readonly == false)
+                //         thatForm.readonly = true;
+                // }
+
+            }
+
+        }
         FormView.getFactoryControls = {
             getControls: function (pOSett) {
                 var timeInLong = (new Date()).getTime();
