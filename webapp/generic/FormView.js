@@ -1133,6 +1133,11 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 qryObj = qrys[o];
                 if (qryObj.status == FormView.RecordStatus.VIEW ||
                     qryObj.status == FormView.RecordStatus.EDIT) {
+                    if (thatForm.form.events.hasOwnProperty("beforeDelRow")) {                        
+                        var sqBf = Util.nvl(thatForm.form.events.beforeDelRow(qryObj), "");
+                        sqBf = this.parseString(sqBf);
+                        sql += sqBf;
+                    }
                     var sq = "delete from " + qryObj.table_name +
                         ((Util.nvl(qryObj.where_clause, "") != "") ? " where " + qryObj.where_clause + ";" : "");
                     sql += this.parseString(sq);

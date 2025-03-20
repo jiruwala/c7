@@ -1479,8 +1479,10 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                             if (cf < 0) return;
                             var nx = (cf + 1 >= flds2.length ? 0 : cf + 1);
                             var pr = (cf - 1 < 0 ? flds2.length - 1 : cf - 1);
+
                             // var cntrl=($(event.currentTarget).find("input")[0]);
                             setTimeout(function () {
+                                if (flds2[cf] instanceof sap.m.ComboBoxBase) return;
                                 flds2[nx].focus();
                                 (flds2[nx].$().find("input")[0]).select();
                                 // cntrl.select();
@@ -1491,6 +1493,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                             if (cf < 0) return;
                             var nx = (cf - 1 < 0 ? flds2.length - 1 : cf - 1);
                             setTimeout(function () {
+                                if (flds2[cf] instanceof sap.m.ComboBoxBase) return;
                                 flds2[nx].focus();
                                 (flds2[nx].$().find("input")[0]).select();
                             });

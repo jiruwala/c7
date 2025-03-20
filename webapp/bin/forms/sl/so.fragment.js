@@ -74,7 +74,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750, "XL": 800 },
+                    width: { "S": 600, "M": 800, "L": 800, "XL": 900 },
                     cssText: [
                         "padding-left:10px;" +
                         "padding-top:20px;" +
@@ -131,6 +131,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             "ORD_CODE": thatForm.vars.vou_code,
                             "ORD_AMT": ":qry2.totamt",
                             "ORD_DISCAMT": ":qry2.disc_amt",
+                            "USERNM": Util.quoted(sett["LOGON_USER"]),
                         },
                         update_default_values: {
                             "ORD_AMT": ":qry2.totamt",
@@ -313,6 +314,16 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     // frm.loadData(undefined, FormView.RecordStatus.NEW);
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
+                    if (qry.name == "qry1") {
+                        var ordac = thatForm.frm.getFieldValue("qry1.ordacc");
+                        if (ordac == "closeSO")
+                            Util.simpleConfirmDialog(Util.getLangText("msgCloseSO"), function (oAction) {
+                                if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                    thatForm.cmdButtons.cmdNew.firePress();
+                                }
+                            });
+
+                    }
                     thatForm.helperFunc.beforeSaveValidateQry(qry);
                     if (qry.name == "qry2") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
@@ -372,13 +383,28 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     }
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
+                    var delbfr = "";
+                    if (qry.name == "qry1") {
+                        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                        var actype = thatForm.frm.getFieldValue("qry1.ordacc");
+                        var sqI = "c7_so_invoice(:keyfld,'Y'); ".replaceAll(":keyfld", kf);
+                        var sq4 = (actype == "issueDeliver" ?
+                            sqi : actype == "approve" ? "" :
+                                actype == "saleInvs" ? sqI :
+                                    actype == "closeSO" ? FormView.err("Cant delete once closed !") : "");
+                        delbfr += sq4;
+                    }
+                    return delbfr;
 
                 },
                 afterDelRow: function (qry, ld, data) {
+                    var delAdd = "";
+                    if (qry.name == "qry1")
+                        delAdd += "delete from c7_attach where  kind_of='SO' and refer=:qry1.keyfld ;";
 
                     if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                         qry.obj.addRow();
-
+                    return delAdd;
                 },
                 onCellRender: function (qry, rowno, colno, currentRowContext) {
                 },
@@ -401,10 +427,11 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     var actype = thatForm.frm.getFieldValue("qry1.ordacc");
                     var sqA = "update pord1 set ord_flag=2 where keyfld=:keyfld; update pord2 set ord_flag=2 where  keyfld=:keyfld;"
                         .replaceAll(":keyfld", kf);
-                    var sqD = "c7_so_delivery(:keyfld); ".replaceAll(":keyfld", kf);
-                    var sq4 = (actype == "issueDeliver" ?
-                        sqA + sqD :
-                        actype == "approve" ? sqA : "");
+                    // var sqD = "c7_so_delivery(:keyfld); ".replaceAll(":keyfld", kf);
+                    var sqI = "c7_so_invoice(:keyfld); ".replaceAll(":keyfld", kf);
+                    var sq4 = (actype == "approve" ? sqA :
+                        actype == "saleInvs" || actype == "closeSO" || actype == "issueDeliver"
+                            ? sqA + sqI : "");
                     // var kf = frm.getFieldValue("qry1.keyfld");
                     // return sq + "update_dlv_add_amt(" + kf + ");";
                     return sq + sq3 + sq4;
@@ -592,7 +619,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     colname: "location_code",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '@{\"text\":\"locationTxt\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"locationTxt\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -635,7 +662,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     colname: "stra",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '@{\"text\":\"storeNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"storeNo\",\"width\":\"10%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -980,13 +1007,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             }
 
                         },
-                        selectedKey: "approve"
+                        selectedKey: "saleInvs"
                     },
 
                     edit_allowed: false,
                     insert_allowed: true,
                     require: true,
-                    list: "@none/txtNone,approve/poApprove,issueDeliver/issueDeliver,closeSO/closeSO"
+                    list: "@none/txtNone,approve/poApprove,issueDeliver/issueDeliver,saleInvs/saleInvs,closeSO/closeSO"
                 },
                 reference: {
                     colname: "reference",
