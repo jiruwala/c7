@@ -103,7 +103,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting:  {
+                    mainParaContainerSetting: {
                         width: "600px",
                         cssText: [
                             "padding-left:50px;" +
@@ -171,6 +171,23 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            showFirstPur: {
+                                colname: "showFirstPur",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"Show First Purchase\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                             {
@@ -187,19 +204,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 disp_class: "reportTable2",
                                 dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 25 },
                                 execOnShow: false,
-                                dml: "SELECT   JI.REFER, nvl(descr,descra) DESCRA, ITPACKD, max(ob1.BAL) qtybf ," +
-                                    "NVL (SUM (ROUND ( (qtyin ), 3) / PACK), 0) qtyin ," +
-                                    "NVL (SUM (ROUND ( (qtyout ), 3) / PACK), 0) qtyout ," +
-                                    "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) qtyx, MAX(0) PACK_COST," +
-                                    "PKAVER, NVL (SUM ( (pkcost / itpack) * (qtyin - qtyout)), 0) costamt, descr2," +
-                                    "PARENTITEM , PARENTITEMDESCR , barcode " +
-                                    " FROM   JOINED_INVOICE JI , " +
-                                    " (select refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3) / invoice2.PACK), 0) bal " +
-                                    " from invoice2 where  dat<:parameter.fromdate AND (invoice2.STRA = :parameter.strno or :parameter.strno=0 ) group by refer ) ob1  " +
-                                    " WHERE   ob1.refer(+)=ji.refer " +
-                                    " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
-                                    " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode" +
-                                    " ORDER BY  descr2 ",
+                                dml: "",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -209,6 +214,32 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 masterToolbarInMain: false,
                                 filterCols: ["REFER", "DESCRA"],
                                 canvasType: ReportView.CanvasType.VBOX,
+                                beforeLoadQry: function (sql) {
+                                    var showFirstPur = thatForm.frm.getFieldValue("parameter.showFirstPur");
+                                    var ob2 = "(select refer,min(dat) first_pur_date from pur2 where invoice_code=11 group by refer) ob2 ";
+                                    var sq = "SELECT    JI.REFER, nvl(descr,descra) DESCRA, first_pur_date, ITPACKD,max(ob1.BAL) qtybf ," +
+                                        "NVL (SUM (ROUND ( (qtyin ), 3) / PACK), 0) qtyin ," +
+                                        "NVL (SUM (ROUND ( (qtyout ), 3) / PACK), 0) qtyout ," +
+                                        "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) qtyx, MAX(0) PACK_COST," +
+                                        "PKAVER, NVL (SUM ( (pkcost / itpack) * (qtyin - qtyout)), 0) costamt, descr2," +
+                                        "PARENTITEM , PARENTITEMDESCR , barcode " +
+                                        " FROM   JOINED_INVOICE JI , " +
+                                        " (select refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3) / invoice2.PACK), 0) bal " +
+                                        " from invoice2 where  dat<:parameter.fromdate AND (invoice2.STRA = :parameter.strno or :parameter.strno=0 ) group by refer ) ob1 , " +
+                                        (showFirstPur == "Y" ? ob2 : "(select null refer,null first_pur_date from dual) ob2 ") +
+                                        " WHERE   ob1.refer(+)=ji.refer and ob2.refer(+)=ji.refer " +
+                                        " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
+                                        " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode ,first_pur_date " +
+                                        " ORDER BY  descr2 ";
+                                    return sq;
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var showFirstPur = thatForm.frm.getFieldValue("parameter.showFirstPur");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("FIRST_PUR_DATE")].mHideCol = (showFirstPur != "Y");
+
+                                    }
+                                },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
 
                                 },
@@ -299,6 +330,24 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         display_style: "",
                                         display_format: "",
                                         default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    first_pur_date: {
+                                        colname: "first_pur_date",
+                                        data_type: FormView.DataType.Date,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "First Purchase",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "SHORT_DATE_FORMAT",
+                                        default_value: "",
+                                        display_type: "NONE",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
                                     },
@@ -395,7 +444,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting:  {
+                    mainParaContainerSetting: {
                         width: "600px",
                         cssText: [
                             "padding-left:50px;" +
@@ -659,7 +708,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
                     },
-                    mainParaContainerSetting:  {
+                    mainParaContainerSetting: {
                         width: "600px",
                         cssText: [
                             "padding-left:50px;" +
