@@ -1133,7 +1133,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 qryObj = qrys[o];
                 if (qryObj.status == FormView.RecordStatus.VIEW ||
                     qryObj.status == FormView.RecordStatus.EDIT) {
-                    if (thatForm.form.events.hasOwnProperty("beforeDelRow")) {                        
+                    if (thatForm.form.events.hasOwnProperty("beforeDelRow")) {
                         var sqBf = Util.nvl(thatForm.form.events.beforeDelRow(qryObj), "");
                         sqBf = this.parseString(sqBf);
                         sql += sqBf;
@@ -1166,20 +1166,28 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
             return sv;
         };
-        FormView.prototype.setFormReadOnly = function (pPara) {
-            var pEnabled = Util.nvl(pPara, false);
+        FormView.prototype.setFormReadOnly = function (pPara, showHideVisible) {
+            var pEnabled = Util.nvl(pPara, true);
             var qryObj = undefined;
             var qrys = (qryObj != undefined ? [qryObj] : this.form.db);
 
             for (var o in qrys) {
                 qryObj = qrys[o];
-                (pEnabled ? this._setQryEnableForEditing(qryObj) : this._setQryDisableForEditing(qryObj));
-                this.cmdButtons.cmdEdit.setPressed(pEnabled);
-                this.cmdButtons.cmdEdit.setEnabled(pEnabled);
-                this.cmdButtons.cmdDel.setEnabled(pEnabled);
-            }
-            this.form.readonly = !pEnabled;
+                (!pEnabled ? this._setQryEnableForEditing(qryObj) : this._setQryDisableForEditing(qryObj));
+                // this.cmdButtons.cmdEdit.setPressed(pEnabled);
+                this.cmdButtons.cmdEdit.setEnabled(!pEnabled);
+                this.cmdButtons.cmdDel.setEnabled(!pEnabled);
+                this.cmdButtons.cmdNew.setEnabled(!pEnabled);
+                this.cmdButtons.cmdSave.setEnabled(!pEnabled);
+                if (Util.nvl(showHideVisible, true)) {
+                    this.cmdButtons.cmdEdit.setVisible(!pEnabled);
+                    this.cmdButtons.cmdDel.setVisible(!pEnabled);
+                    this.cmdButtons.cmdNew.setVisible(!pEnabled);
+                    this.cmdButtons.cmdSave.setVisible(!pEnabled);
+                }
 
+            }
+            this.form.readonly = pEnabled;
         };
         FormView.prototype.setQueryStatus = function (qryName, status2) {
             var qryObj = undefined;

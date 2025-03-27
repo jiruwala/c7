@@ -3954,6 +3954,32 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     .replaceAll(":ADVANCE_DATA", Util.nvl(setx.advance_data, ""));
                 return sqx;
             },
+            SalesOrderFunc: {
+                initAction: {
+                    approve: 'approve',
+                    issueDeliver: 'issueDeliver',
+                    saleInvs: 'saleInvs',
+                    closeSO: 'closeSO',
+                },
+                init: function (frag) {
+                    this.frag = frag;
+                },
+                checkSOStatus: function (soKf, pRaiseErr) {
+                    var raiseErr = Util.nvl(pRaiseErr, true);
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc from pord1 where keyfld=" + soKf, "No data found !");
+                    if (!raiseErr) return podt[0];
+
+                    if (podt[0].ORD_FLAG < 0)
+                        FormView.err("PO is not avaialble !");
+                    if (podt[0].ORD_FLAG == 1)
+                        FormView.err("PO is not approved !");
+                    if (podt[0].ORD_FLAG >= 3)
+                        FormView.err("PO is closed !");
+                    return podt[0];
+
+                }
+            },
+
             PurchaseOrderFunc: {
                 init: function (frag) {
                     this.frag = frag;
