@@ -1628,7 +1628,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 if (txt == "")
                     return;
-                var txt2 = txt.trim();
+                var txt2 = (Util.nvl(txt, "") + "").trim();
                 var cm = txt2.split(" ")[0].toUpperCase();
                 var pms = (txt2.indexOf(" ") <= -1 ? "" : txt2.substring(txt2.indexOf(" ") + 1).trim());
                 // cmdData
@@ -1684,8 +1684,13 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         UtilGen.cmdOpenForm(txt2, view, obj, pg1, pOnWndClose);
                     else {
                         if (UtilGen.getIndexByKey(view.lstPgs, formnm) != undefined || UtilGen.getIndexByKey(view.lstPgs, "bin.forms." + formnm) != undefined) {
-                            if (formnm == UtilGen.getControlValue(view.lstPgs))
+                            if (formnm == UtilGen.getControlValue(view.lstPgs)) {
+                                UtilGen.setControlValue(view.lstPgs, "main");
+                                view.lstPgs.fireSelectionChange();
+                                UtilGen.setControlValue(view.lstPgs, formnm);
+                                view.lstPgs.fireSelectionChange();
                                 return;
+                            }
                             UtilGen.setControlValue(view.lstPgs, formnm);
                             view.lstPgs.fireSelectionChange();
                             /*
