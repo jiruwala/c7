@@ -316,7 +316,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 beforeSaveQry: function (qry, sqlRow, rowno) {
                     if (qry.name == "qry1") {
                         var ordac = thatForm.frm.getFieldValue("qry1.ordacc");
-                        if (ordac == "closeSO")
+                        if (ordac == UtilGen.SalesOrderFunc.initAction.closeSO)
                             Util.simpleConfirmDialog(Util.getLangText("msgCloseSO"), function (oAction) {
                                 if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
                                     thatForm.cmdButtons.cmdNew.firePress();
@@ -388,10 +388,10 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var actype = thatForm.frm.getFieldValue("qry1.ordacc");
                         var sqI = "c7_so_invoice(:keyfld,'Y'); ".replaceAll(":keyfld", kf);
-                        var sq4 = (actype == "issueDeliver" ?
-                            sqi : actype == "approve" ? "" :
-                                actype == "saleInvs" ? sqI :
-                                    actype == "closeSO" ? FormView.err("Cant delete once closed !") : "");
+                        var sq4 = (actype == UtilGen.SalesOrderFunc.initAction.issueDeliver ?
+                            sqi : actype == UtilGen.SalesOrderFunc.initAction.approve ? "" :
+                                actype == UtilGen.SalesOrderFunc.initAction.saleInvs ? sqI :
+                                    actype == UtilGen.SalesOrderFunc.initAction.closeSO ? FormView.err("Cant delete once closed !") : "");
                         delbfr += sq4;
                     }
                     return delbfr;
@@ -429,8 +429,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         .replaceAll(":keyfld", kf);
                     // var sqD = "c7_so_delivery(:keyfld); ".replaceAll(":keyfld", kf);
                     var sqI = "c7_so_invoice(:keyfld); ".replaceAll(":keyfld", kf);
-                    var sq4 = (actype == "approve" ? sqA :
-                        actype == "saleInvs" || actype == "closeSO" || actype == "issueDeliver"
+                    var sq4 = (actype == UtilGen.SalesOrderFunc.initAction.approve ? sqA :
+                        actype == UtilGen.SalesOrderFunc.initAction.saleInvs || actype == UtilGen.SalesOrderFunc.initAction.closeSO || actype == UtilGen.SalesOrderFunc.initAction.issueDeliver
                             ? sqA + sqI : "");
                     // var kf = frm.getFieldValue("qry1.keyfld");
                     // return sq + "update_dlv_add_amt(" + kf + ");";
@@ -1013,7 +1013,10 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     edit_allowed: false,
                     insert_allowed: true,
                     require: true,
-                    list: "@none/txtNone,approve/poApprove,issueDeliver/issueDeliver,saleInvs/saleInvs,closeSO/closeSO"
+                    list: "@none/txtNone," + UtilGen.SalesOrderFunc.initAction.approve + "/poApprove," +
+                        UtilGen.SalesOrderFunc.initAction.issueDeliver + "/issueDeliver," +
+                        UtilGen.SalesOrderFunc.initAction.saleInvs + "/saleInvs," +
+                        UtilGen.SalesOrderFunc.initAction.closeSO + "/ closeSO"
                 },
                 reference: {
                     colname: "reference",
