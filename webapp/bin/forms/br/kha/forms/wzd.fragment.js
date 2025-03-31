@@ -201,7 +201,20 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         });
         this.recheckPrice = new sap.m.CheckBox({
             selected: false,
-        })
+        });
+
+        this.typeSelPrice = new sap.m.ComboBox(this.createId("selPrice" + that.timeInLong), {
+            width: "25%",
+            items: {
+                path: "/",
+                template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                templateShareable: true
+            },
+            selectedKey: "AUTO"
+        });
+        Util.fillCombo(this.typeSelPrice, "@AUTO/auto,M3/M3,TON/TON");
+
+
         this.txtFromDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtFromDate.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtToDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
@@ -221,6 +234,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             Util.getLabelTxt("", "1%", "@"), this.txtBranchName,
             Util.getLabelTxt("", "100%", "#"), new sap.m.VBox({ height: "20px" }),
             Util.getLabelTxt("recheckPrice", "20%"), this.recheckPrice,
+            Util.getLabelTxt("Price Selection", "20%"), this.typeSelPrice,
 
         ]
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");
@@ -431,10 +445,14 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             // setPriceData();
             qv.loadData();
             var ld = qv.mLctb;
+            var typ = that.typeSelPrice.getSelectedKey();
             // check if qty_ton have value...
             for (var li = 0; li < ld.rows.length; li++) {
                 var tq = ld.getFieldValue(li, "QTY_TON");
-                if (tq > 0) {
+                var selTon = false;
+                selTon = (typ == "AUTO" && tq > 0) ? true : (typ == "TON");
+
+                if (selTon) {
                     var p1 = ld.getFieldValue(li, "AVG_PRICE_TON");
                     var amt1 = ld.getFieldValue(li, "AMOUNT_TON");
                     var p2 = ld.getFieldValue(li, "PRICE2_TON");
@@ -827,6 +845,10 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var rfresh = Util.nvl(pRfresh, false);
         var rfreshAdd = Util.nvl(pRefreshAdd, false);
+        var typ = that.typeSelPrice.getSelectedKey();
+        var selTon = false;
+
+
         if (rfresh) {
             var kfldStr = "";
             var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
@@ -839,9 +861,22 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             }
             if (kfldStr.length <= 0)
                 FormView.err("No rows selected !");
-            var sq = "select nvl(sum((o.price_x)*(o.qty_x)),0) from joined_corder o where o.ord_code=9 and  (:txtKflds) ";
-            if (that.recheckPrice.getSelected())
-                sq = "select nvl(sum((o.price_calc)*(o.qty_x)),0) from joined_corder2 o where o.ord_code=9 and (:txtKflds) ";
+            if (typ == "AUTO") {
+                var sq = "select nvl(sum((o.price_x)*(o.qty_x)),0) from joined_corder o where o.ord_code=9 and  (:txtKflds) ";
+                if (that.recheckPrice.getSelected())
+                    sq = "select nvl(sum((o.price_calc)*(o.qty_x)),0) from joined_corder2 o where o.ord_code=9 and (:txtKflds) ";
+            }
+            if (typ == "M3") {
+                var sq = "select nvl(sum((o.sale_price)*(o.tqty/o.ord_pack)),0) from joined_corder o where o.ord_code=9 and  (:txtKflds) ";
+                if (that.recheckPrice.getSelected())
+                    sq = "select nvl(sum((get_item_price2 (o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date))*(o.tqty/o.ord_pack)),0) from joined_corder2 o where o.ord_code=9 and (:txtKflds) ";
+            }
+            if (typ == "TON") {
+                var sq = "select nvl(sum((o.price_2)*(o.qty_2)),0) from joined_corder o where o.ord_code=9 and  (:txtKflds) ";
+                if (that.recheckPrice.getSelected())
+                    sq = "select nvl(sum((get_item_price2_ton(o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date))*(o.qty_2)),0) from joined_corder2 o where o.ord_code=9 and (:txtKflds) ";
+            }
+
             sq = sq.replaceAll(":txtKflds", that.getInsKfs("o.keyfld", kfldsAr));
             var sum = Util.getSQLValue(sq);
             that.txtInfoGross.setValue(df.format(sum));
@@ -861,15 +896,36 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
     generatePur: function () {
         var that = this;
         var invdt = UtilGen.getControlValue(this.txtInfoInvDate);
+        var typ = that.typeSelPrice.getSelectedKey();
         var sqp = "", sqp2 = "", spkd = "", spk = 1;
         sqp = (that.recheckPrice.getSelected() ?
             "pr:=get_item_price2(x.ord_ship,x.ord_ref,x.ord_discamt,x.ord_date);" : "pr:= x.sale_price;");
         sqp2 = (that.recheckPrice.getSelected() ?
             "pr:=get_item_price2_ton(x.ord_ship,x.ord_ref,x.ord_discamt,x.ord_date);" : "pr:= x.price_2;");
         that.calcInfoAmt(true);
+        //price_calc and price_x variale for ton,m3 and auto
+
+        //m3 price
+        var price_calc = "get_item_price2 (o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date) ";
+        var price_x = "sale_price ";
+        var qtyx = "ord_pkqty ";
+
+        if (typ == "AUTO") {
+            price_calc = "price_calc ";
+            price_x = "o.price_x ";
+            qtyx = "qty_x";
+        }
+
+        if (typ == "TON") {
+            var price_calc = "get_item_price2_TON (o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date) ";
+            var price_x = "o.price_2 ";
+            qtyx = "qty_2 ";
+        }
+
+
         var jn = (that.recheckPrice.getSelected() ?
-            "cursor ds is select o.*,o.price_calc price_xx from JOINED_CORDER2 o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ; " :
-            "cursor ds is select o.*,o.price_x price_xx from JOINED_CORDER o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;");
+            "cursor ds is select o.*," + price_calc + " price_xx from JOINED_CORDER2 o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ; " :
+            "cursor ds is select o.*," + price_x + " price_xx from JOINED_CORDER o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;");
         var sq = "declare " +
             " pcode varchar2(255):=repair.GETSETUPVALUE_2('CURRENT_PERIOD');" +
             " ploc varchar2(255):=:txtLoc;" +
@@ -963,7 +1019,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             " end if;" +
             " " +
             " end;";
-
+        sq = sq.replaceAll("qty_x", qtyx);
         var kfldStr = "";
         var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
         var slicesof = that.qv.getControl().getBinding("rows").aIndices;
