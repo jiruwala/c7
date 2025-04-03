@@ -57,7 +57,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
         var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
-            " (select nvl(sum(tqty),0) from c_order1 where ord_code=210 and pord1_keyfld=o2.keyfld and ord_ship=o2.ord_refer )" +
+            " DELIVEREDQTY/i.pack " +
             " dlv_pkqty, GET_ITEM_ALLQTY(ord_refer)/o2.ord_pack qih " +
             " from pord2 o2,items i " +
             "where O2.KEYFLD=':qry1.keyfld' and ord_code=" +
@@ -89,8 +89,10 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("rcvdTxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("cmdQE" + thatForm.timeInLong, thatForm.view);
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText blinking");
+                    var rtxt = new sap.m.Text(thatForm.view.createId("rcvdTxt" + thatForm.timeInLong, { width: "300px", text: "" }));
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" }));
                     var cmdQuickEntry = new sap.m.Button(thatForm.view.createId("cmdQE" + thatForm.timeInLong), {
                         text: "Quick Entry",
@@ -99,9 +101,11 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         }
                     });
                     var hb = new sap.m.Toolbar({
-                        content: [txt, new sap.m.ToolbarSpacer(), cmdQuickEntry, txtMsg]
+                        content: [txt,rtxt, new sap.m.ToolbarSpacer(), cmdQuickEntry, txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
+                    rtxt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
+
                     vbHeader.addItem(hb);
                 },
                 print_templates: [
@@ -285,6 +289,11 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         if (Util.nvl(discamt, 0) > 0)
                             qry.formview.setFieldValue("qry2.disc_amt", discamt, discamt, true);
 
+                        var rcvd = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where ord_code=9 and pord1_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var ordrd = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where ord_code=21 and keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var rcvdp = 0;
+                        if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
+                        thatForm.view.byId("rcvdTxt" + thatForm.timeInLong).setText("Delivered : " + rcvdp + " % ");
 
                     }
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
@@ -343,6 +352,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
+                        that.view.byId("rcvdTxt" + thatForm.timeInLong).setText("");
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         var objSt = thatForm.frm.objs["qry1.stra"].obj;
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
