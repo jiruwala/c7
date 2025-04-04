@@ -174,6 +174,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                             "STRA": ":qry1.stra",
                             "STRB": Util.nvl(sett["BR_DLV_STRB"], ":qry1.stra"),
                             "ATTN": ":qry1.branchname",
+                            "PORD1_KEYFLD": ":pacSo"
                             // "ORD_PACKD": "(select max(packd) from items where reference=ord_ship)",
                             // "ORD_UNITD": "(select max(unitd) from items where reference=ord_ship)",
                             // "ORD_PACK": "(select max(PACK) from items where reference=ord_ship)"
@@ -251,7 +252,6 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
         // this.mainPage.addContent(sc);
 
     },
-
     setFormEditable: function () {
 
     }
@@ -292,6 +292,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                             thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
                             thatForm.frm.setFormReadOnly(true, false);
                         }
+
 
                     }
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
