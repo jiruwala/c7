@@ -2116,7 +2116,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
 
-                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg) {
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg, jsCmds) {
                     var points = Util.nvl(pPoints, {});
                     var sq = pSq;
                     var multiSelect = Util.nvl(pMultiSelect, false);
@@ -2124,7 +2124,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(data);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns, undefined, titleDlg);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, jsCmds, pPoints, btns, undefined, titleDlg);
 
 
 
@@ -3966,8 +3966,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 },
                 checkSOStatus: function (soKf, pRaiseErr) {
                     var raiseErr = Util.nvl(pRaiseErr, true);
-                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc from pord1 where keyfld=" +
-                        soKf, "No data found !");
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc from pord1 where keyfld=" + soKf, "No data found !");
                     if (!raiseErr) return podt[0];
 
                     if (podt[0].ORD_FLAG < 0)
