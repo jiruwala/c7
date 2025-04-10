@@ -3970,11 +3970,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     if (!raiseErr) return podt[0];
 
                     if (podt[0].ORD_FLAG < 0)
-                        FormView.err("PO is not avaialble !");
+                        FormView.err("SO is not avaialble !");
                     if (podt[0].ORD_FLAG == 1)
-                        FormView.err("PO is not approved !");
+                        FormView.err("SO is not approved !");
                     if (podt[0].ORD_FLAG >= 3)
-                        FormView.err("PO is closed !");
+                        FormView.err("SO is closed !");
                     return podt[0];
 
                 }
