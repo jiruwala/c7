@@ -444,7 +444,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             ? sqA + sqI : "");
                     // var kf = frm.getFieldValue("qry1.keyfld");
                     // return sq + "update_dlv_add_amt(" + kf + ");";
-                    return sq + sq3 + sq4;
+                    var sq5 = "c7_SO_UPDATE_DISC_GROSS(" + kf + ");";
+                    return sq + sq3 + sq4 + sq5;
                 }
             };
         },
@@ -452,7 +453,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             var thatForm = this.thatForm;
             var sumSpan = "XL2 L2 M2 S12";
             var sumSpan2 = "XL2 L6 M6 S12";
-            var sett = sap.ui.getCore().getModel("settings").getData();
+            var sett = sap.ui.getCore().getModel("settings").getData(); 
 
             return {
                 createdBy: {
