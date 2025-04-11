@@ -2153,7 +2153,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                 ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM", "ORD_AMT"], function (data) {
                     thatForm.oController.soKf = data.KEYFLD;
                     selSOkf(data.KEYFLD);
-                }, { pWidth: "80%" }, undefined, false, Util.getLangText("slOrds"), [
+                }, { pWidth: "80%" }, undefined, false, Util.getLangText("titSalesOrder"), [
                 {
                     ORD_NO: {
                         colname: "ORD_NO",

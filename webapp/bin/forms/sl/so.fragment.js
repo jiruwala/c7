@@ -101,7 +101,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         }
                     });
                     var hb = new sap.m.Toolbar({
-                        content: [txt,rtxt, new sap.m.ToolbarSpacer(), cmdQuickEntry, txtMsg]
+                        content: [txt, rtxt, new sap.m.ToolbarSpacer(), cmdQuickEntry, txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     rtxt.addStyleClass("totalVoucherTxt titleFontWithoutPad");

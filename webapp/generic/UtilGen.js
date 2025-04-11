@@ -2116,7 +2116,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
 
-                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg) {
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg, jsCmds) {
                     var points = Util.nvl(pPoints, {});
                     var sq = pSq;
                     var multiSelect = Util.nvl(pMultiSelect, false);
@@ -2124,7 +2124,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(data);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns, undefined, titleDlg);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, jsCmds, pPoints, btns, undefined, titleDlg);
 
 
 
@@ -3970,11 +3970,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     if (!raiseErr) return podt[0];
 
                     if (podt[0].ORD_FLAG < 0)
-                        FormView.err("PO is not avaialble !");
+                        FormView.err("SO is not avaialble !");
                     if (podt[0].ORD_FLAG == 1)
-                        FormView.err("PO is not approved !");
+                        FormView.err("SO is not approved !");
                     if (podt[0].ORD_FLAG >= 3)
-                        FormView.err("PO is closed !");
+                        FormView.err("SO is closed !");
                     return podt[0];
 
                 }
