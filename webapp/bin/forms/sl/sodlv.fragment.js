@@ -404,7 +404,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                                 FormView.err("This Delivery is posted to invoice !");
                             }
                             // var geniasm = Util.nvl(sett["BR_GEN_IASM_ON_DELIVERY"], 'FALSE');
-                            return "c7_postissdlv(" + kf + ",'Y');";
+                            return "`C7_SO_POSTISSDLV`(" + kf + ",'Y');";
                         }
                     }
 
@@ -431,7 +431,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                     // var geniasm = Util.nvl(sett["BR_GEN_IASM_ON_DELIVERY"], 'FALSE');
 
                     // if (geniasm == 'TRUE') {
-                    sq1 = "c7_postissdlv(" + kf + ");";
+                    sq1 = "C7_SO_POSTISSDLV(" + kf + ");";
                     // }
                     return sq + sq1 + "update_dlv_add_amt(" + kf + ");";
                 },
@@ -439,7 +439,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                     if (qry.name == "qry1" && thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) {
                         var sq1 = "";
-                        sq1 = "c7_postissdlv(" + kf + ",'Y');";
+                        sq1 = "C7_SO_POSTISSDLV(" + kf + ",'Y');";
                         return sq1;
                     }
                     return "";

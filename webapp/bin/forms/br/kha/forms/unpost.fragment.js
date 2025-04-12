@@ -344,7 +344,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.unpost", {
         var dt = Util.execSQL("select 0 pos,max((select max(ord_no) from c_order1 where c_order1.keyfld=p.ordwas)) ord_no ," +
             " max((select max(ord_date) from c_order1 where c_order1.keyfld=p.ordwas)) ord_date ," +
             " (sum((p.price/p.pack)*p.allqty)/sum(p.allqty)) price,sum((p.price/p.pack)*p.allqty) amount,p.ordwas, " +
-            " sum(add_amt_gross*allqty) add_amt, sum(disc_amt_gross*allqty) disc_amt, 0 net_amt " +
+            " sum(add_amt_gross*(allqty/pack)) add_amt, sum(disc_amt_gross*(allqty/pack)) disc_amt, 0 net_amt " +
             " from PUR2 p " +
             " where  p.invoice_code=21 and " +
             " p.Keyfld='" + this.qryStr + "'" +
