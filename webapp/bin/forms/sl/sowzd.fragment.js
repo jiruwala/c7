@@ -333,6 +333,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         }, 150);
 
     },
+    //TODO    which 'approve' and opened , attachbrowser on selection to select soKeyfld
     load_detailPage: function () {
         var that = this;
         var qv = this.qv;
@@ -639,8 +640,8 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
             that.txtInfoLocations.fireSelectionChange();
         }, 100);
     },
-    //TODO CREATE QUERYVIEW FOR SOs which 'approve' and opened.
-    
+    //TODO CREATE QUERYVIEW FOR SOs
+
     createDetailPage: function () {
         var that = this;
         var sett = sap.ui.getCore().getModel("settings").getData();
@@ -724,8 +725,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
 
 
     },
-    //CONTINUE : update AVERAGE COST AND CHECK COST JV.
-    //DONEXT : additional amount in SO and wizard same like discount
+    //TODO :  additional amount in SO and wizard same like discount
     generatePur: function () {
         var that = this;
         var sqp = "";
@@ -770,12 +770,14 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
             " totdag number:=0;" +
             " totaag number:=0;" +
             " totamt number:=0;" +
+            " totcost number:=0;" +
             " " +
-            " cursor ds is select o.*,it.packd, it.pack,it.unitd,it.pkaver,it.prd_dt prd_date,it.exp_dt exp_date from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;" +
+            " cursor ds is select o.*,it.packd, it.pack,it.unitd,get_item_cost(o.ord_ship,o.ord_date) pkcost,it.prd_dt prd_date,it.exp_dt exp_date from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;" +
             " cursor pu(kfx number) is select *from pur2 where keyfld=kfx order by itempos;" +
             " " +
             " begin" +
             " select nvl(max(keyfld),0)+1 into kfld from pur1;" +
+            " c7_so_update_all_issue_cost(pSoKfld);" +
             " for x in ds loop" +
             " " + sqp +
             "     posx:=posx+1;" +
@@ -787,13 +789,14 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
             "                 ISSUED_KEYFLD, FREE_ALLQTY,costcent,size_of_descr,recipt_date,po_keyfld,po_posno)" +
             "                 values (" +
             "                 pcode, ploc, pinvno," +
-            "                 21, ptype, posx, x.ord_ship, nvl(x.strb,x.stra) , pr,  x.pkaver ," +
+            "                 21, ptype, posx, x.ord_ship, nvl(x.strb,x.stra) , pr,  x.pkcost ," +
             "                 idsc, x.pack, x.packd, x.unitd, pdate," +
             "                 0, x.tqty/x.pack, 0, 0," +
             "                 x.tqty, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
             "                 kfld , 1, 'KWD', SYSDATE, X.ord_pos,0, X.tqty, 0, x.ORD_EMPNO," +
             "                 X.KEYFLD, 0,'',x.PAYTERM,x.ord_date,x.pord1_keyfld,x.pord_pos ) ;" +
             "     totamt:=totamt+((x.TQTY/x.ord_pack)*(pr-idsc));                " +
+            "     totcost:=totcost+((x.TQTY)*(x.pkcost));                " +
             " " +
             "   update C_ORDER1 set sale_price=pr-idsc,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=9 and keyfld=x.keyfld and ord_pos=x.ord_pos;" +
             "   update ORDER1 set SALEINV=kfld,ord_flag=2 where ord_code=9 and keyfld=x.keyfld; " +
@@ -810,7 +813,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
             "                 (pcode, ploc, pinvno," +
             "                  21, ptype, pdate, pstr, null," +
             "                  adescr_memo,ddescr_ctg, (select ac_no from c_ycust where code=pref ), refnm," +
-            "                   totamt, discamt, 0, addamt,addamt," +
+            "                   totamt, discamt, totcost, addamt,addamt," +
             "                  2, sysdate, '', '', kfld,user, '', ''," +
             "                 '', '', '', '', 1,'KWD', 1 , 0," +
             "                 null, pref,'2003',1,null,pBrNo,pSoKfld );" +
