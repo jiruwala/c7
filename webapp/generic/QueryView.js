@@ -1070,10 +1070,14 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         if (evt.key == "ArrowDown") {
                             var rowno = that.getControl().indexOfRow(this.getParent());
                             var colno = this.getParent().indexOfCell(this);
+                            var aVisibleColumns = that.getControl().getColumns().filter(function (col) {
+                                return col.getVisible(); // only visible columns
+                            });
+
                             var totalRows = that.getControl().getModel().getData().length;
                             var firstVis = that.getControl().getFirstVisibleRow();
                             var dispRows = that.getControl().getRows().length;
-                            var col = that.getControl().getColumns()[colno]?.tableCol;
+                            var col = aVisibleColumns[colno].tableCol;
                             var oldRowNo = rowno;
                             var tblModel = that.getControl().getModel();
 
@@ -1122,9 +1126,13 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         if (evt.key == "ArrowUp") {
                             var rowno = that.getControl().indexOfRow(this.getParent());
                             var colno = this.getParent().indexOfCell(this);
+                            var aVisibleColumns = that.getControl().getColumns().filter(function (col) {
+                                return col.getVisible(); // only visible columns
+                            });
+
                             var firstVis = that.getControl().getFirstVisibleRow();
                             var dispRows = that.getControl().getRows().length;
-                            var col = that.getControl().getColumns()[colno]?.tableCol;
+                            var col = aVisibleColumns[colno].tableCol;
                             var oldRowNo = rowno;
                             var tblModel = that.getControl().getModel();
 

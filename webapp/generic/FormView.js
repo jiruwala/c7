@@ -691,7 +691,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 qryObj.obj.eventCalc = qryObj.eventCalc;
 
 
-                            UtilGen.applyCols(qryObj.applyCol, qryObj.obj, this);
+                            UtilGen.applyCols(qryObj.applyCol, qryObj.obj, thatForm);
 
                             // when validation of field.
                             if (thatForm.form.events.hasOwnProperty("afterApplyCols"))
