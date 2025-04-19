@@ -211,7 +211,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             // thatForm.helperFunc.validity.updateFieldsEditing();
                             return true;
                         },
-                        //TODO refresh cost and sales amount.
+                        //CONTINUE refresh cost and sales amount.
                         eventCalc: function (qv, cx, rowno, reAmt) {
                             var sett = sap.ui.getCore().getModel("settings").getData();
                             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
@@ -368,13 +368,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             " ord_allqty=(ord_pkqty*:pack)+ord_unqty,ORDEREDQTY=(ord_pkqty*:pack)+ord_unqty ," +
                             " ord_lsprice=:lsprice , ord_pkcost=:unit_cost " +
                             " where keyfld=:kf and ord_pos=:pos ")
-                                .replaceAll(":pkd", dt[0].PACKD)
-                                .replaceAll(":unitd", dt[0].UNITD)
-                                .replaceAll(":pack", dt[0].PACK)
-                                .replaceAll(":unit_cost", dt[0].UCOST)
-                                .replaceAll(":lsprice", lsprice)
-                                .replaceAll(":kf", kf)
-                                .replaceAll(":pos", pos)
+                            .replaceAll(":pkd", dt[0].PACKD)
+                            .replaceAll(":unitd", dt[0].UNITD)
+                            .replaceAll(":pack", dt[0].PACK)
+                            .replaceAll(":unit_cost", dt[0].UCOST)
+                            .replaceAll(":lsprice", lsprice)
+                            .replaceAll(":kf", kf)
+                            .replaceAll(":pos", pos)
                         return sqlRow + ";" + sq;
                     }
                     return "";
@@ -421,6 +421,17 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             FormView.err("This Delivery is posted to invoice !");
                         }
                     }
+                    var actype = thatForm.frm.getFieldValue("qry1.ordacc");
+                    if (actype == UtilGen.SalesOrderFunc.initAction.approve ||
+                        actype == UtilGen.SalesOrderFunc.initAction.none
+                    ) {
+                        var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
+                        if (sqDlv != 0)
+                            FormView.err("Deletion denied : Deliveries existed !");
+                        sqDlv = Util.getSQLValue("select nvl(count(*),0) from pur1 where invoice_code=21 and  po_keyfld=" + kf);
+                        if (sqDlv != 0)
+                            FormView.err("Deletion denied : Sales existed !");
+                    }
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
                     var delbfr = "";
@@ -429,7 +440,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         var actype = thatForm.frm.getFieldValue("qry1.ordacc");
                         var sqI = "c7_so_invoice(:keyfld,'Y'); ".replaceAll(":keyfld", kf);
                         var sq4 = (actype == UtilGen.SalesOrderFunc.initAction.issueDeliver ?
-                            sqi : actype == UtilGen.SalesOrderFunc.initAction.approve ? "" :
+                            sqI : (actype == UtilGen.SalesOrderFunc.initAction.approve ||
+                                actype == UtilGen.SalesOrderFunc.initAction.none) ? "" :
                                 actype == UtilGen.SalesOrderFunc.initAction.saleInvs ? sqI :
                                     actype == UtilGen.SalesOrderFunc.initAction.closeSO ? FormView.err("Cant delete once closed !") : "");
                         delbfr += sq4;
@@ -437,7 +449,25 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     return delbfr;
 
                 },
-                //CONTINUE remove delivery and sales  if inital action sales invoice.
+                afterEdit: function (qry) {                    
+                    if (qry.name == "qry1") {
+                        var kf = thatForm.frm.getFieldValue("keyfld");
+                        var actype = thatForm.frm.getFieldValue("qry1.ordacc");
+                        if (actype == UtilGen.SalesOrderFunc.initAction.approve ||
+                            actype == UtilGen.SalesOrderFunc.initAction.none
+                        ) {
+                            var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
+                            if (sqDlv != 0) {
+                                thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.ord_branchno"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.branchname"].obj.setEditable(false);
+                                thatForm.frm.objs["qry2"].obj.setEditable(false);
+                            }
+                        }
+                    }
+                },
+            
                 afterDelRow: function (qry, ld, data) {
                     var delAdd = "";
                     if (qry.name == "qry1")
@@ -1103,8 +1133,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             templateShareable: true
                         },
                         selectionChange: function (e) {
-                            var vl = thatForm.frm.objs["qry1.location_code"].obj.getValue();
-                            var ot = UtilGen.getControlValue(this);
+                            var vl = thatForm.frm.objs["qry1.location_code"].obj.getSelectedKey();
+                            var ot = thatForm.frm.objs["qry1.ord_type"].obj.getSelectedKey();
                             var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
                             UtilGen.setControlValue(objOrd, "", "", true);
                             if (vl != "") {
@@ -1121,7 +1151,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     edit_allowed: false,
                     insert_allowed: true,
                     require: true,
-                    list: "@none/txtNone," + UtilGen.SalesOrderFunc.initAction.approve + "/poApprove," +
+                    list: "@" + UtilGen.SalesOrderFunc.initAction.none + "/txtNone," +
+                        UtilGen.SalesOrderFunc.initAction.approve + "/poApprove," +
                         UtilGen.SalesOrderFunc.initAction.issueDeliver + "/issueDeliver," +
                         UtilGen.SalesOrderFunc.initAction.saleInvs + "/saleInvs," +
                         UtilGen.SalesOrderFunc.initAction.closeSO + "/ closeSO"

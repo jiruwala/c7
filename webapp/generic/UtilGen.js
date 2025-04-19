@@ -4101,6 +4101,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             },
             SalesOrderFunc: {
                 initAction: {
+                    none: 'none',
                     approve: 'approve',
                     issueDeliver: 'issueDeliver',
                     saleInvs: 'saleInvs',

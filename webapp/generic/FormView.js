@@ -1284,6 +1284,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             for (var o in qrys) {
                 qryObj = qrys[o];
                 if (qryObj.showType == FormView.QueryShowType.FORM) {
+                    if (this.form.events.hasOwnProperty("beforeEdit"))
+                        if (!Util.nvl(this.form.events.beforeEdit(qryObj), true)) return;
+
                     this._setQryDisableForEditing(qryObj);
                     var flds = { ...Util.nvl(qryObj.fields, []), ...Util.nvl(qryObj.summary, {}) };
                     for (var i in flds) {
@@ -1296,7 +1299,12 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             this._setQryEditableObj(fld, true);
 
                     }
+                    if (this.form.events.hasOwnProperty("afterEdit"))
+                        this.form.events.afterEdit(qryObj);
+
                 } else if (qryObj.showType == FormView.QueryShowType.QUERYVIEW) {
+                    if (this.form.events.hasOwnProperty("beforeEdit"))
+                        if (!Util.nvl(this.form.events.beforeEdit(qryObj), true)) return;
                     qryObj.obj.editable = true;
                     var flds = { ...Util.nvl(qryObj.fields, []), ...Util.nvl(qryObj.summary, {}) };
                     for (var i in flds) {
@@ -1310,6 +1318,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     }
                     if (qryObj.status != FormView.RecordStatus.VIEW && Util.nvl(qryObj.addRowOnEmpty, false) && qryObj.obj.mLctb.rows.length == 0)
                         qryObj.obj.addRow();
+                    if (this.form.events.hasOwnProperty("afterEdit"))
+                        this.form.events.afterEdit(qryObj);
                 }
             }
 
