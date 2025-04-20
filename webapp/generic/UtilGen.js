@@ -1192,6 +1192,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                         if (cx.eOther != undefined && (cx.eOther.length > 0 || cx.whenValidate != undefined)) {
                             cx.eValidateColumn = function (evtx) {
+
                                 var sett = sap.ui.getCore().getModel("settings").getData();
                                 var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
                                 var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
@@ -1233,24 +1234,21 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 if (cx.eventCalc != undefined)
                                     if (!cx.eventCalc(qv, cx, table.indexOfRow(row), true))
                                         evtx.getSource().focus();
+
                             }
 
                         }
                         if (cx.mSearchSQL.length > 0) {
                             cx.eOnSearch = function (evtx) {
-
                                 var tbl = evtx.getSource().getParent().getParent(); // get table control.
                                 var input = evtx.getSource();
                                 if ((evtx.getParameters != undefined)
                                     && (evtx.getParameters().clearButtonPressed || evtx.getParameters().refreshButtonPressed)) {
                                     return;
                                 }
-
                                 //// get visible column no
                                 var clno = evtx.getSource().getParent().indexOfCell(evtx.getSource());
                                 var cls = evtx.getSource().getParent().getParent().getColumns();
-
-
                                 var tm = -1;
                                 var clx = -1;
                                 for (clx in cls) {
@@ -3700,7 +3698,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd) {
+            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds) {
                 qrj.createToolbar("", [],
                     // EVENT ON APPLY PERSONALIZATION
                     function (prsn, qv) {
@@ -3806,6 +3804,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(btAddRow);
                 if (Util.nvl(showDel, true))
                     qrj.showToolbar.toolbar.addContent(btDelRow);
+                if (fnAddCmds != undefined)
+                    fnAddCmds(qrj.showToolbar.toolbar);
+
+
                 if (Util.nvl(addSpace, false))
                     qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                 if (Util.nvl(findCols, []).length > 0) {
@@ -3954,8 +3956,152 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     .replaceAll(":ADVANCE_DATA", Util.nvl(setx.advance_data, ""));
                 return sqx;
             },
+            addColSetup: function (pApplyCol) {
+                var fnApply = function (qv, applyCol) {
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var pn = sett["PROFILENO"];
+                    qv.updateDataToTable();
+                    var ld = qv.mLctb;
+                    var inSql = "insert into cp_setcols " +
+                        "(PROFILE, SETGRPCODE, ITEM_NAME, DISPLAY_TYPE, DISPLAY_WIDTH, DESCR, DESCRA, POSITION, GETFOCUS, ALIGN, USE_FORMAT, EDITOR_CLASS, LOV_SQL, OTHER_STYLES, LOOKUP_COLUMN, DEFAULT_VALUE, RETURN_VALUES, PARAMS, VALIDATE_EVENT, MULTISELECT, HIDE_COLS) " +
+                        " select :PROFILENO, SETGRPCODE, ITEM_NAME, DISPLAY_TYPE, DISPLAY_WIDTH, DESCR, DESCRA, POSITION, GETFOCUS, ALIGN, USE_FORMAT, EDITOR_CLASS, LOV_SQL, OTHER_STYLES, LOOKUP_COLUMN, DEFAULT_VALUE, RETURN_VALUES, PARAMS, VALIDATE_EVENT, MULTISELECT, HIDE_COLS " +
+                        " from cp_setcols where  profile=0 and setgrpcode=':APPLYCOL'; ";
+                    var delSql = (pn != 0 ? "delete from cp_setcols where profile=:PROFILENO and setgrpcode=':APPLYCOL';" + inSql
+                        : "");
+                    var updSql = "";
+                    var wrSq = " profile=:PROFILENO and setgrpcode=':APPLYCOL' and item_name='";
+                    for (var i = 0; i < ld.rows.length; i++) {
+                        var tmpsq = "update cp_setcols " +
+                            " set display_width=" + ld.getFieldValue(i, "DISPLAY_WIDTH") +
+                            ", display_type='" + ld.getFieldValue(i, "DISPLAY_TYPE") + "'" +
+                            ", position='" + ld.getFieldValue(i, "POSITION") + "'" +
+                            ", align='" + ld.getFieldValue(i, "ALIGN") + "'" +
+                            " where " + wrSq + ld.getFieldValue(i, "ITEM_NAME") + "';";
+                        updSql += tmpsq;
+                    }
+                    var sqle = "begin " + delSql + updSql + "end;";
+                    sqle = sqle.replaceAll(":APPLYCOL", applyCol)
+                        .replaceAll(":PROFILENO", pn);
+                    var dt = Util.execSQL(sqle);
+                    if (dt.ret == "SUCCESS") {
+                        FormView.msgSuccess(Util.getLangText("msgSaved"));
+                        return true;
+                    }
+                    if (dt != undefined && dt.ret != "SUCCESS")
+                        UtilGen.showCustomMessageToast("Error in saving..." + dt.ret, 100, "red", "#fff");
+                    return false;
+                }
+                var fnExe = function (applyCol) {
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var pn = sett["PROFILENO"];
+                    var sq = "select SETGRPCODE,ITEM_NAME,POSITION,DESCR,DISPLAY_TYPE,DISPLAY_WIDTH," +
+                        "GETFOCUS,ALIGN from cp_setcols where setgrpcode='" +
+                        applyCol + "' and (profile=" + pn + " or profile=0) order by position";
+                    var qv = new QueryView("qrCols" + (new Date()).getTime());
+                    qv.getControl().setEditable(true);
+                    qv.getControl().view = UtilGen.DBView;
+                    qv.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+                    qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+                    qv.getControl().setFixedBottomRowCount(0);
+                    qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+                    UtilGen.createDefaultToolbar1(qv, ["DESCR"], false, undefined, undefined, false, false);
+                    qv.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
+                    qv.insertable = false;
+                    qv.deletable = false;
+                    qv.editable = true;
+                    var dt = Util.execSQL(sq);
+                    if (dt.ret == "SUCCESS") {
+                        qv.setJsonStrMetaData("{" + dt.data + "}");
+
+                        Util.setColProp(qv, "SETGRPCODE", "mHideCol", true);
+                        Util.setColProp(qv, "ITEM_NAME", "mHideCol", true);
+                        Util.setColProp(qv, "GETFOCUS", "mHideCol", true);
+
+                        Util.setColProperties(qv, "DESCR", {
+                            "mTitle": "Descr",
+                            "display_width": 220,
+                        });
+
+                        Util.setColProperties(qv, "DISPLAY_TYPE", {
+                            "mColClass": "sap.m.Input",
+                            "mTitle": "Display Type",
+                            "display_width": 100,
+                        });
+                        Util.setColProperties(qv, "DISPLAY_WIDTH", {
+                            "mColClass": "sap.m.Input",
+                            "mTitle": "Width",
+                            "display_width": 100,
+                        });
+                        Util.setColProperties(qv, "POSITION", {
+                            "mColClass": "sap.m.Input",
+                            "mTitle": "POS",
+                            "display_width": 80,
+                        });
+                        Util.setColProperties(qv, "ALIGN", {
+                            "mColClass": "sap.m.Input",
+                            "mTitle": "Align",
+                            "display_width": 130,
+                        });
+
+                        // qv.mLctb.cols[qv.mLctb.getColPos("GETFOCUS")].mColClass = "sap.m.Input";
+
+                        qv.mLctb.parse("{" + dt.data + "}", true);
+                        var ld = qv.mLctb;
+                        for (var i = 0; i < ld.rows.length; i++)
+                            ld.setFieldValue(i, "DESCR", Util.getLangText(ld.getFieldValue(i, "DESCR")));
+                        qv.loadData();
+
+
+                    }
+
+                    var pg = new sap.m.Page({
+                        showHeader: true,
+                        content: [],
+                        showFooter: true
+                    }).addStyleClass("sapUiSizeCompact");
+                    var tbHeader = new sap.m.Toolbar();
+                    pg.setFooter(tbHeader);
+                    pg.removeAllHeaderContent();
+                    pg.addHeaderContent(qv.showToolbar.toolbar);
+                    pg.addContent(qv.getControl());
+
+                    var dlg = new sap.m.Dialog({
+                        title: "Advance Column Setup",
+                        contentWidth: UtilGen.dispWidthByDevice({ "S": 100, "M": 70, "L": 70, "XL": 40 }) + "%",
+                        contentHeight: "400px",
+                        content: pg,
+                        buttons: [
+                            new sap.m.Button({
+                                text: Util.getLangText("saveRec"),
+                                icon: "sap-icon://accept",
+                                press: function () {
+                                    if (fnApply(qv, applyCol))
+                                        dlg.close();
+                                }
+
+                            }),
+                            new sap.m.Button({
+                                text: Util.getLangText("cmdClose"),
+                                press: function () {
+                                    dlg.close();
+                                }
+                            })
+
+                        ]
+                    });
+                    dlg.open();
+                }
+                return new sap.m.Button({
+                    icon: "sap-icon://settings",
+                    press: function () {
+                        fnExe(pApplyCol);
+                    }
+                });
+
+            },
             SalesOrderFunc: {
                 initAction: {
+                    none: 'none',
                     approve: 'approve',
                     issueDeliver: 'issueDeliver',
                     saleInvs: 'saleInvs',
