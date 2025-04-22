@@ -58,8 +58,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         var sumSpan2 = "XL2 L6 M6 S12";
         var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
             " DELIVEREDQTY/i.pack " +
-            " dlv_pkqty, GET_ITEM_ALLQTY(ord_refer)/o2.ord_pack qih, " +
-            "o2.ORD_PKCOST*ord_pack pack_cost," +
+            " dlv_pkqty, C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra)/o2.ord_pack qih, " +
+            " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, " +
+            " o2.ORD_PKCOST*ord_pack pack_cost," +
             "o2.ORD_PKCOST*o2.ord_allqty cost_amt,  " +
             "i.lsprice ," +
             " i.lsprice*(o2.ord_allqty/o2.ord_pack) lsamt " +
@@ -174,6 +175,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             "ORD_DATE": ":qry1.ord_date",
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": ":qry1.stra",
+                            // "ORD_PRD_DATE": "(select prd_dt from items where reference=':qry2.ord_refer')",
+                            // "ORD_EXP_DATE": "(select exp_dt from items where reference=':qry2.ord_refer')"
                         },
                         update_default_values: {
                         },
@@ -211,8 +214,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             // thatForm.helperFunc.validity.updateFieldsEditing();
                             return true;
                         },
-                        //CONTINUE refresh cost and sales amount.
-                        eventCalc: function (qv, cx, rowno, reAmt) {
+                        eventCalc: function (qv, cx, rowno, reAmt, refreshBalances) {
                             var sett = sap.ui.getCore().getModel("settings").getData();
                             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
 
@@ -220,6 +222,76 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                 qv.updateDataToTable();
 
                             var ld = qv.mLctb;
+
+                            if (Util.nvl(refreshBalances, false))
+                                for (var i1 = 0; i1 < ld.rows.length; i1++) {
+                                    var rfr = ld.getFieldValue(i1, "ORD_REFER");
+                                    var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.ord_date'));
+                                    var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                                    var str = thatForm.frm.getFieldValue("qry1.stra");
+                                    var sq = "select descr,childcounts,packd,unitd,pack,get_item_cost(reference,:ordate) ucost," +
+                                        " C7_GET_STORE_ITEM_ALLQTY(reference,:ordate,:store)/items.pack qih, " +
+                                        " C7_GET_STORE_ITEM_ALLQTY_RSRV(reference,:keyfld)/items.pack reserved, " +
+                                        " lsprice,prd_dt,exp_dt from items where reference=':rfr'";
+                                    sqdt = sqdt.replaceAll(":ordate", odt)
+                                        .replaceAll(":keyfld", '"' + kf + '"')
+                                        .replaceAll(":rfr", rfr)
+                                        .replaceAll(":store", str);
+                                    var sqdt = Util.execSQLWithData(sq);
+                                    var pqt = Util.extractNumber(ld.getFieldValue(i1, "ORD_PKQTY"));
+                                    var qt = Util.extractNumber(ld.getFieldValue(i1, "ORD_UNQTY"));
+                                    var pack = Util.extractNumber(ld.getFieldValue(i1, "ORD_PACK"));
+                                    var price = Util.extractNumber(ld.getFieldValue(i1, "ORD_PRICE"));
+                                    var ds = Util.extractNumber(ld.getFieldValue(i1, "ORD_DISCAMT"));
+                                    var sq = '';
+                                    var child = 0;
+                                    var packd = '';
+                                    var unitd = '';
+                                    var pcost = 0;
+                                    var lsprice = 0;
+                                    var cstamt = 0;
+                                    var lsamt = 0;
+                                    var amt = 0;
+                                    var qih = 0;
+                                    var reserved = 0;
+                                    var prd_dt = undefined;
+                                    var exp_dt = undefined;
+
+                                    if (sqdt.length > 0) {
+
+                                        sq = sqdt[0].DESCR;
+                                        child = sqdt[0].CHILDCOUNTS;
+                                        packd = sqdt[0].PACKD;
+                                        unitd = sqdt[0].UNITD;
+                                        pack = sqdt[0].PACK;
+                                        pcost = sqdt[0].UCOST * pack;
+                                        lsprice = sqdt[0].LSPRICE;
+                                        qih = sqdt[0].QIH;
+                                        reserved = sqdt[0].RESERVED;
+                                        prd_dt = new Date((sqdt[0].PRD_DT + "").replaceAll(",", ":"));
+                                        exp_dt = new Date((sqdt[0].EXP_DT + "").replaceAll(",", ":"));
+                                        cstamt = pcost * ((pqt * pack) + qt);
+                                        lsamt = lsprice * ((pqt * pack) + qt);
+                                        amt = (price - ds) * ((pqt * pack) + qt);
+                                    }
+                                    ld.setFieldValue(i1, "DESCRX", sq);
+                                    ld.setFieldValue(i1, "STRA", str);
+                                    ld.setFieldValue(i1, "ORD_PACKD", packd);
+                                    ld.setFieldValue(i1, "ORD_UNITD", unitd);
+                                    ld.setFieldValue(i1, "ORD_PACK", pack);
+                                    ld.setFieldValue(i1, "AMOUNT", amt);
+                                    ld.setFieldValue(i1, "PACK_COST", pcost);
+                                    ld.setFieldValue(i1, "LSPRICE", lsprice);
+                                    ld.setFieldValue(i1, "LSAMT", lsamt);
+                                    ld.setFieldValue(i1, "COST_AMT", cstamt);
+                                    ld.setFieldValue(i1, "QIH", qih);
+                                    ld.setFieldValue(i1, "RESERVED", rsrv);
+                                    if (Util.nvl(d.getFieldValue(i1, "ORD_PRD_BATCH"), '') != '') {
+                                        ld.setFieldValue(i1, "ORD_PRD_DATE", prd_dt);
+                                        ld.setFieldValue(i1, "ORD_EXP_DATE", exp_dt);
+                                    }
+                                }
+
                             var sumAmt = 0;
                             var sumCost = 0;
                             var sumLs = 0;
@@ -449,7 +521,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     return delbfr;
 
                 },
-                afterEdit: function (qry) {                    
+                afterEdit: function (qry) {
                     if (qry.name == "qry1") {
                         var kf = thatForm.frm.getFieldValue("keyfld");
                         var actype = thatForm.frm.getFieldValue("qry1.ordacc");
@@ -467,7 +539,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         }
                     }
                 },
-            
+
                 afterDelRow: function (qry, ld, data) {
                     var delAdd = "";
                     if (qry.name == "qry1")
@@ -711,6 +783,23 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             //15,35                 15,35
             //reference             remarks
             return {
+                reserved_stock: {
+                    colname: "reserved_stock",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"txtRsrvStock\",\"width\":\"95%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { width: "5%", enabled: false, trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    trueValues: ["Y", "N"]
+                },
                 keyfld: {
                     colname: "keyfld",
                     data_type: FormView.DataType.Number,
@@ -1133,17 +1222,23 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             templateShareable: true
                         },
                         selectionChange: function (e) {
-                            var vl = thatForm.frm.objs["qry1.location_code"].obj.getSelectedKey();
-                            var ot = thatForm.frm.objs["qry1.ord_type"].obj.getSelectedKey();
-                            var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
-                            UtilGen.setControlValue(objOrd, "", "", true);
-                            if (vl != "") {
-                                var nwOn = Util.getSQLValue("select nvl(max(ord_no),0)+1 from pord1 " +
-                                    " where ord_code=" + thatForm.vars.vou_code +
-                                    " and ord_type='" + ot + "' " +
-                                    " and location_code=" + Util.quoted(vl));
-                                UtilGen.setControlValue(objOrd, nwOn, nwOn);
-                            }
+                            // var vl = thatForm.frm.objs["qry1.location_code"].obj.getSelectedKey();
+                            // var ot = thatForm.frm.objs["qry1.ord_type"].obj.getSelectedKey();
+                            // var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
+                            // UtilGen.setControlValue(objOrd, "", "", true);
+                            // if (vl != "") {
+                            //     var nwOn = Util.getSQLValue("select nvl(max(ord_no),0)+1 from pord1 " +
+                            //         " where ord_code=" + thatForm.vars.vou_code +
+                            //         " and ord_type='" + ot + "' " +
+                            //         " and location_code=" + Util.quoted(vl));
+                            //     UtilGen.setControlValue(objOrd, nwOn, nwOn);
+                            // }
+                            thatForm.frm.objs["qry1.reserved_stock"].obj.setSelected(false);
+                            thatForm.frm.objs["qry1.reserved_stock"].obj.setEnabled(false);
+                            var oc = this.getSelectedKey();
+                            if (oc == UtilGen.SalesOrderFunc.initAction.none || oc == UtilGen.SalesOrderFunc.initAction.approve)
+                                thatForm.frm.objs["qry1.reserved_stock"].obj.setEnabled(true);
+
                         },
                         selectedKey: "saleInvs"
                     },
@@ -1362,8 +1457,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             ];
         },
         //TODO_TEST IF BELOW LOWEST SELLING PRICE
-        //TODO IF BELOW STOCK AVAILABLE
         //TODO IF ABOVE CREDIT LIMIT        
+
         beforeSaveValidateQry: function (qry) {
             var thatForm = this.thatForm;
             var flg = "";
@@ -1372,6 +1467,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             var belowlsamt = Util.nvl(sett["ALLOW_SALES_BELOW_LOWEST"], "TRUE");
             var belowlstock = Util.nvl(sett["ALLOW_STOCK_BELOW_ZERO"], "TRUE");
             var abovecredlimit = Util.nvl(sett["ALLOW_SALES_ABOVE_CREDIT"], "TRUE");
+            var rsrv = thatForm.frm.getFieldValue("qry1.reserved_stock");
             var errObj = function (msg, obj) {
 
                 var o = thatForm.frm.getFieldValue(obj).obj;
@@ -1396,7 +1492,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             }
             var qrobj = thatForm.frm.objs["qry2"].obj;
             if (qrobj.eventCalc != undefined)
-                qrobj.eventCalc(qrobj, undefined, -1, false);
+                qrobj.eventCalc(qrobj, undefined, -1, true, true);
 
             var netamt = Util.extractNumber(thatForm.frm.getFieldValue("net_amt"));
             var costamt = Util.extractNumber(thatForm.frm.getFieldValue("totcst"));
@@ -1434,7 +1530,47 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             // items
             var dup = {};
             var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+            var qv = thatForm.frm.objs["qry2"].obj;
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
+            var errRow = function (rown, ds, rfr) {
+                var rn = rown;
+                if (rfr != undefined)
+                    for (var i = 0; i < ld.rows.length; i++)
+                        if (ld.getFieldValue(i, "ORD_REFER") == rfr)
+                            rn = i;
+                if (rn - 1 < 0) {
+                    qv.getControl().setFirstVisibleRow(0);
+                    qv.addSelectionInterval(0, 0);
+                }
+                else if (Util.nvl(rn, -1) >= 0) {
+                    qv.getControl().setFirstVisibleRow(rn - 1);
+                    qv.addSelectionInterval(rn, rn);
+                }
+                FormView.err(ld.getFieldValue(rn, "ORD_REFER") + " -  " + ds);
+            }
+
+            var checkStockReserve = function (rn, dta) {
+                var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.ord_date'));
+                var pdt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_PRD_DATE"));
+                var edt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_EXP_DATE"));
+                var pkd = ld.getFieldValue(rn, "ORD_PACKD");
+                var allqty = (dta.qty * dta.pk) + dta.uqty;
+                var sq = "select c7_can_user_issue_item(:user,:str,:rfr,:allqty,:pdt,:prdt,:expdt,:exckf) from dual ";
+                sq = sq.replaceAll(":usr", sett["LOGON_USER"])
+                    .replaceAll(":rfr", dta.rfr)
+                    .replaceAll(":str", dta.str)
+                    .replaceAll(":allqty", allqty)
+                    .replaceAll(":pdt", odt)
+                    .replaceAll(":pdt", pdt)
+                    .replaceAll(":pdt", edt)
+                    .replaceAll(":exckf", '"' + kf + '"');
+
+
+                var can_issue = Util.getSQLValue(sq);
+                if (can_issue < allqty)
+                    errRow(i, "Save Denied : Can issue only " + (allqty / pk) + " " + pkd);
+            }
+            //CONTINUE check reserve stock availblae in approve and none and belowitemzero option if not approve and none
             for (var i = 0; i < ld.rows.length; i++) {
                 var str = ld.getFieldValue(i, "STRA");
                 var rfr = ld.getFieldValue(i, "ORD_REFER");
@@ -1442,19 +1578,22 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 var uqty = ld.getFieldValue(i, "ORD_UNQTY");
                 var pk = ld.getFieldValue(i, "ORD_PACK");
                 var pr = ld.getFieldValue(i, "PRICE");
+                checkStockReserve({
+                    str: str, rfr: rfr, qty: qty, uqty: uqty, pk: pk
+                });
                 if (dup[rfr + "-" + str] != undefined)
-                    FormView.err("Save Denied : Duplicate item entry # " + rfr + " store = " + str);
+                    errRow(i, "Save Denied : Duplicate item entry # store = " + str);
                 dup[rfr + "-" + str] = rfr;
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)
-                    FormView.err("Save Denied : Item " + rfr + " is a group item !");
+                    errRow(i, "Save Denied : Item is a group item ! ");
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where " + flg + " reference='" + rfr + "'");
                 if (cnt == 0)
-                    FormView.err("Save Denied: Item " + rfr + " is invalid entry !");
+                    errRow(i, "Save Denied: Item " + rfr + " is invalid entry !");
                 if (pr < 0)
-                    FormView.err("Save Denied: PRICE invalid value !");
+                    errRow(i, "Save Denied: PRICE invalid value !");
                 if ((qty * pk) + uqty <= 0)
-                    FormView.err("Save Denied: QTY invalid value !");
+                    errRow(i, "Save Denied: QTY invalid value !");
 
             }
 

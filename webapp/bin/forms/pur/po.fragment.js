@@ -263,6 +263,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                             "ORD_DATE": ":qry1.ord_date",
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": sett["DEFAULT_STORE"],
+                            "ORD_PRD_DATE": "(select prd_dt from items where reference=':qry2.ord_refer')",
+                            "ORD_EXP_DATE": "(select exp_dt from items where reference=':qry2.ord_refer')"
                         },
                         update_default_values: {
 

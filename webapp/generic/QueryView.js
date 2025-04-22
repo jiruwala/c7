@@ -716,7 +716,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             }
 
         };
-        // updaing data from table or tree to  model (mLctb)
+        // updaing data from control table or tree to  model (mLctb)
         QueryView.prototype.updateDataToTable = function () {
             if (this.getControl().getModel() == undefined) return false;
             var dt = JSON.stringify(this.getControl().getModel().getData());
