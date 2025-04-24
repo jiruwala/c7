@@ -1708,8 +1708,9 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             this.mLctb.getColByName(vv) != undefined &&
                             this.mLctb.getColByName(vv).getMUIHelper().display_format === "SHORT_DATE_FORMAT") {
                             if (Util.nvl(o[i][v], "").length > 0) {
+                                // var dt = sf.parse(Util.nvl(o[i][v], "").replaceAll(".", ":"));
                                 var dt = new Date(Util.nvl(o[i][v], "").replaceAll(".", ":"));
-                                o[i][v] = sf.format(dt); //dt
+                                o[i][v] = sf.format(dt); //dt                                
                             } else
                                 o[i][v] = null;
                         }

@@ -165,8 +165,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         delete_allowed: true,
                         delete_before_update: "delete from pord2 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST"],
-                        insert_exclude_fields: ['DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST"],
+                        update_exclude_fields: ['KEYFLD', 'DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED"],
+                        insert_exclude_fields: ['DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED"],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -231,9 +231,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     var str = thatForm.frm.getFieldValue("qry1.stra");
                                     var sq = "select descr,childcounts,packd,unitd,pack,get_item_cost(reference,:ordate) ucost," +
                                         " C7_GET_STORE_ITEM_ALLQTY(reference,:ordate,:store)/items.pack qih, " +
-                                        " C7_GET_STORE_ITEM_ALLQTY_RSRV(reference,:keyfld)/items.pack reserved, " +
+                                        " C7_GET_STORE_ITEM_ALLQTY_RSRV(reference,':keyfld')/items.pack reserved, " +
                                         " lsprice,prd_dt,exp_dt from items where reference=':rfr'";
-                                    sqdt = sqdt.replaceAll(":ordate", odt)
+                                    sq = sq.replaceAll(":ordate", odt)
                                         .replaceAll(":keyfld", '"' + kf + '"')
                                         .replaceAll(":rfr", rfr)
                                         .replaceAll(":store", str);
@@ -285,8 +285,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     ld.setFieldValue(i1, "LSAMT", lsamt);
                                     ld.setFieldValue(i1, "COST_AMT", cstamt);
                                     ld.setFieldValue(i1, "QIH", qih);
-                                    ld.setFieldValue(i1, "RESERVED", rsrv);
-                                    if (Util.nvl(d.getFieldValue(i1, "ORD_PRD_BATCH"), '') != '') {
+                                    ld.setFieldValue(i1, "RESERVED", reserved);
+                                    if (Util.nvl(ld.getFieldValue(i1, "ORD_PRD_BATCH"), '') != '') {
                                         ld.setFieldValue(i1, "ORD_PRD_DATE", prd_dt);
                                         ld.setFieldValue(i1, "ORD_EXP_DATE", exp_dt);
                                     }
@@ -1544,25 +1544,26 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 }
                 else if (Util.nvl(rn, -1) >= 0) {
                     qv.getControl().setFirstVisibleRow(rn - 1);
-                    qv.addSelectionInterval(rn, rn);
+                    qv.getControl().addSelectionInterval(rn, rn);
                 }
                 FormView.err(ld.getFieldValue(rn, "ORD_REFER") + " -  " + ds);
             }
 
             var checkStockReserve = function (rn, dta) {
+                var kf = thatForm.frm.getFieldValue('qry1.keyfld');
                 var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.ord_date'));
                 var pdt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_PRD_DATE"));
                 var edt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_EXP_DATE"));
                 var pkd = ld.getFieldValue(rn, "ORD_PACKD");
                 var allqty = (dta.qty * dta.pk) + dta.uqty;
-                var sq = "select c7_can_user_issue_item(:user,:str,:rfr,:allqty,:pdt,:prdt,:expdt,:exckf) from dual ";
-                sq = sq.replaceAll(":usr", sett["LOGON_USER"])
+                var sq = "select c7_can_user_issue_item(':user',:str,':rfr',:allqty,:pdt,:prdt,:expdt,':exckf') from dual ";
+                sq = sq.replaceAll(":user", sett["LOGON_USER"])
                     .replaceAll(":rfr", dta.rfr)
                     .replaceAll(":str", dta.str)
                     .replaceAll(":allqty", allqty)
                     .replaceAll(":pdt", odt)
-                    .replaceAll(":pdt", pdt)
-                    .replaceAll(":pdt", edt)
+                    .replaceAll(":prdt", pdt)
+                    .replaceAll(":expdt", edt)
                     .replaceAll(":exckf", '"' + kf + '"');
 
 
@@ -1572,13 +1573,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             }
             //CONTINUE check reserve stock availblae in approve and none and belowitemzero option if not approve and none
             for (var i = 0; i < ld.rows.length; i++) {
-                var str = ld.getFieldValue(i, "STRA");
+                var str = Util.extractNumber(ld.getFieldValue(i, "STRA"));
                 var rfr = ld.getFieldValue(i, "ORD_REFER");
-                var qty = ld.getFieldValue(i, "ORD_PKQTY");
-                var uqty = ld.getFieldValue(i, "ORD_UNQTY");
-                var pk = ld.getFieldValue(i, "ORD_PACK");
-                var pr = ld.getFieldValue(i, "PRICE");
-                checkStockReserve({
+                var qty = Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
+                var uqty = Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY"));
+                var pk = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"))
+                var pr = Util.extractNumber(ld.getFieldValue(i, "PRICE"));
+                checkStockReserve(i, {
                     str: str, rfr: rfr, qty: qty, uqty: uqty, pk: pk
                 });
                 if (dup[rfr + "-" + str] != undefined)

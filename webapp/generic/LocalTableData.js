@@ -225,6 +225,9 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
 
         };
         LocalTableData.prototype.parse = function (strData, onlyDetails) {
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var sfe = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+            var sft = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " h.mm a");
             if (!Util.nvl(onlyDetails, false))
                 this.parseCol(strData);
             else {
@@ -254,12 +257,19 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                 for (var key in this.dataJson.data[rn]) {
                     if (key == "_rowid") continue;
                     var cp = this.getColPos(key);
-                    // if (this.cols[cp].mUIHelper.data_type == "DATE") {
-                    //     var sdf = new simpleDateFormat(this.cols[cp].mUIHelper.display_format);
-                    //     (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sdf.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
-                    // }
-                    // else
-                    r.cells[cp].setValue(this.dataJson.data[rn][key]);
+                    if (this.cols[cp].mUIHelper.data_type == "DATE") {
+
+                        if (this.cols[cp].mUIHelper.display_format == "SHORT_DATE_FORMAT")
+                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sfe.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
+                        else if (this.cols[cp].mUIHelper.display_format == "SHORT_TIME_FORMAT")
+                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sft.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
+                        else {
+                            var sdd = new simpleDateFormat(this.cols[cp].mUIHelper.display_format)
+                                (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sdd.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
+                        }
+                    }
+                    else
+                        r.cells[cp].setValue(this.dataJson.data[rn][key]);
 
                     if (Util.nvl(this.cols[cp].ct_col, "N") == "Y" && this.parsedLstCols.valCols.indexOf(this.dataJson.data[rn][key]) < 0) {
                         this.parsedLstCols.valCols.push(this.dataJson.data[rn][key]);

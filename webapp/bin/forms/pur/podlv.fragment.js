@@ -173,7 +173,10 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": ":qry1.stra",
                             "PSHIP_KEYFLD": ":qry1.pship_keyfld",
-                            "PORD1_KEYFLD": "(select po_keyfld from c7_purship where keyfld=:qry1.pship_keyfld)"
+                            "PORD1_KEYFLD": "(select po_keyfld from c7_purship where keyfld=:qry1.pship_keyfld)",
+                            "CORD_PRD_DATE": "(select prd_dt from items where reference=':qry2.ord_ship')",
+                            "CORD_EXP_DATE": "(select exp_dt from items where reference=':qry2.ord_ship')"
+
                         },
                         update_default_values: {
                         },
