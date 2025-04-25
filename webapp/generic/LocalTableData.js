@@ -258,15 +258,22 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                     if (key == "_rowid") continue;
                     var cp = this.getColPos(key);
                     if (this.cols[cp].mUIHelper.data_type == "DATE") {
+                        if (this.cols[cp].mColClass == FormView.DATEFIELD) {
+                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sfe.parse(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null))
+                            if (isNaN(r.cells[cp].getValue()))
+                                r.cells[cp].setValue(null)
+                        } else
+                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(new Date((this.dataJson.data[rn][key]).replaceAll(".", ":"))) : r.cells[cp].setValue(null))
 
-                        if (this.cols[cp].mUIHelper.display_format == "SHORT_DATE_FORMAT")
-                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sfe.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
-                        else if (this.cols[cp].mUIHelper.display_format == "SHORT_TIME_FORMAT")
-                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sft.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
-                        else {
-                            var sdd = new simpleDateFormat(this.cols[cp].mUIHelper.display_format)
-                                (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sdd.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
-                        }
+
+                        // if (this.cols[cp].mUIHelper.display_format == "SHORT_DATE_FORMAT")
+                        //     (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sfe.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
+                        // else if (this.cols[cp].mUIHelper.display_format == "SHORT_TIME_FORMAT")
+                        //     (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sft.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
+                        // else {
+                        //     var sdd = new simpleDateFormat(this.cols[cp].mUIHelper.display_format)
+                        //         (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sdd.format(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null));
+                        // }
                     }
                     else
                         r.cells[cp].setValue(this.dataJson.data[rn][key]);
@@ -432,6 +439,9 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                 return rn;
             },
             LocalTableData.prototype.format = function () {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var sft = new simpleDateFormat("MM/dd/yyyy h.mm a");
+
                 if (this.cols <= 0)
                     return "";
                 var datastr = "data :";
@@ -457,7 +467,9 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                             rstr += (rstr.length == 0 ? "" : ",") + '"' +
                                 this.cols[c].mColName.replace(/\//g, "___") + '":' +
                                 (this.cols[c].mUIHelper.data_type == "NUMBER" ? ((Util.getParsedJsonValue(this.rows[r].cells[c].getValue()) + "").replace(",", "")) :
-                                    ((Util.getParsedJsonValue(this.rows[r].cells[c].getValue()) + "")/*.replace(/\\/g, "\\\\")*/));
+                                    // this.cols[c].mUIHelper.data_type == "DATE" ? "\"" + Util.nvl(sft.format(this.rows[r].cells[c].getValue()) + "\"", "\"\"") :
+                                    this.cols[c].mUIHelper.data_type == "DATE" ? (Util.nvl(this.rows[r].cells[c].getValue(), "") != "" ? "\"" + sft.format(this.rows[r].cells[c].getValue()) + "\"" : "null") :
+                                        ((Util.getParsedJsonValue(this.rows[r].cells[c].getValue()) + "")/*.replace(/\\/g, "\\\\")*/));
                         }
 
                     }

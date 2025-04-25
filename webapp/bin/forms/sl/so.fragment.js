@@ -57,8 +57,10 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
         var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
-            " DELIVEREDQTY/i.pack " +
-            " dlv_pkqty, C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra)/o2.ord_pack qih, " +
+            " DELIVEREDQTY/i.pack dlv_pkqty," +
+            " TO_CHAR(ORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
+            " TO_CHAR(ORD_EXP_DATE,'DD/MM/RRRR') ORD_EXP_DATE2, " +
+            " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra)/o2.ord_pack qih, " +
             " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, " +
             " o2.ORD_PKCOST*ord_pack pack_cost," +
             "o2.ORD_PKCOST*o2.ord_allqty cost_amt,  " +
@@ -165,8 +167,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         delete_allowed: true,
                         delete_before_update: "delete from pord2 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED"],
-                        insert_exclude_fields: ['DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED"],
+                        update_exclude_fields: ['KEYFLD', 'DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED", "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
+                        insert_exclude_fields: ['DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED", "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -175,8 +177,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             "ORD_DATE": ":qry1.ord_date",
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": ":qry1.stra",
-                            // "ORD_PRD_DATE": "(select prd_dt from items where reference=':qry2.ord_refer')",
-                            // "ORD_EXP_DATE": "(select exp_dt from items where reference=':qry2.ord_refer')"
+                            "ORD_PRD_DATE": "(select prd_dt from items where reference=':qry2.ord_refer')",
+                            "ORD_EXP_DATE": "(select exp_dt from items where reference=':qry2.ord_refer')"
                         },
                         update_default_values: {
                         },

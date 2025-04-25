@@ -1194,6 +1194,20 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         o.setDisplayFormat("h:mm a");
                         o.setValueFormat("h:mm a");
                     }
+                    if (o instanceof sap.m.DatePicker) {
+                        // o.setSupport2400(true);
+                        o.getValue = function () {
+                            var dt = this.getDateValue();
+                            var sft = new simpleDateFormat("MM/dd/yyyy h.mm a");
+                            if (Util.nvl(dt, "") == "") return "";
+                            return sft.format(dt);
+                        }
+                        o.attachChange(function (oEvent) {
+                            const newDate = oEvent.getParameter("newValue");
+                            console.log(newDate);
+                        })
+
+                    }
                     // if combobox have list of values then add it into sap.m.CombBox model. ( check either LOV in sql or data )
                     if (o instanceof sap.m.ComboBox) {
                         // o.bindAggregation("items",
@@ -1710,7 +1724,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             if (Util.nvl(o[i][v], "").length > 0) {
                                 // var dt = sf.parse(Util.nvl(o[i][v], "").replaceAll(".", ":"));
                                 var dt = new Date(Util.nvl(o[i][v], "").replaceAll(".", ":"));
-                                o[i][v] = sf.format(dt); //dt                                
+                                o[i][v] = sf.format(dt); //dt 
                             } else
                                 o[i][v] = null;
                         }
