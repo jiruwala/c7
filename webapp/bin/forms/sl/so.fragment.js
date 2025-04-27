@@ -56,12 +56,15 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
+        //FIXME qih.
+        var qih = " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra,'Y',o2.ord_prd_date,o2.ord_exp_date,'\"'||o2.keyfld||'\"')/o2.ord_pack qih , ";
+        var rsrv = " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, "
         var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
             " DELIVEREDQTY/i.pack dlv_pkqty," +
             " TO_CHAR(ORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
             " TO_CHAR(ORD_EXP_DATE,'DD/MM/RRRR') ORD_EXP_DATE2, " +
-            " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra)/o2.ord_pack qih, " +
-            " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, " +
+            qih +
+            rsrv +
             " o2.ORD_PKCOST*ord_pack pack_cost," +
             "o2.ORD_PKCOST*o2.ord_allqty cost_amt,  " +
             "i.lsprice ," +
@@ -289,8 +292,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     ld.setFieldValue(i1, "QIH", qih);
                                     ld.setFieldValue(i1, "RESERVED", reserved);
                                     if (Util.nvl(ld.getFieldValue(i1, "ORD_PRD_BATCH"), '') != '') {
-                                        ld.setFieldValue(i1, "ORD_PRD_DATE", prd_dt);
-                                        ld.setFieldValue(i1, "ORD_EXP_DATE", exp_dt);
+                                        ld.setFieldValue(i1, "ORD_PRD_DATE2", prd_dt);
+                                        ld.setFieldValue(i1, "ORD_EXP_DATE2", exp_dt);
                                     }
                                 }
 
@@ -1208,7 +1211,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     colname: "ordacc",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '@{\"text\":\"txtIssueType\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"txtIssueAction\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -1550,12 +1553,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 }
                 FormView.err(ld.getFieldValue(rn, "ORD_REFER") + " -  " + ds);
             }
-
+            //FIXME check function stops even less qty then reserve
             var checkStockReserve = function (rn, dta) {
                 var kf = thatForm.frm.getFieldValue('qry1.keyfld');
                 var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.ord_date'));
-                var pdt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_PRD_DATE"));
-                var edt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_EXP_DATE"));
+                var pdt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_PRD_DATE2"));
+                var edt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_EXP_DATE2"));
                 var pkd = ld.getFieldValue(rn, "ORD_PACKD");
                 var allqty = (dta.qty * dta.pk) + dta.uqty;
                 var sq = "select c7_can_user_issue_item(':user',:str,':rfr',:allqty,:pdt,:prdt,:expdt,':exckf') from dual ";
