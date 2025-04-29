@@ -239,20 +239,6 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 					</textElement>
 					<textFieldExpression><![CDATA[$F{TYPE_DESCR}+" Sale Invoice"]]></textFieldExpression>
 				</textField>
-				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="40" y="90" width="544" height="20" uuid="47b99dd2-3357-43ba-9432-5055a99ad81b"/>
-					<box>
-						<pen lineWidth="0.0" lineStyle="Dashed"/>
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Center" verticalAlignment="Bottom">
-						<font fontName="arial2&#xA;" size="14" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA["اسم"]]></textFieldExpression>
-				</textField>
 			</band>
 		</groupHeader>
 		<groupFooter>

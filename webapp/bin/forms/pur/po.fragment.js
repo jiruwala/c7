@@ -523,6 +523,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 beforeExeSql: function (frm, sq) {
                     var ordn = thatForm.frm.getFieldValue("qry1.ord_no");
                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                    //DONEXT insert approve  only if none 
+                    // add c7_po_invoice
                     var sq2 = UtilGen.getInsertLogStr({
                         grpname: "PO_APPROVE",
                         tablename: "PORD1",
@@ -609,6 +611,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             var fullSpan = "XL8 L8 M8 S12";
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
+            //CONTINUE (procedure c7_po_invoice) )add ordacc in PO 
+            //   none, aprove, received, ,purInvs
             return {
                 keyfld: {
                     colname: "keyfld",
