@@ -57,7 +57,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
 
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
+        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,(O1.SALE_PRICE/o1.ord_pack)*O1.TQTY  AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + thatForm.vars.vou_code + " ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
@@ -173,7 +173,10 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": ":qry1.stra",
                             "PSHIP_KEYFLD": ":qry1.pship_keyfld",
-                            "PORD1_KEYFLD": "(select po_keyfld from c7_purship where keyfld=:qry1.pship_keyfld)"
+                            // "PORD1_KEYFLD": "(select po_keyfld from c7_purship where keyfld=:qry1.pship_keyfld)",
+                            "CORD_PRD_DATE": "(select prd_dt from items where reference=':qry2.ord_ship')",
+                            "CORD_EXP_DATE": "(select exp_dt from items where reference=':qry2.ord_ship')"
+
                         },
                         update_default_values: {
                         },
@@ -347,15 +350,19 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     }
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
-
+                    if (qry.name == "qry1") {
+                        var gkf = thatForm.frm.getFieldValue("qry1.keyfld");
+                        var kf = thatForm.frm.getFieldValue("qry1.pship_keyfld");
+                        var pokf = Util.getSQLValue("select po_keyfld from c7_purship where keyfld=" + kf);
+                        var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, true);
+                        var delAdd = "c7_po_gr(" + gkf + ",'Y');";
+                        return delAdd;
+                    }
                 },
                 afterDelSqlAdd: function () {
                     var kf = thatForm.frm.getFieldValue("qry1.pship_keyfld");
                     var pokf = Util.getSQLValue("select po_keyfld from c7_purship where keyfld=" + kf);
-                    var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, true);
-                    var delAdd = " c7_updatePODelivery(" + pokf + ");";
-                    return delAdd;
-
+                    return " c7_updatePODelivery(" + pokf + ");";
                 },
                 afterDelRow: function (qry, ld, data) {
                     // var delAdd = "";
@@ -370,6 +377,8 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                 qry.formview.setFormReadOnly();
                                 FormView.err("This Good Receipts is posted to AP invoice !");
                             }
+
+
                         }
                     }
 
@@ -421,6 +430,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                     ld.setFieldValue(idx, "ORD_PKQTY", 0);
                                     ld.setFieldValue(idx, "ORD_UNQTY", 0);
                                     ld.setFieldValue(idx, "SALE_PRICE", data[i].ORD_PRICE);
+                                    ld.setFieldValue(idx, "PORD_POS", data[i].ORD_POS);
                                 }
                                 qry.obj.updateDataToControl();
                                 return true;
@@ -452,8 +462,9 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     var kf = thatForm.frm.getFieldValue("qry1.pship_keyfld");
                     var pokf = Util.getSQLValue("select po_keyfld from c7_purship where keyfld=" + kf);
                     var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, true);
+                    var sq0 = " update c_order1 set pord1_keyfld=" + pokf + " where keyfld=" + gkf + ";";
                     var sq1 = " c7_updatePODelivery(" + pokf + ");" + " c7_po_gr(" + gkf + ");";
-                    return sq + sq1;
+                    return sq + sq0 + sq1;
                 },
             };
         },

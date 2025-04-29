@@ -377,4 +377,69 @@ function simpleDateFormat(pattern, locale) {
     
     return formattedDate;
   };
+  this.parse = function(dateStr) {
+    const pattern = this.pattern;
+  
+    const tokens = {
+      yyyy: "(\\d{4})",
+      yy: "(\\d{2})",
+      MM: "(\\d{2})",
+      dd: "(\\d{2})",
+      HH: "(\\d{2})", // 24-hour
+      hh: "(\\d{2})", // 12-hour
+      mm: "(\\d{2})",
+      ss: "(\\d{2})",
+      SSS: "(\\d{3})",
+      a: "(AM|PM)"
+    };
+  
+    // Build regex dynamically
+    let regexStr = pattern;
+    const order = [];
+  
+    // Sort by token length to avoid partial replacements
+    const sortedTokens = Object.keys(tokens).sort((a, b) => b.length - a.length);
+    for (const key of sortedTokens) {
+      if (pattern.includes(key)) {
+        regexStr = regexStr.replace(key, tokens[key]);
+        order.push(key);
+      }
+    }
+  
+    const regex = new RegExp("^" + regexStr + "$");
+    const match = dateStr.match(regex);
+    if (!match) {
+      throw new Error("Invalid date string for pattern: " + pattern);
+    }
+  
+    // Extract matched values
+    const dateParts = {};
+    order.forEach((key, i) => {
+      if (key === "a") {
+        dateParts[key] = match[i + 1];
+      } else {
+        dateParts[key] = parseInt(match[i + 1], 10);
+      }
+    });
+  
+    // Normalize date values
+    let year = dateParts.yyyy ?? (dateParts.yy != null ? 2000 + dateParts.yy : 1970);
+    let month = (dateParts.MM ?? 1) - 1;
+    let day = dateParts.dd ?? 1;
+  
+    let hours = 0;
+    if (dateParts.HH != null) {
+      hours = dateParts.HH;
+    } else if (dateParts.hh != null) {
+      hours = dateParts.hh % 12;
+      if (dateParts.a === "PM") hours += 12;
+    }
+  
+    let minutes = dateParts.mm ?? 0;
+    let seconds = dateParts.ss ?? 0;
+    let milliseconds = dateParts.SSS ?? 0;
+  
+    return new Date(year, month, day, hours, minutes, seconds, milliseconds);
+  };
+  
 }

@@ -57,7 +57,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
         var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount, " +
-            " (select nvl(sum(tqty),0) from c_order1 where ord_code=110 and pord1_keyfld=o2.keyfld and ord_ship=o2.ord_refer )" +
+            " (select nvl(sum(tqty),0) from c_order1 where ord_code=110 and pord1_keyfld=o2.keyfld and ord_ship=o2.ord_refer )/o2.ord_pack " +
             " rcvd_pkqty" +
             " from pord2 o2 " +
             "where O2.KEYFLD=':qry1.keyfld' and ord_code=" +
@@ -228,7 +228,6 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                             "created_time": "sysdate",
                             "usernm": Util.quoted(sett["LOGON_USER"]),
                             "ORD_AMT": ":qry2.totamt",
-
                         },
                         update_default_values: {
                             "modified_time": "sysdate",
@@ -263,6 +262,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                             "ORD_DATE": ":qry1.ord_date",
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": sett["DEFAULT_STORE"],
+                            "ORD_PRD_DATE": "(select prd_dt from items where reference=':qry2.ord_refer')",
+                            "ORD_EXP_DATE": "(select exp_dt from items where reference=':qry2.ord_refer')"
                         },
                         update_default_values: {
 

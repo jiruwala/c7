@@ -1154,7 +1154,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var cx = qv.mLctb.getColByName(dtx[col].ITEM_NAME);
                         if (cx == undefined)
                             FormView.err("Not found column ! " + dtx[col].ITEM_NAME);
-                        if (dtx[col].DISPLAY_TYPE != "INVISIBLE") {
+                        if (dtx[col].DISPLAY_TYPE != "INVISIBLE" ) {
                             cx.mHideCol = false;
                             visibleCol.push(cx);
                         }
@@ -1170,6 +1170,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         cx.mRetValues = Util.nvl(dtx[col].RETURN_VALUES, "");
                         cx.eOther = Util.nvl(dtx[col].VALIDATE_EVENT, "");
                         cx.mDefaultValue = Util.nvl(UtilGen.parseDefaultValue(dtx[col].DEFAULT_VALUE), '');
+
                         var paras = Util.nvl(dtx[col].PARAMS, "");
                         if (paras != "") {
                             var ps = paras.split(",");
