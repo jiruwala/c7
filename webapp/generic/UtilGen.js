@@ -1154,7 +1154,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var cx = qv.mLctb.getColByName(dtx[col].ITEM_NAME);
                         if (cx == undefined)
                             FormView.err("Not found column ! " + dtx[col].ITEM_NAME);
-                        if (dtx[col].DISPLAY_TYPE != "INVISIBLE" ) {
+                        if (dtx[col].DISPLAY_TYPE != "INVISIBLE") {
                             cx.mHideCol = false;
                             visibleCol.push(cx);
                         }
@@ -4128,6 +4128,13 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             },
 
             PurchaseOrderFunc: {
+                initAction: {
+                    none: 'none',
+                    approve: 'approve',
+                    issueRV: 'issueRV',
+                    purInvs: 'purInvs',
+                    closePO: 'closePO',
+                },
                 init: function (frag) {
                     this.frag = frag;
                 },
@@ -4151,7 +4158,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 inputGuageTarget: function (kf, title, msg) {
                     var targetval = Util.getSQLValue("select max_val from c6_db_gauges where keyfld=" + kf);
                     if (Util.nvl(targetval, '') == "") targetval = 0;
-
                     UtilGen.inputDialog(title, msg + " : ", targetval, function (str) {
 
                         var vl = Util.extractNumber(Util.nvl(str, "0"));
