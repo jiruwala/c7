@@ -1611,7 +1611,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 if (can_issue < allqty)
                     errRow(i, "Save Denied : Can issue only " + (allqty / pk) + " " + pkd);
             }
-            //CONTINUE check reserve stock availblae in approve and none and belowitemzero option if not approve and none
+            //TODO check reserve stock availblae in approve and none and belowitemzero option if not approve and none
             for (var i = 0; i < ld.rows.length; i++) {
                 var str = Util.extractNumber(ld.getFieldValue(i, "STRA"));
                 var rfr = ld.getFieldValue(i, "ORD_REFER");

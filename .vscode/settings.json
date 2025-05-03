@@ -32,5 +32,6 @@
         "green",
         "black"
     ],
-    "todo-tree.tree.showBadges": true
+    "todo-tree.tree.showBadges": true,
+    "workbench.colorCustomizations": {}
 }
