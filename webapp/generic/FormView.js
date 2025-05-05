@@ -2148,6 +2148,131 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
         };
 
+        FormView.listColumnsFormat = {
+            getCols: function (pcolname, paddProp, pIncBracket) {
+                if (this.cols == undefined)
+                    this.cols = {
+                        // PO and SO columns                
+                        "ORD_NO": {
+                            colname: "ORD_NO",
+                            mTitle: Util.getLangText("titPurOrd"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+                        "TRIP_NO": {
+                            colname: "TRIP_NO",
+                            mTitle: Util.getLangText("puShiptripno"),
+                            display_width: 75,
+                        },
+                        "PONO": {
+                            colname: "PONO",
+                            mTitle: Util.getLangText("titPurOrd"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+                        "DLV_NO":
+                        {
+                            colname: "DLV_NO",
+                            mTitle: Util.getLangText("txtNo"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+                        "ORD_DATE":
+                        {
+                            colname: "ORD_DATE",
+                            display_format: "SHORT_DATE_FORMAT",
+                            mTitle: Util.getLangText("ordDate"),
+                            display_width: 75,
+                        },
+                        "PO_STATUS":
+                        {
+                            colname: "PO_STATUS",
+                            mTitle: Util.getLangText("txtStatus"),
+                            display_width: 100,
+                        },
+                        "ORD_REF":
+                        {
+                            colname: "ORD_REF",
+                            mTitle: Util.getLangText("refCode"),
+                            display_width: 75,
+                        },
+                        "ORD_REFNM":
+                        {
+                            colname: "ORD_REFNM",
+                            mTitle: Util.getLangText("refName"),
+                            display_width: 200,
+                        },
+                        "ORD_BRANCHNO":
+                        {
+                            colname: "ORD_BRANCHNO",
+                            mTitle: Util.getLangText("branchNoTxt"),
+                            display_width: 60,
+                        },
+                        "BRANCHNAME":
+                        {
+                            colname: "BRANCHNAME",
+                            mTitle: Util.getLangText("branchNmTxt"),
+                            display_width: 200,
+                        },
+                        "KEYFLD1":
+                        {
+                            colname: 'KEYFLD',
+                            return_field: "pac",
+                        },
+                        "PO_KEYFLD":
+                        {
+                            colname: 'PO_KEYFLD',
+                        },
+                        "INIT_ACTION": {
+                            colname: "INIT_ACTION",
+                            mTitle: Util.getLangText("txtIssueAction"),
+                            display_width: 100,
+                        },
+                        "ORD_AMT":
+                        {
+                            colname: "ORD_AMT",
+                            display_format: "MONEY_FORMAT",
+                            mTitle: Util.getLangText("amountTxt"),
+                            display_width: 120,
+                            mSummary: "SUM"
+                        },
+                        "ATTN":
+                        {
+                            colname: "ATTN",
+                            mTitle: Util.getLangText("txtAttn"),
+                            display_width: 120,
+                        },
+                        "SHIP_TYPE": {
+                            colname: "SHIP_TYPE",
+                            mTitle: Util.getLangText("puShipType"),
+                            display_width: 80,
+                        }
+                    };
+                var colnames = Util.nvl(pcolname, []);
+                var addProps = Util.nvl(paddProp, {});
+                if (!Array.isArray(colnames))
+                    colnames = [colnames];
+                var colsret = [];
+                for (var i = 0; i < colnames.length; i++) {
+                    if (this.cols[colnames[i].toUpperCase()] == undefined) continue;
+                    var addProp = undefined;
+                    if (this.cols[colnames[i].toUpperCase()]["colname"] != undefined)
+                        addProp = addProps[this.cols[colnames[i].toUpperCase()].colname.toUpperCase()];
+                    var col = {
+                        ...Util.nvl(this.cols[colnames[i].toUpperCase()], {}),
+                        ...Util.nvl(addProp, {})
+                    };
+                    if (Util.nvl(pIncBracket, false))
+                        colsret.push(JSON.parse("{\"" + col.colname + "\":" + JSON.stringify(col) + "}"));
+                    else
+                        colsret.push(col);
+                }
+                if (colsret.length == 1)
+                    return colsret[0];
+                return colsret;
+            }
+        };
+
         return FormView;
     }
 );

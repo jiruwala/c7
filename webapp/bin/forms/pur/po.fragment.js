@@ -1,5 +1,8 @@
 sap.ui.jsfragment("bin.forms.pur.po", {
 
+    //CONTINUE Testing GRV and restrict to issue RV on 'purInvs' and 
+    //      Closing PO for view only.
+    //      Manually close PO for 'purInvs' type .
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -107,13 +110,14 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW ||
                             thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT)
                             FormView.err("Form must be in VIEW mode !");
+
                         thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var showShip = Util.nvl(thatForm.commands.cmdAddShip.showRecs, false);
                         var showGr = Util.nvl(thatForm.commands.cmdAddShip.showRecs, false);
                         var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld=" + kf);
-                        if (aproved == 3)
-                            FormView.err("PO is Closed !");
+                        // if (aproved == 3 )
+                        //     FormView.err("PO is Closed !");
                         if (Util.nvl(para == "")) return;
                         if (para == "approve")
                             that2.helperFunc.approved();
@@ -368,6 +372,11 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             var kf = thatForm.frm.getFieldValue("keyfld");
             var oa = thatForm.frm.getFieldValue("ordacc");
             cmd.setIcon(thatForm.rectangleIcon);
+            if (cmd == thatForm.commands.cmdAddShip)
+                cmd.setText(Util.getLangText("addShipment"));
+            if (cmd == thatForm.commands.cmdAddGR)
+                cmd.setText(Util.getLangText("addGr"));
+
             if (isShowOnly(cmd)) return;
             if (cmd == thatForm.commands.cmdApprove) {
                 var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld='" + kf + "'");
@@ -401,18 +410,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             });
         }
     },
-    //CONTINUE Testing Purchase Order show and add commands on context
     queryCommands: function () {
         var thatForm = this;
-        var dt = Util.execSQLWithData("select ord_flag,ordacc from pord1 where keyfld="
-            + thatForm.frm.getFieldValue("keyfld"));
-        var aproved = 1;
-        var isFormInView-thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW
-        var ordacc = thatForm.frm.getFieldValue("qry1.ordacc");
-        if (dt.length > 0) {
-            aproved = Util.nvl(dt[0].ORD_FLAG, 1);
-            ordacc = Util.nvl(dt[0].ORDACC, thatForm.frm.getFieldValue("qry1.ordacc"));
-        }
         var addOnly = function () {
             thatForm.commands.cmdAddGR.showRecs = false;
             thatForm.commands.cmdAddShip.showRecs = false;
@@ -425,6 +424,26 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             thatForm.commands.cmdAddShip.showRecs = true;
 
         }
+
+        var dt = Util.execSQLWithData("select ord_flag,ordacc from pord1 where keyfld="
+            + thatForm.frm.getFieldValue("keyfld"));
+        var aproved = 1;
+        var isFormInView = thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW
+        var ordacc = thatForm.frm.getFieldValue("qry1.ordacc");
+        if (!isFormInView) {
+            addOnly();
+            thatForm.refreshIcons();
+            thatForm.enableCommands(undefined, false);
+            return;
+        }
+
+        if (dt.length > 0) {
+            aproved = Util.nvl(dt[0].ORD_FLAG, 1);
+            ordacc = Util.nvl(dt[0].ORDACC, thatForm.frm.getFieldValue("qry1.ordacc"));
+        }
+        addOnly();
+        thatForm.refreshIcons();
+
         if (ordacc == UtilGen.PurchaseOrderFunc.initAction.purInvs
             || ordacc == UtilGen.PurchaseOrderFunc.initAction.issueRV) {
             thatForm.enableCommands(undefined, false);
@@ -432,7 +451,6 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             thatForm.refreshIcons();
             return;
         }
-        addOnly();
         if (ordacc == UtilGen.PurchaseOrderFunc.initAction.closePO) {
             thatForm.enableCommands(undefined, false);
             thatForm.enableCommands(thatForm.commands.cmdClosePO, true);
@@ -544,6 +562,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         var objGr = thatForm.frm.objs["qry1.gr_ac"].obj;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from pord1");
                         var newKNo = Util.getSQLValue("select nvl(max(ord_no),0)+1 from pord1 where ord_code=" + that.vars.vou_code);
+                        var objOa = thatForm.frm.getFieldValue("qry1.ordacc");
                         var dt = thatForm.view.today_date.getDateValue();
 
                         UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
@@ -551,6 +570,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         UtilGen.setControlValue(objGr, Util.nvl(sett["PO_GR_ACC"], ""), sett["PO_GR_ACC"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
                         UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_no"].obj, newKNo, newKNo, true);
+                        UtilGen.setControlValue(objOa, "purInvs", "purInvs", true);
 
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         qry.formview.setFieldValue("qry1.ord_shpdt", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
@@ -1029,8 +1049,13 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         editable: true, width: "12%",
                         showValueHelp: true,
                         change: function (e) {
+                            var cod = thatForm.frm.objs["qry1.ord_ref"].obj.getValue();
                             var sq = "select name from c_ycust where  code = ':CODE'";
                             UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);
+                            var br = Util.getSQLValue("select min(brno) from cbranch where code='" + cod + "'");
+                            thatForm.frm.setFieldValue("qry1.ord_branchno", br, br, true);
+
+
                         },
                         valueHelpRequest: function (e) {
                             var btns = [new sap.m.Button({
@@ -1083,7 +1108,6 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     insert_allowed: true,
                     require: false
                 },
-                //DONEXT branch comes automatci when choosing customer.
                 ord_branchno: {// branch no
                     colname: "ord_branchno",
                     data_type: FormView.DataType.String,
@@ -1237,51 +1261,24 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         selectStr: "@1/Not-Approved,2/Opened,3/Closed",
                         defaultKey: "2",
                     },
-                    cols: [
-                        {
-                            colname: "ORD_NO",
-                            mTitle: Util.getLangText("titPurOrd"),
-                            display_width: 75,
-                            mSummary: "COUNT",
-                        },
-                        {
-                            colname: "PO_STATUS",
-                            mTitle: Util.getLangText("txtStatus"),
-                            display_width: 100,
-                        },
-                        {
-                            colname: "ORD_DATE",
-                            display_format: "SHORT_DATE_FORMAT",
-                            mTitle: Util.getLangText("ordDate"),
-                            display_width: 100
-                        },
-                        {
-                            colname: "ORD_REF",
-                            mTitle: Util.getLangText("refCode"),
-                            display_width: 100,
-                        },
-                        {
-                            colname: "ORD_REFNM",
-                            mTitle: Util.getLangText("refName"),
-                            display_width: 250
+                    cols: FormView.listColumnsFormat.getCols(["ord_no", "po_status",
+                        "init_action", "ord_date", "ord_ref", "ord_refnm", "keyfld1", "ord_amt"],
+                        { KEYFLD: { hide: true, return_field: "pac", } }),
+                    //  [
+                    //     FormView.listColumnsFormat.getCols("ORD_NO"),
+                    //     FormView.listColumnsFormat.getCols("PO_STATUS"),
+                    //     FormView.listColumnsFormat.getCols("INIT_ACTION"),
+                    //     FormView.listColumnsFormat.getCols("ORD_DATE"),
+                    //     FormView.listColumnsFormat.getCols("ORD_REF"),
+                    //     FormView.listColumnsFormat.getCols("ORD_REFNM"),
+                    //     FormView.listColumnsFormat.getCols("KEYFLD1", { KEYFLD: { hide: true, return_field: "pac", } }),
+                    //     FormView.listColumnsFormat.getCols("ORD_AMT"),
 
-                        },
-                        {
-                            colname: 'KEYFLD',
-                            return_field: "pac",
-                            hide: true
-                        },
-                        {
-                            colname: "ord_amt",
-                            display_format: "MONEY_FORMAT",
-                            mTitle: Util.getLangText("amountTxt"),
-                            display_width: 120,
-                            mSummary: "SUM"
-
-                        }
-
-                    ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,DECODE (ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status,ord_date,ord_ref,ord_refnm,ord_amt,keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
+                    // ],  
+                    // [{colname:'code',width:'100',return_field:'pac' }]
+                    sql: "select ord_no,DECODE (ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status," +
+                        " ordacc init_action, ord_date,ord_ref,ord_refnm,ord_amt,keyfld from pord1 o1 " +
+                        " where ord_code =" + that2.vars.vou_code +
                         " and location_code=':qry1.location_code' " +
                         " and ord_flag=^^list_key " +
                         " order by o1.ord_date desc,ord_no desc",
