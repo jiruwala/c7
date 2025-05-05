@@ -85,16 +85,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
                     width: { "S": 600, "M": 800, "L": 800, "XL": 900 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: lavender;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
+                    class: "soForm"
                 },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);

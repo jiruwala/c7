@@ -76,17 +76,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: lavender;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
+                    width: { "S": 500, "M": 650, "L": 750, "XL": 800 },
+                    class: "poForm"
                 },
                 customDisplay: function (vbHeader) {
 

@@ -21,9 +21,11 @@ iframe {
 .sapMTileCnt.News {
     background-color: #2e8b57;
 }
+
 .sapMGTHdrContent {
     background-color: lightyellow;
 }
+
 .guagePanel {
     border-radius: 5px;
     text-align: center;
@@ -57,12 +59,16 @@ iframe {
     font-weight: bold;
     color: darkblue;
 }
+
 .highlight-row {
-    background-color: cyan !important; /* Light Yellow */
+    background-color: cyan !important;
+    /* Light Yellow */
     transition: background-color 0.3s ease-in-out;
 }
+
 .highlight-row .sapMInputBaseInner {
-    background-color: cyan !important; /* Light Yellow */
+    background-color: cyan !important;
+    /* Light Yellow */
     transition: background-color 0.3s ease-in-out;
 }
 
@@ -144,6 +150,45 @@ area:-webkit-any-link {
     min-height: 26px;
 }
 
+.poForm {
+    display: block;
+    padding-left: 5px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-right: 5px;
+    border-style: groove;
+    border-radius: 5px;
+    margin: 2px;
+    border-color: darkgrey;
+    background-color: #dcdcdc;
+    border-width: thin;
+}
+.poDlvForm {
+    display: block;
+    padding-left: 5px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-right: 5px;
+    border-style: groove;
+    border-radius: 5px;
+    margin: 2px;
+    border-color: darkgrey;
+    background-color: #b2beb5;
+    border-width: thin;
+}
+.soForm {
+    display: block;
+    padding-left: 5px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-right: 5px;
+    border-style: groove;
+    border-radius: 5px;
+    margin: 2px;
+    border-color: darkgrey;
+    background-color: #ffffe0;
+    border-width: thin;
+}
 .jvForm {
     display: block;
     padding-left: 10px;
