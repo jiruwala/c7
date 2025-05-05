@@ -76,17 +76,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: lavender;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
+                    width: { "S": 500, "M": 650, "L": 750, "XL": 800 },
+                    class: "poForm"
                 },
                 customDisplay: function (vbHeader) {
 
@@ -116,8 +107,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         var showShip = Util.nvl(thatForm.commands.cmdAddShip.showRecs, false);
                         var showGr = Util.nvl(thatForm.commands.cmdAddShip.showRecs, false);
                         var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld=" + kf);
-                        if (aproved == 3)
-                            FormView.err("PO is Closed !");
+                        // if (aproved == 3 )
+                        //     FormView.err("PO is Closed !");
                         if (Util.nvl(para == "")) return;
                         if (para == "approve")
                             that2.helperFunc.approved();
@@ -398,7 +389,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 if (ships > 0)
                     cmd.setIcon(thatForm.selectIcon);
             }
-    po        if (cmd == thatForm.commands.cmdAddGR) {
+            if (cmd == thatForm.commands.cmdAddGR) {
                 var dlvs = Util.getSQLValue("select count(*) from order1 where pord1_keyfld='" + kf + "'");
                 if (dlvs > 0)
                     cmd.setIcon(thatForm.selectIcon);
@@ -409,7 +400,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 checkCommand(thatForm.commands[cmd]);
             });
         }
-    },    
+    },
     queryCommands: function () {
         var thatForm = this;
         var addOnly = function () {
@@ -1107,7 +1098,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false
-                },                
+                },
                 ord_branchno: {// branch no
                     colname: "ord_branchno",
                     data_type: FormView.DataType.String,
@@ -1261,51 +1252,24 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         selectStr: "@1/Not-Approved,2/Opened,3/Closed",
                         defaultKey: "2",
                     },
-                    cols: [
-                        {
-                            colname: "ORD_NO",
-                            mTitle: Util.getLangText("titPurOrd"),
-                            display_width: 75,
-                            mSummary: "COUNT",
-                        },
-                        {
-                            colname: "PO_STATUS",
-                            mTitle: Util.getLangText("txtStatus"),
-                            display_width: 100,
-                        },
-                        {
-                            colname: "ORD_DATE",
-                            display_format: "SHORT_DATE_FORMAT",
-                            mTitle: Util.getLangText("ordDate"),
-                            display_width: 100
-                        },
-                        {
-                            colname: "ORD_REF",
-                            mTitle: Util.getLangText("refCode"),
-                            display_width: 100,
-                        },
-                        {
-                            colname: "ORD_REFNM",
-                            mTitle: Util.getLangText("refName"),
-                            display_width: 250
+                    cols: FormView.listColumnsFormat.getCols(["ord_no", "po_status",
+                        "init_action", "ord_date", "ord_ref", "ord_refnm", "keyfld1", "ord_amt"],
+                        { KEYFLD: { hide: true, return_field: "pac", } }),
+                    //  [
+                    //     FormView.listColumnsFormat.getCols("ORD_NO"),
+                    //     FormView.listColumnsFormat.getCols("PO_STATUS"),
+                    //     FormView.listColumnsFormat.getCols("INIT_ACTION"),
+                    //     FormView.listColumnsFormat.getCols("ORD_DATE"),
+                    //     FormView.listColumnsFormat.getCols("ORD_REF"),
+                    //     FormView.listColumnsFormat.getCols("ORD_REFNM"),
+                    //     FormView.listColumnsFormat.getCols("KEYFLD1", { KEYFLD: { hide: true, return_field: "pac", } }),
+                    //     FormView.listColumnsFormat.getCols("ORD_AMT"),
 
-                        },
-                        {
-                            colname: 'KEYFLD',
-                            return_field: "pac",
-                            hide: true
-                        },
-                        {
-                            colname: "ord_amt",
-                            display_format: "MONEY_FORMAT",
-                            mTitle: Util.getLangText("amountTxt"),
-                            display_width: 120,
-                            mSummary: "SUM"
-
-                        }
-
-                    ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,DECODE (ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status,ord_date,ord_ref,ord_refnm,ord_amt,keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
+                    // ],  
+                    // [{colname:'code',width:'100',return_field:'pac' }]
+                    sql: "select ord_no,DECODE (ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status," +
+                        " ordacc init_action, ord_date,ord_ref,ord_refnm,ord_amt,keyfld from pord1 o1 " +
+                        " where ord_code =" + that2.vars.vou_code +
                         " and location_code=':qry1.location_code' " +
                         " and ord_flag=^^list_key " +
                         " order by o1.ord_date desc,ord_no desc",

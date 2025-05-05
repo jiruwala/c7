@@ -85,16 +85,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
                     width: { "S": 600, "M": 800, "L": 800, "XL": 900 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: lavender;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
+                    class: "soForm"
                 },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
@@ -486,12 +477,28 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 },
                 afterEditRow(qry, index, ld) {
                     if (qry.name == "qry1") {
-                        var sq = "select accno from invoicetype where location_code=':loc' and no=:ino";
-                        sq = sq.replaceAll(":loc", qry.formview.getFieldValue("qry1.location_code"))
-                            .replaceAll(":ino", qry.formview.getFieldValue("qry1.ord_type"));
-                        var ac = Util.getSQLValue(sq);
-                        if (Util.nvl(ac, '') != '')
-                            qry.formview.objs["qry1.ord_ref"].obj.setEditable(false);
+                        var kf = thatForm.frm.getFieldValue("keyfld");
+                        var actype = thatForm.frm.getFieldValue("qry1.ordacc");
+                        if (actype == UtilGen.SalesOrderFunc.initAction.approve ||
+                            actype == UtilGen.SalesOrderFunc.initAction.none
+                        ) {
+                            var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
+                            if (sqDlv != 0) {
+                                thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.ord_branchno"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.branchname"].obj.setEditable(false);
+                                thatForm.frm.objs["qry2"].obj.setEditable(false);
+                            }
+                        } else {
+                            var sq = "select accno from invoicetype where location_code=':loc' and no=:ino";
+                            sq = sq.replaceAll(":loc", qry.formview.getFieldValue("qry1.location_code"))
+                                .replaceAll(":ino", qry.formview.getFieldValue("qry1.ord_type"));
+                            var ac = Util.getSQLValue(sq);
+                            if (Util.nvl(ac, '') != '')
+                                qry.formview.objs["qry1.ord_ref"].obj.setEditable(false);
+
+                        }
                     }
 
                 },
@@ -535,20 +542,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 },
                 afterEdit: function (qry) {
                     if (qry.name == "qry1") {
-                        var kf = thatForm.frm.getFieldValue("keyfld");
-                        var actype = thatForm.frm.getFieldValue("qry1.ordacc");
-                        if (actype == UtilGen.SalesOrderFunc.initAction.approve ||
-                            actype == UtilGen.SalesOrderFunc.initAction.none
-                        ) {
-                            var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
-                            if (sqDlv != 0) {
-                                thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
-                                thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(false);
-                                thatForm.frm.objs["qry1.ord_branchno"].obj.setEditable(false);
-                                thatForm.frm.objs["qry1.branchname"].obj.setEditable(false);
-                                thatForm.frm.objs["qry2"].obj.setEditable(false);
-                            }
-                        }
+
                     }
                 },
 

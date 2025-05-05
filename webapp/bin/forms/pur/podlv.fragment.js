@@ -69,17 +69,8 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                 toolbarBG: "khaki",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: khaki;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
+                    width: { "S": 500, "M": 650, "L": 750, "XL": 850 },
+                    class: "poDlvForm",
                 },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
@@ -466,6 +457,20 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     var sq1 = " c7_updatePODelivery(" + pokf + ");" + " c7_po_gr(" + gkf + ");";
                     return sq + sq0 + sq1;
                 },
+                beforeEdit: function (qry) {
+                    if (qry.name == "qry1" && qry.status == FormView.RecordStatus.EDIT) {
+                        var gkf = thatForm.frm.getFieldValue("qry1.keyfld");
+                        var kf = thatForm.frm.getFieldValue("qry1.pship_keyfld");
+                        var pokf = Util.getSQLValue("select po_keyfld from c7_purship where keyfld=" + kf);
+                        var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, true);
+                        if (podt.ORDACC != UtilGen.PurchaseOrderFunc.initAction.none
+                            && podt.ORDACC != UtilGen.PurchaseOrderFunc.initAction.approve) {
+                            UtilGen.showCustomMessageToast("Can't EDIT ! , PO type is " + podt.ORDACC, 100, "red", "#fff");
+                            return false;
+                        }
+                        return true;
+                    }
+                }
             };
         },
         getSummary: function () {
@@ -875,52 +880,30 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     name: 'list1',
                     title: "List of Orders",
                     list_type: "sql",
-                    cols: [
-                        {
-                            colname: "PONO",
-                            mTitle: Util.getLangText("titPurOrd"),
-                            display_width: 75,
-                            mSummary: "COUNT",
-                        },
-                        {
-                            colname: "ORD_NO",
-                            mTitle: Util.getLangText("txtNo"),
-                            display_width: 75,
-                        },
-                        {
-                            colname: "ORD_DATE",
-                            display_format: "SHORT_DATE_FORMAT",
-                            mTitle: Util.getLangText("ordDate"),
-                            display_width: 75,
-                        },
-                        {
-                            colname: "PO_STATUS",
-                            mTitle: Util.getLangText("puPoStatus"),
-                            display_width: 100,
-                        },
-                        {
-                            colname: "ORD_REF",
-                            mTitle: Util.getLangText("refCode"),
-                            display_width: 75,
-                        },
-                        {
-                            colname: "ORD_REFNM",
-                            mTitle: Util.getLangText("refName"),
-                            display_width: 200,
-                        },
-                        {
-                            colname: 'KEYFLD',
-                            return_field: "pac",
-                            hide: true
-                        },
+                    cols: FormView.listColumnsFormat.getCols(["pono", "dlv_no", "init_action",
+                        "ord_date", "po_status", "ord_ref", "ord_refnm", "ord_branchno", "branchname", "keyfld1", "attn"],
+                        { KEYFLD: { hide: true, return_field: "pac", } }),
+                    // [
+                    //     FormView.listColumnsFormat.getCols("PONO"),
+                    //     FormView.listColumnsFormat.getCols("DLV_NO"),
+                    //     FormView.listColumnsFormat.getCols("INIT_ACTION"),
+                    //     FormView.listColumnsFormat.getCols("ORD_DATE"),
+                    //     FormView.listColumnsFormat.getCols("PO_STATUS"),
+                    //     FormView.listColumnsFormat.getCols("ORD_REF"),
+                    //     FormView.listColumnsFormat.getCols("ORD_REFNM"),
+                    //     FormView.listColumnsFormat.getCols("ORD_BRANCHNO"),
+                    //     FormView.listColumnsFormat.getCols("branchname"),
+                    //     FormView.listColumnsFormat.getCols("KEYFLD1", { KEYFLD: { hide: true, return_field: "pac", } }),
+                    //     FormView.listColumnsFormat.getCols("attn"),
 
-
-                    ],  // [{colname:'code',width:'100',return_field:'pac' }]
+                    // ],  // [{colname:'code',width:'100',return_field:'pac' }]
                     // sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
                     // " order by o1.ord_date desc,ord_no desc",
-                    sql: "select po1.ord_no pono,DECODE (po1.ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status," +
-                        "o1.ord_no dlv_no, o1.ord_date,o1.ord_ref,o1.ord_refnm,o1.keyfld from order1 o1,pord1 po1" +
-                        " where o1.ord_code =" + that2.vars.vou_code + " and po1.keyfld=o1.pord1_keyfld " +
+                    sql: "select po1.ord_no pono,DECODE (po1.ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status, po1.ordacc init_action ," +
+                        "o1.ord_no dlv_no, o1.ord_date,o1.ord_ref,o1.ord_refnm,o1.ord_discamt ord_branchno," +
+                        "cb.b_name branchname,o1.attn,o1.keyfld from order1 o1,pord1 po1,cbranch cb " +
+                        " where cb.code=o1.ord_ref and cb.brno=ord_branchno and " +
+                        " o1.ord_code =" + that2.vars.vou_code + " and po1.keyfld=o1.pord1_keyfld " +
                         (that2.oController.shipKF != undefined ?
                             " and po1.keyfld='" + that2.oController.shipKF + "' " : "") +
                         "  order by o1.ord_date desc,po1.ord_no,o1.ord_no desc"
@@ -1158,6 +1141,10 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     UtilGen.showCustomMessageToast("Cant create on CLOSED or NOT APPROVED PO", 100, "red", "#fff");
                     return;
                 }
+                if (podt.ORDACC == '' || (podt.ORDACC != 'none' && podt.ORDACC != 'approve')) {
+                    UtilGen.showCustomMessageToast("PO is not valid for deliveries !", 100, "red", "#fff");
+                    return;
+                }
                 var str = "";
                 str = podt.ORD_FLAG == 1 ? "Not-Approved" :
                     podt.ORD_FLAG == 2 ? "Opened" :
@@ -1206,11 +1193,15 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                 return;
             }
             UtilGen.showCustomMessageToast("puMsgSelectPO", 100);
-            var sq = "select ORD_no pono ,po_status, trip_no, ship_type,ship_name,ord_ref REFERENCE,ord_refnm REF_NAME,keyfld,po_keyfld from C7_SHIP_PO where ord_flag=2  order by po_keyfld,keyfld ";
+            var sq = "select ORD_no pono ,po_status,ordacc init_action, trip_no, ord_date,ship_type,ship_name,ord_ref,ord_refnm,keyfld,po_keyfld from C7_SHIP_PO " +
+                " where ord_flag=2 and ordacc in ('none','approve')  order by po_keyfld,keyfld ";
             UtilGen.Search.do_quick_search_simple(sq,
                 ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM"], function (data) {
                     selPoKkf(data.PO_KEYFLD, data.KEYFLD);
-                }, { pWidth: "80%" }, undefined, false, "Select Opened PO shimpments ");
+                }, { pWidth: "80%" }, undefined, false, "Select Opened PO shimpments",
+                FormView.listColumnsFormat.getCols(["pono", "po_status", "trip_no", "ship_type",
+                    "init_action", "ord_date", "ord_ref", "ord_refnm", "keyfld1", "po_keyfld"],
+                    { KEYFLD: { hide: true }, PO_KEYFLD: { hide: true } }, true));
 
         }
     }
