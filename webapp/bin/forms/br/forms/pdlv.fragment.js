@@ -59,7 +59,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
 
         var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + thatForm.vars.vou_code + " ORDER BY O1.ORD_POS ";
-            
+
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.frm;
@@ -706,6 +706,83 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     display_style: "",
                     display_format: "",
                     other_settings: { editable: true, width: "35%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                payterm: {
+                    colname: "payterm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtSupplier\",\"width\":\"15%\","textAlign":"End","styleClass":"darkBlueText boldText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        editable: true, width: "20%",
+                    },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                ord_ref: {
+                    colname: "ord_ref",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtSupplier\",\"width\":\"15%\","textAlign":"End","styleClass":"darkBlueText boldText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        editable: true, width: "20%",
+                        showValueHelp: true,
+                        change: function (e) {
+
+                            var objBr = thatForm.frm.objs["qry1.ord_discamt"].obj;
+                            var objBrNm = thatForm.frm.objs["qry1.branchname"].obj;
+                            UtilGen.setControlValue(objBr, "", "", true);
+                            UtilGen.setControlValue(objBrNm, "", "", true);
+
+                            var sq = "select name from c_ycust where code = ':CODE'";
+                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);
+                        },
+                        valueHelpRequest: function (e) {
+
+                            var btns = [new sap.m.Button({
+                                text: Util.getLangText('newCustomer'), press: function () {
+                                    UtilGen.execCmd("gl.rp formType=dialog formSize=850px,450px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+
+                                    });
+                                }
+                            })];
+                            UtilGen.Search.do_quick_search(e, this,
+                                "select code,name title from c_ycust where issupp='Y'  order by path ",
+                                "select code,name title from c_ycust where code=:CODE", thatForm.frm.objs["qry1.ord_refnm"].obj, undefined, undefined, btns);
+                        }
+
+                    },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                ord_refnm: {
+                    colname: "ord_refnm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "64%" },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true
