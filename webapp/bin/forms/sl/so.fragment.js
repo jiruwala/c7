@@ -473,16 +473,38 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         objOn.fireSelectionChange();
 
+                        setTimeout(() => {
+                            objAc.$().find("input").attr("readonly", true);
+                        }, 500);
+
+
                     }
                 },
                 afterEditRow(qry, index, ld) {
                     if (qry.name == "qry1") {
-                        var sq = "select accno from invoicetype where location_code=':loc' and no=:ino";
-                        sq = sq.replaceAll(":loc", qry.formview.getFieldValue("qry1.location_code"))
-                            .replaceAll(":ino", qry.formview.getFieldValue("qry1.ord_type"));
-                        var ac = Util.getSQLValue(sq);
-                        if (Util.nvl(ac, '') != '')
-                            qry.formview.objs["qry1.ord_ref"].obj.setEditable(false);
+                        var kf = thatForm.frm.getFieldValue("keyfld");
+                        var actype = thatForm.frm.getFieldValue("qry1.ordacc");
+                        if (actype == UtilGen.SalesOrderFunc.initAction.approve ||
+                            actype == UtilGen.SalesOrderFunc.initAction.none
+                        ) {
+                            var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
+                            if (sqDlv != 0) {
+                                thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.ord_branchno"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.branchname"].obj.setEditable(false);
+                                thatForm.frm.objs["qry2"].obj.setEditable(false);
+                            }
+                        } else {
+
+                            var sq = "select accno from invoicetype where location_code=':loc' and no=:ino";
+                            sq = sq.replaceAll(":loc", qry.formview.getFieldValue("qry1.location_code"))
+                                .replaceAll(":ino", qry.formview.getFieldValue("qry1.ord_type"));
+                            var ac = Util.getSQLValue(sq);
+                            if (Util.nvl(ac, '') != '')
+                                qry.formview.objs["qry1.ord_ref"].obj.setEditable(false);
+
+                        }
                     }
 
                 },
@@ -526,20 +548,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 },
                 afterEdit: function (qry) {
                     if (qry.name == "qry1") {
-                        var kf = thatForm.frm.getFieldValue("keyfld");
-                        var actype = thatForm.frm.getFieldValue("qry1.ordacc");
-                        if (actype == UtilGen.SalesOrderFunc.initAction.approve ||
-                            actype == UtilGen.SalesOrderFunc.initAction.none
-                        ) {
-                            var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
-                            if (sqDlv != 0) {
-                                thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
-                                thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(false);
-                                thatForm.frm.objs["qry1.ord_branchno"].obj.setEditable(false);
-                                thatForm.frm.objs["qry1.branchname"].obj.setEditable(false);
-                                thatForm.frm.objs["qry2"].obj.setEditable(false);
-                            }
-                        }
+
                     }
                 },
 
@@ -862,6 +871,22 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             if (oc == UtilGen.SalesOrderFunc.initAction.none || oc == UtilGen.SalesOrderFunc.initAction.approve)
                                 thatForm.frm.objs["qry1.reserved_stock"].obj.setEnabled(true);
 
+                            var cnt = this;
+                            setTimeout(function () {
+                                cnt.$().find("input").attr("readonly", true);
+                            }, 250);
+
+
+                        },
+                        change: function (e) {
+                            var cnt = this;
+                            // thatForm.queryCommands();
+                            if (!Util.isCBValValid(cnt))
+                                setTimeout(() => {
+                                    cnt.setValue("");
+                                    cnt.focus();
+                                    cnt.$().find("input").attr("readonly", true);
+                                }, 150);
                         },
                         selectedKey: UtilGen.SalesOrderFunc.initAction.saleInvs
                     },
@@ -1487,9 +1512,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
             ];
         },
-        //TODO_TEST IF BELOW LOWEST SELLING PRICE
-        //TODO IF ABOVE CREDIT LIMIT        
-
         beforeSaveValidateQry: function (qry) {
             var thatForm = this.thatForm;
             var flg = "";
@@ -1501,8 +1523,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             var rsrv = thatForm.frm.getFieldValue("qry1.reserved_stock");
             var errObj = function (msg, obj) {
 
-                var o = thatForm.frm.getFieldValue(obj).obj;
-                UtilGen.errorObj(obj, 1500);
+                var o = thatForm.frm.objs[obj].obj;
+                UtilGen.errorObj(o, 3500);
                 FormView.err(msg);
             };
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {

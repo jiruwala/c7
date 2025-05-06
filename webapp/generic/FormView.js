@@ -1254,6 +1254,12 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                     if (this.form.events.hasOwnProperty("afterEditRow"))
                         this.form.events.afterEditRow(qryObj, -1, undefined);
+                    if (this.firstObj != undefined) {
+                        setTimeout(function () {
+                            thatForm.firstObj.focus();
+                            thatForm.firstObj.$().find("input").select();
+                        }, 700);
+                    }
 
 
                 }
@@ -1317,8 +1323,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             this._setQryEditableObj(fld, true);
 
                     }
-                    if (this.form.events.hasOwnProperty("afterEdit"))
-                        this.form.events.afterEdit(qryObj);
+                    // if (this.form.events.hasOwnProperty("afterEdit"))
+                    //     this.form.events.afterEdit(qryObj);
 
                 } else if (qryObj.showType == FormView.QueryShowType.QUERYVIEW) {
                     if (this.form.events.hasOwnProperty("beforeEdit"))
@@ -1336,8 +1342,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     }
                     if (qryObj.status != FormView.RecordStatus.VIEW && Util.nvl(qryObj.addRowOnEmpty, false) && qryObj.obj.mLctb.rows.length == 0)
                         qryObj.obj.addRow();
-                    if (this.form.events.hasOwnProperty("afterEdit"))
-                        this.form.events.afterEdit(qryObj);
+                    // if (this.form.events.hasOwnProperty("afterEdit"))
+                    //     this.form.events.afterEdit(qryObj);
                 }
             }
 

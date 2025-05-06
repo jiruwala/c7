@@ -1,8 +1,12 @@
 sap.ui.jsfragment("bin.forms.pur.po", {
 
-    //CONTINUE Testing GRV and restrict to issue RV on 'purInvs' and 
+    //JUST_DONE Testing GRV and restrict to issue RV on 'purInvs' and 
     //      Closing PO for view only.
     //      Manually close PO for 'purInvs' type .
+
+    //LATER approve if same approved user logon
+    //PO can be Unclosed if closed , delete delivery and can delete PO
+
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -435,16 +439,18 @@ sap.ui.jsfragment("bin.forms.pur.po", {
         addOnly();
         thatForm.refreshIcons();
 
-        if (ordacc == UtilGen.PurchaseOrderFunc.initAction.purInvs
-            || ordacc == UtilGen.PurchaseOrderFunc.initAction.issueRV) {
+        if (ordacc == UtilGen.PurchaseOrderFunc.initAction.purInvs ||
+            ordacc == UtilGen.PurchaseOrderFunc.initAction.closePO
+        ) {
             thatForm.enableCommands(undefined, false);
             showOnly();
             thatForm.refreshIcons();
             return;
         }
-        if (ordacc == UtilGen.PurchaseOrderFunc.initAction.closePO) {
+        if (ordacc == UtilGen.PurchaseOrderFunc.initAction.issueRV) {
             thatForm.enableCommands(undefined, false);
-            thatForm.enableCommands(thatForm.commands.cmdClosePO, true);
+            if (aproved == 2)
+                thatForm.enableCommands(thatForm.commands.cmdClosePO, true);
             showOnly();
             thatForm.refreshIcons();
             return;
@@ -553,7 +559,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         var objGr = thatForm.frm.objs["qry1.gr_ac"].obj;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from pord1");
                         var newKNo = Util.getSQLValue("select nvl(max(ord_no),0)+1 from pord1 where ord_code=" + that.vars.vou_code);
-                        var objOa = thatForm.frm.getFieldValue("qry1.ordacc");
+                        var objOa = thatForm.frm.objs["qry1.ordacc"].obj;
                         var dt = thatForm.view.today_date.getDateValue();
 
                         UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
@@ -569,7 +575,11 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         setTimeout(() => {
                             objOn.fireSelectionChange();
                             thatForm.queryCommands();
+
                         });
+                        setTimeout(() => {
+                            objOa.$().find("input").attr("readonly", true);
+                        }, 500);
 
                         // thatForm.enableCommands(undefined, false);
                         // thatForm.enableCommands(thatForm.commands.cmdApprove, true);
@@ -577,6 +587,30 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     }
                 },
                 afterEditRow(qry, index, ld) {
+                    if (qry.name == "qry1") {
+                        var kf = thatForm.frm.getFieldValue("keyfld");
+                        var actype = thatForm.frm.getFieldValue("qry1.ordacc");
+                        if (actype == UtilGen.PurchaseOrderFunc.initAction.approve ||
+                            actype == UtilGen.PurchaseOrderFunc.initAction.none
+                        ) {
+                            var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=110 and pord1_keyfld=" + kf);
+                            if (sqDlv != 0) {
+                                thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.ord_branchno"].obj.setEditable(false);
+                                thatForm.frm.objs["qry1.branchname"].obj.setEditable(false);
+                                thatForm.frm.objs["qry2"].obj.setEditable(false);
+                            }
+                        } else {
+                            var sq = "select accno from invoicetype where location_code=':loc' and no=:ino";
+                            sq = sq.replaceAll(":loc", qry.formview.getFieldValue("qry1.location_code"))
+                                .replaceAll(":ino", qry.formview.getFieldValue("qry1.ord_type"));
+                            var ac = Util.getSQLValue(sq);
+                            if (Util.nvl(ac, '') != '')
+                                qry.formview.objs["qry1.ord_ref"].obj.setEditable(false);
+
+                        }
+                    }
                 },
                 beforeDeleteValidate: function (frm) {
                     var kf = frm.getFieldValue("qry1.keyfld");
@@ -729,12 +763,15 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             },
 
         },
+
         getFields1: function () {
             var codSpan = "XL3 L3 M3 S12";
             var fullSpan = "XL8 L8 M8 S12";
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
             return {
+                //CONTINUE FIXMEs
+                //TODO Add reference no like Invoice no , SRV No
                 ordacc: {
                     colname: "ordacc",
                     data_type: FormView.DataType.String,
@@ -756,7 +793,25 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         },
                         selectionChange: function (e) {
                             var oc = this.getSelectedKey();
+                            var cnt = this;
                             thatForm.queryCommands();
+                            if (!Util.isCBValValid(cnt)) {
+                                setTimeout(() => { cnt.focus(); }, 150);
+                            }
+
+                            setTimeout(function () {
+                                cnt.$().find("input").attr("readonly", true);
+                            }, 250);
+                        },
+                        change: function (e) {
+                            var cnt = this;
+                            thatForm.queryCommands();
+                            if (!Util.isCBValValid(cnt))
+                                setTimeout(() => {
+                                    cnt.setValue("");
+                                    cnt.focus();
+                                    cnt.$().find("input").attr("readonly", true);
+                                }, 150);
                         },
 
                         selectedKey: UtilGen.PurchaseOrderFunc.initAction.purInvs
@@ -1304,16 +1359,18 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                             if (dt.length <= 0) FormView.err("This purchase may have deleted !");
                             var saleinv = dt[0].ORD_FLAG;
                             var ordacc = dt[0].ORDACC;
+
+                            if (Util.nvl(saleinv, 1) == 3) {
+                                that2.view.byId("txtMsg" + that2.timeInLong).setText("PO is Closed !");
+                                return false;
+                            }
+
                             if (ordacc == UtilGen.PurchaseOrderFunc.initAction.purInvs
                                 || ordacc == UtilGen.PurchaseOrderFunc.initAction.issueRV)
                                 return true;
 
                             if (Util.nvl(saleinv, 1) == 2) {
                                 that2.view.byId("txtMsg" + that2.timeInLong).setText("PO is Approved !");
-                                return false;
-                            }
-                            if (Util.nvl(saleinv, 1) == 3) {
-                                that2.view.byId("txtMsg" + that2.timeInLong).setText("PO is Closed !");
                                 return false;
                             }
                         }
@@ -1416,14 +1473,40 @@ sap.ui.jsfragment("bin.forms.pur.po", {
         beforeSaveValidateQry: function (qry) {
             var thatForm = this.thatForm;
             var flg = "";
-            if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
+            var cbOrdAcc = thatForm.frm.objs["qry1.ordacc"].obj;
+            var errObj = function (msg, obj) {
 
+                var o = thatForm.frm.objs[obj].obj;
+                UtilGen.errorObj(o, 3500);
+                FormView.err(msg);
+            };
+            if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
+                flg = " flag=1 and ";
+                var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from pord1");
+                qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
+                qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
+
+
+                if (!Util.isCBValValid(cbOrdAcc))
+                    errObj("Invalid Inital aciton ", "qry1.ordacc");
+
+                //FIXME get new ord_no and invoice no if some one have entered
+
+                // var on = qry.formview.getFieldValue("qry1.ord_no");
+                // var findno = 0;
+                // if (Util.nvl(on, "") != "")
+                //     findno = Util.getSQLValue("select nvl(max(ord_no),'') from order1 where ord_no=" + on + " and ord_code=" + thatForm.vars.vou_code);
+                // if (Util.nvl(findno, '') != '') {
+                //     var no = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 where ord_code=" + thatForm.vars.vou_code);
+                //     qry.formview.setFieldValue("qry1.ord_no", no, no, true);
+                // }
             }
+            var pokf = thatForm.frm.getFieldValue("qry1.keyfld");
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
-            if (sqcnt == 0) FormView.err("Save Denied : Customer is invalid !");
+            if (sqcnt == 0) FormView.err("Save Denied : Vendor is invalid !");
             sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
-            if (sqcnt > 0) FormView.err("Save Denied : Parent customer not allowed !");
+            if (sqcnt > 0) FormView.err("Save Denied : Parent Reference not allowed !");
             //branch
             var brno = thatForm.frm.getFieldValue("qry1.ord_branchno");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from cbranch where code='" + cod + "' and brno=" + brno);
@@ -1437,6 +1520,18 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             var loc = thatForm.frm.getFieldValue("qry1.location_code");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from locations where code='" + loc + "'");
             if (sqcnt == 0) FormView.err("Save Denied : Location no is invalid !");
+            //ordacc and closed 
+            if (qry.name == "qry1" && qry.status == FormView.RecordStatus.EDIT) {
+                var podt = UtilGen.PurchaseOrderFunc.checkPOStatus(pokf, false);
+                if (podt.ORD_FLAG == 3) errObj("PO is closed !", "qry1.ord_no");
+                if (podt.ORDACC != UtilGen.PurchaseOrderFunc.initAction.purInvs &&
+                    podt.ORDACC != UtilGen.PurchaseOrderFunc.initAction.issueRV &&
+                    podt.ORDACC != UtilGen.PurchaseOrderFunc.initAction.closePO
+                    && podt.ORD_FLAG == 2)
+                    errObj("PO is opened and approved !", "qry1.ord_no");
+
+            }
+
             // items
             var dup = {};
             var ld = thatForm.frm.objs["qry2"].obj.mLctb;
