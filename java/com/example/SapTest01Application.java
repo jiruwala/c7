@@ -39,13 +39,13 @@ public class SapTest01Application extends SpringBootServletInitializer {
 	public static void main(String[] args) {
 		System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		SpringApplication.run(SapTest01Application.class, args);
-		InputStream fontStream = SapTest01Application.class.getResourceAsStream("/fonts/arial2/arial.ttf");
-		System.out.println(fontStream != null ? "Font found" : "Font NOT found");
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		String[] fontFamilies = ge.getAvailableFontFamilyNames();
-		for (String font : fontFamilies) {
-		    System.out.println(font);
-		}
+//		InputStream fontStream = SapTest01Application.class.getResourceAsStream("/fonts/arial2/arial.ttf");
+//		System.out.println(fontStream != null ? "Font found" : "Font NOT found");
+//		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+//		String[] fontFamilies = ge.getAvailableFontFamilyNames();
+//		for (String font : fontFamilies) {
+//		    System.out.println(font);
+//		}
 
 
 	}
