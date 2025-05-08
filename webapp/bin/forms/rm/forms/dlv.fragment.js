@@ -538,7 +538,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         require: true,
                         edit_allowed: false,
                         insert_allowed: true
-                    }, {}),
+                    }, {}),                    
                 ord_no: FormView.getFactoryFields.getGeneralField(
                     "ord_no", "@", "txtNo", "7%", "redText boldText", "10%",
                     {
@@ -1545,7 +1545,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             }
 
             // thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
-            that2.view.byId("txtRM" + that2.timeInLong).setText("Amount : " + df.format(sumAmt));
+            that2.view.byId("txtRM" + that2.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
             if (reAmt)
                 qv.updateDataToControl();
 

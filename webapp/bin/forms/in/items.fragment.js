@@ -1118,7 +1118,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
             }
 
             // thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
-            that2.view.byId("txtRM" + that2.timeInLong).setText("Amount : " + df.format(sumAmt));
+            that2.view.byId("txtRM" + that2.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
             if (reAmt)
                 qv.updateDataToControl();
 

@@ -341,7 +341,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     c.field_type = fldtype;
                 if (fnChange != undefined)
                     c.fnChange = fnChange;
-                if (c instanceof sap.m.InputBase)
+                if (c instanceof sap.m.InputBase) {
                     c.attachChange(function (oEvent) {
                         var _oInput = oEvent.getSource();
                         var val = _oInput.getValue();
@@ -351,6 +351,33 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             _oInput.getCustomData()[0].setKey(val);
 
                     });
+                    if (Util.nvl(c.getTooltip_AsString(), "") != "")
+                        setTimeout(() => {
+                            c.addEventDelegate({
+                                onfocusin: function (e) {
+                                    var oInput = e.srcControl;
+                                    var sTooltip = oInput.getTooltip_AsString();
+                                    UtilGen.DBView.txtStatus.setText(sTooltip);
+                                    // UtilGen.showCustomMessageToast(sTooltip, 100, "black",
+                                    //     "lightgrey", "18px", {
+                                    //     width: "50vw",
+                                    //     offset: "0 20",
+                                    //     my: sap.ui.core.Popup.Dock.CenterBottom,
+                                    //     at: sap.ui.core.Popup.Dock.CenterBottom,
+                                    // });
+                                },
+                                onfocusout: function (e) {
+                                    var oInput = e.srcControl;
+                                    UtilGen.DBView.txtStatus.setText("");
+                                    // var sTooltip = oInput.getTooltip_AsString();
+                                    // if ($(".sapMMessageToast") != undefined &&
+                                    //     $(".sapMMessageToast").length > 0 &&
+                                    //     $(".sapMMessageToast")[0].innerHTML == sTooltip)
+                                    //     $(".sapMMessageToast").remove();
+                                }
+                            });
+                        });
+                }
                 if (c instanceof sap.m.SearchField)
                     c.attachChange(function (oEvent) {
                         var _oInput = oEvent.getSource();
@@ -425,6 +452,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             _oInput.getCustomData()[0].setKey(val);
 
                     });
+                    c.attachChange(function () {
+                        if (c.getItems().length > 0 && c.getValue() != "" && !Util.isCBValValid(c))
+                            setTimeout(() => { c.focus(); c.setValue(""); c.setSelectedKey(""); }, 150);
+                    })
                 }
                 if (c instanceof sap.m.MultiComboBox && sqlStr != undefined) {
                     if (sqlStr.startsWith("@")) {
@@ -2001,23 +2032,45 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 oMessageToastDOM.css('color', "maroon");
                 oMessageToastDOM.css('background-color', "#00a4eb");
             },
-            showCustomMessageToast: function (msg, dispAfterdelay, textColor, backColor, fontSize) {
+            showCustomMessageToast: function (msg, dispAfterdelay, textColor, backColor, fontSize, sett) {
                 if (Util.nvl(dispAfterdelay, 0) > 0)
                     setTimeout(() => {
                         sap.m.MessageToast.show(Util.getLangText(msg), {
+                            ...{
+                            }, ...Util.nvl(sett, {})
                         });
                         var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
                         oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
                         oMessageToastDOM.css('background-color', Util.nvl(backColor, "#008080"));
                         oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+
+                        setTimeout(function () {
+                            $(".sapMMessageToast").css({
+                                "width": "auto",
+                                "max-width": "none",
+                                "white-space": "normal",
+                                "text-align": "left"
+                            });
+                        }, 10);
                     }, dispAfterdelay);
                 else {
                     sap.m.MessageToast.show(Util.getLangText(msg), {
+                        ...{
+                        }, ...Util.nvl(sett, {})
                     });
                     var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
                     oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
                     oMessageToastDOM.css('background-color', Util.nvl(backColor, "#008080"));
                     oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+
+                    setTimeout(function () {
+                        $(".sapMMessageToast").css({
+                            "width": "auto",
+                            "max-width": "none",
+                            "white-space": "normal",
+                            "text-align": "left"
+                        });
+                    }, 10);
                 }
 
             },
@@ -2856,7 +2909,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                             ld.setFieldValue(ldi, "DESCR", des);
                                             ld.setFieldValue(ldi, "ACCNO", acn);
                                             ld.setFieldValue(ldi, "INV_DESCR", invdes);
-
                                             if (ld.rows.length >= ldi)
                                                 ld.addRow();
                                             ldi++;
@@ -3174,7 +3226,27 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // });
 
                 },
-
+                getNewPORDNoFromQry: function (qry, vc) {
+                    var lc = qry.formview.objs["qry1.location_code"].obj.getSelectedKey();
+                    var ty = Util.extractNumber(qry.formview.objs["qry1.ord_type"].obj.getSelectedKey());
+                    return this.getNewPORDNo(lc, vc, ty);
+                },
+                getNewPORDNo: function (loc, vc, typ) {
+                    var sqln = ("select c7_pord_new_no(':loc'," +
+                        "':vou_code' , :vou_type ) from dual").replaceAll(":vou_code", vc)
+                        .replaceAll(":loc", loc)
+                        .replaceAll(":vou_type", Util.nvl(typ, -1));
+                    var vl = Util.extractNumber(Util.getSQLValue(sqln));
+                    return vl;
+                },
+                getNewPurNo: function (loc, vc, typ) {
+                    var sqln = ("select c7_pur_new_no(':loc'," +
+                        "':vou_code' , :vou_type ) from dual").replaceAll(":vou_code", vc)
+                        .replaceAll(":loc", loc)
+                        .replaceAll(":vou_type", Util.nvl(typ, -1));
+                    var vl = Util.extractNumber(Util.getSQLValue(sqln));
+                    return vl;
+                }
             },
             setFormTitle: function (frm, tit, mainPage) {
                 if (typeof frm.getParent != "undefined" && (frm.getParent() instanceof sap.m.Dialog))

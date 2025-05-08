@@ -206,7 +206,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Bottom">
-						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+						<font fontName="Arial2" size="16" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{C_CUS_NO}+" / "+$F{INV_REFNM}]]></textFieldExpression>
 				</textField>

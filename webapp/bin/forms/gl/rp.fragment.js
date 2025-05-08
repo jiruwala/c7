@@ -250,7 +250,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                                 s1 = that.frm.parseString(s1);
                             }
 
-                            var sq = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME) VALUES (1,':qry1.code',':qr1.ac_no',':qry1.name');";
+                            var sq = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME) VALUES (1,':qry1.code',':qry1.ac_no',':qry1.name');";
                             if (that2.fetchBranch && that2.qb != undefined && that2.qb.mLctb.rows.length > 0)
                                 sq = Util.nvl(that2.doUpdateBranches(), sq);
 
@@ -1290,7 +1290,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         var ld = that2.qb.mLctb;
         var sqls = "";
         var sq2 = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME,AREA,BLOCK,JEDDA,QASIMA,STREET) " +
-            " VALUES (':BRNO',':qry1.code',':qr1.ac_no',':B_NAME'," +
+            " VALUES (':BRNO',':qry1.code',':qry1.ac_no',':B_NAME'," +
             " ':AREA' ,':BLOCK' ,':JEDDA' ,':QASIMA',':STREET' );";
         var checkDuplicate = {};
         for (var i = 0; i < ld.rows.length; i++) {

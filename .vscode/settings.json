@@ -8,7 +8,10 @@
         "[ ]",
         "[x]",
         "CONTINUE",
-        "DONEXT"
+        "DONEXT",
+        "PLAN",
+        "LATER",
+        "JUST_DONE"
     ],
     "todo-tree.highlights.foregroundColourScheme": [
         "white",
@@ -19,6 +22,8 @@
         "white",
         "black",
         "white",
+        "cyan",
+        "cyan",
         "cyan"
     ],
     "todo-tree.highlights.backgroundColourScheme": [
@@ -33,5 +38,6 @@
         "black"
     ],
     "todo-tree.tree.showBadges": true,
-    "workbench.colorCustomizations": {}
+    "workbench.colorCustomizations": {},
+    "todo-tree.tree.disableCompactFolders": true
 }

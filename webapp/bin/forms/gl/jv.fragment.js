@@ -492,7 +492,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                             thatForm.frm.setFieldValue('totalcredit', df.format(sumCr));
                             thatForm.frm.setFieldValue('totDiff', df.format(sumDr - sumCr));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumDr));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumDr));
                         },
                         summary: {
                             totdebit: {

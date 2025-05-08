@@ -114,13 +114,14 @@ sap.ui.jsview('bin.Dashboard', {
             })
         }).addStyleClass("sapFShellBar");
 
-        this.txtExeCmd = new sap.m.TextArea({ height: "25px", width: "100%" });
+        this.txtExeCmd = new sap.m.TextArea({ height: "25px", width: "35%" });
         this.txtExeCmd.attachBrowserEvent("dblclick", function (e) {
             that.showPopCmd();
         });
         this.cmdExe = new sap.m.Button(
             {
                 text: "Execute",
+                width: "5%",
                 icon: "sap-icon://process",
                 press: function (e) {
                     UtilGen.execCmd(that.txtExeCmd.getValue(), that, that.txtExeCmd, that.newPage);
@@ -135,6 +136,12 @@ sap.ui.jsview('bin.Dashboard', {
         });
 
         Util.destroyID("txtWindow", this);
+        Util.destroyID("txtStatus", this);
+        this.txtStatus = new sap.m.Text(this.createId("txtStatus"), {
+            text: "",
+            width: "60%",
+        }).addStyleClass("statusBar");
+
         this.lstPgs = new sap.m.ComboBox(this.createId("txtWindow"), {
             selectionChange: function (e) {
                 that.lstPageChange();
@@ -206,6 +213,7 @@ sap.ui.jsview('bin.Dashboard', {
 
         this.pg1.push(this.pg);
         //main page where split app and shellbar will display...
+        //TODO add status bar to display texts
         this.mainPage = new sap.m.Page({
             showHeader: true,
             showFooter: true,
@@ -215,12 +223,14 @@ sap.ui.jsview('bin.Dashboard', {
             footer: [
                 new sap.m.Toolbar({
                     content: [
-                        new sap.m.Text({ text: "Pages :", width: "80px" }), this.lstPgs, nxt, this.txtExeCmd, that.cmdExe
+                        /*new sap.m.Text({ text: "Pages :", width: "80px" }),*this.lstPgs, nxt,*/
+                        this.txtStatus,
+                        this.txtExeCmd, that.cmdExe
                     ]
                 })
             ]
 
-        });
+        }).addStyleClass("statusBar");
         this.txt = new sap.m.Text().addStyleClass("redMiniText blinking");
         this.today_date = new sap.m.DatePicker({
             width: "150px",

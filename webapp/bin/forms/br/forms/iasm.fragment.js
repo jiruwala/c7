@@ -222,7 +222,7 @@ sap.ui.jsfragment("bin.forms.br.forms.iasm", {
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumAmt));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
 
                         },
                         summary: thatForm.helperFunc.getSummary()
@@ -1031,7 +1031,7 @@ sap.ui.jsfragment("bin.forms.br.forms.iasm", {
             }
 
             // thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
-            that2.view.byId("txtRM" + that2.timeInLong).setText("Amount : " + df.format(sumAmt));
+            that2.view.byId("txtRM" + that2.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
             if (reAmt)
                 qv.updateDataToControl();
 

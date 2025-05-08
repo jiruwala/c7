@@ -163,6 +163,7 @@ area:-webkit-any-link {
     background-color: #dcdcdc;
     border-width: thin;
 }
+
 .poDlvForm {
     display: block;
     padding-left: 5px;
@@ -176,6 +177,7 @@ area:-webkit-any-link {
     background-color: #b2beb5;
     border-width: thin;
 }
+
 .soForm {
     display: block;
     padding-left: 5px;
@@ -189,6 +191,7 @@ area:-webkit-any-link {
     background-color: #ffffe0;
     border-width: thin;
 }
+
 .jvForm {
     display: block;
     padding-left: 10px;
@@ -802,6 +805,14 @@ th {
     border-color: red;
     border-style: solid;
     border-width: 1px;
+}
+
+.statusBar {
+    color: black;
+    font-size: 16px;
+    font-family: '72';
+    background-color: lightgrey;
+    display: block;
 }
 
 .noColumnBorder .sapUiTableTr>td {
