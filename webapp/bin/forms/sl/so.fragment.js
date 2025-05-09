@@ -59,7 +59,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         //FIXME qih.
         var qih = " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra,'Y',o2.ord_prd_date,o2.ord_exp_date,'\"'||o2.keyfld||'\"')/o2.ord_pack qih , ";
         var rsrv = " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, "
-        var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
+        var dmlSq = "select NVL(O2.DESCR,(SELECT DESCR FROM ITEMS WHERE REFERENCE=O2.ORD_REFER)) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
             " DELIVEREDQTY/i.pack dlv_pkqty," +
             " TO_CHAR(ORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
             " TO_CHAR(ORD_EXP_DATE,'DD/MM/RRRR') ORD_EXP_DATE2, " +
@@ -137,6 +137,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             "ORD_AMT": ":qry2.totamt",
                             "ORD_DISCAMT": ":qry2.disc_amt",
                             "USERNM": Util.quoted(sett["LOGON_USER"]),
+                            "ORD_REFERENCE": "':qry1.ord_rfr'"
                         },
                         update_default_values: {
                             "ORD_AMT": ":qry2.totamt",
@@ -308,7 +309,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             thatForm.frm.setFieldValue('totcst', df.format(sumCost));
                             thatForm.frm.setFieldValue('totls', df.format(sumLs));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(netamt));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(netamt));
 
                         },
                         summary: thatForm.helperFunc.getSummary()
@@ -371,9 +372,15 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         );
 
                         if (oacc == UtilGen.SalesOrderFunc.initAction.saleInvs) {
-                            var invno = Util.getSQLValue("select invoice_no from pur1 where po_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                            var invno = Util.getSQLValue("select invoice_no from pur1 where invoice_code=21 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
                             qry.formview.setFieldValue("qry1.ord_rfr", invno, invno, true);
                         }
+
+                        if (oacc == UtilGen.SalesOrderFunc.initAction.issueDeliver) {
+                            var invno = Util.getSQLValue("select invoice_no from order1 where ord_code=9 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                            qry.formview.setFieldValue("qry1.ord_rfr", invno, invno, true);
+                        }
+
                         cb.setSelectedKey(typ);
                         qry.formview.setFieldValue("qry2.disc_amt", 0, 0, true);
                         qry.formview.setFieldValue("qry2.disc_p", 0, 0, true);
@@ -389,7 +396,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         thatForm.view.byId("rcvdTxt" + thatForm.timeInLong).setText("Delivered : " + rcvdp + " % ");
 
                     }
-                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
+                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0) {
                         qry.obj.mLctb.getColByName("ORD_REFER").beforeSearchEvent = function (sq, ctx, model) {
                             qry.obj.mLctb.getColByName("ORD_REFER").btnsx = [new sap.m.Button({
                                 text: 'Add Item in Contract',
@@ -403,6 +410,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             return thatForm.frm.parseString(sq);
                         };
 
+                        var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+                        for (var i = 0; i < ld.rows.length; i++) {
+                            if (Util.nvl(ld.getFieldValue(i, "DESCR"), "") == "")
+                                ld.setFieldValue(i, "DESCR", ld.getFieldValue(i, "DESCR2"));
+                        }
+                        thatForm.frm.objs["qry2"].obj.updateDataToControl();
+                    }
 
 
                 },
@@ -872,6 +886,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                 thatForm.frm.objs["qry1.reserved_stock"].obj.setEnabled(true);
 
                             var cnt = this;
+                            thatForm.helperFunc.setNewPurNo();
                             setTimeout(function () {
                                 cnt.$().find("input").attr("readonly", true);
                             }, 250);
@@ -904,18 +919,22 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     colname: "ord_rfr",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"txtReferSymbol\",\"width\":\"1%\","textAlign":"End","styleClass":"redText boldText"}',
+                    title: '@{\"text\":\"txtReferSymbol\",\"width\":\"0px\","textAlign":"End","styleClass":"redText boldText"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "10%" },
+                    other_settings: {
+                        editable: true,
+                        width: "11%",
+                        tooltip: Util.getLangText("ttMsgNewPurNoOnSO")
+                    },
                     edit_allowed: false,
-                    insert_allowed: false,
+                    insert_allowed: true,
                     require: false,
-                    keyboardFocus: false,
+                    keyboardFocus: true,
                 },
                 location_code: {
                     colname: "location_code",
@@ -936,10 +955,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             templateShareable: true
                         },
                         selectionChange: function (e) {
-                            vl = UtilGen.getControlValue(this);
-                            var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
-                            UtilGen.setControlValue(objOrd, "", "", true);
-
                             var cb = thatForm.frm.objs["qry1.ord_type"].obj;
                             var lo = UtilGen.getControlValue(this);
                             Util.fillCombo(cb, "select no code,descr name from invoicetype " +
@@ -951,6 +966,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                 setTimeout(() => {
                                     cb.fireSelectionChange();
                                 })
+                            }
+                            var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
+                            if (lo != "") {
+                                var nwOn = UtilGen.Vouchers.getNewPORDNo(lo, thatForm.vars.vou_code, cb.getSelectedKey());
+                                UtilGen.setControlValue(objOrd, nwOn, nwOn);
+                                thatForm.helperFunc.setNewPurNo();
                             }
                         },
                     },
@@ -1014,7 +1035,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
 
                             UtilGen.setControlValue(objOrd, "", "", true);
-
                             var sq = "select descr name ,accno from invoicetype " +
                                 " where location_code=':LOCATION' and no = ':CODE'".replaceAll(":LOCATION", vl).replaceAll(":CODE", thatForm.frm.objs["qry1.ord_type"].obj.getSelectedKey());
                             var dtx = Util.execSQLWithData(sq, "No data found ..");
@@ -1033,14 +1053,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                 else
                                     UtilGen.setControlValue(thatForm.frm.objs["qry1.ord_branchno"].obj, "", "", true);
 
-
-                                if (vl != "") {
-                                    var nwOn = Util.getSQLValue("select nvl(max(ord_no),0)+1 from pord1 " +
-                                        " where ord_code=" + thatForm.vars.vou_code +
-                                        " and ord_type='" + ot + "' " +
-                                        " and location_code=" + Util.quoted(vl));
+                                if (vl != "" && ot != "") {
+                                    var nwOn = UtilGen.Vouchers.getNewPORDNo(vl, thatForm.vars.vou_code, ot);
                                     UtilGen.setControlValue(objOrd, nwOn, nwOn);
-                                }
+                                    thatForm.helperFunc.setNewPurNo();
+                                } else
+                                    UtilGen.setControlValue(objOrd, "", "", true);
 
                             }
                         }
@@ -1055,7 +1073,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     colname: "ord_no",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"txtNo\",\"width\":\"10%\","textAlign":"End","styleClass":"redText boldText"}',
+                    title: '@{\"text\":\"txtOrdNo\",\"width\":\"10%\","textAlign":"End","styleClass":"redText boldText"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -1312,7 +1330,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     colname: "attachment",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"Attach\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"txtAttachment\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -1352,7 +1370,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     cols: [
                         {
                             colname: "ORD_NO",
-                            mTitle: Util.getLangText("txtNo"),
+                            mTitle: Util.getLangText("txtOrdNo"),
                             display_width: 75,
                             mSummary: "COUNT",
                         },
@@ -1651,6 +1669,35 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
             }
 
+        },
+        setNewPurNo: function () {
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) return;
+            var oacc = thatForm.frm.getFieldValue("qry1.ordacc");
+            var loc = thatForm.frm.objs["qry1.location_code"].obj.getSelectedKey();
+            var typ = thatForm.frm.objs["qry1.ord_type"].obj.getSelectedKey();
+
+            thatForm.frm.setFieldValue("qry1.ord_rfr", "", "", true);
+            thatForm.frm.objs["qry1.ord_rfr"].obj.setEditable(false);
+
+            if (oacc == UtilGen.SalesOrderFunc.initAction.saleInvs) {
+                thatForm.frm.objs["qry1.ord_rfr"].obj.setEditable(true);
+                if (typ != "" && loc != '') {
+                    var nw = UtilGen.Vouchers.getNewPurNo(loc, thatForm.vars.vou_code, typ);
+                    thatForm.frm.setFieldValue("qry1.ord_rfr", nw, nw, true);
+                }
+
+            }
+
+            if (oacc == UtilGen.SalesOrderFunc.initAction.issueDeliver) {
+                thatForm.frm.objs["qry1.ord_rfr"].obj.setEditable(true);
+                if (typ != "" && loc != '') {
+                    var nw = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 " +
+                        " where location_code='" + loc + "' and ord_code=9");
+                    thatForm.frm.setFieldValue("qry1.ord_rfr", nw, nw, true);
+                }
+
+            }
         }
     }
     ,

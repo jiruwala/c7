@@ -18,7 +18,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
         this.jp = this.createView();
         this.loadData();
         this.jp.onWndClose = function () {
-            sap.m.MessageToast.show("Closing the report !");
+            UtilGen.DashboardWidget.statusBarText("Closing report window...", false, undefined, false);
             that.frm.helperFunctions.destoryRV();
         };
         return this.jp;

@@ -82,7 +82,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         data[that.mLctb.cols[0].mColName].startsWith(String.fromCharCode(4094))) {
                         that.selectGroup(data[that.mLctb.cols[1].mColName], ev.getParameters().rowIndex);
                     }
-                    sap.m.MessageToast.show(that.mTable.getSelectedIndices().length + " selected");
+                    // sap.m.MessageToast.show();
+                    UtilGen.DashboardWidget.statusBarText(that.mTable.getSelectedIndices().length + " selected", true, undefined, true);
                 }
             });
             this.mTable.attachRowsUpdated(function (e) {
@@ -189,6 +190,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             });
             vb.addContent(neQr.getControl());
             // neQr.loadData();
+            neQr.getControl().view = this.getControl().view;
             neQr.getControl().addStyleClass("sapUiSizeCondensed");
             neQr.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.Row);
             neQr.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
@@ -196,8 +198,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             neQr.getControl().setFixedColumnCount(this.getControl().getFixedColumnCount());
             neQr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
 
-            neQr.showToolbar.showSearch = false;
-            neQr.showToolbar.showFilter = false;
+            neQr.showToolbar.showSearch = true;
+            neQr.showToolbar.showFilter = true;
             neQr.showToolbar.showNewWnd = false;
             neQr.showToolbar.showPersonalization = false;
             if (neQr.queryType == "tree") {
@@ -208,8 +210,17 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             neQr.showToolbar.showGroupFilter = false;
             if (this.showToolbar.filterCols.length > 0)
                 neQr.showToolbar.filterCols = this.showToolbar.filterCols.slice(0);
+            else {
+                var ld = this.mLctb;
+                var cls = [];
+                for (var li = 0; li < ld.cols.length; li++) {
+                    if (!ld.cols[li].mHideCol)
+                        cls.push(ld.cols[li].mColName);
+                }
+                neQr.showToolbar.filterCols = cls.slice(0);
+            }
 
-            neQr.createToolbar("", this.showToolbar.filterCols,
+            neQr.createToolbar("", neQr.showToolbar.filterCols,
                 function (prsn, qv) {
                 },
 
@@ -686,7 +697,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     var str = e.getSource().getCustomData()[0].getKey();
                     var str2 = JSON.parse("{" + e.getSource().getCustomData()[1].getKey() + "}");
 
-                    sap.m.MessageToast.show(str2.TITLE);
+                    // sap.m.MessageToast.show(str2.TITLE);
+                    UtilGen.DashboardWidget.statusBarText(str2.TITLE, true, undefined, true);
                     that.callBackListSelect(str2);
                 },
                 title: "{TITLE}",
@@ -1286,7 +1298,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             sst = sst.replaceAll(lst[i], vl);
                         }
 
-                        sap.m.MessageToast.show(sst);
+                        // sap.m.MessageToast.show();
+                        UtilGen.DashboardWidget.statusBarText(sst, true, undefined, true);
                         UtilGen.execCmd(sst, that.getControl().view, this, undefined);
                     });
 
@@ -2482,9 +2495,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                                         sst = sst.replaceAll(lst[i], vl);
                                     }
                                 else
-
-
-                                    sap.m.MessageToast.show(sst);
+                                    // sap.m.MessageToast.show(sst);
+                                    UtilGen.DashboardWidget.statusBarText(sst, true, undefined, true);
                                 UtilGen.execCmd(sst, that.getControl().view, this, undefined);
                             });
                         }
@@ -3163,7 +3175,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     var str = e.getSource().getCustomData()[0].getKey();
                     that.mViewSettings["filterStr"] = str;
                     that.loadData();
-                    sap.m.MessageToast.show("Filtered # " + that.mLctb.rows.length + " rows..");
+                    // sap.m.MessageToast.show();
+                    UtilGen.DashboardWidget.statusBarText("Filtered # " + that.mLctb.rows.length + " rows..", true, undefined, true);
 
                 },
                 title: "{DISPLAY}",

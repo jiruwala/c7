@@ -341,7 +341,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     c.field_type = fldtype;
                 if (fnChange != undefined)
                     c.fnChange = fnChange;
-                if (c instanceof sap.m.InputBase)
+                if (c instanceof sap.m.InputBase) {
                     c.attachChange(function (oEvent) {
                         var _oInput = oEvent.getSource();
                         var val = _oInput.getValue();
@@ -351,6 +351,30 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             _oInput.getCustomData()[0].setKey(val);
 
                     });
+                    if (Util.nvl(c.getTooltip_AsString(), "") != "")
+                        setTimeout(() => {
+                            c.addEventDelegate({
+                                onfocusin: function (e) {
+                                    var oInput = e.srcControl;
+                                    var sTooltip = oInput.getTooltip_AsString();
+                                    UtilGen.DashboardWidget.statusBarText(sTooltip, false, undefined,
+                                        //     function (msg) {
+                                        //     UtilGen.showCustomMessageToast(msg, 100, "black",
+                                        //         "lightgrey", "18px", {
+                                        //         width: "50vw",
+                                        //         offset: "0 20",
+                                        //         my: sap.ui.core.Popup.Dock.CenterBottom,
+                                        //         at: sap.ui.core.Popup.Dock.CenterBottom,
+                                        //     });
+                                        // }
+                                    );
+                                },
+                                onfocusout: function (e) {
+                                    UtilGen.DashboardWidget.statusBarText("", false, undefined);
+                                }
+                            });
+                        });
+                }
                 if (c instanceof sap.m.SearchField)
                     c.attachChange(function (oEvent) {
                         var _oInput = oEvent.getSource();
@@ -425,6 +449,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             _oInput.getCustomData()[0].setKey(val);
 
                     });
+                    c.attachChange(function () {
+                        if (c.getItems().length > 0 && c.getValue() != "" && !Util.isCBValValid(c))
+                            setTimeout(() => { c.focus(); c.setValue(""); c.setSelectedKey(""); }, 150);
+                    })
                 }
                 if (c instanceof sap.m.MultiComboBox && sqlStr != undefined) {
                     if (sqlStr.startsWith("@")) {
@@ -1526,7 +1554,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }
                 }
                 if (fnd > 0) {
-                    sap.m.MessageToast.show(fnd + " Field(s)  must have value !");
+                    // sap.m.MessageToast.show();
+                    UtilGen.DashboardWidget.statusBarText(fnd + " Field(s)  must have value !", false, undefined, false);
                     setTimeout(function () {
                         for (var i in errobjs) {
                             errobjs[i].addStyleClass("errBack");
@@ -1797,13 +1826,15 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             sp = UtilGen.openForm("bin.forms." + dtx.formName, con, pms, view);
                         }
                         catch (err) {
-                            sap.m.MessageToast.show("Err ! opening form " + "bin.forms." + dtx.formName);
+                            // sap.m.MessageToast.show("Err ! opening form " + "bin.forms." + dtx.formName);
+                            UtilGen.DashboardWidget.statusBarText("Err ! opening form " + "bin.forms." + dtx, true, undefined, true);
                             throw err;
                             return;
                         }
 
                     if (sp == undefined) {
-                        sap.m.MessageToast.show(dtx.formName + " fragment not found !");
+                        // sap.m.MessageToast.show(dtx.formName + " fragment not found !");
+                        UtilGen.DashboardWidget.statusBarText(dtx.formName + " fragment not found !", true, undefined, true);
                         return;
                     }
                     sp.backFunction = function () {
@@ -1839,7 +1870,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 if (pOnWndClose != undefined)
                                     pOnWndClose();
                                 sp.destroy();
-                                sap.m.MessageToast.show("Removing this page..");
+                                UtilGen.DashboardWidget.statusBarText("Removing this page..", false, undefined, true);
                                 view.app.toDetail(view.pg, "show");
                                 // view.loadData();
                                 if (view.lstPgs.getItems().length == 1)
@@ -1856,7 +1887,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 view.app.toDetail(pgx, "slide");
                                 sp.backFunction = function () {
                                     view.destroyPage(pgx);
-                                    sap.m.MessageToast.show("Removing this page..");
+                                    UtilGen.DashboardWidget.statusBarText("Removing this page..", false, undefined, true);
                                     sp.destroy();
                                     view.app.toDetail(view.pg, "show");
                                     // view.loadData();
@@ -1866,7 +1897,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 };
                             }
                             else {
-                                sap.m.MessageToast.show(dtx.formName + " Can't open...!");
+                                // sap.m.MessageToast.show();
+                                UtilGen.DashboardWidget.statusBarText(dtx.formName + " Can't open...!", true, undefined, true);
                                 return;
                             }
 
@@ -2001,23 +2033,47 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 oMessageToastDOM.css('color', "maroon");
                 oMessageToastDOM.css('background-color', "#00a4eb");
             },
-            showCustomMessageToast: function (msg, dispAfterdelay, textColor, backColor, fontSize) {
+            showCustomMessageToast: function (msg, dispAfterdelay, textColor, backColor, fontSize, sett) {
                 if (Util.nvl(dispAfterdelay, 0) > 0)
                     setTimeout(() => {
                         sap.m.MessageToast.show(Util.getLangText(msg), {
+                            ...{
+                            }, ...Util.nvl(sett, {})
                         });
                         var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
                         oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
                         oMessageToastDOM.css('background-color', Util.nvl(backColor, "#008080"));
                         oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+
+                        setTimeout(function () {
+                            $(".sapMMessageToast").css({
+                                "width": "auto",
+                                "max-width": "none",
+                                "white-space": "normal",
+                                "text-align": "left"
+                            });
+                        }, 10);
+                        UtilGen.DashboardWidget.statusBarText(Util.getLangText(msg).substr(0, 200), false, undefined, false);
                     }, dispAfterdelay);
                 else {
                     sap.m.MessageToast.show(Util.getLangText(msg), {
+                        ...{
+                        }, ...Util.nvl(sett, {})
                     });
                     var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
                     oMessageToastDOM.css('color', Util.nvl(textColor, "#fff"));
                     oMessageToastDOM.css('background-color', Util.nvl(backColor, "#008080"));
                     oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
+
+                    setTimeout(function () {
+                        $(".sapMMessageToast").css({
+                            "width": "auto",
+                            "max-width": "none",
+                            "white-space": "normal",
+                            "text-align": "left"
+                        });
+                    }, 10);
+                    UtilGen.DashboardWidget.statusBarText(Util.getLangText(msg).substr(0, 200), false, undefined, false);
                 }
 
             },
@@ -2386,6 +2442,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.showFilter = false;
                     qrj.showToolbar.showGroupFilter = false;
                     qrj.showToolbar.showPersonalization = false;
+                    qrj.showToolbar.showNewWnd = true;
                     qrj.createToolbar("", [],
                         // EVENT ON APPLY PERSONALIZATION
                         function (prsn, qv) {
@@ -2553,6 +2610,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }, "100%", "50%", undefined, false);
 
                     });
+                    var btNw = new sap.m.Button(this.tableId + "cmdNewWnd", {
+                        icon: "sap-icon://full-screen", press: function () {                            
+                            qrj.createNewWnd();
+                        }
+                    });
                     qrj.showToolbar.toolbar.removeAllContent();
                     qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
 
@@ -2565,6 +2627,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                     qrj.showToolbar.toolbar.addContent(txt);
                     qrj.showToolbar.toolbar.addContent(btf);
+                    qrj.showToolbar.toolbar.addContent(btf);
+                    qrj.showToolbar.toolbar.addContent(btNw);
                     scrollObjs.push(qrj.showToolbar.toolbar);
                 },
                 attachLoadQry: function (frm, qry, kindof, refer) {
@@ -2856,7 +2920,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                             ld.setFieldValue(ldi, "DESCR", des);
                                             ld.setFieldValue(ldi, "ACCNO", acn);
                                             ld.setFieldValue(ldi, "INV_DESCR", invdes);
-
                                             if (ld.rows.length >= ldi)
                                                 ld.addRow();
                                             ldi++;
@@ -3174,7 +3237,27 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     // });
 
                 },
-
+                getNewPORDNoFromQry: function (qry, vc) {
+                    var lc = qry.formview.objs["qry1.location_code"].obj.getSelectedKey();
+                    var ty = Util.extractNumber(qry.formview.objs["qry1.ord_type"].obj.getSelectedKey());
+                    return this.getNewPORDNo(lc, vc, ty);
+                },
+                getNewPORDNo: function (loc, vc, typ) {
+                    var sqln = ("select c7_pord_new_no(':loc'," +
+                        "':vou_code' , :vou_type ) from dual").replaceAll(":vou_code", vc)
+                        .replaceAll(":loc", loc)
+                        .replaceAll(":vou_type", Util.nvl(typ, -1));
+                    var vl = Util.extractNumber(Util.getSQLValue(sqln));
+                    return vl;
+                },
+                getNewPurNo: function (loc, vc, typ) {
+                    var sqln = ("select c7_pur_new_no(':loc'," +
+                        "':vou_code' , :vou_type ) from dual").replaceAll(":vou_code", vc)
+                        .replaceAll(":loc", loc)
+                        .replaceAll(":vou_type", Util.nvl(typ, -1));
+                    var vl = Util.extractNumber(Util.getSQLValue(sqln));
+                    return vl;
+                }
             },
             setFormTitle: function (frm, tit, mainPage) {
                 if (typeof frm.getParent != "undefined" && (frm.getParent() instanceof sap.m.Dialog))
@@ -3699,7 +3782,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds) {
+            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds, showNewWnd) {
                 qrj.createToolbar("", [],
                     // EVENT ON APPLY PERSONALIZATION
                     function (prsn, qv) {
@@ -3814,6 +3897,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (Util.nvl(findCols, []).length > 0) {
                     qrj.showToolbar.toolbar.addContent(txt);
                     qrj.showToolbar.toolbar.addContent(btf);
+                }
+                if (Util.nvl(showNewWnd, true)) {
+                    var bw = new sap.m.Button({
+                        icon: "sap-icon://full-screen", press: function () {
+                            qrj.createNewWnd();
+                        }
+                    });
+                    qrj.showToolbar.toolbar.addContent(bw);
                 }
 
             },
@@ -4312,7 +4403,44 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }, 300);
                     oGCell1.gauge = g;
                     return oGCell1;
+                },
+                statusBarText: function (msg, blink, blinkTime, showtoast) {
+
+                    if (Util.nvl(msg, "") != "")
+                        UtilGen.DBView.txtStatus.setText(msg);
+                    else {
+                        UtilGen.DBView.txtStatus.setText(msg);
+                        UtilGen.DBView.txtStatus.removeStyleClass("blinking");
+                        if (showtoast != undefined) {
+                            if ($(".sapMMessageToast") != undefined &&
+                                $(".sapMMessageToast").length > 0)
+                                $(".sapMMessageToast").remove();
+                        }
+                        return;
+                    }
+                    if (Util.nvl(showtoast, undefined) != undefined && typeof showtoast == "function")
+                        showtoast(msg);
+
+                    if (Util.nvl(showtoast, undefined) != undefined && typeof showtoast != "function" && showtoast)
+                        sap.m.MessageToast.show(msg);
+
+                    UtilGen.DBView.txtStatus.removeStyleClass("blinking")
+
+                    if (Util.nvl(blink, false)) {
+                        UtilGen.DBView.txtStatus.addStyleClass("blinking")
+                        setTimeout(() => {
+                            UtilGen.DBView.txtStatus.removeStyleClass("blinking")
+                        }, Util.nvl(blinkTime, 2500))
+                    }
+                    setTimeout(() => {
+                        // if (msg == UtilGen.DBView.txtStatus.getText() == msg) {
+                        UtilGen.DBView.txtStatus.removeStyleClass("blinking")
+                        UtilGen.DBView.txtStatus.setText("");
+                        // }
+                    }, 8000)
+
                 }
+
             }
 
         };

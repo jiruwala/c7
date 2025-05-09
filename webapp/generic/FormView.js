@@ -62,12 +62,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
         FormView.err = function (msg) {
             sap.m.MessageToast.show(msg, {
-                my: sap.ui.core.Popup.Dock.RightBottom,
-                at: sap.ui.core.Popup.Dock.RightBottom,
+                my: sap.ui.core.Popup.Dock.CenterBottom,
+                at: sap.ui.core.Popup.Dock.CenterBottom,
                 duraiton: 10000
             });
             var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
             oMessageToastDOM.css('color', "red");
+            UtilGen.DashboardWidget.statusBarText(Util.nvl(msg, "").substr(0, 200), true);
             throw msg;
         };
         FormView.msgSuccess = function (msg) {
@@ -76,6 +77,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
             oMessageToastDOM.css('color', "darkgreen");
             oMessageToastDOM.css('font-size', "18px");
+            UtilGen.DashboardWidget.statusBarText(Util.nvl(msg, "").substr(0, 200), true);
             // throw "FormView Error: " + msg;
         };
         FormView.msgCustom = function (msg, color, bkcolor, fontSize) {
@@ -85,6 +87,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             oMessageToastDOM.css('color', Util.nvl(color, "black"));
             oMessageToastDOM.css('font-size', Util.nvl(fontSize, "18px"));
             oMessageToastDOM.css('background-color', Util.nvl(bkcolor, "white"));
+            UtilGen.DashboardWidget.statusBarText(Util.nvl(msg, "").substr(0, 200), true);
             // throw "FormView Error: " + msg;
         };
 
@@ -148,15 +151,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             STATIC: "static"
         };
 
-        FormView.err = function (msg, align) {
-            sap.m.MessageToast.show(msg, {
-                my: Util.nvl(align, sap.ui.core.Popup.Dock.CenterBottom),
-                at: Util.nvl(align, sap.ui.core.Popup.Dock.CenterBottom)
-            });
-            var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
-            oMessageToastDOM.css('color', "red");
-            throw "FormView Error: " + msg;
-        };
 
         FormView.create = function (pg) {
             var q = new FormView(pg);
@@ -424,9 +418,11 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
         };
         FormView.prototype.err = function (msg) {
-            sap.m.MessageToast.show("FormView Error " + msg, {
-                my: sap.ui.core.Popup.Dock.RightBottom,
-                at: sap.ui.core.Popup.Dock.RightBottom
+            UtilGen.DashboardWidget.statusBarText(Util.nvl(msg, "").substr(0, 200), true, undefined, function (msg) {
+                sap.m.MessageToast.show("FormView Error " + msg, {
+                    my: sap.ui.core.Popup.Dock.CenterBottom,
+                    at: sap.ui.core.Popup.Dock.CenterBottom
+                });
             });
             var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
             oMessageToastDOM.css('color', "red");
@@ -506,7 +502,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 } else if (this.form.db[q].showType == FormView.QueryShowType.QUERYVIEW) {
                     var qr = this.form.db[q];
                     qr.obj = new QueryView(qr.name + "_" + this.timeInLong);
-                    qr.obj.getControl().view = this;
+                    qr.obj.getControl().view = this.view;
                     qr.obj.getControl().addStyleClass("sapUiSizeCondensed");
                     qr.obj.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                     qr.obj.getControl().setFixedBottomRowCount(0);
@@ -1241,7 +1237,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         // this.cmdButtons.cmdEdit.setEnabled(false);
                         // qryObj.status = FormView.RecordStatus.VIEW;
                         qryObj.status = oldStat;
-                        sap.m.MessageToast.show(Util.quoted(qryObj.name) + ": Unable to set EDIT mode !");
+                        UtilGen.DashboardWidget.statusBarText(Util.quoted(qryObj.name) + ": Unable to set EDIT mode !", true, undefined, true);
                         continue;
                         // status = "view";
                         // return;
@@ -1271,7 +1267,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         // this.cmdButtons.cmdNew.setEnabled(false);
                         this._setQryDisableForEditing(qryObj);
                         qryObj.status = oldStat;
-                        sap.m.MessageToast.show(Util.quoted(qryObj.name) + ":Unable to set INSERT mode !");
+                        // sap.m.MessageToast.show();
+                        UtilGen.DashboardWidget.statusBarText(Util.quoted(qryObj.name) + ":Unable to set INSERT mode !", true, undefined, true);
                         continue;
                         // status = "view";
                     }

@@ -756,7 +756,7 @@ sap.ui.jsfragment("bin.forms.pur.poship", {
                 var ld = qv.mLctb;
                 for (var i = 0; i < ld.rows.length; i++)
                     sumAmt += Util.extractNumber(ld.getFieldValue(i, "AMOUNT"));
-                that2.view.byId("txtRM" + that2.timeInLong).setText("Amount : " + df.format(sumAmt));
+                that2.view.byId("txtRM" + that2.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
             };
             var fetchData = function () {
 

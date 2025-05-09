@@ -221,7 +221,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumAmt));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
 
                         },
                         summary: thatForm.helperFunc.getSummary()

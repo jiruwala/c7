@@ -1351,7 +1351,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 var refreshData = function () {
                     qv = Util.showSearchTable(sql, vbox, cols, function () {
                         if (Util.nvl(multiSelect, false) == false) {
-                            sap.m.MessageToast.show("selected !");
+                            // sap.m.MessageToast.show("selected !");
                             btn.firePress();
                         }
                     }, Util.nvl(multiSelect, false), ppms, dta, jsCmd, btnRfrsh, cmdList);
