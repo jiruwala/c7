@@ -244,10 +244,10 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             "               o.ord_date," +
             "               COUNT (o.ord_no) counting," +
             "                 sum(tqty) tqty , " +
-            "               GETAVGPRICEDLV_BUY(o.keyfld) AVG_PRICE ," +
-            "               GETSUMPRICEDLV_BUY(o.keyfld) AMOUNT," +
+            "               GETAVGPRICEDLV_BUY(o.keyfld,'N') AVG_PRICE ," +
+            "               sum((sale_price/pack)*tqty) AMOUNT," +
             "               NVL (SUM (OP_NO * TQTY), 0) ADD_AMT," +
-            "               GETSUMPRICEDLV_BUY(o.keyfld) + NVL (SUM (OP_NO * TQTY), 0) NET_AMT, " +
+            "                sum((sale_price/pack)*tqty) + NVL (SUM (OP_NO * TQTY), 0) NET_AMT, " +
             "               o.ord_discamt," +
             "               cbranch.b_name branchname," +
             "               o.KEYFLD" +
@@ -277,8 +277,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             "               o.ORD_NO," +
             "               o.KEYFLD," +
             "               o.ATTN," +
-            "               GETAVGPRICEDLV_BUY(o.keyfld) , " +
-            "               GETSUMPRICEDLV_BUY(o.keyfld), " +
+            "               GETAVGPRICEDLV_BUY(o.keyfld,'N') ," +
             "               o.ORD_DISCAMT";
 
         var dt = Util.execSQL(sq);
@@ -427,7 +426,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
             Util.getLabelTxt("locationTxt", "20%"), this.txtInfoLocations,
             Util.getLabelTxt("txtInvType", "20%", "@"), this.txtInfoInvType,
-            Util.getLabelTxt("txtInvNo", "20%", "","boldText redText"), this.txtInfoInvNo,
+            Util.getLabelTxt("txtInvNo", "20%", "", "boldText redText"), this.txtInfoInvNo,
             Util.getLabelTxt("dateTxt", "20%", "@"), this.txtInfoInvDate,
             Util.getLabelTxt("rcptDateTxt", "75%", "", "redText"), this.txtInfoRcptDate,
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
@@ -668,7 +667,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             }
             if (kfldStr.length <= 0)
                 FormView.err("No rows selected !");
-            var sq = "select nvl(sum(get_item_price2_buy(o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date)*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
+            var sq = "select nvl(sum((o.sale_price/o.ord_pack)*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
             sq = sq.replaceAll(":txtKflds", kfldStr);
             var sum = Util.getSQLValue(sq);
             that.txtInfoGross.setValue(df.format(sum));
@@ -690,7 +689,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
         var invdt = UtilGen.getControlValue(this.txtInfoInvDate);
         var rdt = UtilGen.getControlValue(this.txtInfoRcptDate);
         var sqp = "";
-        sqp = "pr:=get_item_price2_buy(x.ord_ship,x.ord_ref,x.ord_discamt,x.ord_date);";
+        sqp = "pr:=x.sale_price/x.pack;";
         that.calcInfoAmt(true);
         var sq = "declare " +
             " pcode varchar2(255):=repair.GETSETUPVALUE_2('CURRENT_PERIOD');" +

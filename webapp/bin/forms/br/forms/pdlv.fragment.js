@@ -844,7 +844,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     colname: "payterm",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"truckNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '{\"text\":\"truckNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
