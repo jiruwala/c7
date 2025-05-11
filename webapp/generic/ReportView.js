@@ -493,11 +493,14 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                             if (rep.db[i].showType == FormView.QueryShowType.QUERYVIEW)
                                 msg2 += msg.replaceAll(":qry", rep.db[i].name).replaceAll(":filtered", rep.db[i].obj.mLctb.rows.length);
                         if (Util.nvl(msg2, "").trim() != "")
-                            sap.m.MessageToast.show(msg2, {
-                                my: sap.ui.core.Popup.Dock.RightBottom,
-                                at: sap.ui.core.Popup.Dock.RightBottom
-                            });
+                            UtilGen.DashboardWidget.statusBarText(msg2, true, undefined, true, function (msg2) {
+                                sap.m.MessageToast.show(msg2, {
+                                    my: sap.ui.core.Popup.Dock.RightBottom,
+                                    at: sap.ui.core.Popup.Dock.RightBottom
+                                });
 
+                            }
+                            );
                         var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
                         oMessageToastDOM.css('color', "red");
 
@@ -1352,7 +1355,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
                                             var dt = Util.execSQL(sq);
                                             if (dt.ret == "SUCCESS")
-                                                sap.m.MessageToast.show("Saved personalization to this query");
+                                                sap.m.MessageToast.show("Saved personalization to this query");                                            
                                         },
                                         // EVENT ON REVERT PERSONALIZATION TO ORIGINAL
                                         function (qv) {
@@ -1864,7 +1867,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                                         // var qrno = this.getCustomData()[0].getKey()
                                         // thatRV.helperFunctions.masterDetails.searchMaster(qryObj);
                                         Util.show_list("", undefined, undefined, function (data, idxno) {
-                                            sap.m.MessageToast.show("selected");
+                                            UtilGen.DashboardWidget.statusBarText(Util.getLangText("txtSelected") + "...");
                                             //moving to new position according to index no
                                             qryObj.masterTable.cursorNo = 0;
                                             thatRV.helperFunctions.masterDetails.setCursorMove(idxno, qryObj, true);

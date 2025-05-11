@@ -807,11 +807,18 @@ th {
     border-width: 1px;
 }
 
-.statusBar {
-    color: black;
+.sapMIBar.sapMFooter-CTX {
+    color: red !important;
     font-size: 16px;
     font-family: '72';
-    background-color: lightgrey;
+    background-color: #d3d3d3 !important;
+
+}
+
+.statusBar {
+    color: maroon;
+    font-size: 16px;
+    font-family: '72';
     display: block;
 }
 

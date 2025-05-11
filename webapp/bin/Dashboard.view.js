@@ -213,7 +213,7 @@ sap.ui.jsview('bin.Dashboard', {
 
         this.pg1.push(this.pg);
         //main page where split app and shellbar will display...
-        //TODO add status bar to display texts
+        //TODO_DONE add status bar to display texts 
         this.mainPage = new sap.m.Page({
             showHeader: true,
             showFooter: true,
@@ -227,10 +227,10 @@ sap.ui.jsview('bin.Dashboard', {
                         this.txtStatus,
                         this.txtExeCmd, that.cmdExe
                     ]
-                })
+                }).addStyleClass("reportMainPageToolbar")
             ]
 
-        }).addStyleClass("statusBar");
+        });
         this.txt = new sap.m.Text().addStyleClass("redMiniText blinking");
         this.today_date = new sap.m.DatePicker({
             width: "150px",

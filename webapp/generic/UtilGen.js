@@ -357,23 +357,20 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 onfocusin: function (e) {
                                     var oInput = e.srcControl;
                                     var sTooltip = oInput.getTooltip_AsString();
-                                    UtilGen.DBView.txtStatus.setText(sTooltip);
-                                    // UtilGen.showCustomMessageToast(sTooltip, 100, "black",
-                                    //     "lightgrey", "18px", {
-                                    //     width: "50vw",
-                                    //     offset: "0 20",
-                                    //     my: sap.ui.core.Popup.Dock.CenterBottom,
-                                    //     at: sap.ui.core.Popup.Dock.CenterBottom,
-                                    // });
+                                    UtilGen.DashboardWidget.statusBarText(sTooltip, false, undefined,
+                                        //     function (msg) {
+                                        //     UtilGen.showCustomMessageToast(msg, 100, "black",
+                                        //         "lightgrey", "18px", {
+                                        //         width: "50vw",
+                                        //         offset: "0 20",
+                                        //         my: sap.ui.core.Popup.Dock.CenterBottom,
+                                        //         at: sap.ui.core.Popup.Dock.CenterBottom,
+                                        //     });
+                                        // }
+                                    );
                                 },
                                 onfocusout: function (e) {
-                                    var oInput = e.srcControl;
-                                    UtilGen.DBView.txtStatus.setText("");
-                                    // var sTooltip = oInput.getTooltip_AsString();
-                                    // if ($(".sapMMessageToast") != undefined &&
-                                    //     $(".sapMMessageToast").length > 0 &&
-                                    //     $(".sapMMessageToast")[0].innerHTML == sTooltip)
-                                    //     $(".sapMMessageToast").remove();
+                                    UtilGen.DashboardWidget.statusBarText("", false, undefined);
                                 }
                             });
                         });
@@ -1557,7 +1554,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }
                 }
                 if (fnd > 0) {
-                    sap.m.MessageToast.show(fnd + " Field(s)  must have value !");
+                    // sap.m.MessageToast.show();
+                    UtilGen.DashboardWidget.statusBarText(fnd + " Field(s)  must have value !", false, undefined, false);
                     setTimeout(function () {
                         for (var i in errobjs) {
                             errobjs[i].addStyleClass("errBack");
@@ -1828,13 +1826,15 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             sp = UtilGen.openForm("bin.forms." + dtx.formName, con, pms, view);
                         }
                         catch (err) {
-                            sap.m.MessageToast.show("Err ! opening form " + "bin.forms." + dtx.formName);
+                            // sap.m.MessageToast.show("Err ! opening form " + "bin.forms." + dtx.formName);
+                            UtilGen.DashboardWidget.statusBarText("Err ! opening form " + "bin.forms." + dtx, false, undefined, false);
                             throw err;
                             return;
                         }
 
                     if (sp == undefined) {
-                        sap.m.MessageToast.show(dtx.formName + " fragment not found !");
+                        // sap.m.MessageToast.show(dtx.formName + " fragment not found !");
+                        UtilGen.DashboardWidget.statusBarText(dtx.formName + " fragment not found !", false, undefined, false);
                         return;
                     }
                     sp.backFunction = function () {
@@ -1870,7 +1870,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 if (pOnWndClose != undefined)
                                     pOnWndClose();
                                 sp.destroy();
-                                sap.m.MessageToast.show("Removing this page..");
+                                UtilGen.DashboardWidget.statusBarText("Removing this page..", false, undefined, true);
                                 view.app.toDetail(view.pg, "show");
                                 // view.loadData();
                                 if (view.lstPgs.getItems().length == 1)
@@ -1887,7 +1887,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 view.app.toDetail(pgx, "slide");
                                 sp.backFunction = function () {
                                     view.destroyPage(pgx);
-                                    sap.m.MessageToast.show("Removing this page..");
+                                    UtilGen.DashboardWidget.statusBarText("Removing this page..", false, undefined, true);
                                     sp.destroy();
                                     view.app.toDetail(view.pg, "show");
                                     // view.loadData();
@@ -1897,7 +1897,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 };
                             }
                             else {
-                                sap.m.MessageToast.show(dtx.formName + " Can't open...!");
+                                // sap.m.MessageToast.show();
+                                UtilGen.DashboardWidget.statusBarText(dtx.formName + " Can't open...!", true, undefined, true);
                                 return;
                             }
 
@@ -2052,6 +2053,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 "text-align": "left"
                             });
                         }, 10);
+                        UtilGen.DashboardWidget.statusBarText(Util.getLangText(msg).substr(0, 200), false, undefined, false);
                     }, dispAfterdelay);
                 else {
                     sap.m.MessageToast.show(Util.getLangText(msg), {
@@ -2071,6 +2073,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             "text-align": "left"
                         });
                     }, 10);
+                    UtilGen.DashboardWidget.statusBarText(Util.getLangText(msg).substr(0, 200), false, undefined, false);
                 }
 
             },
@@ -4384,7 +4387,44 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }, 300);
                     oGCell1.gauge = g;
                     return oGCell1;
+                },
+                statusBarText: function (msg, blink, blinkTime, showtoast) {
+
+                    if (Util.nvl(msg, "") != "")
+                        UtilGen.DBView.txtStatus.setText(msg);
+                    else {
+                        UtilGen.DBView.txtStatus.setText(msg);
+                        UtilGen.DBView.txtStatus.removeStyleClass("blinking");
+                        if (showtoast != undefined) {
+                            if ($(".sapMMessageToast") != undefined &&
+                                $(".sapMMessageToast").length > 0)
+                                $(".sapMMessageToast").remove();
+                        }
+                        return;
+                    }
+                    if (Util.nvl(showtoast, undefined) != undefined && typeof showtoast == "function")
+                        showtoast(msg);
+
+                    if (Util.nvl(showtoast, undefined) != undefined && typeof showtoast != "function" && showtoast)
+                        sap.m.MessageToast.show(msg);
+
+                    UtilGen.DBView.txtStatus.removeStyleClass("blinking")
+
+                    if (Util.nvl(blink, false)) {
+                        UtilGen.DBView.txtStatus.addStyleClass("blinking")
+                        setTimeout(() => {
+                            UtilGen.DBView.txtStatus.removeStyleClass("blinking")
+                        }, Util.nvl(blinkTime, 2500))
+                    }
+                    setTimeout(() => {
+                        // if (msg == UtilGen.DBView.txtStatus.getText() == msg) {
+                        UtilGen.DBView.txtStatus.removeStyleClass("blinking")
+                        UtilGen.DBView.txtStatus.setText("");
+                        // }
+                    }, 8000)
+
                 }
+
             }
 
         };
