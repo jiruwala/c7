@@ -542,7 +542,7 @@ sap.ui.jsview('bin.Dashboard', {
         var al = new sap.m.CheckBox(this.createId("chkAuto"), {
             width: "100%",
             selected: false,
-            text: " Save credentials"
+            text: "Full screen"
         }).addStyleClass("");
 
         var fnInitChange = function (ev) {
@@ -678,12 +678,15 @@ sap.ui.jsview('bin.Dashboard', {
                 icon: "sap-icon://initiative",
                 press: function () {
                     if (that.loginPress()) {
+
                         sap.m.MessageToast.show(Util.getLangText("loginMsg1"));
                         that.loadData_main();
                         that.show_main_menus();
                         dlg.close();
                         setTimeout(function () {
                             that.exeParams();
+                            if (al.getSelected())
+                                Util.goFullscreen();
                         }, 1000);
                     }
 

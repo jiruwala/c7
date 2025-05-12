@@ -176,6 +176,16 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 // console.log(content);
                 return jQuery.ajax(params);
             },
+            goFullscreen: function () {
+                var element = document.documentElement;
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.webkitRequestFullscreen) { // Safari
+                    element.webkitRequestFullscreen();
+                } else if (element.msRequestFullscreen) { // IE11
+                    element.msRequestFullscreen();
+                }
+            },
             sleep: function (ms) {
                 var e = new Date().getTime() + (ms);
                 while (new Date().getTime() <= e) { }
