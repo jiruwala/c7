@@ -59,7 +59,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         //FIXME qih.
         var qih = " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra,'Y',o2.ord_prd_date,o2.ord_exp_date,'\"'||o2.keyfld||'\"')/o2.ord_pack qih , ";
         var rsrv = " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, "
-        var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
+        var dmlSq = "select NVL(O2.DESCR,(SELECT DESCR FROM ITEMS WHERE REFERENCE=O2.ORD_REFER)) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
             " DELIVEREDQTY/i.pack dlv_pkqty," +
             " TO_CHAR(ORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
             " TO_CHAR(ORD_EXP_DATE,'DD/MM/RRRR') ORD_EXP_DATE2, " +
@@ -309,7 +309,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             thatForm.frm.setFieldValue('totcst', df.format(sumCost));
                             thatForm.frm.setFieldValue('totls', df.format(sumLs));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(netamt));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(netamt));
 
                         },
                         summary: thatForm.helperFunc.getSummary()
@@ -396,7 +396,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         thatForm.view.byId("rcvdTxt" + thatForm.timeInLong).setText("Delivered : " + rcvdp + " % ");
 
                     }
-                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
+                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0) {
                         qry.obj.mLctb.getColByName("ORD_REFER").beforeSearchEvent = function (sq, ctx, model) {
                             qry.obj.mLctb.getColByName("ORD_REFER").btnsx = [new sap.m.Button({
                                 text: 'Add Item in Contract',
@@ -410,6 +410,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             return thatForm.frm.parseString(sq);
                         };
 
+                        var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+                        for (var i = 0; i < ld.rows.length; i++) {
+                            if (Util.nvl(ld.getFieldValue(i, "DESCR"), "") == "")
+                                ld.setFieldValue(i, "DESCR", ld.getFieldValue(i, "DESCR2"));
+                        }
+                        thatForm.frm.objs["qry2"].obj.updateDataToControl();
+                    }
 
 
                 },

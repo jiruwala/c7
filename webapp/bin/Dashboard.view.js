@@ -213,7 +213,6 @@ sap.ui.jsview('bin.Dashboard', {
 
         this.pg1.push(this.pg);
         //main page where split app and shellbar will display...
-        //TODO_DONE add status bar to display texts 
         this.mainPage = new sap.m.Page({
             showHeader: true,
             showFooter: true,
@@ -542,8 +541,8 @@ sap.ui.jsview('bin.Dashboard', {
         });// Database
         var al = new sap.m.CheckBox(this.createId("chkAuto"), {
             width: "100%",
-            selected: false,
-            text: " Save credentials"
+            selected: true,
+            text: "Full screen ?"
         }).addStyleClass("");
 
         var fnInitChange = function (ev) {
@@ -679,12 +678,15 @@ sap.ui.jsview('bin.Dashboard', {
                 icon: "sap-icon://initiative",
                 press: function () {
                     if (that.loginPress()) {
+
                         sap.m.MessageToast.show(Util.getLangText("loginMsg1"));
                         that.loadData_main();
                         that.show_main_menus();
                         dlg.close();
                         setTimeout(function () {
                             that.exeParams();
+                            if (al.getSelected())
+                                Util.goFullscreen();
                         }, 1000);
                     }
 

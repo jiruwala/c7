@@ -4,7 +4,6 @@ sap.ui.jsfragment("bin.forms.pur.po", {
 
     //TODO description can be re-written and columns arragment
 
-    //TODO  maximize details to check all items.
 
     //LATER po wizard to select many pos and close in one purchase.
 
@@ -68,7 +67,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "select o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount, " +
+        var dmlSq = "select NVL(O2.DESCR,(SELECT DESCR FROM ITEMS WHERE REFERENCE=O2.ORD_REFER)) DESCR2,o2.*, ((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount, " +
             " (select nvl(sum(tqty),0) from c_order1 where ord_code=110 and pord1_keyfld=o2.keyfld and ord_ship=o2.ord_refer )/o2.ord_pack " +
             " rcvd_pkqty" +
             " from pord2 o2 " +
@@ -286,6 +285,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         },
                         table_name: "pord2",
                         before_add_table: function (scrollObjs, qrj) {
+                            qrj.showToolbar.showNewWnd = true;
                             UtilGen.createDefaultToolbar1(qrj, ["ORD_SHIP", "DESCR"], true);
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
@@ -539,6 +539,15 @@ sap.ui.jsfragment("bin.forms.pur.po", {
 
 
                     }
+                    if (qry.name == "qry2") {
+                        var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+                        for (var i = 0; i < ld.rows.length; i++) {
+                            if (Util.nvl(ld.getFieldValue(i, "DESCR"), "") == "")
+                                ld.setFieldValue(i, "DESCR", ld.getFieldValue(i, "DESCR2"));
+                        }
+                        thatForm.frm.objs["qry2"].obj.updateDataToControl();
+                    }
+
                 },
                 beforeLoadQry: function (qry, sql) {
                     return sql;

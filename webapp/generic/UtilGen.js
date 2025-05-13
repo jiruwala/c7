@@ -1827,14 +1827,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }
                         catch (err) {
                             // sap.m.MessageToast.show("Err ! opening form " + "bin.forms." + dtx.formName);
-                            UtilGen.DashboardWidget.statusBarText("Err ! opening form " + "bin.forms." + dtx, false, undefined, false);
+                            UtilGen.DashboardWidget.statusBarText("Err ! opening form " + "bin.forms." + dtx, true, undefined, true);
                             throw err;
                             return;
                         }
 
                     if (sp == undefined) {
                         // sap.m.MessageToast.show(dtx.formName + " fragment not found !");
-                        UtilGen.DashboardWidget.statusBarText(dtx.formName + " fragment not found !", false, undefined, false);
+                        UtilGen.DashboardWidget.statusBarText(dtx.formName + " fragment not found !", true, undefined, true);
                         return;
                     }
                     sp.backFunction = function () {
@@ -2442,6 +2442,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.showFilter = false;
                     qrj.showToolbar.showGroupFilter = false;
                     qrj.showToolbar.showPersonalization = false;
+                    qrj.showToolbar.showNewWnd = true;
                     qrj.createToolbar("", [],
                         // EVENT ON APPLY PERSONALIZATION
                         function (prsn, qv) {
@@ -2609,6 +2610,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }, "100%", "50%", undefined, false);
 
                     });
+                    var btNw = new sap.m.Button(this.tableId + "cmdNewWnd", {
+                        icon: "sap-icon://full-screen", press: function () {                            
+                            qrj.createNewWnd();
+                        }
+                    });
                     qrj.showToolbar.toolbar.removeAllContent();
                     qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
 
@@ -2621,6 +2627,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                     qrj.showToolbar.toolbar.addContent(txt);
                     qrj.showToolbar.toolbar.addContent(btf);
+                    qrj.showToolbar.toolbar.addContent(btf);
+                    qrj.showToolbar.toolbar.addContent(btNw);
                     scrollObjs.push(qrj.showToolbar.toolbar);
                 },
                 attachLoadQry: function (frm, qry, kindof, refer) {
@@ -3774,7 +3782,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds) {
+            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds, showNewWnd) {
                 qrj.createToolbar("", [],
                     // EVENT ON APPLY PERSONALIZATION
                     function (prsn, qv) {
@@ -3889,6 +3897,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (Util.nvl(findCols, []).length > 0) {
                     qrj.showToolbar.toolbar.addContent(txt);
                     qrj.showToolbar.toolbar.addContent(btf);
+                }
+                if (Util.nvl(showNewWnd, true)) {
+                    var bw = new sap.m.Button({
+                        icon: "sap-icon://full-screen", press: function () {
+                            qrj.createNewWnd();
+                        }
+                    });
+                    qrj.showToolbar.toolbar.addContent(bw);
                 }
 
             },

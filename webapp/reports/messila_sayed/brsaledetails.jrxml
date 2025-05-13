@@ -107,8 +107,8 @@ ORDER BY PUR2.itempos]]>
 						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
-					<textElement textAlignment="Left" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" isBold="true"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial2" size="14" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
 				</textField>
@@ -123,29 +123,13 @@ ORDER BY PUR2.itempos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font isBold="true"/>
+						<font fontName="Arial2" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
 					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
 				</textField>
-				<textField pattern="">
-					<reportElement style="strHeader" x="302" y="0" width="48" height="21" uuid="f3ca9e54-9aca-4828-967c-4b0d9b835b7b">
-						<property name="com.jaspersoft.studio.unit.y" value="px"/>
-					</reportElement>
-					<box leftPadding="1" rightPadding="1">
-						<pen lineWidth="0.0"/>
-						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					</box>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{PACKD}]]></textFieldExpression>
-				</textField>
 				<textField pattern="#,##0.00#;(#,##0.00#-)">
-					<reportElement style="strHeader" x="350" y="1" width="39" height="21" uuid="1c263516-fabe-4b3a-bf6d-46c8dd74e7b4">
+					<reportElement style="strHeader" x="358" y="1" width="39" height="21" uuid="1c263516-fabe-4b3a-bf6d-46c8dd74e7b4">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -156,12 +140,12 @@ ORDER BY PUR2.itempos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PKX}]]></textFieldExpression>
 				</textField>
 				<textField pattern="">
-					<reportElement style="strHeader" x="389" y="0" width="61" height="21" uuid="24543e48-51f6-4de4-99f2-ff655e345bef">
+					<reportElement style="strHeader" x="398" y="0" width="61" height="21" uuid="24543e48-51f6-4de4-99f2-ff655e345bef">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -172,7 +156,7 @@ ORDER BY PUR2.itempos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PRICE}]]></textFieldExpression>
 					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
