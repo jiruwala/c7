@@ -541,8 +541,8 @@ sap.ui.jsview('bin.Dashboard', {
         });// Database
         var al = new sap.m.CheckBox(this.createId("chkAuto"), {
             width: "100%",
-            selected: true,
-            text: "Full screen ?"
+            selected: false,
+            text: "Full screen"
         }).addStyleClass("");
 
         var fnInitChange = function (ev) {
