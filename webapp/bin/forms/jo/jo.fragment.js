@@ -1,5 +1,11 @@
 sap.ui.jsfragment("bin.forms.jo.jo", {
 
+    //TODO on edit/new , disable all steps commands.
+
+    //TODO after approval , enable update design, dye and stock , close jo
+    // if dye, design,stock completed enable production,add sales , close jo
+
+
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -94,7 +100,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                                     fnAfterSave(para1);
                             });
 
-                        } else fnAfterSave(para1);
+                        } else if (fnAfterSave != undefined) fnAfterSave(para1);
                     }
                     var fnExe = function (para) {
                         if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW ||
@@ -117,12 +123,12 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             saveForm(fnExe, "approve");
                         }
                     });
-                    thatForm.commands.cmdRawMat = new sap.m.Button({
+                    thatForm.commands.cmdStock = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("Raw materials"),
+                        text: Util.getLangText("joCmdShowStock"),
                         press: function () {
-                            fnExe("rawmaterials");
+                            saveForm(fnExe, "stock");
                         }
 
                     });
@@ -130,49 +136,43 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     thatForm.commands.cmdDesign = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("Design"),
+                        text: Util.getLangText("joCmdUpdDesign"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("addShip");
-                            else
-                                saveForm(fnExe, "addShip");
+                            saveForm(fnExe, "design");
                         }
 
                     });
                     thatForm.commands.cmdDye = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("Dye"),
+                        text: Util.getLangText("joCmdUpdDye"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("addShip");
-                            else
-                                saveForm(fnExe, "addShip");
+                            saveForm(fnExe, "dye");
                         }
 
                     });
                     thatForm.commands.cmdProduction = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("Production"),
+                        text: Util.getLangText("joCmdProdSteps"),
                         press: function () {
                             if (Util.nvl(this.showRecs, false))
-                                fnExe("addShip");
+                                fnExe("production");
                             else
-                                saveForm(fnExe, "addShip");
+                                saveForm(fnExe, "production");
                         }
 
                     });
 
-                    thatForm.commands.cmdDelivery = new sap.m.Button({
+                    thatForm.commands.cmdSales = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("addDlvToInv"),
+                        text: Util.getLangText("joCmdAddSales"),
                         press: function () {
                             if (Util.nvl(this.showRecs, false))
-                                fnExe("dlv");
+                                fnExe("sales");
                             else
-                                saveForm(fnExe, "dlv");
+                                saveForm(fnExe, "sales");
                         }
 
                     });
@@ -190,12 +190,12 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
                     });
                     var hb1 = new sap.m.HBox({
-                        items: [thatForm.commands.cmdApprove, thatForm.commands.cmdDesign, thatForm.commands.cmdDye, thatForm.commands.cmdRawMat,
+                        items: [thatForm.commands.cmdApprove, thatForm.commands.cmdDesign, thatForm.commands.cmdDye, thatForm.commands.cmdStock,
                         new sap.m.Text({ width: "20px" }),
                         thatForm.commands.cmdProduction,
                         new sap.m.Text({ width: "30px" }),
-                        thatForm.commands.cmdDelivery,
-                        thatForm.commands.cmdDelivery
+                        thatForm.commands.cmdSales,
+                        thatForm.commands.cmdClose
                         ]
                     });
                     var hb = new sap.m.Toolbar({
@@ -350,49 +350,47 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
     createViewHeader: function () {
     },
-    enableCommands: function (cmd, pEnableValue) {
+    enableCommands: function (pcmds, pEnableValue) {
         var thatForm = this;
         var enableValue = Util.nvl(pEnableValue, true);
-        if (cmd == undefined)
-            Object.keys(thatForm.commands).forEach((cmd) => {
-                thatForm.commands[cmd].setEnabled(enableValue);
-            });
-        else
-            cmd.setEnabled(enableValue);
-
-    },
-    refreshIcons: function () {
-        
+        var cmds = Util.nvl(pcmds, thatForm.commands);
+        Object.keys(cmds).forEach((cmd) => {
+            cmds[cmd].setEnabled(enableValue);
+        });
     },
     queryCommands: function () {
         var thatForm = this;
-        var addOnly = function (cmd, pEnableValue,) {
+        var showUpdate = function (pcmds, pEnableValue) {
             var enableValue = Util.nvl(pEnableValue, true);
-            if (cmd == undefined)
-                Object.keys(thatForm.commands).forEach((cmd) => {
-                    thatForm.commands[cmd].showRecs = enableValue;
-                });
-            else
-                cmd.showRecs = enableValue;
+            var cmds = Util.nvl(pcmds, thatForm.commands);
+            Object.keys(cmds.forEach((cmd) => {
+                cmds[cmd].showRecs = enableValue;
+            }));
         }
+
+        var isFormInView = thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW
+        var ordacc = thatForm.frm.getFieldValue("qry1.ordacc");
+        showUpdate(undefined, false);
+        thatForm.refreshIcons();
+        thatForm.enableCommands(undefined, false);
+        if (!isFormInView) return;
 
         var dt = Util.execSQLWithData("select ord_flag,ordacc from pord1 where keyfld="
             + thatForm.frm.getFieldValue("keyfld"));
         var aproved = 1;
-        var isFormInView = thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW
-        var ordacc = thatForm.frm.getFieldValue("qry1.ordacc");
-        if (!isFormInView) {
-            addOnly(undefined, false);
-            thatForm.refreshIcons();
-            thatForm.enableCommands(undefined, false);
-            return;
-        }
+
         if (dt.length > 0) {
             aproved = Util.nvl(dt[0].ORD_FLAG, 1);
             ordacc = Util.nvl(dt[0].ORDACC, thatForm.frm.getFieldValue("qry1.ordacc"));
+            if (aproved == 2)
+                showUpdate([thatForm.commands.cmdApprove
+                ],true);
         }
-        addOnly();
-        thatForm.refreshIcons();
+        Object.keys(thatForm.commands).forEach((cmd) => {
+            if (cmd.showRecs = thatForm.commands.)
+        });
+
+        // thatForm.refreshIcons();
 
     },
     helperFunc: {
