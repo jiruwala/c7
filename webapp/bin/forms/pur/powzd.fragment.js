@@ -1,4 +1,6 @@
 sap.ui.jsfragment("bin.forms.pur.powzd", {
+    
+    //PO can be closed if no any delivery happened.
 
     createContent: function (oController) {
         var that = this;

@@ -1,8 +1,7 @@
 sap.ui.jsfragment("bin.forms.jo.jo", {
 
-    //TODO on edit/new , disable all steps commands.
 
-    //TODO after approval , enable update design, dye and stock , close jo
+    //TODO  TEST after approval , enable update design, dye and stock , close jo
     // if dye, design,stock completed enable production,add sales , close jo
 
 
@@ -103,14 +102,12 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         } else if (fnAfterSave != undefined) fnAfterSave(para1);
                     }
                     var fnExe = function (para) {
-                        if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW ||
-                            thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT)
-                            FormView.err("Form must be in VIEW mode !");
-
-                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
-                        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
-
+                        thatForm.executeStep(para);
                     };
+                    var setCaption = function (cmd, showcap, updcap) {
+                        cmd.textShow = Util.getLangText(showcap);
+                        cmd.textUpd = Util.getLangText(Util.nvl(updcap, showcap));
+                    }
                     thatForm.rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-right");
                     thatForm.selectIcon = "sap-icon://accept";
                     thatForm.showIcon = "sap-icon://show";
@@ -123,6 +120,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             saveForm(fnExe, "approve");
                         }
                     });
+
                     thatForm.commands.cmdStock = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
@@ -156,10 +154,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         wrap: sap.m.FlexWrap.Wrap,
                         text: Util.getLangText("joCmdProdSteps"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("production");
-                            else
-                                saveForm(fnExe, "production");
+                            saveForm(fnExe, "production");
                         }
 
                     });
@@ -169,10 +164,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         wrap: sap.m.FlexWrap.Wrap,
                         text: Util.getLangText("joCmdAddSales"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("sales");
-                            else
-                                saveForm(fnExe, "sales");
+                            saveForm(fnExe, "sales");
                         }
 
                     });
@@ -182,13 +174,19 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         wrap: sap.m.FlexWrap.Wrap,
                         text: Util.getLangText("closeJO"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("closeJO");
-                            else
-                                saveForm(fnExe, "dlv");
+                            saveForm(fnExe, "closeJO");
                         }
 
                     });
+                    //attach captions for show and update to button for display in queryCommand funciton
+                    setCaption(thatForm.commands.cmdApprove, 'poApprove');
+                    setCaption(thatForm.commands.cmdStock, 'joCmdShowStock', 'joCmdUpdStock');
+                    setCaption(thatForm.commands.cmdDesign, 'joCmdShowDesign', 'joCmdUpdDesign');
+                    setCaption(thatForm.commands.cmdDye, 'joCmdShowDye', 'joCmdUpdDye');
+                    setCaption(thatForm.commands.cmdProduction, 'joCmdProdSteps');
+                    setCaption(thatForm.commands.cmdSales, 'joCmdShowSales', 'joCmdAddSales');
+                    setCaption(thatForm.commands.cmdClose, 'closeJO');
+
                     var hb1 = new sap.m.HBox({
                         items: [thatForm.commands.cmdApprove, thatForm.commands.cmdDesign, thatForm.commands.cmdDye, thatForm.commands.cmdStock,
                         new sap.m.Text({ width: "20px" }),
@@ -350,47 +348,273 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
     createViewHeader: function () {
     },
+    //CONTINUE implement all steps
+    executeStep: function (para) {
+        var thatForm = this;
+        var commands = {
+            "approve": thatForm.commands.cmdApprove,
+            "design": thatForm.commands.cmdDesign,
+            "dye": thatForm.commands.cmdDye,
+            "production": thatForm.commands.cmdProduction,
+            "sales": thatForm.commands.cmdSales,
+            "closeJO": thatForm.commands.cmdProduction,
+        };
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW ||
+            thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT)
+            FormView.err("Form must be in VIEW mode !");
+
+        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+
+        // approve function seperatly from steps
+        var do_approve = function () {
+            var sq = "update pord1 set ord_flag=2,APPROVED_BY=':approved_by'," +
+                "approved_time=sysdate where keyfld=" + kf;
+            sq = sq.replaceAll(":approved_by", sett["LOGON_USER"]);
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS") {
+                FormView.msgSuccess("Approved done !");
+                thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+            }
+        }
+        var do_basic_steps = function () {
+
+            var txtStepType = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "50%", editable: false });
+            var txtStepTime = new sap.m.DateTimePicker({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: commands[para].showRecs ? false : true });
+            var txtEmpNo = new sap.m.Input({
+                textAlign: sap.ui.core.TextAlign.Begin,
+                width: "20%",
+                editable: commands[para].showRecs ? false : true,
+                showValueHelp: true,
+                change: function (e) {
+                    var sq = "select name from salesp where no = :CODE";
+                    UtilGen.Search.getLOVSearchField(sq, this, undefined, txtEmpName);
+                },
+                valueHelpRequest: function (e) {
+                    UtilGen.Search.do_quick_search(e, this,
+                        "select no code,name title from salesp  order by no ",
+                        "select no code,name title from salesp where NO=:CODE", txtEmpName, undefined, undefined, undefined);
+                }
+
+            });
+            var txtEmpName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: false });
+            var txtAttach = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: commands[para].showRecs ? false : true });
+            var txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: commands[para].showRecs ? false : true });
+            var vb = new sap.m.VBox();
+            var doSave = function () {
+                //CONTINUE validation before save.
+                if (txtEmpNo.getValue() != "") {
+                    var emp = Util.getSQLValue("select max(no) from salesp where no='" + txtEmpNo.getValue() + "'");
+                    if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
+                }
+                var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+
+                if (dt.getTime() > txtStepTime.getDateValue().getTime())
+                    FormView.err("Err ! Step date is more than JO date !");
+
+                var sq = "update pord1 set jo_:step_user=':user' , " +
+                    "jo_:step_time=:regtime , jo_:step_emp=':empno' ," +
+                    "jo_:step_remarks=':remarks' where keyfld=" + kf;
+
+                sq = sq.replaceAll(":step", para)
+                    .replaceAll(":user", sett["LOGON_USER"])
+                    .replaceAll(":regtime", Util.toOraDateTimeString(txtStepTime.getDateValue()))
+                    .replaceAll(":empno", txtEmpNo.getValue())
+                    .replaceAll(":remarks", txtRemarks.getValue());
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS")
+                    FormView.msgSuccess("This step is updated  !");
+            }
+
+            txtStepTime.setValueFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
+            txtStepTime.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
+
+            var fe = [
+                Util.getLabelTxt("Step Type", "30%", "", "redText"), txtStepType,
+                Util.getLabelTxt("Time", "30%", ""), txtStepTime,
+                Util.getLabelTxt("Emp NO", "30%", ""), txtEmpNo,
+                Util.getLabelTxt("", "0px", "@"), txtEmpName,
+                Util.getLabelTxt("Attachment", "30%", ""), txtAttach,
+                Util.getLabelTxt("Remarks", "30%", ""), txtRemarks,
+            ];
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: { "S": 280, "M": 380, "L": 480, "XL": 480 },
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+            cnt.addContent(new sap.m.VBox({ height: "20px" }));
+            vb.addItem(cnt);
+            Util.navEnter(fe);
+            var dlg = new sap.m.Dialog({
+                title: "Steps : " + para,
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 500, "XL": 500 }) + "px",
+                contentHeight: "250px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdDone"),
+                        icon: "sap-icon://accept",
+                        pressed: false,
+                        enabled: commands[para].showRecs ? false : true,
+                        press: function () {
+                            doSave();
+                            dlg.close();
+                            thatForm.queryCommands();
+                        }
+
+                    }),
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdClose"),
+                        icon: "sap-icon://decline",
+                        press: function () {
+                            dlg.close();
+                            thatForm.queryCommands();
+                        }
+                    })
+
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+            //load data            
+            txtStepType.setValue(para);
+            txtStepTime.setDateValue(new Date());
+            txtRemarks.setValue("");
+            txtEmpNo.setValue("");
+            txtEmpName.setValue("");
+            var sqj = ("select ord_flag,ordacc,JO_:STEP_USER JO_STEP_USER, " +
+                "JO_:STEP_EMP JO_STEP_EMP,JO_:STEP_REMARKS JO_STEP_REMARKS," +
+                "to_char(JO_:STEP_TIME,'mm/dd/rrrr hh24.mi' ) JO_STEP_TIME, " +
+                " (select max(name) from salesp where no=jo_:STEP_emp) JO_STEP_EMPNAME " +
+                "from pord1 where keyfld="
+                + thatForm.frm.getFieldValue("keyfld"))
+                .replaceAll(":STEP", para);
+            var dt = Util.execSQLWithData(sqj);
+            if (dt.length > 0 && dt[0].USER != "") {
+                txtStepTime.setDateValue(new Date(dt[0].JO_STEP_TIME.replaceAll(".", ":")));
+                txtRemarks.setValue(dt[0].JO_STEP_REMARKS);
+                txtEmpNo.setValue(dt[0].JO_STEP_EMP);
+                txtEmpName.setValue(dt[0].JO_STEP_EMPNAME);
+            }
+
+        }
+        // do step dye, design, stock but not production and add sales, closejo
+
+        switch (para) {
+            case "approve":
+                Util.simpleConfirmDialog("After approved you may not edit delete this JO , continue ? ", function (oAction) {
+                    do_approve();
+                });
+                break;
+            case "design":
+            case "dye":
+                do_basic_steps();
+                break;
+            default:
+                break;
+        }
+    },
+    refreshIcons: function () {
+        var thatForm = this;
+        var checkCommand = function (cmd) {
+            if (cmd.showRecs) {
+                cmd.setText(cmd.textShow);
+                cmd.setIcon(thatForm.showIcon);
+            }
+            else {
+                cmd.setText(cmd.textUpd);
+                cmd.setIcon((Util.nvl(cmd.dataUpdated, false) ? thatForm.selectIcon : thatForm.rectangleIcon));
+            }
+        };
+        Object.keys(thatForm.commands).forEach((cmd) => {
+            checkCommand(thatForm.commands[cmd]);
+        });
+
+    },
     enableCommands: function (pcmds, pEnableValue) {
         var thatForm = this;
         var enableValue = Util.nvl(pEnableValue, true);
-        var cmds = Util.nvl(pcmds, thatForm.commands);
-        Object.keys(cmds).forEach((cmd) => {
-            cmds[cmd].setEnabled(enableValue);
+        var cmds = Util.nvl(pcmds,
+            Object.values(thatForm.commands));
+        cmds = (Array.isArray(cmds) ? cmds : [cmds]);
+        cmds.forEach((cmd) => {
+            cmd.setEnabled(enableValue);
         });
     },
     queryCommands: function () {
         var thatForm = this;
         var showUpdate = function (pcmds, pEnableValue) {
             var enableValue = Util.nvl(pEnableValue, true);
-            var cmds = Util.nvl(pcmds, thatForm.commands);
-            Object.keys(cmds.forEach((cmd) => {
-                cmds[cmd].showRecs = enableValue;
-            }));
+            var cmds = Util.nvl(pcmds,
+                Object.values(thatForm.commands));
+            cmds = (Array.isArray(cmds) ? cmds : [cmds]);
+            cmds.forEach((cmd) => {
+                cmd.showRecs = enableValue;
+            });
         }
-
+        for (var a in thatForm.commands) thatForm.commands[a].dataUpdated = false;
         var isFormInView = thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW
         var ordacc = thatForm.frm.getFieldValue("qry1.ordacc");
         showUpdate(undefined, false);
         thatForm.refreshIcons();
         thatForm.enableCommands(undefined, false);
         if (!isFormInView) return;
-
-        var dt = Util.execSQLWithData("select ord_flag,ordacc from pord1 where keyfld="
-            + thatForm.frm.getFieldValue("keyfld"));
-        var aproved = 1;
+        var sqj = "select ord_flag,ordacc,JO_DESIGN_USER, JO_DYE_USER,JO_STOCK_USER,to_char(JO_ACTIVE_FROM,'dd/mm/rrrr hh24.mi' ) active_date from pord1 where keyfld="
+            + thatForm.frm.getFieldValue("keyfld");
+        var dt = Util.execSQLWithData(sqj);
+        var approve = 1;
 
         if (dt.length > 0) {
-            aproved = Util.nvl(dt[0].ORD_FLAG, 1);
+            approve = Util.nvl(dt[0].ORD_FLAG, 1);
             ordacc = Util.nvl(dt[0].ORDACC, thatForm.frm.getFieldValue("qry1.ordacc"));
-            if (aproved == 2)
-                showUpdate([thatForm.commands.cmdApprove
-                ],true);
-        }
-        Object.keys(thatForm.commands).forEach((cmd) => {
-            if (cmd.showRecs = thatForm.commands.)
-        });
+            if (Util.nvl(dt[0].JO_DESIGN_USER, "") != "") thatForm.commands.cmdDesign.dataUpdated = true;
+            if (Util.nvl(dt[0].JO_DYE_USER, "") != "") thatForm.commands.cmdDye.dataUpdated = true;
 
-        // thatForm.refreshIcons();
+            showUpdate(undefined, false);
+            thatForm.enableCommands(undefined, false);
+            if (Util.nvl(dt[0].ACTIVE_DATE, '') != '') {
+                thatForm.enableCommands(undefined, true);
+                showUpdate([
+                    thatForm.commands.cmdDesign,
+                    thatForm.commands.cmdDye,
+                    thatForm.commands.cmdStock
+                ], true);
+                thatForm.enableCommands([
+                    thatForm.commands.cmdApprove,
+                ], false);
+                showUpdate([
+                    thatForm.commands.cmdProduction,
+                    thatForm.commands.cmdSales,
+                ], false);
+            } else if (approve == 2 && (Util.nvl(dt[0].ACTIVE_DATE, '') == '')) {
+                thatForm.enableCommands([
+                    thatForm.commands.cmdDesign,
+                    thatForm.commands.cmdDye,
+                    thatForm.commands.cmdStock
+                ], true);
+                thatForm.enableCommands([
+                    thatForm.commands.cmdProduction,
+                    thatForm.commands.cmdSales,
+                ], false);
+                showUpdate(undefined, false);
+            } else if (approve == 1) {
+                thatForm.enableCommands(undefined, false);
+                thatForm.enableCommands(thatForm.commands.cmdApprove, true);
+            } else if (approve == 3) {
+                thatForm.enableCommands(undefined, true);
+                showUpdate(undefined, true);
+                thatForm.enableCommands(cmdClose, false);
+            }
+        }
+        thatForm.refreshIcons();
 
     },
     helperFunc: {

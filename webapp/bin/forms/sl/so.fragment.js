@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.sl.so", {
-
+//TODO querycommands implementation
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -593,6 +593,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     }
 
                 },
+                //TODO update approve by and approved time                 
                 beforeExeSql: function (frm, sq) {
                     var ordn = thatForm.frm.getFieldValue("qry1.ord_no");
                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");

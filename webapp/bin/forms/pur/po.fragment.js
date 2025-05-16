@@ -696,6 +696,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     }
 
                 },
+                //TODO update approve by and approved time 
                 beforeExeSql: function (frm, sq) {
                     var ordn = thatForm.frm.getFieldValue("qry1.ord_no");
                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");
