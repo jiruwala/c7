@@ -403,7 +403,6 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             var txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: commands[para].showRecs ? false : true });
             var vb = new sap.m.VBox();
             var doSave = function () {
-                //CONTINUE validation before save.
                 if (txtEmpNo.getValue() != "") {
                     var emp = Util.getSQLValue("select max(no) from salesp where no='" + txtEmpNo.getValue() + "'");
                     if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
@@ -518,6 +517,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             case "dye":
                 do_basic_steps();
                 break;
+            case "stock":
+                thatForm.do_stock_step();
+                break;
             default:
                 break;
         }
@@ -616,6 +618,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         }
         thatForm.refreshIcons();
 
+    },
+    do_stock_step: function () {
+                        
     },
     helperFunc: {
         validity: {

@@ -91,6 +91,10 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     d.setDate(dt.getDate() - Math.abs(days));
                 return d;
             },
+            daysBetween(todt,fromdt) {
+                var oneDay = 24 * 60 * 60 * 1000;
+                return Math.round(((todt - fromdt) / oneDay));
+            },
             doAjaxGetSpin: function (path,
                 content,
                 async, fnDone, fnFail, chk) {
