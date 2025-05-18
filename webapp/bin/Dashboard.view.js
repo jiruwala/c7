@@ -899,11 +899,12 @@ sap.ui.jsview('bin.Dashboard', {
         var sett = sap.ui.getCore().getModel("settings").getData();
         if (Util.nvl(sett["C7_VER_NO"], 7) <= 7.5)
             FormView.err("Err ! , version below than equal to 7.5 is not compatiable !");
-        var exdt = new Date(sett["DEMO_EXPIRE_DATE"]);
-        var dys = Util.daysBetween(exdt, new Date());
-        if (dys < 0) FormView.err("Your DEMO period is expired !");
-        alert("demo expires in " + dys + " Days !");
-
+        if (Util.nvl(sett["DEMO_EXPIRE_DATE"], '') != '') {
+            var exdt = new Date(sett["DEMO_EXPIRE_DATE"]);
+            var dys = Util.daysBetween(exdt, new Date());
+            if (dys < 0) FormView.err("Your DEMO period is expired !");
+            alert("demo expires in " + dys + " Days !");
+        }
         var fisc = sap.ui.getCore().getModel("fiscalData").getData();
         that.today_date.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         that.today_date.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);

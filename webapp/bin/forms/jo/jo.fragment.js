@@ -620,7 +620,201 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
     },
     do_stock_step: function () {
-                        
+
+    },
+    //CONTINUE material list to be updated.
+    updateMaterials: function () {
+        var that2 = this;
+        if (this.qc == undefined) {
+            this.qc = new QueryView("qrCustitems" + that2.timeInLong);
+            this.qc.getControl().setEditable(true);
+            this.qc.getControl().view = that2.view;
+            this.qc.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+            this.qc.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+            this.qc.getControl().setFixedBottomRowCount(0);
+            this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], true);
+            this.qc.insertable = true;
+            this.qc.deletable = true;
+        }
+        if (that2.fetchCustItems == false)
+            that2.qc.reset();
+        var cc = "";
+        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+            that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+            cc = that2.frm.getFieldValue("qry1.code");
+        }
+        var seteditale = function () {
+            if (!(that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+                sap.m.MessageToast.show("Must Form EDIT or NEW mode to edit and add items ! ");
+                cmdEdit.setPressed(false);
+                that2.qc.editable = false
+                setTimeout(function () {
+                    that2.qc.colorRows();
+                });
+                return;
+            }
+
+            if (cmdEdit.getPressed())
+                that2.qc.editable = true;
+            else
+                that2.qc.editable = false
+            fetchData();
+            setTimeout(function () {
+                that2.qc.colorRows();
+            });
+        }
+        var fetchData = function () {
+            var qv = that2.qc;
+            if (that2.fetchCustItems) {
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+                return;
+            }
+
+            var dt = Util.execSQL("select c.refer,it.descr, c.packd,c.unitd,c.pack,c.price,c.price_buy from custitems c,items it where it.reference=c.refer and c.code=" + Util.quoted(cc) + " order by c.refer ");
+            if (dt.ret == "SUCCESS") {
+                qv.setJsonStrMetaData("{" + dt.data + "}");
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].getMUIHelper().display_width = 80;
+
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE_BUY")].mColClass = "sap.m.Input";
+
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].getMUIHelper().display_width = 130;
+                qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].getMUIHelper().display_width = 220;
+                qv.mLctb.cols[qv.mLctb.getColPos("PACKD")].getMUIHelper().display_width = 50;
+                qv.mLctb.cols[qv.mLctb.getColPos("UNITD")].getMUIHelper().display_width = 50;
+                qv.mLctb.cols[qv.mLctb.getColPos("PACK")].getMUIHelper().display_width = 50;
+
+                // qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].getMUIHelper().display_format = "MONEY_FORMAT";
+                // qv.mLctb.cols[qv.mLctb.getColPos("PRICE_BUY")].getMUIHelper().display_format = "MONEY_FORMAT";
+
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE")].mTitle = "Price Sell";
+                qv.mLctb.cols[qv.mLctb.getColPos("PRICE_BUY")].mTitle = "Price Buy";
+
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].eValidateColumn = function (evtx) {
+                    var row = evtx.getSource().getParent();
+                    var column_no = evtx.getSource().getParent().indexOfCell(evtx.getSource());
+                    var columns = evtx.getSource().getParent().getParent().getColumns();
+                    var table = evtx.getSource().getParent().getParent(); // get table control.
+                    var oModel = table.getModel();
+                    var rowStart = table.getFirstVisibleRow(); //starting Row index
+                    var currentRowoIndexContext = table.getContextByIndex(rowStart + table.indexOfRow(row));
+                    var newValue = evtx.getSource().getValue();
+
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/DESCR', "");
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/PACKD', "");
+                    oModel.setProperty(currentRowoIndexContext.sPath + '/PACK', "1");
+
+                    var dtxM = Util.execSQLWithData("select descr,packd,unitd,pack from items where reference='" + newValue + "' ")
+                    if (dtxM != undefined && dtxM.length > 0) {
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/DESCR', dtxM[0].DESCR);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/PACKD', dtxM[0].PACKD);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/UNITD', dtxM[0].UNITD);
+                        oModel.setProperty(currentRowoIndexContext.sPath + '/PACK', dtxM[0].PACK);
+
+                    }
+                };
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].mSearchSQL = "select reference code,descr title from items order by descr2";
+                qv.mLctb.cols[qv.mLctb.getColPos("REFER")].eOnSearch = function (evtx) {
+                    var input = evtx.getSource();
+                    UtilGen.Search.do_quick_search(evtx, input,
+                        "select reference code,descr title from items order by descr2 ",
+                        "select reference code,descr title from items  where reference=:CODE", undefined, function () {
+                            input.fireChange();
+                        },
+                        {
+                            pWidth: "400px", pHeight: "400px",
+                            "background-color": 'blue',
+                            "dialogStyle": "cyanDialog"
+                        });
+
+
+                }
+
+                qv.mLctb.parse("{" + dt.data + "}", true);
+                qv.loadData();
+                that2.fetchCustItems = true;
+
+                qv.onAddRow = function (idx, ld) {
+                    ld.setFieldValue(idx, "PRICE", 0);
+                    ld.setFieldValue(idx, "PRICE_BUY", 0);
+
+                }
+
+                if (qv.editable && qv.mLctb.rows.length == 0)
+                    qv.addRow();
+
+                setTimeout(function () {
+                    qv.updateDataToControl();
+                    if (qv.editable) {
+                        qv.getControl().getRows()[0].getCells()[0].focus();
+                    }
+                });
+            }
+        }
+        var pg = new sap.m.Page({
+            showHeader: false,
+            content: [],
+            showFooter: true
+        }).addStyleClass("sapUiSizeCompact");
+        var cmdClose = new sap.m.ToggleButton({
+            text: Util.getLangText("cmdDone"),
+            icon: "sap-icon://accept",
+            pressed: false,
+            press: function () {
+                dlg.close();
+            }
+
+        });
+        var cmdEdit = new sap.m.ToggleButton({
+            text: Util.getLangText("editRec"),
+            icon: "sap-icon://edit",
+            pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
+                || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
+            press: function () {
+                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                    that2.frm.cmdButtons.cmdEdit.setPressed(true);
+                    that2.frm.cmdButtons.cmdEdit.firePress();
+                }
+                seteditale();
+            }
+
+        });
+
+        var tbHeader = new sap.m.Toolbar();
+        pg.setFooter(tbHeader);
+        pg.addContent(this.qc.showToolbar.toolbar);
+        pg.addContent(this.qc.getControl());
+        tbHeader.addContent(cmdEdit);
+        tbHeader.addContent(cmdClose);
+        var tit = Util.getLangText("titCustItems");
+        if (cc != "")
+            tit = Util.getLangText("titCustItems") + " - " + that2.frm.getFieldValue("qry1.name");
+
+        var dlg = new sap.m.Dialog({
+            title: tit,
+            content: pg,
+            contentWidth: "80%",
+            contentHeight: "400px",
+
+        });
+        fetchData();
+        seteditale();
+        dlg.open();
+        dlg.attachAfterClose(function () {
+            that2.qc.updateDataToTable();
+            sap.m.MessageToast.show("Closing  Itmes window..");
+        });
     },
     helperFunc: {
         validity: {
@@ -1125,16 +1319,18 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             var mnus = [];
                             var bts = [];
                             if (
-                                (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
-                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW ||
-                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
-                                // mnus.push(new sap.m.MenuItem({
-                                //     icon: "sap-icon://letter",
-                                //     text: Util.getLangText("generateInvoice"),
-                                //     press: function () {
-                                //         that2.helperFunc.generateInvoice(this);
-                                //     }
-                                // }));
+                                (
+                                    // that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW
+                                    // that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW
+                                )) {
+                                mnus.push(new sap.m.MenuItem({
+                                    icon: "sap-icon://letter",
+                                    text: Util.getLangText("Update Materials"),
+                                    press: function () {
+                                        that2.helperFunc.updateMaterials();
+                                    }
+                                }));
                             }
                             if (bts.length > 0) {
                                 mnus.push(new sap.m.MenuItem({
