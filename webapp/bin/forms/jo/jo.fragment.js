@@ -1,5 +1,11 @@
 sap.ui.jsfragment("bin.forms.jo.jo", {
 
+    //TODO on edit/new , disable all steps commands.
+
+    //TODO after approval , enable update design, dye and stock , close jo
+    // if dye, design,stock completed enable production,add sales , close jo
+
+
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -94,7 +100,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                                     fnAfterSave(para1);
                             });
 
-                        } else fnAfterSave(para1);
+                        } else if (fnAfterSave != undefined) fnAfterSave(para1);
                     }
                     var fnExe = function (para) {
                         if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW ||
@@ -105,6 +111,10 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
 
                     };
+                    var setCaption = function (cmd, showcap, updcap) {
+                        cmd.textShow = Util.getLangText(showcap);
+                        cmd.textUpd = Util.getLangText(Util.nvl(updcap, showcap));
+                    }
                     thatForm.rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-right");
                     thatForm.selectIcon = "sap-icon://accept";
                     thatForm.showIcon = "sap-icon://show";
@@ -117,12 +127,13 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             saveForm(fnExe, "approve");
                         }
                     });
+
                     thatForm.commands.cmdStock = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText(""),
+                        text: Util.getLangText("joCmdShowStock"),
                         press: function () {
-                            fnExe("stock");
+                            saveForm(fnExe, "stock");
                         }
 
                     });
@@ -130,49 +141,37 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     thatForm.commands.cmdDesign = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("Update Design"),
+                        text: Util.getLangText("joCmdUpdDesign"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("design");
-                            else
-                                saveForm(fnExe, "design");
+                            saveForm(fnExe, "design");
                         }
 
                     });
                     thatForm.commands.cmdDye = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("Update Dye"),
+                        text: Util.getLangText("joCmdUpdDye"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("dye");
-                            else
-                                saveForm(fnExe, "dye");
+                            saveForm(fnExe, "dye");
                         }
 
                     });
                     thatForm.commands.cmdProduction = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("Production Steps"),
+                        text: Util.getLangText("joCmdProdSteps"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("production");
-                            else
-                                saveForm(fnExe, "production");
+                            saveForm(fnExe, "production");
                         }
 
                     });
 
-                    thatForm.commands.cmdDelivery = new sap.m.Button({
+                    thatForm.commands.cmdSales = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("addDlvToInv"),
+                        text: Util.getLangText("joCmdAddSales"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("dlv");
-                            else
-                                saveForm(fnExe, "dlv");
+                            saveForm(fnExe, "sales");
                         }
 
                     });
@@ -182,19 +181,25 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         wrap: sap.m.FlexWrap.Wrap,
                         text: Util.getLangText("closeJO"),
                         press: function () {
-                            if (Util.nvl(this.showRecs, false))
-                                fnExe("closeJO");
-                            else
-                                saveForm(fnExe, "dlv");
+                            saveForm(fnExe, "dlv");
                         }
 
                     });
+                    //attach captions for show and update to button for display in queryCommand funciton
+                    setCaption(thatForm.commands.cmdApprove, 'poApprove');
+                    setCaption(thatForm.commands.cmdStock, 'joCmdShowStock', 'joCmdUpdStock');
+                    setCaption(thatForm.commands.cmdDesign, 'joCmdShowDesign', 'joCmdUpdDesign');
+                    setCaption(thatForm.commands.cmdDye, 'joCmdShowDye', 'joCmdUpdDye');
+                    setCaption(thatForm.commands.cmdProduction, 'joCmdProdSteps');
+                    setCaption(thatForm.commands.cmdSales, 'joCmdShowSales', 'joCmdAddSales');
+                    setCaption(thatForm.commands.cmdClose, 'closeJO');
+
                     var hb1 = new sap.m.HBox({
                         items: [thatForm.commands.cmdApprove, thatForm.commands.cmdDesign, thatForm.commands.cmdDye, thatForm.commands.cmdStock,
                         new sap.m.Text({ width: "20px" }),
                         thatForm.commands.cmdProduction,
                         new sap.m.Text({ width: "30px" }),
-                        thatForm.commands.cmdDelivery,
+                        thatForm.commands.cmdSales,
                         thatForm.commands.cmdClose
                         ]
                     });
@@ -350,102 +355,94 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
     createViewHeader: function () {
     },
-    enableCommands: function (cmd, pEnableValue) {
+    refreshIcons: function () {
         var thatForm = this;
-        var enableValue = Util.nvl(pEnableValue, true);
-        if (cmd == undefined)
-            Object.keys(thatForm.commands).forEach((cmd) => {
-                thatForm.commands[cmd].setEnabled(enableValue);
-            });
-        else
-            cmd.setEnabled(enableValue);
-
-    },
-    refreshIcons: function (cmd) {
-        var thatForm = this;
-        var isShowOnly = function (cmd) {
-            if (Util.nvl(cmd.showRecs, false)) {
-                cmd.setIcon(thatForm.showIcon);
-                var lbl = cmd == thatForm.commands.cmdDelivery ? "Show Deliveries" :
-                    cmd == thatForm.commands.cmd ? "showShip"
-                         : cmd.getText();
-                cmd.setText(Util.getLangText(
-                ));
-                return true;
-            }
-            return false;
-        }
         var checkCommand = function (cmd) {
-            var kf = thatForm.frm.getFieldValue("keyfld");
-            var oa = thatForm.frm.getFieldValue("ordacc");
-            cmd.setIcon(thatForm.rectangleIcon);
-
-            if (cmd == thatForm.commands.cmdDe)
-                cmd.setText(Util.getLangText("addShipment"));
-            if (cmd == thatForm.commands.cmdAddGR)
-                cmd.setText(Util.getLangText("addGr"));
-
-            if (isShowOnly(cmd)) return;
-
-            if (cmd == thatForm.commands.cmdApprove) {
-                var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld='" + kf + "'");
-                if (aproved == 2)
-                    cmd.setIcon(thatForm.selectIcon);
+            if (cmd.showRecs) {
+                cmd.setText(cmd.textShow);
+                cmd.setIcon(thatForm.showIcon);
             }
-
-            if (cmd == thatForm.commands.cmdClosePO) {
-                var aproved = Util.getSQLValue("select ord_flag from pord1 where keyfld='" + kf + "'");
-                if (aproved == 3)
-                    cmd.setIcon(thatForm.selectIcon);
-            }
-            if (cmd == thatForm.commands.cmdAddShip) {
-                if (oa == UtilGen.PurchaseOrderFunc.initAction.purInvs || oa == UtilGen.PurchaseOrderFunc.initAction.issueRV) {
-                    cmd.setIcon();
-                }
-                var ships = Util.getSQLValue("select count(*) from C7_PURSHIP where po_keyfld='" + kf + "'");
-                if (ships > 0)
-                    cmd.setIcon(thatForm.selectIcon);
-            }
-            if (cmd == thatForm.commands.cmdAddGR) {
-                var dlvs = Util.getSQLValue("select count(*) from order1 where pord1_keyfld='" + kf + "'");
-                if (dlvs > 0)
-                    cmd.setIcon(thatForm.selectIcon);
+            else {
+                cmd.setText(cmd.textUpd);
+                cmd.setIcon(thatForm.rectangleIcon);
             }
         };
-        if (cmd == undefined) {
-            Object.keys(thatForm.commands).forEach((cmd) => {
-                checkCommand(thatForm.commands[cmd]);
-            });
-        }
+        Object.keys(thatForm.commands).forEach((cmd) => {
+            checkCommand(thatForm.commands[cmd]);
+        });
+
+    },
+    enableCommands: function (pcmds, pEnableValue) {
+        var thatForm = this;
+        var enableValue = Util.nvl(pEnableValue, true);
+        var cmds = Util.nvl(pcmds,
+            Object.values(thatForm.commands));
+    cmds = (Array.isArray(cmds) ? cmds : [cmds]);
+        cmds.forEach((cmd) => {
+            cmd.setEnabled(enableValue);
+        });
     },
     queryCommands: function () {
         var thatForm = this;
-        var addOnly = function (cmd, pEnableValue,) {
+        var showUpdate = function (pcmds, pEnableValue) {
             var enableValue = Util.nvl(pEnableValue, true);
-            if (cmd == undefined)
-                Object.keys(thatForm.commands).forEach((cmd) => {
-                    thatForm.commands[cmd].showRecs = enableValue;
-                });
-            else
+            var cmds = Util.nvl(pcmds,
+                Object.values(thatForm.commands));
+            cmds = (Array.isArray(cmds) ? cmds : [cmds]);
+            cmds.forEach((cmd) => {
                 cmd.showRecs = enableValue;
+            });
         }
 
-        var dt = Util.execSQLWithData("select ord_flag,ordacc from pord1 where keyfld="
-            + thatForm.frm.getFieldValue("keyfld"));
-        var aproved = 1;
         var isFormInView = thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW
         var ordacc = thatForm.frm.getFieldValue("qry1.ordacc");
-        if (!isFormInView) {
-            addOnly(undefined, false);
-            thatForm.refreshIcons();
-            thatForm.enableCommands(undefined, false);
-            return;
-        }
+        showUpdate(undefined, false);
+        thatForm.refreshIcons();
+        thatForm.enableCommands(undefined, false);
+        if (!isFormInView) return;
+        var sqj = "select ord_flag,ordacc,JO_DESIGN_USER, JO_DYE_USER,JO_STOCK_USER,to_char(JO_ACTIVE_FROM,'dd/mm/rrrr hh24.mi' ) active_date from pord1 where keyfld="
+            + thatForm.frm.getFieldValue("keyfld");
+        var dt = Util.execSQLWithData(sqj);
+        var approve = 1;
         if (dt.length > 0) {
-            aproved = Util.nvl(dt[0].ORD_FLAG, 1);
+            approve = Util.nvl(dt[0].ORD_FLAG, 1);
             ordacc = Util.nvl(dt[0].ORDACC, thatForm.frm.getFieldValue("qry1.ordacc"));
+            showUpdate(undefined, false);
+            thatForm.enableCommands(undefined, false);
+            if (Util.nvl(dt[0].ACTIVE_DATE, '') != '') {
+                thatForm.enableCommands(undefined, true);
+                showUpdate([
+                    thatForm.commands.cmdDesign,
+                    thatForm.commands.cmdDye,
+                    thatForm.commands.cmdStock
+                ], true);
+                thatForm.enableCommands([
+                    thatForm.commands.cmdApprove,
+                ], false);
+                showUpdate([
+                    thatForm.commands.cmdProduction,
+                    thatForm.commands.cmdSales,
+                ], false);
+            } else if (approve == 2 && (Util.nvl(dt[0].ACTIVE_DATE, '') == '')) {
+                thatForm.enableCommands([
+                    thatForm.commands.cmdDesign,
+                    thatForm.commands.cmdDye,
+                    thatForm.commands.cmdStock
+                ], true);
+                thatForm.enableCommands([
+                    thatForm.commands.cmdProduction,
+                    thatForm.commands.cmdSales,
+                ], false);
+                showUpdate(undefined, false);
+            } else if (approve == 1) {
+                thatForm.enableCommands(undefined, false);
+                thatForm.enableCommands(thatForm.commands.cmdApprove, true);
+            } else if (approve == 3) {
+                thatForm.enableCommands(undefined, true);
+                showUpdate(undefined, true);
+                thatForm.enableCommands(cmdClose, false);
+            }
         }
-        addOnly();
         thatForm.refreshIcons();
 
     },
