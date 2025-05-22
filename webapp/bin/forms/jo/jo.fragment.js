@@ -1,9 +1,6 @@
 sap.ui.jsfragment("bin.forms.jo.jo", {
 
 
-    //TODO  TEST after approval , enable update design, dye and stock , close jo
-    // if dye, design,stock completed enable production,add sales , close jo
-
 
     createContent: function (oController) {
         var that = this;
@@ -348,7 +345,6 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
     createViewHeader: function () {
     },
-    //CONTINUE implement all steps
     executeStep: function (para) {
         var thatForm = this;
         var commands = {
@@ -575,7 +571,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         thatForm.enableCommands(undefined, false);
         thatForm.frm.setFieldValue("qry1.jo_status", "Not-Active");
         if (!isFormInView) return;
-        var sqj = "select ord_flag,ordacc,JO_DESIGN_USER, JO_DYE_USER,JO_STOCK_USER,to_char(JO_ACTIVE_FROM,'dd/mm/rrrr hh24.mi' ) active_date from pord1 where keyfld="
+        var sqj = "select ord_flag,ordacc,JO_DESIGN_USER, JO_DYE_USER,JO_STOCK_USER,JO_PROD_USER,to_char(JO_ACTIVE_FROM,'dd/mm/rrrr hh24.mi' ) active_date from pord1 where keyfld="
             + thatForm.frm.getFieldValue("keyfld");
         var dt = Util.execSQLWithData(sqj);
         var approve = 1;
@@ -591,6 +587,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             if (Util.nvl(dt[0].JO_DESIGN_USER, "") != "") thatForm.commands.cmdDesign.dataUpdated = true;
             if (Util.nvl(dt[0].JO_DYE_USER, "") != "") thatForm.commands.cmdDye.dataUpdated = true;
             if (Util.nvl(dt[0].JO_STOCK_USER, "") != "") thatForm.commands.cmdStock.dataUpdated = true;
+            if (Util.nvl(dt[0].JO_PROD_USER, "") != "") thatForm.commands.cmdProduction.dataUpdated = true;
 
             showUpdate(undefined, false);
             thatForm.enableCommands(undefined, false);
@@ -872,6 +869,31 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
     do_step_production: function () {
         var thatForm = this;
         var para = "production";
+        var isProdClosed = function () {
+            var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
+            if (Util.nvl(upd, '') != '') return true;
+            return false;
+
+        }
+        var getStepsNotDone = function () {
+            var cnt = Util.extractNumber(Util.getSQLValue("select nvl(count(*),0) from pord_jo_steps where step_end is null and pord_keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld")));
+            return cnt;
+        };
+
+        var delRec = function (idx) {
+            if (isProdClosed()) FormView("Err ! , production steps are closed !");
+            if (Util.nvl(idx, -1) < 0 || idx == undefined) return;
+            var sp = qv.mLctb.getFieldValue(idx, "STEP_POS");
+            var spc = qv.mLctb.getFieldValue(idx, "STEP_CODE") + " - " + qv.mLctb.getFieldValue(idx, "DESCR");
+            Util.simpleConfirmDialog(Util.getLangText("Are you sure to DELETE , # " + sp + " , " + spc + " ? "), function (oAction) {
+                var dt = Util.execSQL("delete from pord_jo_steps where pord_keyfld=" +
+                    thatForm.frm.getFieldValue("keyfld") + " and step_pos= " + sp);
+                if (dt.ret == "SUCCESS")
+                    FormView.msgCustom(Util.getLangText("msgDeleted"), "maroon");
+                fetchData();
+            });
+
+        }
         var sett = sap.ui.getCore().getModel("settings").getData();
         Util.destroyID("itms" + thatForm.timeInLong);
         var qv = new QueryView("itms" + thatForm.timeInLong);
@@ -883,7 +905,26 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qv.getControl().setVisibleRowCount(7);
         qv.getControl().setRowHeight(18);
-        UtilGen.createDefaultToolbar1(qv, ["REFER", "DESCR"], true);
+
+        var isClose = isProdClosed();
+        UtilGen.createDefaultToolbar1(qv, ["REFER", "DESCR"], true,
+            (idx) => {
+                //funciton to pOnDel.
+                if (Util.nvl(idx, undefined) == undefined) return;
+                // var sp = qv.mLctb.getFieldValue(idx, "STEP_POS");
+                delRec(idx);
+            },
+            (idx) => {
+                //funciton to pOnAdd
+                thatForm.showProdStep(-1, undefined, function () { fetchData(); });
+            }, !isClose, !isClose, undefined, true, // showdel and showAdd command,fnAddCmds shownewwindow
+            (idx) => {
+                //funciton to pOnEdit
+                if (Util.nvl(idx, undefined) == undefined) return;
+                var sp = qv.mLctb.getFieldValue(idx, "STEP_POS");
+                thatForm.showProdStep(sp, undefined, function () { fetchData(); });
+            }, !isClose // showEdit        
+        );
         var cc = "";
 
         if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW)
@@ -892,32 +933,68 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         var vb = new sap.m.VBox();
 
         var fetchData = function () {
-
+            var fnEdit = function (obj) {
+                // if (isProdClosed()) FormView.err("cant edit !");
+                var tbl = obj.getParent().getParent();
+                var mdl = tbl.getModel();
+                var rr = tbl.getRows().indexOf(obj.getParent());
+                var rowStart = tbl.getFirstVisibleRow();
+                var sp = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "STEP_POS")].getText());
+                thatForm.showProdStep(sp, undefined, function () { fetchData(); });
+            }
             var sqf = thatForm.frm.parseString("select s.step_pos,s.step_code,si.descr," +
-                "s.step_emp,sls.name empname,s.estimated_hour " +
+                "s.step_emp,sls.name step_empname,s.estimated_hour, " +
+                "to_char(s.step_start,'dd/mm/rrrr HH24.mi') step_start ," +
+                "to_char(s.step_end,'dd/mm/rrrr HH24.mi') step_end," +
+                "step_remarks " +
+
                 " from PORD_JO_STEPS s,salesp sls,pord_jo_steps_info si where s.step_code=si.code " +
                 " and s.step_emp(+)=sls.no " +
                 " and s.pord_keyfld=':qry1.keyfld' order by s.step_pos");
+
             var dt = Util.execSQL(sqf);
             if (dt.ret == "SUCCESS") {
                 qv.setJsonStrMetaData("{" + dt.data + "}");
-                qv.mLctb.cols[qv.mLctb.getColPos("STEP_POS")].getMUIHelper().display_width = 50;
-                qv.mLctb.cols[qv.mLctb.getColPos("STEP_POS")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_POS")].getMUIHelper().display_width = 70;
+                // qv.mLctb.cols[qv.mLctb.getColPos("STEP_POS")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_CODE")].getMUIHelper().display_width = 70;
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_CODE")].commandLinkClick = fnEdit;
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_POS")].commandLinkClick = fnEdit;
+                qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].getMUIHelper().display_width = 250;
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_EMP")].getMUIHelper().display_width = 60;
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_EMPNAME")].getMUIHelper().display_width = 100;
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_START")].getMUIHelper().display_width = 150;
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_END")].getMUIHelper().display_width = 150;
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_REMARKS")].getMUIHelper().display_width = 100;
+
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_POS")].mTitle = Util.getLangText("Sr");
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_CODE")].mTitle = Util.getLangText("txtCode");
 
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
 
                 setTimeout(() => {
-                    fetchDataFrm();
+                    if (isProdClosed() || getStepsNotDone() > 0) cmdSave.setEnabled(false); else cmdSave.setEnabled(true);
+
                 });
 
             }
 
         }
         var doSave = function () {
+            //TODO update production close add column  in JO_PROD_TIME AND JO_PROD_USER
+            if (isProdClosed() || getStepsNotDone() > 0) FormView.err("Either producton closed or some steps not done in production !");
+            Util.simpleConfirmDialog(Util.getLangText("You can not change later producton steps if done ,Are you sure to proceed ?"), function (oAction) {
+                var sqj = thatForm.frm.parseString("update pord1 set jo_prod_user='" + sett["LOGON_USER"] + "' , " +
+                    "jo_prod_time=(select nvl(max(step_end),sysdate) from pord_jo_steps where pord_keyfld=:qry1.keyfld ) " +
+                    " where keyfld=:qry1.keyfld ");
+                var dt = Util.execSQL(sqj);
+                if (dt.ret = "SUCCESS")
+                    FormView.msgSuccess("Production is done !");
+                thatForm.queryCommands();
+            });
 
         }
-
         var pg = new sap.m.Page({
             showHeader: false,
             content: [],
@@ -937,7 +1014,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         var cmdSave = new sap.m.Button({
             text: Util.getLangText("cmdDone"),
             icon: "sap-icon://accept",
-            pressed: false,
+            enabled: false,
             press: function () {
                 doSave();
                 dlg.close();
@@ -968,6 +1045,223 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         });
         fetchData();
         dlg.open();
+    },
+    showProdStep: function (sp, inpDurationOnly, fnCallBack) {
+        var thatForm = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+
+
+        var txtStepPos, txtStepCode, txtStepName,
+            txtEmpNo, txtEmpName, txtEstHours,
+            txtStartTime, txtEndTime, txtRemarks, dlg;
+
+        var vb = new sap.m.VBox();
+
+        var isProdClosed = function () {
+            var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
+            if (Util.nvl(upd, '') != '') return true;
+            return false;
+        }
+        var doCreate = function () {
+            isclose = isProdClosed();
+            txtStepCode = new sap.m.Input({
+                textAlign: sap.ui.core.TextAlign.Begin,
+                width: "20%",
+                editable: !isclose,
+                showValueHelp: true,
+                change: function (e) {
+                    var sq = "select descr name from pord_jo_steps_info where code = :CODE";
+                    UtilGen.Search.getLOVSearchField(sq, this, undefined, txtStepName);
+                },
+                valueHelpRequest: function (e) {
+                    UtilGen.Search.do_quick_search(e, this,
+                        "select code,descr title from pord_jo_steps_info where is_parent!='Y' order by path ",
+                        "select code,descr title from pord_jo_steps_info where code=:CODE", txtStepName, undefined, undefined, undefined);
+                }
+
+            });
+            txtStepName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: false });
+            txtEmpNo = new sap.m.Input({
+                textAlign: sap.ui.core.TextAlign.Begin,
+                width: "20%",
+                editable: !isclose,
+                showValueHelp: true,
+                change: function (e) {
+                    var sq = "select name from salesp where no = :CODE";
+                    UtilGen.Search.getLOVSearchField(sq, this, undefined, txtEmpName);
+                },
+                valueHelpRequest: function (e) {
+                    UtilGen.Search.do_quick_search(e, this,
+                        "select no code,name title from salesp  order by no ",
+                        "select no code,name title from salesp where NO=:CODE", txtEmpName, undefined, undefined, undefined);
+                }
+
+            });
+            txtEmpName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: false });
+            txtEstHours = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose });
+            txtStartTime = new sap.m.DateTimePicker({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose });
+            txtEndTime = new sap.m.DateTimePicker({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose });
+            txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose });
+
+            txtStartTime.setValueFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
+            txtStartTime.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
+
+            txtEndTime.setValueFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
+            txtEndTime.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
+
+            var fe = [
+                Util.getLabelTxt("txtCode", "30%", "", "redText"), txtStepCode,
+                Util.getLabelTxt("", "0px", "@", "redText"), txtStepName,
+                Util.getLabelTxt("txtEmp", "30%", ""), txtEmpNo,
+                Util.getLabelTxt("", "0px", "@"), txtEmpName,
+                Util.getLabelTxt("Estimated hours", "30%", ""), txtEstHours,
+                Util.getLabelTxt("Start", "30%", ""), txtStartTime,
+                Util.getLabelTxt("End", "30%", ""), txtEndTime,
+                Util.getLabelTxt("Remarks", "30%", ""), txtRemarks,
+            ];
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: { "S": 280, "M": 380, "L": 480, "XL": 480 },
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+            cnt.addContent(new sap.m.VBox({ height: "20px" }));
+            vb.addItem(cnt);
+            Util.navEnter(fe);
+            showDialog();
+        };
+        var showDialog = function () {
+            dlg = new sap.m.Dialog({
+                title: sp <= -1 ? "New step " : " Edit position : " + sp,
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 500, "XL": 500 }) + "px",
+                contentHeight: "250px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdDone"),
+                        icon: "sap-icon://accept",
+                        pressed: false,
+                        enabled: !isclose,
+                        press: function () {
+                            doSave();
+                            dlg.close();
+                            thatForm.queryCommands();
+                        }
+
+                    }),
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdClose"),
+                        icon: "sap-icon://decline",
+                        press: function () {
+                            dlg.close();
+                            thatForm.queryCommands();
+                        }
+                    })
+
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+
+        }
+        var doLoad = function () {
+            txtStepCode.setValue("");
+            txtStepName.setValue("");
+            txtEmpName.setValue("");
+            txtEmpNo.setValue("");
+            txtEstHours.setValue("0");
+            txtStartTime.setDateValue(null);
+            txtEndTime.setDateValue(null);
+            txtRemarks.setValue("");
+            if (Util.nvl(sp, -1) != -1) {
+                var sqj = ("select S.STEP_CODE, S.STEP_EMP, S.STEP_REMARKS, S.STEP_DONE, S.ESTIMATED_HOUR, S.STEP_USER, " +
+                    "to_char(STEP_START,'mm/dd/rrrr hh24.mi' ) STEP_START, " +
+                    "to_char(STEP_END,'mm/dd/rrrr hh24.mi' ) STEP_END, " +
+                    " (select max(name) from salesp where no=STEP_emp) STEP_EMPNAME, " +
+                    " (select max(DESCR) from PORD_JO_STEPS_INFO where CODE=STEP_CODE) STEP_DESCR " +
+                    " from PORD_JO_STEPS S where pord_keyfld= "
+                    + thatForm.frm.getFieldValue("keyfld"))
+                    + " AND STEP_POS='" + sp + "'";
+                var dt = Util.execSQLWithData(sqj);
+                if (dt.length > 0 && dt[0].USER != "") {
+                    txtStepCode.setValue(dt[0].STEP_CODE);
+                    txtStepName.setValue(dt[0].STEP_DESCR);
+                    txtEmpName.setValue(dt[0].STEP_EMPNAME);
+                    txtEmpNo.setValue(dt[0].STEP_EMP);
+                    txtEstHours.setValue(dt[0].ESTIMATED_HOUR);
+                    txtStartTime.setDateValue(new Date(dt[0].STEP_START.replaceAll(".", ":")));
+                    txtEndTime.setDateValue(new Date(dt[0].STEP_END.replaceAll(".", ":")));
+                    txtRemarks.setValue(dt[0].STEP_REMARKS);
+                }
+            }
+        }
+        var doSave = function () {
+            if (isProdClosed()) FormView.err("Cant save on closed productions !");
+            if (txtEmpNo.getValue() != "") {
+                var emp = Util.getSQLValue("select max(no) from salesp where no='" + txtEmpNo.getValue() + "'");
+                if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
+            }
+            var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+
+            if (Util.nvl(txtStartTime.getDateValue(), undefined) != undefined && dt.getTime() > txtStartTime.getDateValue().getTime())
+                FormView.err("Err ! Step date is more than JO date !");
+            if (Util.nvl(txtEndTime.getDateValue(), undefined) != undefined && dt.getTime() > txtEndTime.getDateValue().getTime())
+                FormView.err("Err ! Step date is more than JO date !");
+            if (Util.nvl(txtEndTime.getDateValue(), undefined) != undefined &&
+                Util.nvl(txtStartTime.getDateValue(), undefined) == undefined)
+                FormView.err("if mentioned end time then must have value for start time !");
+            if (Util.nvl(txtStartTime.getDateValue(), undefined) != undefined &&
+                Util.nvl(txtEndTime.getDateValue(), undefined) != undefined &&
+                txtEndTime.getDateValue().getTime() < txtStartTime.getDateValue().getTime())
+                FormView.err("Start date or End date is Invalid !");
+            if (Util.extractNumber(Util.nvl(txtEstHours.getValue(), "0")) < 0)
+                FormView.err("Estimated number is not valid !");
+            //CONTINUE STEP END CAN NOT BE THEIR IF STEP START IS BLANK
+            var sql = "";
+            var colvals = {
+                "step_pos": Util.quoted(sp),
+                "pord_keyfld": thatForm.frm.getFieldValue("keyfld"),
+                "step_code": Util.quoted(txtStepCode.getValue()),
+                "step_emp": Util.quoted(txtEmpNo.getValue()),
+                "estimated_hour": Util.quoted(txtEstHours.getValue()),
+                "step_start": Util.nvl(txtStartTime.getDateValue(), undefined) ? Util.toOraDateTimeString(txtStartTime.getDateValue()) : "null",
+                "step_end": Util.nvl(txtEndTime.getDateValue(), undefined) ? Util.toOraDateTimeString(txtEndTime.getDateValue()) : "null",
+                "step_remarks": Util.quoted(txtRemarks.getValue()),
+                "step_user": Util.quoted(sett["LOGON_USER"]),
+                "step_done": "'N'" //DONEXT DONE IF STEP START AND END IS NOT NULL
+            };
+            if (sp > -1)
+                sql = UtilGen.getUpdateRowStringByObj("PORD_JO_STEPS",
+                    colvals, " pord_keyfld=:qry1.keyfld and step_pos=" + sp);
+            else
+                sql = UtilGen.getInsertRowStringByObj("PORD_JO_STEPS",
+                    {
+                        ...colvals,
+                        ...{
+                            "step_pos": "(select nvl(max(step_pos),0)+1 " +
+                                "from pord_jo_steps where pord_keyfld=:qry1.keyfld )"
+                        }
+                    });
+            sql = thatForm.frm.parseString(sql);
+            var dt = Util.execSQL(sql);
+            if (dt.ret == "SUCCESS") {
+                FormView.msgSuccess("Status updated !");
+                dlg.close();
+                if (fnCallBack != undefined) fnCallBack();
+            }
+
+        }
+        doCreate();
+        doLoad();
+
+
+
     },
     showMaterials: function () {
         var that2 = this;

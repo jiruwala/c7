@@ -2611,7 +2611,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                     });
                     var btNw = new sap.m.Button(this.tableId + "cmdNewWnd", {
-                        icon: "sap-icon://full-screen", press: function () {                            
+                        icon: "sap-icon://full-screen", press: function () {
                             qrj.createNewWnd();
                         }
                     });
@@ -3782,7 +3782,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds, showNewWnd) {
+            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds, showNewWnd, pOnEdit, showEdit) {
                 qrj.createToolbar("", [],
                     // EVENT ON APPLY PERSONALIZATION
                     function (prsn, qv) {
@@ -3820,6 +3820,43 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     icon: "sap-icon://sys-minus",
                     tooltip: "select and delete a row ",
                 });
+                var btEditRow = new sap.m.Button({
+                    icon: "sap-icon://edit",
+                    tooltip: "Edit the row... ",
+                });
+
+
+                var onEdit = function () {
+                    var rowno = -1;
+                    var colno = -1;
+                    if (qrj.getControl().getSelectedIndices().length == 0) {
+                        const currentFocusedControlId = sap.ui.getCore().getCurrentFocusedControlId();
+                        if (Util.nvl(currentFocusedControlId, "") == "" ||
+                            sap.ui.getCore().byId(currentFocusedControlId) == undefined ||
+                            sap.ui.getCore().byId(currentFocusedControlId).indexOfRow == undefined
+                        ) setTimeout(function () {
+                            FormView.err("Selection may invalid !");
+                        });
+                        var _input = sap.ui.getCore().byId(currentFocusedControlId);
+                        // if (_input != undefined || (!_input.getParent() instanceof sap.ui.table.Row)) return;
+                        rowno = qrj.getControl().indexOfRow(_input.getParent());
+                        colno = _input.getParent().indexOfCell(_input);
+                        qrj.getControl().setSelectedIndex(rowno);
+                    }
+
+                    if (qrj.getControl().getSelectedIndices().length == 0) {
+                        sap.m.MessageToast.show("Must select a row !");
+                        return;
+                    }
+
+                    var sl = qrj.getControl().getSelectedIndices();
+                    if (pOnEdit != undefined)
+                        pOnEdit(sl);
+                    // else
+                    // for (var s = sl.length - 1; s >= -1; s--)
+                    //     qrj.deleteRow(sl[s]);
+                }
+                btEditRow.attachBrowserEvent("mousedown", onEdit);
                 var onAdd = function () {
 
                     var rowno = -1;
@@ -3888,6 +3925,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(btAddRow);
                 if (Util.nvl(showDel, true))
                     qrj.showToolbar.toolbar.addContent(btDelRow);
+                if (Util.nvl(showEdit, false))
+                    qrj.showToolbar.toolbar.addContent(btEditRow);
                 if (fnAddCmds != undefined)
                     fnAddCmds(qrj.showToolbar.toolbar);
 
@@ -4245,7 +4284,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            JOFunc:{
+            JOFunc: {
                 checkJOStatus: function (poKf, pRaiseErr) {
                     var raiseErr = Util.nvl(pRaiseErr, true);
                     var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,nvl(max(ordacc),'') ordacc from pord1 where keyfld=" + poKf, "No data found !");
