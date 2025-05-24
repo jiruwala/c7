@@ -1,6 +1,7 @@
 sap.ui.jsfragment("bin.forms.jo.jo", {
-
-
+    //CONTINUE show percentage sold
+    //TODO show dashboard with how many active 
+    //TODO CLOSEJO to just close in case.
 
     createContent: function (oController) {
         var that = this;
@@ -155,7 +156,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         }
 
                     });
-
+                    //TODO mockup sales wizard to show atleast multiple invoices 
                     thatForm.commands.cmdSales = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
@@ -244,7 +245,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         applyCol: "C7.JO1",
                         addRowOnEmpty: true,
                         dml: dmlSq,
-                        dispRecords: { "S": 5, "M": 7, "L": 10, "XL": 14, "XXL": 18 },
+                        dispRecords: { "S": 3, "M": 4, "L": 6, "XL": 7, "XXL": 12 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
@@ -308,14 +309,34 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
                             var ld = qv.mLctb;
                             var sumAmt = 0;
+                            var ordrd = 0;
+                            var rcvd = Util.nvl(thatForm.rcvd, 0);
 
-                            for (var i = 0; i < ld.rows.length; i++)
+                            for (var i = 0; i < ld.rows.length; i++) {
                                 sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
+                                ordrd += Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
+                            }
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
-                            if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
+                            var rcvdp = 0
 
+                            if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
+
+                            if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Delivered : " + rcvdp + " % ");
+
+
+                            // thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
+                            var totmat = 0;
+                            var totexp = 0;
+
+                            if (thatForm.qc == undefined) {
+                                totmat = Util.getSQLValue("select nvl(sum((price/pack)*allqty),0)  from pord_jo_exp where exp_type=1 and keyfld='" + thatForm.frm.getFieldValue("qry1.keyfld") + "'");
+                                totexp = Util.getSQLValue("select nvl(sum((price)),0) from pord_jo_exp where exp_type=2 and keyfld='" + thatForm.frm.getFieldValue("qry1.keyfld") + "'");
+                            }
+                            thatForm.frm.setFieldValue('qry2.matcost', df.format(totmat));
+                            thatForm.frm.setFieldValue('qry2.otherexp', df.format(totexp));
+                            thatForm.frm.setFieldValue('qry2.totcost', df.format(totmat + totexp));
                         },
                         summary: thatForm.helperFunc.getSummary()
 
@@ -982,7 +1003,6 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
         }
         var doSave = function () {
-            //TODO update production close add column  in JO_PROD_TIME AND JO_PROD_USER
             if (isProdClosed() || getStepsNotDone() > 0) FormView.err("Either producton closed or some steps not done in production !");
             Util.simpleConfirmDialog(Util.getLangText("You can not change later producton steps if done ,Are you sure to proceed ?"), function (oAction) {
                 var sqj = thatForm.frm.parseString("update pord1 set jo_prod_user='" + sett["LOGON_USER"] + "' , " +
@@ -1222,7 +1242,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 FormView.err("Start date or End date is Invalid !");
             if (Util.extractNumber(Util.nvl(txtEstHours.getValue(), "0")) < 0)
                 FormView.err("Estimated number is not valid !");
-            //CONTINUE STEP END CAN NOT BE THEIR IF STEP START IS BLANK
+
             var sql = "";
             var colvals = {
                 "step_pos": Util.quoted(sp),
@@ -1234,7 +1254,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 "step_end": Util.nvl(txtEndTime.getDateValue(), undefined) ? Util.toOraDateTimeString(txtEndTime.getDateValue()) : "null",
                 "step_remarks": Util.quoted(txtRemarks.getValue()),
                 "step_user": Util.quoted(sett["LOGON_USER"]),
-                "step_done": "'N'" //DONEXT DONE IF STEP START AND END IS NOT NULL
+                "step_done": "'N'"
             };
             if (sp > -1)
                 sql = UtilGen.getUpdateRowStringByObj("PORD_JO_STEPS",
@@ -1320,7 +1340,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             }
             var sqf = that2.frm.parseString("select p.item_pos,p.refer,i.descr,p.packd,p.unitd,p.pack,pkqty,price,0 amount" +
                 " from pord_jo_exp p,items i where i.reference=p.refer " +
-                "and p.keyfld=':qry1.keyfld' order by p.item_pos");
+                "and p.keyfld=':qry1.keyfld' and exp_type=1 order by p.item_pos");
             var dt = Util.execSQL(sqf);
             if (dt.ret == "SUCCESS") {
                 qv.setJsonStrMetaData("{" + dt.data + "}");
@@ -1493,9 +1513,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             return "";
         var ld = that2.qc.mLctb;
         var sqls = "";
-        var sq2 = "insert into pord_jo_exp(keyfld,item_pos,refer,packd,unitd,pack,pkqty,price) " +
+        var sq2 = "insert into pord_jo_exp(keyfld,item_pos,refer,packd,unitd,pack,pkqty,price,exp_type) " +
             " VALUES (':qry1.keyfld',':ITEM_POS',':REFER',':PACKD', " +
-            " ':UNITD' ,':PACK' ,:PKQTY, :PRICE);";
+            " ':UNITD' ,':PACK' ,:PKQTY, :PRICE, 1);";
         var checkDuplicate = {};
         for (var i = 0; i < ld.rows.length; i++) {
             if (Util.nvl(ld.getFieldValue(i, "REFER"), "") == "") {
@@ -1606,6 +1626,15 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("JO is POSTED ,INV # " + invno);
                         }
                         thatForm.queryCommands();
+
+                        var rcvd = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where ord_code=9 and pord1_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var ordrd = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var rcvdp = 0;
+                        thatForm.dlvqty = rcvd;
+                        if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
+                        thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Delivered : " + rcvdp + " % ");
+
+
                     }
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
                         qry.obj.mLctb.getColByName("DESCR").beforeSearchEvent = function (sq, ctx, model) {
@@ -1633,14 +1662,26 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
+                        thatForm.dlvqty = 0;
                         thatForm.fetchCustItems = false;
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from pord1");
                         var dt = thatForm.view.today_date.getDateValue();
 
+                        var objTot = thatForm.frm.objs["qry2.totamt"].obj;
+                        var objcst = thatForm.frm.objs["qry2.totcost"].obj;
+                        var objmat = thatForm.frm.objs["qry2.matcost"].obj;
+                        var objothexp = thatForm.frm.objs["qry2.otherexp"].obj;
+
                         UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
+
+                        UtilGen.setControlValue(objTot, 0, 0, true);
+                        UtilGen.setControlValue(objcst, 0, 0, true);
+                        UtilGen.setControlValue(objmat, 0, 0, true);
+                        UtilGen.setControlValue(objothexp, 0, 0, true);
+
 
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         objOn.fireSelectionChange();
@@ -1755,18 +1796,84 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     colname: "totamt",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"Total DR\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                    title: '@{\"text\":\"Total\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
                     title2: "Total ",
                     canvas: "default_canvas",
                     display_width: sumSpan,
                     display_align: "ALIGN_RIGHT",
                     display_style: "background-color:yellow;",
                     display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: { width: "30%" },
+                    other_settings: { width: "30%", editable: false },
                     edit_allowed: false,
                     insert_allowed: false,
                     require: true
                 },
+                lblEstm: {
+                    colname: "lblEstm",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: '{\"text\":\"Estimation:\",\"width\":\"50%\","textAlign":"Center","styleClass":"boldText"}',
+                    title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "color:maroon;",
+                    display_format: "",
+                    other_settings: { width: "0px" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                matcost: {
+                    colname: "matcost",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"Material cost\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%", editable: false },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                otherexp: {
+                    colname: "otherexp",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"Other Expenses\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%", editable: false },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                totcost: {
+                    colname: "totcost",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"Total cost\",\"width\":\"20%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%", editable: false },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                //TODO put here actual to show 
+
             };
         },
         getFields1: function () {
