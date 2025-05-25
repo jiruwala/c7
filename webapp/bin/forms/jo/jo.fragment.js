@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.jo.jo", {
-    //CONTINUE show percentage sold
+
     //TODO show dashboard with how many active 
     //TODO CLOSEJO to just close in case.
 
@@ -251,8 +251,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         delete_allowed: true,
                         delete_before_update: "delete from pord2 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'AMOUNT'],
-                        insert_exclude_fields: ['AMOUNT'],
+                        update_exclude_fields: ['KEYFLD', 'AMOUNT', "DLV_PKQTY"],
+                        insert_exclude_fields: ['AMOUNT', "DLV_PKQTY"],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -323,7 +323,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
 
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Delivered : " + rcvdp + " % ");
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");
 
 
                             // thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
@@ -416,7 +416,17 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
             });
             var txtEmpName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: false });
-            var txtAttach = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: commands[para].showRecs ? false : true });
+            var txtAttach = new sap.m.Input(
+                {
+                    textAlign: sap.ui.core.TextAlign.Begin,
+                    width: "50%", editable: commands[para].showRecs ? false : true,
+                    showValueHelp: true,
+                    valueHelpRequest: function (e) {
+                        UtilGen.Vouchers.attachShowUpload(thatForm);
+                    }
+
+                });
+
             var txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: commands[para].showRecs ? false : true });
             var vb = new sap.m.VBox();
             var doSave = function () {
@@ -1632,7 +1642,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         var rcvdp = 0;
                         thatForm.dlvqty = rcvd;
                         if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
-                        thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Delivered : " + rcvdp + " % ");
+                        thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");
 
 
                     }
@@ -1824,11 +1834,43 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     insert_allowed: false,
                     require: true
                 },
+                lblActm: {
+                    colname: "lblActm",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: '@{\"text\":\"Actual:\",\"width\":\"50%\","textAlign":"Center","styleClass":"boldText"}',
+                    title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "color:maroon;",
+                    display_format: "",
+                    other_settings: { width: "0px" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
                 matcost: {
                     colname: "matcost",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.TEXTFIELD,
                     title: '{\"text\":\"Material cost\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%", editable: false },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                actmatcost: {
+                    colname: "actmatcost",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"Material cost\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: sumSpan,
@@ -1856,6 +1898,22 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     insert_allowed: false,
                     require: true
                 },
+                actotherexp: {
+                    colname: "actotherexp",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"Other Expenses\",\"width\":\"20%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%", editable: false },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
                 totcost: {
                     colname: "totcost",
                     data_type: FormView.DataType.Number,
@@ -1872,7 +1930,22 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     insert_allowed: false,
                     require: true
                 },
-                //TODO put here actual to show 
+                acttotcost: {
+                    colname: "acttotcost",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"Total cost\",\"width\":\"20%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%", editable: false },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
 
             };
         },
@@ -1956,7 +2029,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 jo_status: FormView.getFactoryFields.getGeneralField(
                     "jo_status", "@", "txtStatus", "15%", "redText", "10%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: false,
                         insert_allowed: false,
                         display_style: "redText boldText"
@@ -1967,7 +2040,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 jo_active_from: FormView.getFactoryFields.getDateField(
                     "jo_active_from", "@", "txtStatus", "10%", "", "15%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: false,
                         insert_allowed: false,
                         display_style: "boldText"

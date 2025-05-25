@@ -1,0 +1,316 @@
+var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+var sett = sap.ui.getCore().getModel("settings").getData();
+var df = new simpleDateFormat('MM/dd/yyyy');
+var fromdt;
+var todt;
+var txtCust;
+var custname;
+var btLst;
+var slsK = [];
+var sc = new sap.m.ScrollContainer().addStyleClass("db1Reports");
+
+if (UtilGen.DBView.db2_cust_code == undefined) {
+  UtilGen.DBView.db2_cust_code = '-1';
+  UtilGen.DBView.db2_cust_name = 'All';
+  UtilGen.DBView.db2_rep = 'suppliers';
+}
+UtilGen.DBView.db2_rep = Util.nvl(UtilGen.DBView.db2_rep, 'customers');;
+var sett = sap.ui.getCore().getModel("settings").getData();
+var saveDbDate = function () {
+  UtilGen.DBView.db2_fromdt = fromdt.getDateValue();
+  UtilGen.DBView.db2_todt = todt.getDateValue();
+};
+
+var createSales = function () {
+  Util.destroyID("db2FromDate", UtilGen.DBView);
+  Util.destroyID("db2ToDate", UtilGen.DBView);
+  Util.destroyID("db2custName", UtilGen.DBView);
+  Util.destroyID("db2custCode", UtilGen.DBView);
+  Util.destroyID("db2BtLst", UtilGen.DBView);
+
+  fromdt = new sap.m.DatePicker(UtilGen.DBView.createId("db2FromDate"), {
+    width: "150px",
+    valueFormat: sett["ENGLISH_DATE_FORMAT"],
+    displayFormat: sett["ENGLISH_DATE_FORMAT"],
+    change: function () {
+      saveDbDate();
+    }
+  });
+
+  todt = new sap.m.DatePicker(UtilGen.DBView.createId("db2ToDate"), {
+    width: "150px",
+    valueFormat: sett["ENGLISH_DATE_FORMAT"],
+    displayFormat: sett["ENGLISH_DATE_FORMAT"],
+    change: function () {
+      saveDbDate();
+    }
+
+  });
+
+  txtCust = new sap.m.Input(UtilGen.DBView.createId("db2custCode"), {
+    editable: false,
+  });
+
+  custname = new sap.m.Input(UtilGen.DBView.createId("db2custName"), {
+    width: "200px",
+    editable: false,
+  });
+  btLst = new sap.m.Button(UtilGen.DBView.createId("db2BtLst"), {
+    icon: "sap-icon://value-help",
+    width: "30px",
+    press: function (e) {
+      var btns = [];
+
+      UtilGen.Search.do_quick_search(e, txtCust,
+        "select '-1' code,'ALL' title from dual union all select *from (select code,name title from c_ycust  order by path) ",
+        "select *from (select '-1' code,'ALL' title from dual union all select code,code||'-'||name title from c_ycust) where code=:CODE", custname, function () {
+          UtilGen.DBView.db2_cust_code = txtCust.getValue();
+          UtilGen.DBView.db2_cust_name = custname.getValue();
+        }, undefined, btns)
+
+    }
+  });
+  if (UtilGen.DBView.db2_fromdt == undefined) {
+    UtilGen.DBView.db2_fromdt = UtilGen.parseDefaultValue("$FIRSTDATEOFMONTH");
+    UtilGen.DBView.db2_todt = UtilGen.DBView.today_date.getDateValue();
+  }
+
+  fromdt.setDateValue(new Date(UtilGen.DBView.db2_fromdt));
+  todt.setDateValue(new Date(UtilGen.DBView.db2_todt));
+  txtCust.setValue(UtilGen.DBView.db2_cust_code);
+  custname.setValue(UtilGen.DBView.db2_cust_name);
+
+
+
+  var sales = {
+    "db2CustSalesSum": "bin.forms.br.kha.reps.slsum formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2CustItemsSalesSum": "bin.forms.br.kha.reps.slsum formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 grpby=customers subgrpby=items ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2ItemsCustSalesSum": "bin.forms.br.kha.reps.slsum formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 grpby=items subgrpby=customers ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2DlvAfterSales": "bin.forms.br.rep.rpPostDlvs formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2DlvBeforeales": "bin.forms.br.rep.rpBfrInvs formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2CustBalances": "rp.cb formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 cust_code=^^cust1 fromdate=@^^fromdate todate=@^^todate",
+    "db2CustAge": "rp.cage formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^agecustfromdate=@^^fromdate todate=@^^todate",
+    "db2CustCollection": "rp.coll formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "titDailyItemSales": "bin.forms.br.rep.rpIds formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "titCustItemSales": "bin.forms.br.rep.rpIcs formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "titCSOA": "testRep5 formType=dialog repno=0 para_PARAFORM=false para_EXEC_REP=true pref=^^cust1 fromdate=@^^fromdate todate=@^^todate",
+    "db2ExpensesFromAcc": "db2ExpensesFromAcc"
+
+  };
+
+
+  var keys = Object.keys(sales);
+  var styl = Util.getLangDescrAR("linkLabel db2darkBlueText", "linkLabel db2darkBlueTextAr");
+  slsK = [];
+  for (var ky in keys) {
+    var kystr = Util.getLangText(keys[ky]);
+    var cmdstr = sales[keys[ky]];
+    var lnkInv = new sap.m.Text({ text: kystr, customData: { key: cmdstr }, }).addStyleClass(styl).attachBrowserEvent("click", function () {
+
+      var fd = fromdt.getDateValue();
+      var td = todt.getDateValue();
+
+      var pCmdStr = this.getCustomData()[0].getKey();
+      if (pCmdStr == "db2ExpensesFromAcc") {
+        var sq = "select accno code,name from acaccount where isbankcash='Y' order by name";
+        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+          var cmd = "bin.forms.rp.pays formType=dialog repno=0 para_PARAFORM=false para_EXEC_REP=true showBalance=credit accno=^^acno fromdate=@^^fromdate todate=@^^todate";
+          cmd = cmd.replaceAll("^^acno", data.CODE)
+            .replaceAll("^^fromdate", df.format(fd))
+            .replaceAll("^^todate", df.format(td));
+          UtilGen.execCmd(cmd, UtilGen.DBView, this, UtilGen.DBView.newPage);
+          return true;
+        }, "60%", "80%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+
+        return;
+      }
+
+      var codx = (UtilGen.DBView.db2_cust_code == '-1' ? '' : "pcust=" + UtilGen.DBView.db2_cust_code + " ");
+      var agecust = (UtilGen.DBView.db2_cust_code == '-1' ? '' : "from_cust=" + UtilGen.DBView.db2_cust_code + " to_cust=" + UtilGen.DBView.db2_cust_code + " ");
+      var cod = (UtilGen.DBView.db2_cust_code == '-1' ? '1' : UtilGen.DBView.db2_cust_code);
+      var str = this.getCustomData()[0].getKey()
+        .replaceAll("^^fromdate", df.format(fd))
+        .replaceAll("^^todate", df.format(td))
+        .replaceAll("^^cust1", cod)
+        .replaceAll("^^custx", codx)
+        .replaceAll("^^agecust", agecust);
+      console.log(str);
+
+      UtilGen.execCmd(str, UtilGen.DBView, this, UtilGen.DBView.newPage);
+    });
+
+    slsK.push(lnkInv);
+  }
+
+};
+
+var createPurs = function () {
+  Util.destroyID("db2FromDate", UtilGen.DBView);
+  Util.destroyID("db2ToDate", UtilGen.DBView);
+  Util.destroyID("db2custName", UtilGen.DBView);
+  Util.destroyID("db2custCode", UtilGen.DBView);
+  Util.destroyID("db2BtLst", UtilGen.DBView);
+
+  fromdt = new sap.m.DatePicker(UtilGen.DBView.createId("db2FromDate"), {
+    width: "150px",
+    valueFormat: sett["ENGLISH_DATE_FORMAT"],
+    displayFormat: sett["ENGLISH_DATE_FORMAT"],
+    change: function () {
+      saveDbDate();
+    }
+  });
+
+  todt = new sap.m.DatePicker(UtilGen.DBView.createId("db2ToDate"), {
+    width: "150px",
+    valueFormat: sett["ENGLISH_DATE_FORMAT"],
+    displayFormat: sett["ENGLISH_DATE_FORMAT"],
+    change: function () {
+      saveDbDate();
+    }
+
+  });
+
+  txtCust = new sap.m.Input(UtilGen.DBView.createId("db2custCode"), {
+    editable: false,
+  });
+
+  custname = new sap.m.Input(UtilGen.DBView.createId("db2custName"), {
+    width: "200px",
+    editable: false,
+  });
+  btLst = new sap.m.Button(UtilGen.DBView.createId("db2BtLst"), {
+    icon: "sap-icon://value-help",
+    width: "30px",
+    press: function (e) {
+      var btns = [];
+
+      UtilGen.Search.do_quick_search(e, txtCust,
+        "select '-1' code,'ALL' title from dual union all select *from (select code,name title from c_ycust  order by path) ",
+        "select *from (select '-1' code,'ALL' title from dual union all select code,code||'-'||name title from c_ycust) where code=:CODE", custname, function () {
+          UtilGen.DBView.db2_cust_code = txtCust.getValue();
+          UtilGen.DBView.db2_cust_name = custname.getValue();
+        }, undefined, btns)
+
+    }
+  });
+  if (UtilGen.DBView.db2_fromdt == undefined) {
+    UtilGen.DBView.db2_fromdt = UtilGen.parseDefaultValue("$FIRSTDATEOFMONTH");
+    UtilGen.DBView.db2_todt = UtilGen.DBView.today_date.getDateValue();
+  }
+
+  fromdt.setDateValue(new Date(UtilGen.DBView.db2_fromdt));
+  todt.setDateValue(new Date(UtilGen.DBView.db2_todt));
+  txtCust.setValue(UtilGen.DBView.db2_cust_code);
+  custname.setValue(UtilGen.DBView.db2_cust_name);
+
+
+
+  var supp = {
+    "db2JONotApproved": "bin.forms.jo.rep.jos formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2JONotActive": "bin.forms.jo.rep.jos formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2JOActive": "bin.forms.jo.rep.jos formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2JOProdDone": "bin.forms.jo.rep.jos formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2JOSoldComplete": "bin.forms.jo.rep.jos formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+    "db2JOClose": "bin.forms.jo.rep.jos formType=dialog para_showPDF=true para_PARAFORM=false para_EXEC_REP=true repno=0 ^^custxfromdate=@^^fromdate todate=@^^todate",
+  };
+
+
+  var keys = Object.keys(supp);
+  var styl = Util.getLangDescrAR("linkLabel db2darkBlueText", "linkLabel db2darkBlueTextAr");
+  slsK = [];
+  for (var ky in keys) {
+    var kystr = Util.getLangText(keys[ky]);
+    var cmdstr = supp[keys[ky]];
+    var lnkInv = new sap.m.Text({ text: kystr, customData: { key: cmdstr }, }).addStyleClass(styl).attachBrowserEvent("click", function () {
+      var fd = fromdt.getDateValue();
+      var td = todt.getDateValue();
+      var codx = (UtilGen.DBView.db2_cust_code == '-1' ? '' : "pcust=" + UtilGen.DBView.db2_cust_code + " ");
+      var agecust = (UtilGen.DBView.db2_cust_code == '-1' ? '' : "from_cust=" + UtilGen.DBView.db2_cust_code + " to_cust=" + UtilGen.DBView.db2_cust_code + " ");
+      var cod = (UtilGen.DBView.db2_cust_code == '-1' ? '2' : UtilGen.DBView.db2_cust_code);
+      var str = this.getCustomData()[0].getKey()
+        .replaceAll("^^fromdate", df.format(fd))
+        .replaceAll("^^todate", df.format(td))
+        .replaceAll("^^cust1", cod)
+        .replaceAll("^^custx", codx)
+        .replaceAll("^^agecust", agecust);
+      console.log(str);
+      UtilGen.execCmd(str, UtilGen.DBView, this, UtilGen.DBView.newPage);
+    });
+
+    slsK.push(lnkInv);
+  }
+
+};
+
+
+
+var fnSelRep = function (e) {
+  var cont = sap.ui.getCore().byId(e.currentTarget.id
+  );
+  if (cont.getCustomData()[0].getKey() == UtilGen.DBView.db2_rep)
+    return;
+  UtilGen.DBView.db2_rep = cont.getCustomData()[0].getKey();
+  showRep();
+};
+var showRep = function () {
+  var hb1 = UtilGen.DBView.byId("db2hbReps1");
+  if (hb1 != undefined)
+    for (var h = hb1.getItems().length - 1; h >= 0; h--)
+      hb1.getItems()[h].destroy();
+
+  Util.destroyID("db2hbReps0", UtilGen.DBView);
+  Util.destroyID("db2hbReps", UtilGen.DBView);
+  Util.destroyID("db2hbReps1", UtilGen.DBView);
+  Util.destroyID("db2selCust", UtilGen.DBView);
+  Util.destroyID("db2selSupp", UtilGen.DBView);
+  Util.destroyID("db2FromTxt", UtilGen.DBView);
+  Util.destroyID("db2ToTxt", UtilGen.DBView);
+  Util.destroyID("db2RfrTxt", UtilGen.DBView);
+  UtilGen.clearPage(sc);
+
+  var t1 = new sap.m.Text(UtilGen.DBView.createId("db2selCust"), { customData: [{ key: 'customers' }], width: "140px", text: Util.getLangText("db2CustReports") }).addStyleClass(UtilGen.DBView.db2_rep == 'customers' ? 'db2RepSelected' : "db2Rep").attachBrowserEvent("click", fnSelRep);
+  var t2 = new sap.m.Text(UtilGen.DBView.createId("db2selSupp"), { customData: [{ key: 'suppliers' }], width: "140px", text: Util.getLangText("JO Reports") }).addStyleClass(UtilGen.DBView.db2_rep == 'suppliers' ? 'db2RepSelected' : "db2Rep").attachBrowserEvent("click", fnSelRep);
+
+  var hb2 = new sap.m.HBox(UtilGen.DBView.createId("db2hbReps0"), {
+    wrap: sap.m.FlexWrap.Wrap,
+    items: [t1, t2]
+  });
+  sc.addContent(hb2);
+
+  if (UtilGen.DBView.db2_rep == "customers") {
+    createSales();
+    var hb = new sap.m.Toolbar(UtilGen.DBView.createId("db2hbReps"), { content: [new sap.m.Text(UtilGen.DBView.createId("db2FromTxt"), { text: 'From' }), fromdt, new sap.m.Text(UtilGen.DBView.createId("db2ToTxt"), { text: 'To' }), todt, new sap.m.Text(UtilGen.DBView.createId("db2RefTxt"), { text: 'Ref.:' }), custname, btLst] })
+    var hb1 = new sap.m.HBox(UtilGen.DBView.createId("db2hbReps1"), {
+      wrap: sap.m.FlexWrap.Wrap,
+      items: slsK
+    });
+    sc.addContent(hb);
+    sc.addContent(hb1);
+
+  }
+
+  if (UtilGen.DBView.db2_rep == "suppliers") {
+    createPurs();
+    var hb = new sap.m.Toolbar(UtilGen.DBView.createId("db2hbReps"), { content: [new sap.m.Text(UtilGen.DBView.createId("db2FromTxt"), { text: 'From' }), fromdt, new sap.m.Text(UtilGen.DBView.createId("db2ToTxt"), { text: 'To' }), todt, new sap.m.Text(UtilGen.DBView.createId("db2RefTxt"), { text: 'Ref.:' }), custname, btLst] })
+    var hb1 = new sap.m.HBox(UtilGen.DBView.createId("db2hbReps1"), {
+      wrap: sap.m.FlexWrap.Wrap,
+      items: slsK
+    });
+    sc.addContent(hb);
+    sc.addContent(hb1);
+
+  }
+
+}
+
+showRep();
+
+/*                                
+new sap.m.Panel(
+   {headerText:"Sales :",
+   content:sc,
+   headerToolbar:hb
+   });
+   */
+
+sc;
