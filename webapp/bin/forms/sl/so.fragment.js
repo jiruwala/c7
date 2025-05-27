@@ -544,6 +544,19 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             FormView.err("Deletion denied : Sales existed !");
                     }
                 },
+                afterFormCreated: function (frm) {
+                    if (this.blurAdded != undefined) return;
+                    this.blurAdded = true;
+                    setTimeout(() => {
+                        var obj = frm.objs["qry1.ord_rfr"].obj;
+                        obj.$().find("input").blur(function (oEvent) {
+                            if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
+                                thatForm.helperFunc.fetchRef();
+                        });
+
+                    }, 10);
+
+                },
                 beforeDelRow: function (qry, idx, ld, data) {
                     var delbfr = "";
                     if (qry.name == "qry1") {
@@ -1698,6 +1711,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 }
 
             }
+        },
+        fetchRef: function () {
+            alert("Fetching..");
         }
     }
     ,
