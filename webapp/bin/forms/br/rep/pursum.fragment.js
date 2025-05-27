@@ -91,7 +91,7 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                     },
                     onSubTitHTML: function () {
 
-                        var tbstr = Util.getLangText("titleSlsum");
+                        var tbstr = Util.getLangText("titlePursum");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
                     },
@@ -338,32 +338,18 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                     },
                     {
                         disp: "qty",
-                        exp: "sum((qtyout-qtyin)/pack)",
+                        exp: "sum((qtyin-qtyout)/pack)",
                     },
                     {
                         disp: "avg_price",
-                        exp: "getavgprice(nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) , SUM((QTYOUT-free_allqty)-QTYIN ),max(itpack)) ",
+                        exp: "getavgprice(nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYIN+free_allqty)-QTYOUT))),0) , SUM((QTYIN+free_allqty)-QTYOUT ),max(itpack)) ",
                     },
                 ],
                 "all": [
                     {
                         disp: "amt",
-                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) ",
-                    },
-                    {
-                        disp: "cost",
-                        exp: "nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
-                    },
-                    {
-                        disp: "profitamt",
-                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0) ",
-                    },
-                    {
-                        disp: "profitmargin",
-                        exp: "round(getavgprice( nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0) - nvl(SUM(pkcost* (QTYOUT-QTYIN) ),0)   ,   nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYOUT-free_allqty)-QTYIN))),0)  ,  max(1) )*100,1) ||'%' ",
-                    },
-
-
+                        exp: "nvl(SUM((((PRICE)-(DISC_AMT+DISC_AMT_GROSS) )/PACK)* (((QTYIN+free_allqty)-QTYOUT))),0) ",
+                    }
 
                 ]
             };
@@ -424,14 +410,6 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                     }
                 },
                 "all": {
-                    "cost": {
-                        "mTitle": "Cost Amt",
-                        "mSummary": "SUM",
-                        "mUIHelper": {
-                            "display_format": "MONEY_FORMAT",
-                            "display_width": 90
-                        }
-                    },
                     "amt": {
                         "mTitle": "Amount",
                         "mSummary": "SUM",
@@ -440,28 +418,13 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
                             "display_width": 90
                         }
                     },
-                    "profitamt": {
-                        "mTitle": "Profit Amt",
-                        "mSummary": "SUM",
-                        "mUIHelper": {
-                            "display_format": "MONEY_FORMAT",
-                            "display_width": 90
-                        }
-                    },
-                    "profitmargin": {
-                        "mTitle": "Profit Amt",
-                        "mSummary": "SUM",
-                        "mUIHelper": {
-                            "display_format": "MONEY_FORMAT",
-                            "display_width": 90
-                        }
-                    }
                 },
             }
         },
         getParas: function (repCode) {
             var colSpan = "XL2 L2 M2 S12";
             var strLst = "@customers/Suppliers,month/Monthly,date/Date,locations/Locations,items/Items,salesman/Sales Person,parentitems/Group Items,types/Inv Type";
+            var thatForm = this.thatForm;
             return {
                 fromdate: {
                     colname: "fromdate",
@@ -638,8 +601,8 @@ sap.ui.jsfragment("bin.forms.br.rep.pursum", {
             var sql = "select :grpCols from joined where " +
                 " invoice_date>=:parameter.fromdate and " +
                 " invoice_date<=:parameter.todate and " +
-                " (location_code=':parameter.ploc' or ':parameter.ploc'='ALL') " +
-                " (c_cus_no=':parameter.pcust' or ':parameter.pcust' is null )   and " +                
+                " (location_code=':parameter.ploc' or ':parameter.ploc'='ALL') and " +
+                " (c_cus_no=':parameter.pcust' or ':parameter.pcust' is null )  " +
                 " and invoice_code in (11,22) group by :grpByCols ";
             var eq = thatForm.frm.getFieldValue("SLSUM01@parameter.grpby");
             var seq = thatForm.frm.getFieldValue("SLSUM01@parameter.subgrpby");

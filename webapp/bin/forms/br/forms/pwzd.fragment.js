@@ -736,7 +736,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             "                 RECIEVED_KEYFLD, FREE_ALLQTY,costcent,size_of_descr)" +
             "                 values (" +
             "                 pcode, ploc, pinvno," +
-            "                 11, ptype, posx, x.ord_ship, pstr , pr*x.pack,  x.pkaver ," +
+            "                 11, ptype, posx, x.ord_ship, pstr , pr,  x.pkaver ," +
             "                 0, x.pack, x.packd, x.unitd, pdate," +
             "                 0, x.tqty, 0, 0," +
             "                 x.tqty*x.pack, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +

@@ -277,7 +277,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                 " TO_CHAR(ORD_DATE,'RRRR/MM') MNTH,TO_CHAR(ORD_DATE,'RRRR_MM')||'__QTY' MNTH_BAL," +
                 " i.packd, 1 levelno,'' parentacc ,0 CHILDCOUNT " +
                 " FROM C_ORDER1 O,ITEMS I " +
-                " WHERE I.REFERENCE=O.ORD_SHIP " +
+                " WHERE I.REFERENCE=O.ORD_SHIP and ord_code=9" +
                 " GROUP BY ORD_SHIP,TO_CHAR(ORD_DATE,'RRRR/MM'),I.DESCR,TO_CHAR(ORD_DATE,'RRRR_MM')||'__QTY',i.packd " +
                 " ORDER BY TO_CHAR(ORD_DATE,'RRRR/MM'),ord_ship";
             Util.doAjaxJson("bat7addQry?" + ps, {
