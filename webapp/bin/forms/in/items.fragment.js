@@ -494,11 +494,11 @@ sap.ui.jsfragment("bin.forms.in.items", {
                     display_align: "ALIGN_LEFT",
                     display_style: "",
                     display_format: "",
-                    other_settings: { width: "10%", trueValues: ["1", "0"] },
+                    other_settings: { width: "10%", trueValues: ["1", "2"] },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false,
-                    trueValues: ["1", "0"]
+                    trueValues: ["1", "2"]
                 },
                 reference: {
                     colname: "reference",

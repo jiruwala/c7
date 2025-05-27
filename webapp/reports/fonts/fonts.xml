@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies>
+	<fontFamily name="arial2">
+		<normal>
+			<ttf><![CDATA[fonts/arial2/arial.ttf]]></ttf>
+			<pdf><![CDATA[arial2]]></pdf>
+		</normal>
+		<bold>
+			<ttf><![CDATA[fonts/arial2/arialbd.ttf]]></ttf>
+			<pdf><![CDATA[arial2]]></pdf>
+		</bold>
+		<italic>
+			<ttf><![CDATA[fonts/arial2/ariali.ttf]]></ttf>
+			<pdf><![CDATA[arial2]]></pdf>
+		</italic>
+		<boldItalic>
+			<ttf><![CDATA[fonts/arial2/arialbi.ttf]]></ttf>
+			<pdf><![CDATA[arial2]]></pdf>
+		</boldItalic>
+		<pdfEncoding><![CDATA[Identity-H]]></pdfEncoding>
+		<pdfEmbedded><![CDATA[true]]></pdfEmbedded>
+		<exportFonts/>
+	</fontFamily>
+</fontFamilies>

@@ -572,6 +572,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     // qr.sumObj.destroyToolbar();
                     scrollObjs.push(qr.sumObj);
                 }
+                if (thatForm.form.events.hasOwnProperty("afterFormCreated")) 
+                    thatForm.form.events.afterFormCreated(this);
 
             }
 

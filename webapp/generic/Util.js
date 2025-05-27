@@ -12,26 +12,6 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return null;
             },
-            removeObjsFromArray: function (arr, pobj) {
-                var cnts = 0
-                if (arr == undefined || arr == null) return 0;
-                if (arr.length <= 0) return 0;
-                if (Util.nvl(pobj, undefined) == undefined) return 0;
-
-                var objs = (Array.isArray(pobj) ? pobj : [pobj]);
-                objs.array.forEach(obj => {
-                    var rn = -1;
-                    for (var i = 0; i < arr.length; i++)
-                        if (arr[i] == obj) {
-                            rn = i; break;
-                        }
-                    if (rn >= 0) {
-                        arr.slice(rn, 1);
-                        cnts++;
-                    }
-                });
-                return cnts;
-            },
             isFunction: function (functionToCheck) {
                 return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
             },
