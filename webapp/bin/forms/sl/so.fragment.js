@@ -549,10 +549,17 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     this.blurAdded = true;
                     setTimeout(() => {
                         var obj = frm.objs["qry1.ord_rfr"].obj;
+                        var objn = frm.objs["qry1.ord_no"].obj;
+
                         obj.$().find("input").blur(function (oEvent) {
                             if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
                                 thatForm.helperFunc.fetchRef();
                         });
+                        objn.$().find("input").blur(function (oEvent) {
+                            if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
+                                thatForm.helperFunc.fetchOn();
+                        });
+
 
                     }, 10);
 
@@ -1388,6 +1395,18 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             mSummary: "COUNT",
                         },
                         {
+                            colname: "ORDACC",
+                            mTitle: Util.getLangText("txtIssueAction"),
+                            display_width: 100,
+                        },
+                        {
+                            colname: "INVOICE_NO",
+                            mTitle: Util.getLangText("referenceNo"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+
+                        {
                             colname: "ORD_DATE",
                             display_format: "SHORT_DATE_FORMAT",
                             mTitle: Util.getLangText("ordDate"),
@@ -1437,9 +1456,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,ord_amt," +
-                        "ord_discamt,ord_amt-ord_discamt netamt, keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
-                        " order by o1.ord_date desc,ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1) ",
+                    sql: "select *from (select o1.ord_no,o1.ord_date,o1.ordacc,pur.invoice_no,o1.ord_ref,o1.ord_refnm,o1.ord_amt," +
+                        "o1.ord_discamt,o1.ord_amt-o1.ord_discamt netamt, o1.keyfld from pord1 o1," +
+                        " (select max(p.keyfld) kfld,max(p.invoice_no) invoice_no,po_keyfld  from pur1 p where p.invoice_code=21 and po_keyfld is not null group by p.po_keyfld) pur" +
+                        " where o1.ord_code =" + that2.vars.vou_code +
+                        " and pur.po_keyfld(+) =o1.keyfld " +
+                        " order by o1.ord_date desc,o1.ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1) ",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -1713,8 +1735,209 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             }
         },
         fetchRef: function () {
-            alert("Fetching..");
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) return;
+            var oacc = thatForm.frm.getFieldValue("qry1.ordacc");
+            if (oacc != UtilGen.SalesOrderFunc.initAction.saleInvs &&
+                oacc == UtilGen.SalesOrderFunc.initAction.issueDeliver)
+                return;
+            var rfrFld = "ord_reference";
+            var rfr = thatForm.frm.getFieldValue("qry1.ord_rfr");
+            var loc = thatForm.frm.getFieldValue("qry1.location_code");
+            var typ = thatForm.frm.getFieldValue("qry1.ord_type");
+            var selectMultiple = function (sq) {
+                UtilGen.Search.do_quick_search_simple(sq,
+                    ["ORD_NO", "ORD_REFNM"], function (data) {
+                        var bn = data.KEYFLD;
+                        thatForm.frm.setFieldValue('pac', bn);
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                    }, { pWidth: "80%" }, undefined, undefined, "Many orders found in same reference ", [
+                    {
+                        LOCATION: {
+                            colname: "LOCATION",
+                            display_width: 100,
+                            mTitle: Util.getLangText("locationTxt"),
+                        },
+                    },
+                    {
+                        ORD_DATE: {
+                            colname: "ORD_DATE",
+                            display_format: "SHORT_DATE_FORMAT",
+                            mTitle: Util.getLangText("ordDate"),
+                            display_width: 100
+                        }
+                    },
+                    {
+                        REFERENCE: {
+                            colname: "ORD_NO",
+                            display_width: 80,
+                            mTitle: Util.getLangText("referenceNo"),
+                        }
+                    },
+                    {
+                        TYPEDESCR: {
+                            colname: "TYPEDESCR",
+                            mTitle: Util.getLangText("txtOrdType"),
+                            display_width: 120,
+                        }
+                    },
+                    {
+                        ORD_REF: {
+                            colname: "ORD_REF",
+                            mTitle: Util.getLangText("refCode"),
+                            display_width: 100,
+                        }
+                    },
+                    {
+                        ORD_REFNM: {
+                            colname: "ORD_REFNM",
+                            mTitle: Util.getLangText("refName"),
+                            display_width: 250
+
+                        }
+                    },
+                    {
+                        KEYFLD: {
+                            colname: 'KEYFLD',
+                            return_field: "pac",
+                            hide: true
+                        }
+                    },
+                ]);
+            }
+
+
+            var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where ORD_CODE=21 AND " +
+                rfrFld + "='" + rfr + "' and " +//  location_code='" + loc + "' and " +
+                " ordacc='" + oacc + "'");
+            if (Util.nvl(qr, "") == "" || qr.length == 0) {
+                if (oacc == UtilGen.SalesOrderFunc.initAction.saleInvs) {
+                    qr = Util.execSQLWithData("select po_keyfld keyfld,inv_refnm ord_refnm from pur1 where po_keyfld is not null and invoice_code=21 AND " +
+                        "invoice_no='" + rfr + "'"); //and location_code='" + loc + "'");
+                    if (Util.nvl(qr, "") == "" || qr.length == 0)
+                        return;
+                    if (qr.length > 1)
+                        selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.invoice_date ord_date " +
+                            " invoice_no reference,o.inv_ref ord_ref,o.inv_refnm ord_refnm, o.po_keyfld keyfld from pur1 o,locations l,invoicetype it" +
+                            " where o.invoice_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                            " it.no=o.type and o.invoice_no = '" + rfr + "'" +
+                            " order by o.location_code,o.ord_no ");
+
+
+                }
+            }
+
+            var rfrx = qr[0].KEYFLD;
+            var desx = qr[0].ORD_REFNM;
+            if (qr.length == 1)
+                Util.simpleConfirmDialog("SO existed for client :" + desx + " fetch data ?", function (oAction) {
+                    thatForm.frm.setFieldValue('pac', rfrx);
+                    thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                    thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+
+                }, undefined, undefined, "OK");
+            else
+                selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.ord_date," +
+                    " ord_reference reference,o.ord_ref,o.ord_refnm, o.keyfld from pord1 o,locations l,invoicetype it" +
+                    " where o.ord_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                    " it.no=o.ord_type and o." + rfrFld + " = '" + rfr + "' and " +
+                    " ordacc='" + oacc + "' order by o.location_code,o.ord_no ");
+        },
+        fetchOn: function () {
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) return;
+            var rfrFld = "ord_no";
+            var rfr = thatForm.frm.getFieldValue("qry1.ord_no");
+            var loc = thatForm.frm.getFieldValue("qry1.location_code");
+            var typ = thatForm.frm.getFieldValue("qry1.ord_type");
+
+
+            var selectMultiple = function (sq) {
+                UtilGen.Search.do_quick_search_simple(sq,
+                    ["ORD_NO", "ORD_REFNM"], function (data) {
+                        var bn = data.KEYFLD;
+                        thatForm.frm.setFieldValue('pac', bn);
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                    }, { pWidth: "80%" }, undefined, undefined, "Many orders found in same reference ", [
+                    {
+                        LOCATION: {
+                            colname: "LOCATION",
+                            display_width: 100,
+                            mTitle: Util.getLangText("locationTxt"),
+                        },
+                    },
+                    {
+                        ORD_DATE: {
+                            colname: "ORD_DATE",
+                            display_format: "SHORT_DATE_FORMAT",
+                            mTitle: Util.getLangText("ordDate"),
+                            display_width: 100
+                        }
+                    },
+                    {
+                        REFERENCE: {
+                            colname: "ORD_NO",
+                            display_width: 80,
+                            mTitle: Util.getLangText("referenceNo"),
+                        }
+                    },
+                    {
+                        TYPEDESCR: {
+                            colname: "TYPEDESCR",
+                            mTitle: Util.getLangText("txtOrdType"),
+                            display_width: 120,
+                        }
+                    },
+                    {
+                        ORD_REF: {
+                            colname: "ORD_REF",
+                            mTitle: Util.getLangText("refCode"),
+                            display_width: 100,
+                        }
+                    },
+                    {
+                        ORD_REFNM: {
+                            colname: "ORD_REFNM",
+                            mTitle: Util.getLangText("refName"),
+                            display_width: 250
+
+                        }
+                    },
+                    {
+                        KEYFLD: {
+                            colname: 'KEYFLD',
+                            return_field: "pac",
+                            hide: true
+                        }
+                    },
+                ]);
+            }
+            var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where ORD_CODE=21 AND " +
+                rfrFld + "='" + rfr + "'" //  location_code='" + loc + "' and " +
+            );
+            if (Util.nvl(qr, "") == "" || qr.length == 0)
+                return;
+
+            var rfrx = qr[0].KEYFLD;
+            var desx = qr[0].ORD_REFNM;
+            if (qr.length == 1)
+                Util.simpleConfirmDialog("SO existed for client :" + desx + " fetch data ?", function (oAction) {
+                    thatForm.frm.setFieldValue('pac', rfrx);
+                    thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                    thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                }, undefined, undefined, "OK");
+            else
+                selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.ord_date," +
+                    " ord_reference reference,o.ord_ref,o.ord_refnm, o.keyfld from pord1 o,locations l,invoicetype it" +
+                    " where o.ord_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                    " it.no=o.ord_type and o." + rfrFld + " = '" + rfr + "' " +
+                    " order by o.location_code,o.ord_no ");
+
+
         }
+
     }
     ,
 
