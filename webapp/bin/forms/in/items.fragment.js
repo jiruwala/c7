@@ -494,11 +494,11 @@ sap.ui.jsfragment("bin.forms.in.items", {
                     display_align: "ALIGN_LEFT",
                     display_style: "",
                     display_format: "",
-                    other_settings: { width: "10%", trueValues: ["1", "2"] },
+                    other_settings: { width: "10%", trueValues: ["1", "0"] },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false,
-                    trueValues: ["1", "2"]
+                    trueValues: ["1", "0"]
                 },
                 reference: {
                     colname: "reference",
@@ -1118,7 +1118,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
             }
 
             // thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
-            that2.view.byId("txtRM" + that2.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
+            that2.view.byId("txtRM" + that2.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
             if (reAmt)
                 qv.updateDataToControl();
 

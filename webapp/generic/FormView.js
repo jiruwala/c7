@@ -1,6 +1,7 @@
 sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
     function (QueryView) {
         'use strict'
+//TODO when exit on mode edit/new then confirm
 
         function FormView(pg) {
             this.timeInLong = (new Date()).getTime();

@@ -1,5 +1,7 @@
 sap.ui.jsfragment("bin.forms.sl.so", {
-
+    //TODO info command for items and customer , open basic data, stock card, store balance,previous sales information.
+    //TODO ITEM REFERENCE CAN BE SEARCHED IF ENTERED PARTIALY 
+    //TODO steps commands like approval, delivery, sales, close.
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -553,11 +555,16 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
                         obj.$().find("input").blur(function (oEvent) {
                             if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
-                                thatForm.helperFunc.fetchRef();
+                                setTimeout(() => {
+                                    thatForm.helperFunc.fetchRef();
+                                }, 10);
+
                         });
                         objn.$().find("input").blur(function (oEvent) {
                             if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
-                                thatForm.helperFunc.fetchOn();
+                                setTimeout(() => {
+                                    thatForm.helperFunc.fetchOn();
+                                }, 10);
                         });
 
 
@@ -1571,8 +1578,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             var sett = sap.ui.getCore().getModel("settings").getData();
             var belowcost = Util.nvl(sett["ALLOW_SALES_BELOW_COST"], "TRUE");
             var belowlsamt = Util.nvl(sett["ALLOW_SALES_BELOW_LOWEST"], "TRUE");
-            var belowlstock = Util.nvl(sett["ALLOW_STOCK_BELOW_ZERO"], "TRUE");
-            var abovecredlimit = Util.nvl(sett["ALLOW_SALES_ABOVE_CREDIT"], "TRUE");
+            var belowlstock = Util.nvl(sett["ALLOW_STOCK_BELOW_ZERO"], "TRUE"); //TODO implement  ALLOW_STOCK_BELOW_ZERO options
+            var abovecredlimit = Util.nvl(sett["ALLOW_SALES_ABOVE_CREDIT"], "TRUE"); //TODO implement ALLOW_SALES_ABOVE_CREDIT options
             var rsrv = thatForm.frm.getFieldValue("qry1.reserved_stock");
             var errObj = function (msg, obj) {
 
@@ -1646,7 +1653,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             rn = i;
                 if (rn - 1 < 0) {
                     qv.getControl().setFirstVisibleRow(0);
-                    qv.addSelectionInterval(0, 0);
+                    qv.getControl().addSelectionInterval(0, 0);
                 }
                 else if (Util.nvl(rn, -1) >= 0) {
                     qv.getControl().setFirstVisibleRow(rn - 1);
