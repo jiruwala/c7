@@ -1682,7 +1682,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
                 var can_issue = Util.getSQLValue(sq);
                 if (can_issue < allqty)
-                    errRow(i, "Save Denied : Can issue only " + (allqty / pk) + " " + pkd);
+                    errRow(i, "Save Denied : Can issue only " + (can_issue / pk) + " " + pkd);
             }
             //TODO check reserve stock availblae in approve and none and belowitemzero option if not approve and none
             for (var i = 0; i < ld.rows.length; i++) {

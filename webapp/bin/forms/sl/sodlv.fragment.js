@@ -174,7 +174,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                             "STRA": ":qry1.stra",
                             "STRB": Util.nvl(sett["BR_DLV_STRB"], ":qry1.stra"),
                             "ATTN": ":qry1.branchname",
-                            "PORD1_KEYFLD": ":pacSo"
+                            "PORD1_KEYFLD": ":pacSo"                            
                             // "ORD_PACKD": "(select max(packd) from items where reference=ord_ship)",
                             // "ORD_UNITD": "(select max(unitd) from items where reference=ord_ship)",
                             // "ORD_PACK": "(select max(PACK) from items where reference=ord_ship)"
@@ -1023,47 +1023,6 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                     insert_allowed: false,
                     require: false
                 },
-                txt_balance: {
-                    colname: "txt_balance",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"balanceTxt\",\"width\":\"25%\","textAlign":"End","styleClass":"redText"}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: { editable: true, width: "30%" },
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: false
-                },
-                cmdSOA: {
-                    colname: "cmdSOA",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.BUTTON,
-                    title: '@{\"text\":\" \",\"width\":\"1%\","textAlign":"End","styleClass":"redText"}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: {
-                        editable: true, width: "14%", text: Util.getLangText("soaTxt"), press: function () {
-                            var ac = thatForm.frm.getFieldValue("qry1.ord_ref");
-                            if (Util.nvl(ac, "") != "")
-                                UtilGen.execCmd("testRep5 formType=dialog repno=0 para_PARAFORM=false para_EXEC_REP=true pref=" + ac + "", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
-                            return true;
-
-                        }
-                    },
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: false
-                },
-
                 ord_addamt: {
                     colname: "ord_addamt",
                     data_type: FormView.DataType.Number,
