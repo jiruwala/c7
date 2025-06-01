@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.sl.sodlv", {
-
+    //TESTING testing 
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -61,7 +61,11 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
+        var dmlSq = "select O1.*,NVL(O1.DESCR,(select max(descr) from pord2 where keyfld=o1.pord1_keyfld and ord_pos=pord_pos)) DESCR2,IT.PACKD,IT.PACK," +
+            "O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT ," +
+            " TO_CHAR(CORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
+            " TO_CHAR(CORD_EXP_DATE,'DD/MM/RRRR') ORD_EXP_DATE2 " +
+            " from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + that.vars.vou_code + " ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
@@ -146,6 +150,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                         fields: thatForm.helperFunc.getFields1()
                     },
                     {
+                        //CONTINUE ord_exp_date2 , column settings to be added.                        
                         type: "query",
                         name: "qry2",
                         showType: FormView.QueryShowType.QUERYVIEW,
@@ -158,8 +163,8 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                         delete_allowed: true,
                         delete_before_update: "delete from c_order1 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'PACKD', 'PACK'],
-                        insert_exclude_fields: ['DESCR', 'AMOUNT', 'PACKD', 'PACK'],
+                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'PACKD', 'PACK', "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
+                        insert_exclude_fields: ['DESCR', 'AMOUNT', 'PACKD', 'PACK', "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -174,7 +179,10 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                             "STRA": ":qry1.stra",
                             "STRB": Util.nvl(sett["BR_DLV_STRB"], ":qry1.stra"),
                             "ATTN": ":qry1.branchname",
-                            "PORD1_KEYFLD": ":pacSo"                            
+                            "PORD1_KEYFLD": ":pacSo",
+                            "CORD_PRD_DATE": "(select prd_dt from items where reference=':qry2.ord_ship')",
+                            "CORD_EXP_DATE": "(select exp_dt from items where reference=':qry2.ord_ship')"
+
                             // "ORD_PACKD": "(select max(packd) from items where reference=ord_ship)",
                             // "ORD_UNITD": "(select max(unitd) from items where reference=ord_ship)",
                             // "ORD_PACK": "(select max(PACK) from items where reference=ord_ship)"
@@ -229,7 +237,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
 
                         },
                         summary: thatForm.helperFunc.getSummary()
@@ -295,15 +303,9 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
 
 
                     }
-                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
+                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0) {
                         qry.obj.mLctb.getColByName("ORD_SHIP").beforeSearchEvent = function (sq, ctx, model) {
-                            qry.obj.mLctb.getColByName("ORD_SHIP").btnsx = [new sap.m.Button({
-                                text: 'Add Item in Contract',
-                                press: function () {
-                                    thatForm.helperFunc.addInContract();
-                                }
-                            }
-                            )];
+                            qry.obj.mLctb.getColByName("ORD_SHIP").btnsx = [];
                             if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '')
                                 FormView.err(Util.getLangText("msgBRMustEnterOrdType"));
                             if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_ref"), '') == '')
@@ -313,7 +315,14 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
 
                             return thatForm.frm.parseString(sq);
                         };
+                        var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+                        for (var i = 0; i < ld.rows.length; i++) {
+                            if (Util.nvl(ld.getFieldValue(i, "DESCR"), "") == "")
+                                ld.setFieldValue(i, "DESCR", ld.getFieldValue(i, "DESCR2"));
+                        }
+                        thatForm.frm.objs["qry2"].obj.updateDataToControl();
 
+                    }
 
 
                 },
@@ -783,10 +792,6 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                         change: function (e) {
                             var sq = "select name from salesp where no = :CODE";
                             UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_empno"].obj, undefined, thatForm.frm.objs["qry1.txt_empname"].obj);
-                            var objBr = thatForm.frm.objs["qry1.ord_discamt"].obj;
-                            var objBrNm = thatForm.frm.objs["qry1.branchname"].obj;
-                            var objrfnm = thatForm.frm.objs["qry1.ord_refnm"].obj;
-                            var ordtyp = thatForm.frm.objs["qry1.ord_type"].obj.getValue();
                             var objEmp = thatForm.frm.objs["qry1.ord_empno"].obj;
 
                             var objTel = thatForm.frm.objs["qry1.ord_ship"].obj;
@@ -794,10 +799,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                             var dtxM = Util.execSQLWithData("select mobile,vehicleno,HADDR from salesp where no=" + objEmp.getValue());
                             UtilGen.setControlValue(objTel, dtxM[0]["MOBILE"], dtxM[0]["MOBILE"], true);
                             UtilGen.setControlValue(objV, dtxM[0]["payterm"], dtxM[0]["payterm"], true);
-                            if (ordtyp == 2) {
-                                UtilGen.setControlValue(objBr, "1", "1", true);
-                                UtilGen.setControlValue(objrfnm, "", "", true);
-                            }
+
                         },
                         valueHelpRequest: function (e) {
                             var btns = [new sap.m.Button({
@@ -889,8 +891,6 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
 
                             var objBr = thatForm.frm.objs["qry1.ord_discamt"].obj;
                             var objBrNm = thatForm.frm.objs["qry1.branchname"].obj;
-                            var objrfnm = thatForm.frm.objs["qry1.ord_refnm"].obj;
-                            var ordtyp = thatForm.frm.objs["qry1.ord_type"].obj.getValue();
                             UtilGen.setControlValue(objBr, "", "", true);
                             UtilGen.setControlValue(objBrNm, "", "", true);
 
@@ -901,30 +901,20 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
 
                             var sq = "select name from c_ycust where  code = ':CODE'";
                             UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);
-                            var objCd = thatForm.frm.objs["qry1.ord_ref"].obj;
-                            var objBal = thatForm.frm.objs["qry1.txt_balance"].obj;
-
-                            var dtxM = Util.execSQLWithData("select nvl(sum(debit-credit),0) bal from acvoucher2 where cust_code=" + Util.quoted(objCd.getValue()));
-                            var dt2 = Util.getSQLValue("select sum(sale_price*tqty) from c_order1 where saleinv is null and  ord_ref=" + Util.quoted(objCd.getValue()));
-                            var bl = dtxM[0]["BAL"] + dt2;
-                            UtilGen.setControlValue(objBal, bl, bl, true);
-                            if (ordtyp == 2) {
-                                UtilGen.setControlValue(objBr, "1", "1", true);
-                                UtilGen.setControlValue(objrfnm, "", "", true);
-                            }
 
                         },
                         valueHelpRequest: function (e) {
                             if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '')
                                 FormView.err(Util.getLangText("msgBRMustEnterOrdType"));
 
-                            var btns = [new sap.m.Button({
-                                text: Util.getLangText('newCustomer'), press: function () {
-                                    UtilGen.execCmd("gl.rp formType=dialog formSize=850px,450px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                            var btns = undefined;
+                            // [new sap.m.Button({
+                            //     text: Util.getLangText('newCustomer'), press: function () {
+                            //         UtilGen.execCmd("gl.rp formType=dialog formSize=850px,450px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
 
-                                    });
-                                }
-                            })];
+                            //         });
+                            //     }
+                            // })];
 
                             UtilGen.Search.do_quick_search(e, this,
                                 "select code,name title from c_ycust where iscust='Y'  order by path ",
@@ -1115,7 +1105,11 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                 {
                     name: "cmdNew",
                     canvas: "default_canvas",
-                    title: Util.getLangText("newRec")
+                    title: Util.getLangText("newRec"),
+                    onPress: function (e) {
+                        that2.oController.soKf = undefined;
+                        return true;
+                    }
                 }, {
                     name: "cmdList",
                     canvas: "default_canvas",

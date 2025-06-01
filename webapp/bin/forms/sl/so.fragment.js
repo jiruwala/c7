@@ -61,7 +61,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         //FIXME qih.
         var qih = " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra,'Y',o2.ord_prd_date,o2.ord_exp_date,'\"'||o2.keyfld||'\"')/o2.ord_pack qih , ";
         var rsrv = " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, "
-        var dmlSq = "select NVL(O2.DESCR,(SELECT DESCR FROM ITEMS WHERE REFERENCE=O2.ORD_REFER)) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
+        var dmlSq = "select NVL(O2.DESCR,i.descr) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
             " DELIVEREDQTY/i.pack dlv_pkqty," +
             " TO_CHAR(ORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
             " TO_CHAR(ORD_EXP_DATE,'DD/MM/RRRR') ORD_EXP_DATE2, " +

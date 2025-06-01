@@ -948,6 +948,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     name: "cmdNew",
                     canvas: "default_canvas",
                     title: Util.getLangText("newRec")
+                    
                 }, {
                     name: "cmdList",
                     canvas: "default_canvas",
