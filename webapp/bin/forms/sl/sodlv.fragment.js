@@ -279,7 +279,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
             return {
                 afterLoadQry: function (qry) {
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
-
+                    // qry.formview.setFieldValue("pacSo", qry.formview.getFieldValue("pord1_keyfld"));
                     if (qry.name == "qry1") {
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         var strInvType = "select descr title from invoicetype where location_code=':locationx' and no = ':CODE' ".replaceAll(":locationx", UtilGen.getControlValue(qry.formview.objs["qry1.location_code"].obj));
@@ -334,7 +334,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                 },
                 afterSaveForm: function (frm, nxtStatus) {
                     // frm.loadData(undefined, FormView.RecordStatus.NEW);
-                    frm.setQueryStatus(undefined, Util.nvl(nxtStatus, FormView.RecordStatus.NEW));
+                    // frm.setQueryStatus(undefined, Util.nvl(nxtStatus, FormView.RecordStatus.NEW));
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
                     thatForm.helperFunc.beforeSaveValidateQry(qry);
@@ -359,6 +359,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
                         thatForm.helperFunc.checkSOSelected(qry);
+
                         // thatForm.pord1_keyfld = undefined;
                         // var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         // var objTyp = thatForm.frm.objs["qry1.ord_type"].obj;
@@ -1040,32 +1041,16 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                     name: 'list1',
                     title: "List of Orders",
                     list_type: "sql",
-                    list_para: {
-                        selectStr: "@100/Last 100,200/Last 200,1000/Last 1000,-1/All",
-                        defaultKey: "200",
-                    },
-                    cols: [
-                        {
-                            colname: "ORD_NO",
-                        },
-                        {
-                            colname: "ORD_REF",
-                        },
-                        {
-                            colname: "ORD_REFNM"
-                        },
-                        {
-                            colname: 'KEYFLD',
-                            return_field: "pac",
-                        },
-
-
-                    ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,keyfld,location_code from order1 o1 where " +
-                        " location_code=':qry1.location_code' and " +
-                        " ord_type=':qry1.ord_type' and " +
-                        " ord_code =" + that2.vars.vou_code +
-                        " order by ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1)",
+                    cols: FormView.listColumnsFormat.getCols(["sono", "dlv_no", "init_action",
+                        "ord_date", "po_status", "ord_ref", "ord_refnm", "ord_branchno", "branchname", "keyfld1", "attn"],
+                        { KEYFLD: { hide: true, return_field: "pac", } }),
+                    sql: "select po1.ord_no sono,DECODE (po1.ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status, po1.ordacc init_action ," +
+                        "o1.ord_no dlv_no, o1.ord_date,o1.ord_ref,o1.ord_refnm,o1.ord_discamt ord_branchno," +
+                        "cb.b_name branchname,o1.attn,o1.keyfld from order1 o1,pord1 po1,cbranch cb " +
+                        " where cb.code=o1.ord_ref and cb.brno=ord_branchno and " +
+                        " o1.ord_code =" + that2.vars.vou_code + " and po1.keyfld=o1.pord1_keyfld " +
+                        "  order by o1.ord_date desc,po1.ord_no,o1.ord_no desc"
+                    ,
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;

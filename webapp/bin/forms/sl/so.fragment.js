@@ -72,7 +72,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             "i.lsprice ," +
             " i.lsprice*(o2.ord_allqty/o2.ord_pack) lsamt " +
             " from pord2 o2,items i " +
-            "where O2.KEYFLD=':qry1.keyfld' and ord_code=" +
+            "where O2.KEYFLD=':pac' and ord_code=" +
             thatForm.vars.vou_code +
             " and i.reference=o2.ord_refer " +
             " order by o2.ord_pos ";
