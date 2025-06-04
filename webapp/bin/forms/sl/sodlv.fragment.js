@@ -77,17 +77,8 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750 },
-                    cssText: [
-                        "padding-left:10px;" +
-                        "padding-top:20px;" +
-                        "border-width: thin;" +
-                        "border-style: solid;" +
-                        "border-color: green;" +
-                        "margin: 10px;" +
-                        "border-radius:25px;"
-                        // "background-color:khaki;"
-                    ],
+                    width: { "S": 500, "M": 650, "L": 750, "XL": 850 },
+                    class: "soDlvForm",
                 },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
@@ -149,8 +140,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                         delete_allowed: false,
                         fields: thatForm.helperFunc.getFields1()
                     },
-                    {
-                        //CONTINUE ord_exp_date2 , column settings to be added.                        
+                    {                        
                         type: "query",
                         name: "qry2",
                         showType: FormView.QueryShowType.QUERYVIEW,
@@ -193,6 +183,8 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                         table_name: "c_order1",
                         before_add_table: function (scrollObjs, qrj) {
                             UtilGen.createDefaultToolbar1(qrj, ["ORD_SHIP", "DESCR"], true);
+                            var colset = UtilGen.addColSetup(thatForm.frm.objs["qry2"].applyCol);
+                            qrj.showToolbar.toolbar.addContent(colset);
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
                                 var totalRows = qrj.getControl().getModel().getData().length;
@@ -399,6 +391,12 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                     }
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
+                    if (qry.name == "qry1") {
+                        var gkf = thatForm.frm.getFieldValue("qry1.keyfld");
+                        var podt = UtilGen.SalesOrderFunc.checkSOStatus(thatForm.pord1_keyfld, true);                        
+                        var delAdd = "C7_SO_POSTISSDLV(" + gkf + ",'Y');";
+                        return delAdd;
+                    }
                 },
                 afterDelRow: function (qry, ld, data) {
                     // var delAdd = "";
@@ -412,9 +410,8 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                             if (dtx.length > 0 && dtx[0].SALEINV != undefined) {
                                 qry.formview.setFormReadOnly();
                                 FormView.err("This Delivery is posted to invoice !");
-                            }
-                            // var geniasm = Util.nvl(sett["BR_GEN_IASM_ON_DELIVERY"], 'FALSE');
-                            return "`C7_SO_POSTISSDLV`(" + kf + ",'Y');";
+                            }                            
+
                         }
                     }
 
@@ -442,6 +439,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
 
                     // if (geniasm == 'TRUE') {
                     sq1 = "C7_SO_POSTISSDLV(" + kf + ");";
+
                     // }
                     return sq + sq1 + "update_dlv_add_amt(" + kf + ");";
                 },
@@ -767,7 +765,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                     other_settings: {
                         editable: true, width: "30%",
                         change: function () {
-                            thatForm.helperFunc.fetchItem(false);
+                            // thatForm.helperFunc.fetchItem(false);
                         }
                     },
                     edit_allowed: false,
@@ -1105,9 +1103,9 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                     canvas: "default_canvas",
                     title: Util.getLangText("printRec"),
                     afterPrint: function (repname) {
-                        if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
-                            that2.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
-                        }
+                        // if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                        //     that2.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
+                        // }
                     }
                 },
                 {
@@ -1972,26 +1970,75 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
             // items
             var dup = {};
             var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+            var qv = thatForm.frm.objs["qry2"].obj;
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
+
+            var errRow = function (rown, ds, rfr) {
+                var rn = rown;
+                if (rfr != undefined)
+                    for (var i = 0; i < ld.rows.length; i++)
+                        if (ld.getFieldValue(i, "ORD_REFER") == rfr)
+                            rn = i;
+                if (rn - 1 < 0) {
+                    qv.getControl().setFirstVisibleRow(0);
+                    qv.getControl().addSelectionInterval(0, 0);
+                }
+                else if (Util.nvl(rn, -1) >= 0) {
+                    qv.getControl().setFirstVisibleRow(rn - 1);
+                    qv.getControl().addSelectionInterval(rn, rn);
+                }
+                // FormView.err(ds);
+                UtilGen.DashboardWidget.statusBarText(ds, false, undefined, true)
+                throw ds;
+            }
+            var checkItemDelivery = function (i) {
+                var pos = ld.getFieldValue(i, "PORD_POS");
+                var pk = ld.getFieldValue(i, "PACK");
+                var rfr = ld.getFieldValue(i, "ORD_SHIP");
+
+                var qty = (Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY")) * pk)
+                    + (Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY")));
+                if (Util.nvl(pos, '') == "")
+                    errRow(i, "Must assign SO Pos " + rfr)
+
+                var tstDt = Util.execSQLWithData("select nvl(sum(ord_allqty),0) qt from pord2 where keyfld= " + thatForm.pord1_keyfld + " and ord_pos=" + pos + " and ord_refer='" + ld.getFieldValue(i, "ORD_SHIP") + "' ");
+                if (tstDt == undefined || tstDt.length <= 0)
+                    errRow(i, "Item may not existed in SO, " + rfr);
+                var sqs = "select nvl(sum(tqty),0) from c_order1 " +
+                    " where ord_code=" + thatForm.vars.vou_code + " and pord1_keyfld=" + thatForm.pord1_keyfld +
+                    " and pord_pos=" + pos + " and keyfld!=" + thatForm.frm.getFieldValue("qry1.keyfld");
+
+                var totDlv = Util.getSQLValue(sqs);
+                if (totDlv + qty > tstDt[0].QT)
+                    errRow(i, "Total delivered excessed for # " +
+                        rfr + " , only allowed " +
+                        (((totDlv) - tstDt[0].QT) / pk) + " " +
+                        ld.getFieldValue(i, "PACKD"));
+                // "total ordered = " + (tstDt[0].QT / pk) + ", deliveries # " + ((totDlv + qty) / pk));
+
+            }
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
-                var qty = ld.getFieldValue(i, "ORD_PKQTY");
+                var pk = ld.getFieldValue(i, "PACK");
+                var qty = (Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY")) * pk)
+                    + (Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY")));
+
                 var pr = ld.getFieldValue(i, "SALE_PRICE");
                 if (dup[rfr] != undefined)
-                    FormView.err("Save Denied : Duplicate item entry # " + rfr);
+                    errRow(i, "Save Denied : Duplicate item entry # " + rfr);
                 dup[rfr] = rfr;
+                checkItemDelivery(i);
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)
-                    FormView.err("Save Denied : Item " + rfr + " is a group item !");
+                    errRow(i, "Save Denied : Item " + rfr + " is a group item !");
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where " + flg + " reference='" + rfr + "'");
                 if (cnt == 0)
-                    FormView.err("Save Denied: Item " + rfr + " is invalid entry !");
+                    errRow(i, "Save Denied: Item " + rfr + " is invalid entry !");
                 if (pr < 0)
-                    FormView.err("Save Denied: PRICE invalid value !");
+                    errRow(i, "Save Denied: PRICE invalid value !");
                 if (qty <= 0)
-                    FormView.err("Save Denied: QTY invalid value !");
+                    errRow(i, "Save Denied: QTY invalid value !");
             }
-
         }
         ,
         fetchItem: function () {

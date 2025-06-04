@@ -369,7 +369,6 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                 FormView.err("This Good Receipts is posted to AP invoice !");
                             }
 
-
                         }
                     }
 

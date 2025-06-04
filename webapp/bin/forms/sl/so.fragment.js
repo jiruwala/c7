@@ -1660,8 +1660,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     qv.getControl().addSelectionInterval(rn, rn);
                 }
                 FormView.err(ld.getFieldValue(rn, "ORD_REFER") + " -  " + ds);
-            }
-            //FIXME check function stops even less qty then reserve
+            }            
             var checkStockReserve = function (rn, dta) {
                 var kf = thatForm.frm.getFieldValue('qry1.keyfld');
                 var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.ord_date'));
