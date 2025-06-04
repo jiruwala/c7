@@ -1,5 +1,7 @@
 sap.ui.jsfragment("bin.forms.sl.so", {
-
+    //TODO info command for items and customer , open basic data, stock card, store balance,previous sales information.
+    //TODO ITEM REFERENCE CAN BE SEARCHED IF ENTERED PARTIALY 
+    //TODO steps commands like approval, delivery, sales, close.
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -59,7 +61,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         //FIXME qih.
         var qih = " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra,'Y',o2.ord_prd_date,o2.ord_exp_date,'\"'||o2.keyfld||'\"')/o2.ord_pack qih , ";
         var rsrv = " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, "
-        var dmlSq = "select NVL(O2.DESCR,(SELECT DESCR FROM ITEMS WHERE REFERENCE=O2.ORD_REFER)) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
+        var dmlSq = "select NVL(O2.DESCR,i.descr) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
             " DELIVEREDQTY/i.pack dlv_pkqty," +
             " TO_CHAR(ORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
             " TO_CHAR(ORD_EXP_DATE,'DD/MM/RRRR') ORD_EXP_DATE2, " +
@@ -70,7 +72,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             "i.lsprice ," +
             " i.lsprice*(o2.ord_allqty/o2.ord_pack) lsamt " +
             " from pord2 o2,items i " +
-            "where O2.KEYFLD=':qry1.keyfld' and ord_code=" +
+            "where O2.KEYFLD=':pac' and ord_code=" +
             thatForm.vars.vou_code +
             " and i.reference=o2.ord_refer " +
             " order by o2.ord_pos ";
@@ -549,10 +551,22 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     this.blurAdded = true;
                     setTimeout(() => {
                         var obj = frm.objs["qry1.ord_rfr"].obj;
+                        var objn = frm.objs["qry1.ord_no"].obj;
+
                         obj.$().find("input").blur(function (oEvent) {
                             if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
-                                thatForm.helperFunc.fetchRef();
+                                setTimeout(() => {
+                                    thatForm.helperFunc.fetchRef();
+                                }, 10);
+
                         });
+                        objn.$().find("input").blur(function (oEvent) {
+                            if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
+                                setTimeout(() => {
+                                    thatForm.helperFunc.fetchOn();
+                                }, 10);
+                        });
+
 
                     }, 10);
 
@@ -1388,6 +1402,18 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             mSummary: "COUNT",
                         },
                         {
+                            colname: "ORDACC",
+                            mTitle: Util.getLangText("txtIssueAction"),
+                            display_width: 100,
+                        },
+                        {
+                            colname: "INVOICE_NO",
+                            mTitle: Util.getLangText("referenceNo"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+
+                        {
                             colname: "ORD_DATE",
                             display_format: "SHORT_DATE_FORMAT",
                             mTitle: Util.getLangText("ordDate"),
@@ -1437,9 +1463,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,ord_amt," +
-                        "ord_discamt,ord_amt-ord_discamt netamt, keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
-                        " order by o1.ord_date desc,ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1) ",
+                    sql: "select *from (select o1.ord_no,o1.ord_date,o1.ordacc,pur.invoice_no,o1.ord_ref,o1.ord_refnm,o1.ord_amt," +
+                        "o1.ord_discamt,o1.ord_amt-o1.ord_discamt netamt, o1.keyfld from pord1 o1," +
+                        " (select max(p.keyfld) kfld,max(p.invoice_no) invoice_no,po_keyfld  from pur1 p where p.invoice_code=21 and po_keyfld is not null group by p.po_keyfld) pur" +
+                        " where o1.ord_code =" + that2.vars.vou_code +
+                        " and pur.po_keyfld(+) =o1.keyfld " +
+                        " order by o1.ord_date desc,o1.ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1) ",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -1549,8 +1578,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             var sett = sap.ui.getCore().getModel("settings").getData();
             var belowcost = Util.nvl(sett["ALLOW_SALES_BELOW_COST"], "TRUE");
             var belowlsamt = Util.nvl(sett["ALLOW_SALES_BELOW_LOWEST"], "TRUE");
-            var belowlstock = Util.nvl(sett["ALLOW_STOCK_BELOW_ZERO"], "TRUE");
-            var abovecredlimit = Util.nvl(sett["ALLOW_SALES_ABOVE_CREDIT"], "TRUE");
+            var belowlstock = Util.nvl(sett["ALLOW_STOCK_BELOW_ZERO"], "TRUE"); //TODO implement  ALLOW_STOCK_BELOW_ZERO options
+            var abovecredlimit = Util.nvl(sett["ALLOW_SALES_ABOVE_CREDIT"], "TRUE"); //TODO implement ALLOW_SALES_ABOVE_CREDIT options
             var rsrv = thatForm.frm.getFieldValue("qry1.reserved_stock");
             var errObj = function (msg, obj) {
 
@@ -1624,15 +1653,14 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             rn = i;
                 if (rn - 1 < 0) {
                     qv.getControl().setFirstVisibleRow(0);
-                    qv.addSelectionInterval(0, 0);
+                    qv.getControl().addSelectionInterval(0, 0);
                 }
                 else if (Util.nvl(rn, -1) >= 0) {
                     qv.getControl().setFirstVisibleRow(rn - 1);
                     qv.getControl().addSelectionInterval(rn, rn);
                 }
                 FormView.err(ld.getFieldValue(rn, "ORD_REFER") + " -  " + ds);
-            }
-            //FIXME check function stops even less qty then reserve
+            }            
             var checkStockReserve = function (rn, dta) {
                 var kf = thatForm.frm.getFieldValue('qry1.keyfld');
                 var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.ord_date'));
@@ -1653,7 +1681,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
                 var can_issue = Util.getSQLValue(sq);
                 if (can_issue < allqty)
-                    errRow(i, "Save Denied : Can issue only " + (allqty / pk) + " " + pkd);
+                    errRow(i, "Save Denied : Can issue only " + (can_issue / pk) + " " + pkd);
             }
             //TODO check reserve stock availblae in approve and none and belowitemzero option if not approve and none
             for (var i = 0; i < ld.rows.length; i++) {
@@ -1713,8 +1741,209 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             }
         },
         fetchRef: function () {
-            alert("Fetching..");
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) return;
+            var oacc = thatForm.frm.getFieldValue("qry1.ordacc");
+            if (oacc != UtilGen.SalesOrderFunc.initAction.saleInvs &&
+                oacc == UtilGen.SalesOrderFunc.initAction.issueDeliver)
+                return;
+            var rfrFld = "ord_reference";
+            var rfr = thatForm.frm.getFieldValue("qry1.ord_rfr");
+            var loc = thatForm.frm.getFieldValue("qry1.location_code");
+            var typ = thatForm.frm.getFieldValue("qry1.ord_type");
+            var selectMultiple = function (sq) {
+                UtilGen.Search.do_quick_search_simple(sq,
+                    ["ORD_NO", "ORD_REFNM"], function (data) {
+                        var bn = data.KEYFLD;
+                        thatForm.frm.setFieldValue('pac', bn);
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                    }, { pWidth: "80%" }, undefined, undefined, "Many orders found in same reference ", [
+                    {
+                        LOCATION: {
+                            colname: "LOCATION",
+                            display_width: 100,
+                            mTitle: Util.getLangText("locationTxt"),
+                        },
+                    },
+                    {
+                        ORD_DATE: {
+                            colname: "ORD_DATE",
+                            display_format: "SHORT_DATE_FORMAT",
+                            mTitle: Util.getLangText("ordDate"),
+                            display_width: 100
+                        }
+                    },
+                    {
+                        REFERENCE: {
+                            colname: "ORD_NO",
+                            display_width: 80,
+                            mTitle: Util.getLangText("referenceNo"),
+                        }
+                    },
+                    {
+                        TYPEDESCR: {
+                            colname: "TYPEDESCR",
+                            mTitle: Util.getLangText("txtOrdType"),
+                            display_width: 120,
+                        }
+                    },
+                    {
+                        ORD_REF: {
+                            colname: "ORD_REF",
+                            mTitle: Util.getLangText("refCode"),
+                            display_width: 100,
+                        }
+                    },
+                    {
+                        ORD_REFNM: {
+                            colname: "ORD_REFNM",
+                            mTitle: Util.getLangText("refName"),
+                            display_width: 250
+
+                        }
+                    },
+                    {
+                        KEYFLD: {
+                            colname: 'KEYFLD',
+                            return_field: "pac",
+                            hide: true
+                        }
+                    },
+                ]);
+            }
+
+
+            var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where ORD_CODE=21 AND " +
+                rfrFld + "='" + rfr + "' and " +//  location_code='" + loc + "' and " +
+                " ordacc='" + oacc + "'");
+            if (Util.nvl(qr, "") == "" || qr.length == 0) {
+                if (oacc == UtilGen.SalesOrderFunc.initAction.saleInvs) {
+                    qr = Util.execSQLWithData("select po_keyfld keyfld,inv_refnm ord_refnm from pur1 where po_keyfld is not null and invoice_code=21 AND " +
+                        "invoice_no='" + rfr + "'"); //and location_code='" + loc + "'");
+                    if (Util.nvl(qr, "") == "" || qr.length == 0)
+                        return;
+                    if (qr.length > 1)
+                        selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.invoice_date ord_date " +
+                            " invoice_no reference,o.inv_ref ord_ref,o.inv_refnm ord_refnm, o.po_keyfld keyfld from pur1 o,locations l,invoicetype it" +
+                            " where o.invoice_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                            " it.no=o.type and o.invoice_no = '" + rfr + "'" +
+                            " order by o.location_code,o.ord_no ");
+
+
+                }
+            }
+
+            var rfrx = qr[0].KEYFLD;
+            var desx = qr[0].ORD_REFNM;
+            if (qr.length == 1)
+                Util.simpleConfirmDialog("SO existed for client :" + desx + " fetch data ?", function (oAction) {
+                    thatForm.frm.setFieldValue('pac', rfrx);
+                    thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                    thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+
+                }, undefined, undefined, "OK");
+            else
+                selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.ord_date," +
+                    " ord_reference reference,o.ord_ref,o.ord_refnm, o.keyfld from pord1 o,locations l,invoicetype it" +
+                    " where o.ord_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                    " it.no=o.ord_type and o." + rfrFld + " = '" + rfr + "' and " +
+                    " ordacc='" + oacc + "' order by o.location_code,o.ord_no ");
+        },
+        fetchOn: function () {
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) return;
+            var rfrFld = "ord_no";
+            var rfr = thatForm.frm.getFieldValue("qry1.ord_no");
+            var loc = thatForm.frm.getFieldValue("qry1.location_code");
+            var typ = thatForm.frm.getFieldValue("qry1.ord_type");
+
+
+            var selectMultiple = function (sq) {
+                UtilGen.Search.do_quick_search_simple(sq,
+                    ["ORD_NO", "ORD_REFNM"], function (data) {
+                        var bn = data.KEYFLD;
+                        thatForm.frm.setFieldValue('pac', bn);
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                    }, { pWidth: "80%" }, undefined, undefined, "Many orders found in same reference ", [
+                    {
+                        LOCATION: {
+                            colname: "LOCATION",
+                            display_width: 100,
+                            mTitle: Util.getLangText("locationTxt"),
+                        },
+                    },
+                    {
+                        ORD_DATE: {
+                            colname: "ORD_DATE",
+                            display_format: "SHORT_DATE_FORMAT",
+                            mTitle: Util.getLangText("ordDate"),
+                            display_width: 100
+                        }
+                    },
+                    {
+                        REFERENCE: {
+                            colname: "ORD_NO",
+                            display_width: 80,
+                            mTitle: Util.getLangText("referenceNo"),
+                        }
+                    },
+                    {
+                        TYPEDESCR: {
+                            colname: "TYPEDESCR",
+                            mTitle: Util.getLangText("txtOrdType"),
+                            display_width: 120,
+                        }
+                    },
+                    {
+                        ORD_REF: {
+                            colname: "ORD_REF",
+                            mTitle: Util.getLangText("refCode"),
+                            display_width: 100,
+                        }
+                    },
+                    {
+                        ORD_REFNM: {
+                            colname: "ORD_REFNM",
+                            mTitle: Util.getLangText("refName"),
+                            display_width: 250
+
+                        }
+                    },
+                    {
+                        KEYFLD: {
+                            colname: 'KEYFLD',
+                            return_field: "pac",
+                            hide: true
+                        }
+                    },
+                ]);
+            }
+            var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where ORD_CODE=21 AND " +
+                rfrFld + "='" + rfr + "'" //  location_code='" + loc + "' and " +
+            );
+            if (Util.nvl(qr, "") == "" || qr.length == 0)
+                return;
+
+            var rfrx = qr[0].KEYFLD;
+            var desx = qr[0].ORD_REFNM;
+            if (qr.length == 1)
+                Util.simpleConfirmDialog("SO existed for client :" + desx + " fetch data ?", function (oAction) {
+                    thatForm.frm.setFieldValue('pac', rfrx);
+                    thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                    thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                }, undefined, undefined, "OK");
+            else
+                selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.ord_date," +
+                    " ord_reference reference,o.ord_ref,o.ord_refnm, o.keyfld from pord1 o,locations l,invoicetype it" +
+                    " where o.ord_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                    " it.no=o.ord_type and o." + rfrFld + " = '" + rfr + "' " +
+                    " order by o.location_code,o.ord_no ");
+
+
         }
+
     }
     ,
 

@@ -1,6 +1,7 @@
 sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
     function (QueryView) {
         'use strict'
+        //TODO when exit on mode edit/new then confirm
 
         function FormView(pg) {
             this.timeInLong = (new Date()).getTime();
@@ -572,7 +573,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     // qr.sumObj.destroyToolbar();
                     scrollObjs.push(qr.sumObj);
                 }
-                if (thatForm.form.events.hasOwnProperty("afterFormCreated")) 
+                if (thatForm.form.events.hasOwnProperty("afterFormCreated"))
                     thatForm.form.events.afterFormCreated(this);
 
             }
@@ -2172,6 +2173,12 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         "PONO": {
                             colname: "PONO",
                             mTitle: Util.getLangText("titPurOrd"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+                        "SONO": {
+                            colname: "SONO",
+                            mTitle: Util.getLangText("slsOrdN"),
                             display_width: 75,
                             mSummary: "COUNT",
                         },

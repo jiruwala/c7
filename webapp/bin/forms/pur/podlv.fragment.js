@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.pur.podlv", {
-//PLAN plan for selection either PO or contract
+    //PLAN plan for selection either PO or contract
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -213,7 +213,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt")+" : " + df.format(sumAmt));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
 
                         },
                         summary: thatForm.helperFunc.getSummary(),
@@ -368,7 +368,6 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                                 qry.formview.setFormReadOnly();
                                 FormView.err("This Good Receipts is posted to AP invoice !");
                             }
-
 
                         }
                     }
@@ -883,22 +882,6 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     cols: FormView.listColumnsFormat.getCols(["pono", "dlv_no", "init_action",
                         "ord_date", "po_status", "ord_ref", "ord_refnm", "ord_branchno", "branchname", "keyfld1", "attn"],
                         { KEYFLD: { hide: true, return_field: "pac", } }),
-                    // [
-                    //     FormView.listColumnsFormat.getCols("PONO"),
-                    //     FormView.listColumnsFormat.getCols("DLV_NO"),
-                    //     FormView.listColumnsFormat.getCols("INIT_ACTION"),
-                    //     FormView.listColumnsFormat.getCols("ORD_DATE"),
-                    //     FormView.listColumnsFormat.getCols("PO_STATUS"),
-                    //     FormView.listColumnsFormat.getCols("ORD_REF"),
-                    //     FormView.listColumnsFormat.getCols("ORD_REFNM"),
-                    //     FormView.listColumnsFormat.getCols("ORD_BRANCHNO"),
-                    //     FormView.listColumnsFormat.getCols("branchname"),
-                    //     FormView.listColumnsFormat.getCols("KEYFLD1", { KEYFLD: { hide: true, return_field: "pac", } }),
-                    //     FormView.listColumnsFormat.getCols("attn"),
-
-                    // ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    // sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
-                    // " order by o1.ord_date desc,ord_no desc",
                     sql: "select po1.ord_no pono,DECODE (po1.ord_flag,1,'Not-Approved',2,'Opened',3,'Closed') po_status, po1.ordacc init_action ," +
                         "o1.ord_no dlv_no, o1.ord_date,o1.ord_ref,o1.ord_refnm,o1.ord_discamt ord_branchno," +
                         "cb.b_name branchname,o1.attn,o1.keyfld from order1 o1,pord1 po1,cbranch cb " +
@@ -948,6 +931,7 @@ sap.ui.jsfragment("bin.forms.pur.podlv", {
                     name: "cmdNew",
                     canvas: "default_canvas",
                     title: Util.getLangText("newRec")
+
                 }, {
                     name: "cmdList",
                     canvas: "default_canvas",
