@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.pur.podlv", {
-    //PLAN plan for selection either PO or contract
+    //PLAN_MODEL plan for selection either PO or contract
     createContent: function (oController) {
         var that = this;
         this.oController = oController;

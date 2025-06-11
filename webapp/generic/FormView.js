@@ -1,7 +1,7 @@
 sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
     function (QueryView) {
         'use strict'
-        //TODO when exit on mode edit/new then confirm
+        //TODO_RENDER when exit on mode edit/new then confirm
 
         function FormView(pg) {
             this.timeInLong = (new Date()).getTime();
@@ -70,6 +70,14 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
             oMessageToastDOM.css('color', "red");
             UtilGen.DashboardWidget.statusBarText(Util.nvl(msg, "").substr(0, 200), true);
+            setTimeout(function () {
+                $(".sapMMessageToast").css({
+                    "width": "auto",
+                    "max-width": "none",
+                    "white-space": "normal",
+                    "text-align": "left"
+                });
+            }, 10);
             throw msg;
         };
         FormView.msgSuccess = function (msg) {
@@ -79,6 +87,15 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             oMessageToastDOM.css('color', "darkgreen");
             oMessageToastDOM.css('font-size', "18px");
             UtilGen.DashboardWidget.statusBarText(Util.nvl(msg, "").substr(0, 200), true);
+            setTimeout(function () {
+                $(".sapMMessageToast").css({
+                    "width": "auto",
+                    "max-width": "none",
+                    "white-space": "normal",
+                    "text-align": "left"
+                });
+            }, 10);
+
             // throw "FormView Error: " + msg;
         };
         FormView.msgCustom = function (msg, color, bkcolor, fontSize) {

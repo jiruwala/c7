@@ -2611,7 +2611,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                     });
                     var btNw = new sap.m.Button(this.tableId + "cmdNewWnd", {
-                        icon: "sap-icon://full-screen", press: function () {                            
+                        icon: "sap-icon://full-screen", press: function () {
                             qrj.createNewWnd();
                         }
                     });
@@ -4204,7 +4204,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 },
                 checkSOStatus: function (soKf, pRaiseErr) {
                     var raiseErr = Util.nvl(pRaiseErr, true);
-                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc from pord1 where keyfld=" + soKf, "No data found !");
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag," +
+                        " nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc, " +
+                        " max(DELIVEREDQTY) DLV_QTY,MAX(ORDERDQTY) ORD_QTY , " +
+                        "max(PURQTY) SOLD_QTY " +
+                        " from pord1 where keyfld=" + soKf, "No data found !");
                     if (!raiseErr) return podt[0];
 
                     if (podt[0].ORD_FLAG < 0)
@@ -4217,6 +4221,37 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
+            SalesRetReqFunc: {
+                initAction: {
+                    none: 'none',
+                    approve: 'approve',
+                    issueRV: 'issueRV',
+                    saleRets: 'saleRets',
+                    closeSRR: 'closeSRR',
+                },
+                init: function (frag) {
+                    this.frag = frag;
+                },
+                checkSOStatus: function (soKf, pRaiseErr) {
+                    var raiseErr = Util.nvl(pRaiseErr, true);
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag," +
+                        " nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc, " +
+                        " max(DELIVEREDQTY) DLV_QTY,MAX(ORDERDQTY) ORD_QTY , " +
+                        "max(PURQTY) SOLD_QTY " +
+                        " from pord1 where keyfld=" + soKf, "No data found !");
+                    if (!raiseErr) return podt[0];
+
+                    if (podt[0].ORD_FLAG < 0)
+                        FormView.err("SO is not avaialble !");
+                    if (podt[0].ORD_FLAG == 1)
+                        FormView.err("SO is not approved !");
+                    if (podt[0].ORD_FLAG >= 3)
+                        FormView.err("SO is closed !");
+                    return podt[0];
+
+                }
+            },
+
 
             PurchaseOrderFunc: {
                 initAction: {

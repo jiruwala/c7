@@ -140,7 +140,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                         delete_allowed: false,
                         fields: thatForm.helperFunc.getFields1()
                     },
-                    {                        
+                    {
                         type: "query",
                         name: "qry2",
                         showType: FormView.QueryShowType.QUERYVIEW,
@@ -393,7 +393,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                 beforeDelRow: function (qry, idx, ld, data) {
                     if (qry.name == "qry1") {
                         var gkf = thatForm.frm.getFieldValue("qry1.keyfld");
-                        var podt = UtilGen.SalesOrderFunc.checkSOStatus(thatForm.pord1_keyfld, true);                        
+                        var podt = UtilGen.SalesOrderFunc.checkSOStatus(thatForm.pord1_keyfld, true);
                         var delAdd = "C7_SO_POSTISSDLV(" + gkf + ",'Y');";
                         return delAdd;
                     }
@@ -410,7 +410,7 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                             if (dtx.length > 0 && dtx[0].SALEINV != undefined) {
                                 qry.formview.setFormReadOnly();
                                 FormView.err("This Delivery is posted to invoice !");
-                            }                            
+                            }
 
                         }
                     }
@@ -442,6 +442,18 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
 
                     // }
                     return sq + sq1 + "update_dlv_add_amt(" + kf + ");";
+                },
+                beforeEdit: function (qry) {
+                    if (qry.name == "qry1" && qry.status == FormView.RecordStatus.EDIT) {
+                        var pokf = thatForm.pord1_keyfld;
+                        var podt = UtilGen.SalesOrderFunc.checkSOStatus(pokf, true);
+                        if (podt.ORDACC != UtilGen.SalesOrderFunc.initAction.none
+                            && podt.ORDACC != UtilGen.SalesOrderFunc.initAction.approve) {
+                            UtilGen.showCustomMessageToast("Can't EDIT ! , SO type is " + podt.ORDACC, 100, "red", "#fff");
+                            return false;
+                        }
+                        return true;
+                    }
                 },
                 addSqlBeforeUpdate: function (qry, rn) {
                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");
@@ -2193,16 +2205,13 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
 
     loadData: function () {
         var frag = this;
-        frag.frm.readonly = Util.nvl(frag.oController.readonly, false);
         if (Util.nvl(frag.oController.keyfld, "") != "") {
-            UtilGen.Vouchers.formLoadData(this);
             frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
-            // frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);            
+            frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }
-
     }
     ,
     validateSave: function () {

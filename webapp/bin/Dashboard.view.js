@@ -2251,5 +2251,8 @@ sap.ui.jsview('bin.Dashboard', {
 
         }
 
+    },
+    SOManageFunc: {
+        
     }
 });

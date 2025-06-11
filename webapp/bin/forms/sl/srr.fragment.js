@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.sl.so", {
+sap.ui.jsfragment("bin.forms.sl.srr", {
     //TODO_RENDER info command for items and customer , open basic data, stock card, store balance,previous sales information.
     //TODO_RENDER ITEM REFERENCE CAN BE SEARCHED IF ENTERED PARTIALY 
     //TODO_MODEL pricing comes default from contract or pricing templates.
@@ -14,7 +14,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         this.vars = {
             keyfld: -1,
             flag: 1,  // 1=closed,2 opened,
-            vou_code: 21,
+            vou_code: 12,
             type: 1
         };
 
@@ -59,19 +59,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var qih = " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra,'Y',o2.ord_prd_date,o2.ord_exp_date,'\"'||o2.keyfld||'\"')/o2.ord_pack qih , ";
-        var rsrv = " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, "
         var dmlSq = "select NVL(O2.DESCR,i.descr) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
-            " DELIVEREDQTY/i.pack dlv_pkqty," +
-            " purqty/i.pack sold_pkqty," +
+            " DELIVEREDQTY/i.pack rv_pkqty," +
+            " purqty/i.pack return_pkqty," +
             " TO_CHAR(ORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
             " TO_CHAR(ORD_EXP_DATE,'DD/MM/RRRR') ORD_EXP_DATE2, " +
-            qih +
-            rsrv +
             " o2.ORD_PKCOST*ord_pack pack_cost," +
-            "o2.ORD_PKCOST*o2.ord_allqty cost_amt,  " +
-            "i.lsprice ," +
-            " i.lsprice*(o2.ord_allqty/o2.ord_pack) lsamt " +
+            "o2.ORD_PKCOST*o2.ord_allqty cost_amt  " +
             " from pord2 o2,items i " +
             "where O2.KEYFLD=':qry1.keyfld' and ord_code=" +
             thatForm.vars.vou_code +
@@ -83,12 +77,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         this.frm;
         var js = {
             form: {
-                title: Util.getLangText("titSalesOrder"),
+                title: Util.getLangText("titSalesReturnRequest"),
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
                     width: { "S": 600, "M": 800, "L": 800, "XL": 900 },
-                    class: "soForm"
+                    class: "srrForm"
                 },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
@@ -98,6 +92,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText blinking");
                     var rtxt = new sap.m.Text(thatForm.view.createId("rcvdTxt" + thatForm.timeInLong, { width: "300px", text: "" }));
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" }));
+
                     var saveForm = function (fnAfterSave, para1) {
                         if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
                             thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
@@ -129,26 +124,27 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             saveForm(fnExe, "approve");
                         }
                     });
-                    thatForm.commands.cmdDlv = new sap.m.Button({
+
+                    thatForm.commands.cmdRV = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("addDlvToInv"),
+                        text: Util.getLangText("addGr"),
                         press: function () {
                             if (Util.nvl(this.showRecs, false))
-                                fnExe("addDlv");
+                                fnExe("addGr");
                             else
-                                saveForm(fnExe, "addDlv");
+                                saveForm(fnExe, "addGr");
                         }
                     });
-                    thatForm.commands.cmdSales = new sap.m.Button({
+                    thatForm.commands.cmdSR = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("joCmdAddSales"),
+                        text: Util.getLangText("soCmdAddSR"),
                         press: function () {
                             if (Util.nvl(this.showRecs, false))
-                                fnExe("sales");
+                                fnExe("sr");
                             else
-                                saveForm(fnExe, "sales");
+                                saveForm(fnExe, "sr");
 
                         }
 
@@ -156,21 +152,21 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     thatForm.commands.cmdClose = new sap.m.Button({
                         icon: thatForm.rectangleIcon,
                         wrap: sap.m.FlexWrap.Wrap,
-                        text: Util.getLangText("closeSO"),
+                        text: Util.getLangText("closeSR"),
                         press: function () {
-                            saveForm(fnExe, "closeSO");
+                            saveForm(fnExe, "closeSR");
                         }
 
                     });
 
                     setCaption(thatForm.commands.cmdApprove, 'poApprove');
-                    setCaption(thatForm.commands.cmdDlv, 'showDlvToInv', "addDlvToInv");
-                    setCaption(thatForm.commands.cmdSales, 'soCmdShowSales', "soCmdAddSales");
-                    setCaption(thatForm.commands.cmdClose, 'closeSO');
+                    setCaption(thatForm.commands.cmdRV, 'showGR', "addGr");
+                    setCaption(thatForm.commands.cmdSR, 'soCmdShowSR', "soCmdAddSR");
+                    setCaption(thatForm.commands.cmdClose, 'closeSR');
 
                     var hb1 = new sap.m.HBox({
-                        items: [thatForm.commands.cmdApprove, thatForm.commands.cmdDlv,
-                        thatForm.commands.cmdSales,
+                        items: [thatForm.commands.cmdApprove, thatForm.commands.cmdRV,
+                        thatForm.commands.cmdSR,
                         ]
                     });
                     var hb = new sap.m.Toolbar({
@@ -184,7 +180,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "salOrd",
+                        reportFile: "salretreq",
                     }
                 ],
                 events: thatForm.helperFunc.getEvents(),
@@ -225,7 +221,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         type: "query",
                         name: "qry2",
                         showType: FormView.QueryShowType.QUERYVIEW,
-                        applyCol: "C7.SO1",
+                        applyCol: "C7.SRR1",
                         addRowOnEmpty: true,
                         dml: dmlSq,
                         dispRecords: { "S": 3, "M": 5, "L": 7, "XL": 10, "XXL": 14 },
@@ -234,8 +230,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         delete_allowed: true,
                         delete_before_update: "delete from pord2 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED", "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
-                        insert_exclude_fields: ['DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED", "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
+                        update_exclude_fields: ['KEYFLD', 'DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'RV_PKQTY', "COST_AMT", "PACK_COST", "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
+                        insert_exclude_fields: ['DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'RV_PKQTY', "COST_AMT", "PACK_COST", "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -299,9 +295,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                                     var str = thatForm.frm.getFieldValue("qry1.stra");
                                     var sq = "select descr,childcounts,packd,unitd,pack,get_item_cost(reference,:ordate) ucost," +
-                                        " C7_GET_STORE_ITEM_ALLQTY(reference,:ordate,:store)/items.pack qih, " +
-                                        " C7_GET_STORE_ITEM_ALLQTY_RSRV(reference,':keyfld')/items.pack reserved, " +
-                                        " lsprice,prd_dt,exp_dt from items where reference=':rfr'";
+                                        " prd_dt,exp_dt from items where reference=':rfr'";
                                     sq = sq.replaceAll(":ordate", odt)
                                         .replaceAll(":keyfld", '"' + kf + '"')
                                         .replaceAll(":rfr", rfr)
@@ -317,12 +311,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     var packd = '';
                                     var unitd = '';
                                     var pcost = 0;
-                                    var lsprice = 0;
-                                    var cstamt = 0;
-                                    var lsamt = 0;
                                     var amt = 0;
-                                    var qih = 0;
-                                    var reserved = 0;
                                     var prd_dt = undefined;
                                     var exp_dt = undefined;
 
@@ -334,13 +323,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                         unitd = sqdt[0].UNITD;
                                         pack = sqdt[0].PACK;
                                         pcost = sqdt[0].UCOST * pack;
-                                        lsprice = sqdt[0].LSPRICE;
-                                        qih = sqdt[0].QIH;
-                                        reserved = sqdt[0].RESERVED;
                                         prd_dt = new Date((sqdt[0].PRD_DT + "").replaceAll(",", ":"));
                                         exp_dt = new Date((sqdt[0].EXP_DT + "").replaceAll(",", ":"));
                                         cstamt = pcost * ((pqt * pack) + qt);
-                                        lsamt = lsprice * ((pqt * pack) + qt);
                                         amt = (price - ds) * ((pqt * pack) + qt);
                                     }
                                     ld.setFieldValue(i1, "DESCRX", sq);
@@ -350,11 +335,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     ld.setFieldValue(i1, "ORD_PACK", pack);
                                     ld.setFieldValue(i1, "AMOUNT", amt);
                                     ld.setFieldValue(i1, "PACK_COST", pcost);
-                                    ld.setFieldValue(i1, "LSPRICE", lsprice);
-                                    ld.setFieldValue(i1, "LSAMT", lsamt);
                                     ld.setFieldValue(i1, "COST_AMT", cstamt);
-                                    ld.setFieldValue(i1, "QIH", qih);
-                                    ld.setFieldValue(i1, "RESERVED", reserved);
                                     if (Util.nvl(ld.getFieldValue(i1, "ORD_PRD_BATCH"), '') != '') {
                                         ld.setFieldValue(i1, "ORD_PRD_DATE2", prd_dt);
                                         ld.setFieldValue(i1, "ORD_EXP_DATE2", exp_dt);
@@ -363,13 +344,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
                             var sumAmt = 0;
                             var sumCost = 0;
-                            var sumLs = 0;
 
                             for (var i = 0; i < ld.rows.length; i++) {
                                 sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
                                 sumCost += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "COST_AMT"), df), 0);
-                                sumLs += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "LSAMT"), df), 0);
                             }
+
                             var discp = 0
                             var disc = Util.nvl(thatForm.frm.getFieldValue("disc_amt"), 0);
                             if (sumAmt > 0 && disc > 0)
@@ -379,7 +359,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
                             thatForm.frm.setFieldValue('net_amt', df.format(netamt));
                             thatForm.frm.setFieldValue('totcst', df.format(sumCost));
-                            thatForm.frm.setFieldValue('totls', df.format(sumLs));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
                                 thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(netamt));
 
@@ -426,17 +405,17 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         var fncallback = function () {
             thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
         }
-        var addDlv = function () {
+        var addRV = function () {
             var formtype = "dialog";
-            if (!Util.nvl(thatForm.commands.cmdDlv.showRecs, false))
-                UtilGen.execCmd('bin.forms.sl.sodlv status=new formType=' + formtype + ' soKf=' + kf + ' formTitle=SO_DELIVERY', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
+            if (!Util.nvl(thatForm.commands.cmdRV.showRecs, false))
+                UtilGen.execCmd('bin.forms.sl.srrdlv status=new formType=' + formtype + ' soKf=' + kf + ' formTitle=SO_DELIVERY', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
             else {
-                var sq = "select ord_no,to_char(ord_date,'dd/mm/rrrr') ord_date,keyfld from order1 where ord_code=9 and pord1_keyfld=" + kf + " order by ord_no";
+                var sq = "select ord_no,to_char(ord_date,'dd/mm/rrrr') ord_date,keyfld from order1 where ord_code=120 and pord1_keyfld=" + kf + " order by ord_no";
                 UtilGen.Search.do_quick_search_simple(sq,
                     ["ORD_NO", "ORD_DATE"], function (data) {
                         var bn = data.KEYFLD;
-                        UtilGen.execCmd('bin.forms.sl.sodlv status=new formType=' + formtype + ' keyfld=' + bn + ' formTitle=SO_DELIVERY', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
-                    }, { pWidth: "400px" }, undefined, undefined, "select delivery ... ", [
+                        UtilGen.execCmd('bin.forms.sl.srrdlv status=new formType=' + formtype + ' keyfld=' + bn + ' formTitle=SO_DELIVERY', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
+                    }, { pWidth: "400px" }, undefined, undefined, "select a store Receipt ... ", [
                     {
                         KEYFLD: {
                             colname: 'KEYFLD',
@@ -447,24 +426,22 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             }
 
         }
-        var addSales = function () {
+        var addSR = function () {
             var selPokf = thatForm.frm.getFieldValue("qry1.keyfld");
-            if (!thatForm.commands.cmdSales.showRecs && !thatForm.commands.cmdSales.dataUpdated)
-                UtilGen.execCmd('bin.forms.sl.sowzd formType=dialog formSize=905px,500px soKeyFld=' + selPokf + ' formTitle=Sales_Wizard', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
-
+            if (!thatForm.commands.cmdSR.showRecs && !thatForm.commands.cmdSR.dataUpdated)
+                UtilGen.execCmd('bin.forms.sl.srrwzd formType=dialog formSize=905px,500px soKeyFld=' + selPokf + ' formTitle=Sales_Wizard', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
         }
-
         switch (para) {
             case "approve":
                 that2.helperFunc.approved();
                 break;
             case "addDlv":
-                addDlv();
+                addRV();
                 break;
             case "sales":
-                addSales();
+                addSR();
                 break;
-            case "closeSO":
+            case "closeSRR":
                 break;
 
             default:
@@ -518,7 +495,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         if (!isFormInView) return;
 
         var sokf = thatForm.frm.getFieldValue("qry1.keyfld");
-        var sodt = UtilGen.SalesOrderFunc.checkSOStatus(sokf, false);
+        var sodt = UtilGen.SalesRetReqFunc.checkSOStatus(sokf, false);
         var ordacc = sodt.ORDACC;
 
         if (sodt.ORD_FLAG == 1) {
@@ -538,12 +515,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             return;
         }
 
-        if (ordacc == UtilGen.SalesOrderFunc.initAction.saleInvs ||
-            ordacc == UtilGen.SalesOrderFunc.initAction.issueDeliver
+        if (ordacc == UtilGen.SalesRetReqFunc.initAction.saleRets ||
+            ordacc == UtilGen.SalesRetReqFunc.initAction.issueRV
         ) {
             thatForm.enableCommands(undefined, true);
             thatForm.enableCommands(thatForm.commands.cmdApprove, false);
-            thatForm.enableCommands(thatForm.commands.cmdSales, false);
+            thatForm.enableCommands(thatForm.commands.cmdSR, false);
             thatForm.enableCommands(thatForm.commands.cmdClose, false);
             showUpdate(undefined, true);
             thatForm.refreshIcons();
@@ -553,8 +530,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             thatForm.enableCommands(undefined, true);
             thatForm.enableCommands(thatForm.commands.cmdApprove, false);
             showUpdate(undefined, false);
-            thatForm.commands.cmdDlv.dataUpdated = (sodt.DLV_QTY >= sodt.ORD_QTY);
-            thatForm.commands.cmdSales.dataUpdated = (sodt.SOLD_QTY >= sodt.ORD_QTY);
+            thatForm.commands.cmdRV.dataUpdated = (sodt.DLV_QTY >= sodt.ORD_QTY);
+            thatForm.commands.cmdSR.dataUpdated = (sodt.SOLD_QTY >= sodt.ORD_QTY);
             thatForm.refreshIcons();
             return;
         }
@@ -580,7 +557,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         var saleinv = Util.getSQLValue("select saleinv from pord1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
                         if (Util.nvl(saleinv, '') != '') {
                             var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
-                            thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("SO is POSTED ,INV # " + invno);
+                            thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("SRR is POSTED ,INV # " + invno);
                         }
 
                         var cb = thatForm.frm.objs["qry1.ord_type"].obj;
@@ -593,13 +570,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             " order by no "
                         );
 
-                        if (oacc == UtilGen.SalesOrderFunc.initAction.saleInvs) {
-                            var invno = Util.getSQLValue("select invoice_no from pur1 where invoice_code=21 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        if (oacc == UtilGen.SalesRetReqFunc.initAction.saleRets) {
+                            var invno = Util.getSQLValue("select invoice_no from pur1 where invoice_code=12 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
                             qry.formview.setFieldValue("qry1.ord_rfr", invno, invno, true);
                         }
 
-                        if (oacc == UtilGen.SalesOrderFunc.initAction.issueDeliver) {
-                            var invno = Util.getSQLValue("select invoice_no from order1 where ord_code=9 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        if (oacc == UtilGen.SalesRetReqFunc.initAction.issueRV) {
+                            var invno = Util.getSQLValue("select invoice_no from order1 where ord_code=120 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
                             qry.formview.setFieldValue("qry1.ord_rfr", invno, invno, true);
                         }
 
@@ -611,9 +588,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             qry.formview.setFieldValue("qry2.disc_amt", discamt, discamt, true);
                         }
                         thatForm.queryCommands();
-                        var sold = Util.getSQLValue("select nvl(sum(allqty),0) from pur2 where invoice_code=21 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
-                        var rcvd = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where ord_code=9 and pord1_keyfld=" + qry.formview.getFieldValue("keyfld"));
-                        var ordrd = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where ord_code=21 and keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var sold = Util.getSQLValue("select nvl(sum(allqty),0) from pur2 where invoice_code=12 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var rcvd = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where ord_code=120 and pord1_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var ordrd = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where ord_code=12 and keyfld=" + qry.formview.getFieldValue("keyfld"));
                         var rcvdp = 0, soldp = 0;
                         if (ordrd > 0) { rcvdp = Math.round((100 / ordrd) * rcvd, 2); soldp = Math.round((100 / ordrd) * sold, 2); }
 
@@ -656,8 +633,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 beforeSaveQry: function (qry, sqlRow, rowno) {
                     if (qry.name == "qry1") {
                         var ordac = thatForm.frm.getFieldValue("qry1.ordacc");
-                        if (ordac == UtilGen.SalesOrderFunc.initAction.closeSO)
-                            Util.simpleConfirmDialog(Util.getLangText("msgCloseSO"), function (oAction) {
+                        if (ordac == UtilGen.SalesRetReqFunc.initAction.closeSRR)
+                            Util.simpleConfirmDialog(Util.getLangText("msgCloseSR"), function (oAction) {
                                 if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
                                     thatForm.cmdButtons.cmdNew.firePress();
                                 }
@@ -677,7 +654,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             "Item # " + rfr + " not a valid !");
                         var sq = ("update pord2 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack ," +
                             " ord_allqty=(ord_pkqty*:pack)+ord_unqty,ORDEREDQTY=(ord_pkqty*:pack)+ord_unqty ," +
-                            " ord_lsprice=:lsprice , ord_pkcost=:unit_cost " +
+                            " ord_pkcost=:unit_cost " +
                             " where keyfld=:kf and ord_pos=:pos ")
                             .replaceAll(":pkd", dt[0].PACKD)
                             .replaceAll(":unitd", dt[0].UNITD)
@@ -702,7 +679,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
                         UtilGen.setControlValue(objSt, sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
                         UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
-                        UtilGen.setControlValue(objAc, UtilGen.SalesOrderFunc.initAction.saleInvs, UtilGen.SalesOrderFunc.initAction.saleInvs, true);
+                        UtilGen.setControlValue(objAc, UtilGen.SalesRetReqFunc.initAction.saleRets, UtilGen.SalesRetReqFunc.initAction.saleRets, true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
 
                         qry.formview.setFieldValue("qry2.disc_amt", 0, 0, true);
@@ -723,10 +700,10 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     if (qry.name == "qry1") {
                         var kf = thatForm.frm.getFieldValue("keyfld");
                         var actype = thatForm.frm.getFieldValue("qry1.ordacc");
-                        if (actype == UtilGen.SalesOrderFunc.initAction.approve ||
-                            actype == UtilGen.SalesOrderFunc.initAction.none
+                        if (actype == UtilGen.SalesRetReqFunc.initAction.approve ||
+                            actype == UtilGen.SalesRetReqFunc.initAction.none
                         ) {
-                            var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
+                            var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=120 and pord1_keyfld=" + kf);
                             if (sqDlv != 0) {
                                 thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(false);
                                 thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(false);
@@ -750,26 +727,26 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 beforeDeleteValidate: function (frm) {
                     var kf = frm.getFieldValue("keyfld");
                     var sokf = thatForm.frm.getFieldValue("keyfld");
-                    var sodt = UtilGen.SalesOrderFunc.checkSOStatus(sokf, false);
+                    var sodt = UtilGen.SalesRetReqFunc.checkSOStatus(sokf, false);
                     if (sodt.ORD_FLAG == 3) {
                         UtilGen.showCustomMessageToast("SO is closed !!", 10, "red", "#fff");
                         throw "SO is closed !!"
                     }
-                    if (sodt.ORDACC != UtilGen.SalesOrderFunc.initAction.saleInvs &&
-                        sodt.ORDACC != UtilGen.SalesOrderFunc.initAction.issueDeliver &&
+                    if (sodt.ORDACC != UtilGen.SalesRetReqFunc.initAction.saleRets &&
+                        sodt.ORDACC != UtilGen.SalesRetReqFunc.initAction.issueRV &&
                         sodt.ORD_FLAG != 1) {
                         UtilGen.showCustomMessageToast("Can't DELTE ! , SO type is " + sodt.ORDACC + " and now not opened !", 100, "red", "#fff");
                         throw "Can't DELTE ! , SO type is " + sodt.ORDACC + " and now not opened !";
                     }
 
                     var actype = thatForm.frm.getFieldValue("qry1.ordacc");
-                    if (actype == UtilGen.SalesOrderFunc.initAction.approve ||
-                        actype == UtilGen.SalesOrderFunc.initAction.none
+                    if (actype == UtilGen.SalesRetReqFunc.initAction.approve ||
+                        actype == UtilGen.SalesRetReqFunc.initAction.none
                     ) {
-                        var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
+                        var sqDlv = Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_code=120 and pord1_keyfld=" + kf);
                         if (sqDlv != 0)
                             FormView.err("Deletion denied : Deliveries existed !");
-                        sqDlv = Util.getSQLValue("select nvl(count(*),0) from pur1 where invoice_code=21 and  po_keyfld=" + kf);
+                        sqDlv = Util.getSQLValue("select nvl(count(*),0) from pur1 where invoice_code=12 and  po_keyfld=" + kf);
                         if (sqDlv != 0)
                             FormView.err("Deletion denied : Sales existed !");
                     }
@@ -804,12 +781,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     if (qry.name == "qry1") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var actype = thatForm.frm.getFieldValue("qry1.ordacc");
-                        var sqI = "c7_so_invoice(:keyfld,'Y'); ".replaceAll(":keyfld", kf);
-                        var sq4 = (actype == UtilGen.SalesOrderFunc.initAction.issueDeliver ?
-                            sqI : (actype == UtilGen.SalesOrderFunc.initAction.approve ||
-                                actype == UtilGen.SalesOrderFunc.initAction.none) ? "" :
-                                actype == UtilGen.SalesOrderFunc.initAction.saleInvs ? sqI :
-                                    actype == UtilGen.SalesOrderFunc.initAction.closeSO ? FormView.err("Cant delete once closed !") : "");
+                        var sqI = "c7_srr_invoice(:keyfld,'Y'); ".replaceAll(":keyfld", kf);
+                        var sq4 = (actype == UtilGen.SalesRetReqFunc.initAction.issueRV ?
+                            sqI : (actype == UtilGen.SalesRetReqFunc.initAction.approve ||
+                                actype == UtilGen.SalesRetReqFunc.initAction.none) ? "" :
+                                actype == UtilGen.SalesRetReqFunc.initAction.saleRets ? sqI :
+                                    actype == UtilGen.SalesRetReqFunc.initAction.closeSRR ? FormView.err("Cant delete once closed !") : "");
                         delbfr += sq4;
                     }
                     return delbfr;
@@ -835,7 +812,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 beforePrint: function (rptName, params) {
                     var kf = that.frm.getFieldValue("qry1.keyfld");
                     var oa = that.frm.getFieldValue("qry1.ordacc");
-                    if (oa != UtilGen.SalesOrderFunc.initAction.saleInvs)
+                    if (oa != UtilGen.SalesRetReqFunc.initAction.saleRets)
                         FormView.err("Must be inital action = Sales invoice");
                     var dts = Util.execSQLWithData("select invoice_no,location_code,type from pur1 where po_keyfld=" + kf);
                     if (dts.length <= 0) FormView.err("No Invoice Found !");
@@ -858,25 +835,25 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     var sqA = "update pord1 set ord_flag=2 where keyfld=:keyfld; update pord2 set ord_flag=2 where  keyfld=:keyfld;"
                         .replaceAll(":keyfld", kf);
                     // var sqD = "c7_so_delivery(:keyfld); ".replaceAll(":keyfld", kf);
-                    var sqI = "c7_so_invoice(:keyfld); ".replaceAll(":keyfld", kf);
-                    var sq4 = (actype == UtilGen.SalesOrderFunc.initAction.approve ? sqA :
-                        actype == UtilGen.SalesOrderFunc.initAction.saleInvs || actype == UtilGen.SalesOrderFunc.initAction.closeSO || actype == UtilGen.SalesOrderFunc.initAction.issueDeliver
+                    var sqI = "c7_srr_invoice(:keyfld); ".replaceAll(":keyfld", kf);
+                    var sq4 = (actype == UtilGen.SalesRetReqFunc.initAction.approve ? sqA :
+                        actype == UtilGen.SalesRetReqFunc.initAction.saleRets || actype == UtilGen.SalesRetReqFunc.initAction.closeSRR || actype == UtilGen.SalesRetReqFunc.initAction.issueRV
                             ? sqA + sqI : "");
                     // var kf = frm.getFieldValue("qry1.keyfld");
                     // return sq + "update_dlv_add_amt(" + kf + ");";
-                    var sq5 = "c7_SO_UPDATE_DISC_GROSS(" + kf + ");";
+                    var sq5 = "c7_SRR_UPDATE_DISC_GROSS(" + kf + ");";
                     return sq + sq3 + sq4 + sq5;
                 },
                 beforeEdit: function (qry) {
                     if (qry.name == "qry1" && qry.status == FormView.RecordStatus.EDIT) {
                         var sokf = qry.formview.getFieldValue("keyfld");
-                        var sodt = UtilGen.SalesOrderFunc.checkSOStatus(sokf, false);
+                        var sodt = UtilGen.SalesRetReqFunc.checkSOStatus(sokf, false);
                         if (sodt.ORD_FLAG == 3) {
                             UtilGen.showCustomMessageToast("SO is closed !!", 100, "red", "#fff");
                             return false;
                         }
-                        if (sodt.ORDACC != UtilGen.SalesOrderFunc.initAction.saleInvs &&
-                            sodt.ORDACC != UtilGen.SalesOrderFunc.initAction.issueDeliver &&
+                        if (sodt.ORDACC != UtilGen.SalesRetReqFunc.initAction.saleRets &&
+                            sodt.ORDACC != UtilGen.SalesRetReqFunc.initAction.issueRV &&
                             sodt.ORD_FLAG != 1) {
                             UtilGen.showCustomMessageToast("Can't EDIT ! , SO type is " + sodt.ORDACC + " and now not opened !", 100, "red", "#fff");
                             return false;
@@ -893,22 +870,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             var sett = sap.ui.getCore().getModel("settings").getData();
 
             return {
-                totls: {
-                    colname: "totls",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"txtTotLS\",\"width\":\"20%\","textAlign":"End","styleClass":"boldText"}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: sumSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "background-color:yellow;",
-                    display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: { width: "30%", editable: false },
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: false
-                },
                 totamt: {
                     colname: "totamt",
                     data_type: FormView.DataType.Number,
@@ -1103,23 +1064,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     insert_allowed: false,
                     require: true
                 },
-                reserved_stock: {
-                    colname: "reserved_stock",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.CHECKBOX,
-                    title: '@{\"text\":\"txtRsrvStock\",\"width\":\"60%\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_LEFT",
-                    display_style: "",
-                    display_format: "",
-                    other_settings: { width: "5%", enabled: false, trueValues: ["Y", "N"] },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: false,
-                    trueValues: ["Y", "N"]
-                },
                 ordacc: {
                     colname: "ordacc",
                     data_type: FormView.DataType.String,
@@ -1140,23 +1084,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             templateShareable: true
                         },
                         selectionChange: function (e) {
-                            // var vl = thatForm.frm.objs["qry1.location_code"].obj.getSelectedKey();
-                            // var ot = thatForm.frm.objs["qry1.ord_type"].obj.getSelectedKey();
-                            // var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
-                            // UtilGen.setControlValue(objOrd, "", "", true);
-                            // if (vl != "") {
-                            //     var nwOn = Util.getSQLValue("select nvl(max(ord_no),0)+1 from pord1 " +
-                            //         " where ord_code=" + thatForm.vars.vou_code +
-                            //         " and ord_type='" + ot + "' " +
-                            //         " and location_code=" + Util.quoted(vl));
-                            //     UtilGen.setControlValue(objOrd, nwOn, nwOn);
-                            // }
-                            thatForm.frm.objs["qry1.reserved_stock"].obj.setSelected(false);
-                            thatForm.frm.objs["qry1.reserved_stock"].obj.setEnabled(false);
-                            var oc = this.getSelectedKey();
-                            if (oc == UtilGen.SalesOrderFunc.initAction.none || oc == UtilGen.SalesOrderFunc.initAction.approve)
-                                thatForm.frm.objs["qry1.reserved_stock"].obj.setEnabled(true);
-
                             var cnt = this;
                             thatForm.helperFunc.setNewPurNo();
                             setTimeout(function () {
@@ -1175,17 +1102,17 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     cnt.$().find("input").attr("readonly", true);
                                 }, 150);
                         },
-                        selectedKey: UtilGen.SalesOrderFunc.initAction.saleInvs
+                        selectedKey: UtilGen.SalesRetReqFunc.initAction.saleRets
                     },
 
                     edit_allowed: false,
                     insert_allowed: true,
                     require: true,
-                    list: "@" + UtilGen.SalesOrderFunc.initAction.none + "/txtNone," +
-                        UtilGen.SalesOrderFunc.initAction.approve + "/poApprove," +
-                        UtilGen.SalesOrderFunc.initAction.issueDeliver + "/issueDeliver," +
-                        UtilGen.SalesOrderFunc.initAction.saleInvs + "/saleInvs," +
-                        UtilGen.SalesOrderFunc.initAction.closeSO + "/closeSO"
+                    list: "@" + UtilGen.SalesRetReqFunc.initAction.none + "/txtNone," +
+                        UtilGen.SalesRetReqFunc.initAction.approve + "/poApprove," +
+                        UtilGen.SalesRetReqFunc.initAction.issueRV + "/issueRV," +
+                        UtilGen.SalesRetReqFunc.initAction.saleRets + "/saleRets," +
+                        UtilGen.SalesRetReqFunc.initAction.closeSRR + "/closeSR"
                 },
                 ord_rfr: {
                     colname: "ord_rfr",
@@ -1627,13 +1554,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 },
 
             };
-        },        
+        },
         getList: function () {
             var that2 = this.thatForm;
             return [
                 {
                     name: 'list1',
-                    title: "List of Orders",
+                    title: "List of Requests",
                     list_type: "sql",
                     list_para: {
                         selectStr: "@100/Last 100,200/Last 200,1000/Last 1000,-1/All",
@@ -1646,6 +1573,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                             display_width: 75,
                             mSummary: "COUNT",
                         },
+                        {
+                            colname: "SR_STATUS",
+                            mTitle: Util.getLangText("txtStatus"),
+                            display_width: 80,
+                        },
+
                         {
                             colname: "ORDACC",
                             mTitle: Util.getLangText("txtIssueAction"),
@@ -1683,13 +1616,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         },
                         {
                             colname: "PURP",
-                            mTitle: Util.getLangText("txtSold"),
+                            mTitle: Util.getLangText("txtReturned"),
                             display_width: 80,
                         },
 
                         {
                             colname: "DLVP",
-                            mTitle: Util.getLangText("txtDeliver"),
+                            mTitle: Util.getLangText("txtReceived"),
                             display_width: 80,
                         },
 
@@ -1720,11 +1653,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select *from (select o1.ord_no,o1.ord_date,o1.ordacc,pur.invoice_no,o1.ord_ref,o1.ord_refnm," +
+                    sql: "select *from (select o1.ord_no, decode(o1.ord_flag,1,'Not-Approved',2,'Open',3,'Closed') SR_STATUS," +
+                        " o1.ord_date,o1.ordacc,pur.invoice_no,o1.ord_ref,o1.ord_refnm," +
                         "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * purqty, 2)) else 0 end)||'%' purp ," +
                         "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * DELIVEREDQTY, 2)) else 0 end)||'%' dlvp ," +
                         "o1.ord_amt,o1.ord_discamt,o1.ord_amt-o1.ord_discamt netamt, o1.keyfld from pord1 o1," +
-                        " (select max(p.keyfld) kfld,max(p.invoice_no) invoice_no,po_keyfld  from pur1 p where p.invoice_code=21 and po_keyfld is not null group by p.po_keyfld) pur " +
+                        " (select max(p.keyfld) kfld,max(p.invoice_no) invoice_no,po_keyfld  from pur1 p where p.invoice_code=12 and po_keyfld is not null group by p.po_keyfld) pur " +
                         "  " +
                         " where o1.ord_code =" + that2.vars.vou_code +
                         " and pur.po_keyfld(+) =o1.keyfld " +
@@ -1838,11 +1772,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             var thatForm = this.thatForm;
             var flg = "";
             var sett = sap.ui.getCore().getModel("settings").getData();
-            var belowcost = Util.nvl(sett["ALLOW_SALES_BELOW_COST"], "TRUE");
-            var belowlsamt = Util.nvl(sett["ALLOW_SALES_BELOW_LOWEST"], "TRUE");
-            var belowlstock = Util.nvl(sett["ALLOW_STOCK_BELOW_ZERO"], "TRUE"); //TODO_TEST implement  ALLOW_STOCK_BELOW_ZERO options
-            var abovecredlimit = Util.nvl(sett["ALLOW_SALES_ABOVE_CREDIT"], "TRUE"); //TODO_MODEL implement ALLOW_SALES_ABOVE_CREDIT options
-            var rsrv = thatForm.frm.getFieldValue("qry1.reserved_stock");
+
             var errObj = function (msg, obj) {
 
                 var o = thatForm.frm.objs[obj].obj;
@@ -1870,14 +1800,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 qrobj.eventCalc(qrobj, undefined, -1, true, true);
 
             var netamt = Util.extractNumber(thatForm.frm.getFieldValue("net_amt"));
-            var costamt = Util.extractNumber(thatForm.frm.getFieldValue("totcst"));
-            var lsamt = Util.extractNumber(thatForm.frm.getFieldValue("totls"));
             if (netamt < 0)
                 errObj("Save Denied : Net amount is  not valid !", "qry2.net_amt");
-            if (belowcost != 'TRUE' && costamt > 0 && netamt < costamt)
-                errObj("Save Denied : Net amount is  bewlow cost !", "qry2.totcst");
-            if (belowlsamt != 'TRUE' && lsamt > 0 && netamt < lsamt)
-                errObj("Save Denied : Net amount is  bewlow Lowest Selling !", "qry2.totls");
 
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
@@ -1923,29 +1847,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 }
                 FormView.err(ld.getFieldValue(rn, "ORD_REFER") + " -  " + ds);
             }
-            var checkStockReserve = function (rn, dta) {
-                var kf = thatForm.frm.getFieldValue('qry1.keyfld');
-                var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.ord_date'));
-                var pdt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_PRD_DATE2"));
-                var edt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_EXP_DATE2"));
-                var pkd = ld.getFieldValue(rn, "ORD_PACKD");
-                var allqty = (dta.qty * dta.pk) + dta.uqty;
-                var sq = "select c7_can_user_issue_item(':user',:str,':rfr',:allqty,:pdt,:prdt,:expdt,':exckf') from dual ";
-                sq = sq.replaceAll(":user", sett["LOGON_USER"])
-                    .replaceAll(":rfr", dta.rfr)
-                    .replaceAll(":str", dta.str)
-                    .replaceAll(":allqty", allqty)
-                    .replaceAll(":pdt", odt)
-                    .replaceAll(":prdt", pdt)
-                    .replaceAll(":expdt", edt)
-                    .replaceAll(":exckf", '"' + kf + '"');
-
-
-                var can_issue = Util.getSQLValue(sq);
-                if (can_issue < allqty)
-                    errRow(i, "Save Denied : Can issue only " + (can_issue / pk) + " " + pkd);
-            }
-
             for (var i = 0; i < ld.rows.length; i++) {
                 var str = Util.extractNumber(ld.getFieldValue(i, "STRA"));
                 var rfr = ld.getFieldValue(i, "ORD_REFER");
@@ -1953,9 +1854,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 var uqty = Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY"));
                 var pk = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"))
                 var pr = Util.extractNumber(ld.getFieldValue(i, "PRICE"));
-                checkStockReserve(i, {
-                    str: str, rfr: rfr, qty: qty, uqty: uqty, pk: pk
-                });
                 if (dup[rfr + "-" + str] != undefined)
                     errRow(i, "Save Denied : Duplicate item entry # store = " + str);
                 dup[rfr + "-" + str] = rfr;
@@ -1983,7 +1881,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             thatForm.frm.setFieldValue("qry1.ord_rfr", "", "", true);
             thatForm.frm.objs["qry1.ord_rfr"].obj.setEditable(false);
 
-            if (oacc == UtilGen.SalesOrderFunc.initAction.saleInvs) {
+            if (oacc == UtilGen.SalesRetReqFunc.initAction.saleRets) {
                 thatForm.frm.objs["qry1.ord_rfr"].obj.setEditable(true);
                 if (typ != "" && loc != '') {
                     var nw = UtilGen.Vouchers.getNewPurNo(loc, thatForm.vars.vou_code, typ);
@@ -1992,11 +1890,11 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
             }
 
-            if (oacc == UtilGen.SalesOrderFunc.initAction.issueDeliver) {
+            if (oacc == UtilGen.SalesRetReqFunc.initAction.issueRV) {
                 thatForm.frm.objs["qry1.ord_rfr"].obj.setEditable(true);
                 if (typ != "" && loc != '') {
                     var nw = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 " +
-                        " where location_code='" + loc + "' and ord_code=9");
+                        " where location_code='" + loc + "' and ord_code=120");
                     thatForm.frm.setFieldValue("qry1.ord_rfr", nw, nw, true);
                 }
 
@@ -2006,8 +1904,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             var thatForm = this.thatForm;
             if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) return;
             var oacc = thatForm.frm.getFieldValue("qry1.ordacc");
-            if (oacc != UtilGen.SalesOrderFunc.initAction.saleInvs &&
-                oacc == UtilGen.SalesOrderFunc.initAction.issueDeliver)
+            if (oacc != UtilGen.SalesRetReqFunc.initAction.saleRets &&
+                oacc == UtilGen.SalesRetReqFunc.initAction.issueRV)
                 return;
             var rfrFld = "ord_reference";
             var rfr = thatForm.frm.getFieldValue("qry1.ord_rfr");
@@ -2076,19 +1974,19 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             }
 
 
-            var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where ORD_CODE=21 AND " +
+            var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where ORD_CODE=12 AND " +
                 rfrFld + "='" + rfr + "' and " +//  location_code='" + loc + "' and " +
                 " ordacc='" + oacc + "'");
             if (Util.nvl(qr, "") == "" || qr.length == 0) {
-                if (oacc == UtilGen.SalesOrderFunc.initAction.saleInvs) {
-                    qr = Util.execSQLWithData("select po_keyfld keyfld,inv_refnm ord_refnm from pur1 where po_keyfld is not null and invoice_code=21 AND " +
+                if (oacc == UtilGen.SalesRetReqFunc.initAction.saleRets) {
+                    qr = Util.execSQLWithData("select po_keyfld keyfld,inv_refnm ord_refnm from pur1 where po_keyfld is not null and invoice_code=12 AND " +
                         "invoice_no='" + rfr + "'"); //and location_code='" + loc + "'");
                     if (Util.nvl(qr, "") == "" || qr.length == 0)
                         return;
                     if (qr.length > 1)
                         selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.invoice_date ord_date " +
                             " invoice_no reference,o.inv_ref ord_ref,o.inv_refnm ord_refnm, o.po_keyfld keyfld from pur1 o,locations l,invoicetype it" +
-                            " where o.invoice_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                            " where o.invoice_code=12 and it.location_code=o.location_code and l.code=o.location_code and " +
                             " it.no=o.type and o.invoice_no = '" + rfr + "'" +
                             " order by o.location_code,o.ord_no ");
 
@@ -2108,7 +2006,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             else
                 selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.ord_date," +
                     " ord_reference reference,o.ord_ref,o.ord_refnm, o.keyfld from pord1 o,locations l,invoicetype it" +
-                    " where o.ord_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                    " where o.ord_code=12 and it.location_code=o.location_code and l.code=o.location_code and " +
                     " it.no=o.ord_type and o." + rfrFld + " = '" + rfr + "' and " +
                     " ordacc='" + oacc + "' order by o.location_code,o.ord_no ");
         },
@@ -2182,7 +2080,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     },
                 ]);
             }
-            var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where ORD_CODE=21 AND " +
+            var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where ORD_CODE=12 AND " +
                 rfrFld + "='" + rfr + "'" //  location_code='" + loc + "' and " +
             );
             if (Util.nvl(qr, "") == "" || qr.length == 0)
@@ -2199,7 +2097,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
             else
                 selectMultiple("select O.location_code||'-'||L.NAME LOCATION,it.DESCR TYPEDESCR,o.ord_date," +
                     " ord_reference reference,o.ord_ref,o.ord_refnm, o.keyfld from pord1 o,locations l,invoicetype it" +
-                    " where o.ord_code=21 and it.location_code=o.location_code and l.code=o.location_code and " +
+                    " where o.ord_code=12 and it.location_code=o.location_code and l.code=o.location_code and " +
                     " it.no=o.ord_type and o." + rfrFld + " = '" + rfr + "' " +
                     " order by o.location_code,o.ord_no ");
 
