@@ -257,6 +257,7 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                 for (var key in this.dataJson.data[rn]) {
                     if (key == "_rowid") continue;
                     var cp = this.getColPos(key);
+                    if (cp < 0) throw "Column  - " + key + " not found !";
                     if (this.cols[cp].mUIHelper.data_type == "DATE") {
                         if (this.cols[cp].mColClass == FormView.DATEFIELD) {
                             (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sfe.parse(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null))
