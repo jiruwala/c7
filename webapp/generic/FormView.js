@@ -262,6 +262,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 qr.insert_allowed = Util.nvl(qrys[i].insert_allowed, true);
                 qr.delete_allowed = Util.nvl(qrys[i].delete_allowed, true);
                 qr.dispRecords = UtilGen.dispTblRecsByDevice(Util.nvl(qrys[i].dispRecords, 7));
+                qr.qvLabelStyle = Util.nvl(qrys[i].qvLabelStyle, "background-color:#e0ffff;");
                 qr.fields = {};
                 qr.summary = {};
 
@@ -712,8 +713,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             // when validation of field.
                             if (thatForm.form.events.hasOwnProperty("afterApplyCols"))
                                 thatForm.form.events.afterApplyCols(qryObj);
-
-
+                            // if sap.m.lable ad no style then apply default style qvLabelStyle
+                            var ld = qryObj.obj.mLctb;
+                            for (var qi = 0; qi < ld.cols.length; qi++)
+                                if (!ld.cols[qi].mHideCol &&
+                                    ld.cols[qi].mColClass == "sap.m.Text" &&
+                                    ld.cols[qi].mUIHelper.display_style == "")
+                                    ld.cols[qi].mUIHelper.display_style = qryObj.qvLabelStyle;
                         }
                     }
                     qryObj.obj.mLctb.parse("{" + data.data + "}", true);

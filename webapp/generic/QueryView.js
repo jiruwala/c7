@@ -874,7 +874,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 if (UtilGen.DBView.sLangu == "AR" && a != "center")
                     a = "right";
 
-                var colClass = eval(UtilGen.nvl(cc.mColClass, "sap.ui.commons.Label"));
+                // var colClass = eval(UtilGen.nvl(cc.mColClass, "sap.ui.commons.Label"));
+                var colClass = eval(UtilGen.nvl(cc.mColClass, "sap.m.Text"));
                 var ssql = Util.nvl(cc.mSearchSQL, "");
                 var o;
                 // if (colClass != sap.m.ComboBox) {
@@ -1246,6 +1247,20 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         // }
                         // o.setModel(new sap.ui.model.json.JSONModel(dtx));
                     }
+
+                }
+                if (o instanceof sap.m.Text) {
+                    o.addEventDelegate({
+                        onAfterRendering: function () {
+                            var $domRef = o.$();
+                            $domRef.on("focus", function () {
+                                console.log("Focused Text");
+                            });
+                            $domRef.on("blur", function () {
+                                console.log("Blurred Text");
+                            });
+                        }
+                    });
                 }
                 if (cc.commandLinkClick != undefined) {
                     o.addStyleClass("linkLabel");

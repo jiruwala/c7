@@ -145,7 +145,7 @@ ORDER BY PUR2.itempos]]>
 					<textFieldExpression><![CDATA[$F{PKX}]]></textFieldExpression>
 				</textField>
 				<textField pattern="">
-					<reportElement style="strHeader" x="398" y="0" width="61" height="21" uuid="24543e48-51f6-4de4-99f2-ff655e345bef">
+					<reportElement style="strHeader" x="404" y="0" width="61" height="21" uuid="24543e48-51f6-4de4-99f2-ff655e345bef">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -155,7 +155,7 @@ ORDER BY PUR2.itempos]]>
 						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
+					<textElement textAlignment="Right" verticalAlignment="Middle">
 						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PRICE}]]></textFieldExpression>

@@ -1059,7 +1059,7 @@ sap.ui.jsview('bin.Dashboard', {
     },
     show_main_menus: function () {
         var that = this;
-
+        var sett = sap.ui.getCore().getModel("settings").getData();
         UtilGen.clearPage(this.pgMain);
         if (this.standAlonMode) {
             this.app.setMode(sap.m.SplitAppMode.HideMode);
@@ -1283,49 +1283,50 @@ sap.ui.jsview('bin.Dashboard', {
             var toe = oData.getProperty(oData.getPath())["TYPE_OF_EXEC"];
             var mnu = e.getParameter("contextMenu");
             mnu.removeAllItems();
-            if (toe == "PARENT") {
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "New Menu..",
-                    press: function () {
-                        that.showMenuForm("", mc);
-                    }
-                }));
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "Edit..",
-                    press: function () {
-                        that.showMenuForm(mc);
-                    }
-                }));
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "Copy menus..",
-                    press: function () {
-                        that.copyMenus(mc);
-                    }
-                }));
+            if (sett["PROFILENO"] == 0) {
+                if (toe == "PARENT") {
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "New Menu..",
+                        press: function () {
+                            that.showMenuForm("", mc);
+                        }
+                    }));
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Edit..",
+                        press: function () {
+                            that.showMenuForm(mc);
+                        }
+                    }));
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Copy menus..",
+                        press: function () {
+                            that.copyMenus(mc);
+                        }
+                    }));
 
-            } else {
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "Copy menu..",
-                    press: function () {
-                        that.copyMenus2(mc);
-                    }
-                }));
+                } else {
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Copy menu..",
+                        press: function () {
+                            that.copyMenus2(mc);
+                        }
+                    }));
 
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "Edit..",
-                    press: function () {
-                        that.showMenuForm(mc);
-                    }
-                }));
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Edit..",
+                        press: function () {
+                            that.showMenuForm(mc);
+                        }
+                    }));
 
-            }
-            mnu.addItem(new sap.m.MenuItem({
-                text: "Delete..",
-                press: function () {
-                    that.deleteMenu(mc);
                 }
-            }));
-
+                mnu.addItem(new sap.m.MenuItem({
+                    text: "Delete..",
+                    press: function () {
+                        that.deleteMenu(mc);
+                    }
+                }));
+            }
         });
 
         setTimeout(function () {
@@ -2253,6 +2254,6 @@ sap.ui.jsview('bin.Dashboard', {
 
     },
     SOManageFunc: {
-        
+
     }
 });
