@@ -1,7 +1,6 @@
 sap.ui.jsfragment("bin.forms.sl.so", {
     //TODO_RENDER info command for items and customer , open basic data, stock card, store balance,previous sales information.
     //TODO_RENDER ITEM REFERENCE CAN BE SEARCHED IF ENTERED PARTIALY 
-    //TODO_MODEL pricing comes default from contract or pricing templates.
 
     createContent: function (oController) {
         var that = this;
@@ -252,7 +251,52 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         table_name: "PORD2",
                         before_add_table: function (scrollObjs, qrj) {
                             UtilGen.createDefaultToolbar1(qrj, ["ORD_REFER", "DESCR"], true);
-                            var colset = UtilGen.addColSetup(thatForm.frm.objs["qry2"].applyCol);
+                            var colsetitems = UtilGen.addItemsInfoCmd({
+                                thatForm: thatForm,
+                                qrj: qrj,
+                                itemField: "ORD_REFER",
+                                itemDescrField: "DESCR",
+                                storeFeld: "STRA",
+                                qryDate: "qry1.ord_date",
+                                fnCallBack: function (rowno, data, str) {
+                                    if (str == "showQtyAllStore") {
+                                        var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+                                        var tbl = thatForm.frm.objs["qry2"].obj.getControl();
+                                        if ((thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) ||
+                                            thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW
+                                        ) {
+                                            // ld.setFieldValue(rowno, "STRA", data.NO);
+                                            thatForm.frm.objs["qry2"].obj.updateDataToControl();
+                                        }
+                                    }
+                                }
+                            });
+                            var colset = UtilGen.addDetailSetupCmd({
+                                applyCol: thatForm.frm.objs["qry2"].applyCol,
+                                fnAddMenus: function (mnus) {
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon: "sap-icon://copy",
+                                        text: Util.getLangText("menuCopyItemDetailsFrom"),
+                                        press: function () {
+                                            // thatForm.helperFunc.copyItems();
+                                            var rs = {
+                                                "POS": "ORD_POS",
+                                                "REFER": "ORD_REFER",
+                                                "PACKD": "ORD_PACKD",
+                                                "UNITD": "ORD_UNITD",
+                                                "PACK": "ORD_PACK",
+                                                "PKQTY": "ORD_PKQTY",
+                                                "UNQTY": "ORD_UNQTY",
+                                                "PRICE": "ORD_PIRCE",
+                                                "DISCAMT": "ORD_DISCAMT",
+                                                "STRA": "STRA",
+                                            }
+                                            UtilGen.PurchaseOrderFunc.copyDetails(thatForm, '"ITEMS"', '"PORD1"', rs);
+                                        }
+                                    }))
+                                }
+                            });
+                            qrj.showToolbar.toolbar.addContent(colsetitems);
                             qrj.showToolbar.toolbar.addContent(colset);
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
@@ -292,7 +336,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
                             var ld = qv.mLctb;
 
-                            if (Util.nvl(refreshBalances, false))
+                            if (Util.nvl(refreshBalances, false)) {
                                 for (var i1 = 0; i1 < ld.rows.length; i1++) {
                                     var rfr = ld.getFieldValue(i1, "ORD_REFER");
                                     var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.ord_date'));
@@ -314,8 +358,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     var ds = Util.extractNumber(ld.getFieldValue(i1, "ORD_DISCAMT"));
                                     var sq = '';
                                     var child = 0;
-                                    var packd = '';
-                                    var unitd = '';
+                                    var packd = ld.getFieldValue(i1, "ORD_PACKD");
+                                    var unitd = ld.getFieldValue(i1, "ORD_UNITD");
                                     var pcost = 0;
                                     var lsprice = 0;
                                     var cstamt = 0;
@@ -330,8 +374,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
 
                                         sq = sqdt[0].DESCR;
                                         child = sqdt[0].CHILDCOUNTS;
-                                        packd = sqdt[0].PACKD;
-                                        unitd = sqdt[0].UNITD;
+                                        packd = Util.nvl(packd, sqdt[0].PACKD);
+                                        unitd = Util.nvl(unitd, sqdt[0].UNITD);
                                         pack = sqdt[0].PACK;
                                         pcost = sqdt[0].UCOST * pack;
                                         lsprice = sqdt[0].LSPRICE;
@@ -339,10 +383,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                         reserved = sqdt[0].RESERVED;
                                         prd_dt = new Date((sqdt[0].PRD_DT + "").replaceAll(",", ":"));
                                         exp_dt = new Date((sqdt[0].EXP_DT + "").replaceAll(",", ":"));
-                                        cstamt = pcost * ((pqt * pack) + qt);
-                                        lsamt = lsprice * ((pqt * pack) + qt);
-                                        amt = (price - ds) * ((pqt * pack) + qt);
+                                        cstamt = (pcost / pack) * ((pqt * pack) + qt);
+                                        lsamt = (lsprice / pack) * ((pqt * pack) + qt);
+                                        amt = ((price - ds) / pack) * ((pqt * pack) + qt);
                                     }
+                                    if (Util.nvl(ld.getFieldValue(i1, "DESCRX"), "").trim() == "")
+                                        ld.setFieldValue(i1, "DESCR", sq);
                                     ld.setFieldValue(i1, "DESCRX", sq);
                                     ld.setFieldValue(i1, "STRA", str);
                                     ld.setFieldValue(i1, "ORD_PACKD", packd);
@@ -360,6 +406,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                         ld.setFieldValue(i1, "ORD_EXP_DATE2", exp_dt);
                                     }
                                 }
+                                qv.updateDataToControl();
+                            }
 
                             var sumAmt = 0;
                             var sumCost = 0;
@@ -1627,7 +1675,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 },
 
             };
-        },        
+        },
         getList: function () {
             var that2 = this.thatForm;
             return [
@@ -1855,6 +1903,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
                 qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
 
+                //TODO_MODEL following code looks old for checking if ord_no is existed
                 var on = qry.formview.getFieldValue("qry1.ord_no");
                 var findno = 0;
                 if (Util.nvl(on, "") != "")
@@ -2230,7 +2279,18 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 that2.frm.loadData(undefined, FormView.RecordStatus.VIEW);
             }
         },
+        getItemPrice: function (refer) {
+            var thatForm = this.thatForm;
+            var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+            var sqcnt = ("select get_item_price2(:refer,':ref_code',:loc,:ord_date) from dual ")
+                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ord_ref"))
+                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.ord_branchno"))
+                .replaceAll(":refer", refer)
+                .replaceAll(":ord_date", Util.toOraDateString(dt));
 
+            var cnt = Util.getSQLValue(sqcnt);
+            return cnt;
+        },
     }
     ,
 

@@ -996,7 +996,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
                 var qv = new QueryView("searchTbl" + tm);
                 qv.getControl().setFixedBottomRowCount(0);
-                qv.getControl().addStyleClass("sapUiSizeCondensed");
+                qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowSelector);
+                qv.getControl().addStyleClass(/*"sapUiSizeCondensed"*/"sapUiSizeCompact");
 
                 if (fnOnselect != undefined) {
                     qv.getControl().attachRowSelectionChange(undefined, function () {
@@ -1040,19 +1041,53 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         }, 100);
                     }
                 });
+                qv.getControl().attachBrowserEvent("keydown", function (evt) {
+                    if (evt == undefined ||
+                        evt.altKey || evt.ctrlKey || evt.metaKey)
+                        return;
+
+                    var vl = Util.nvl(searchField.getValue(), "");
+
+                    if (evt.key.length == 1 && evt.keyCode != 8) {
+                        vl = vl + evt.key;
+                        searchField.fireLiveChange({
+                            newValue:
+                                vl
+                        });
+                        searchField.setValue(vl);
+                        setTimeout(() => {
+                            searchField.focus();
+                            searchField.$().select(vl.length, vl.length);
+                        });
+                    } else if (searchField.getValue().length > 0 && evt.keyCode == 8) {
+                        vl = vl.substr(0, (searchField.getValue().length - 1));
+                        searchField.fireLiveChange({
+                            newValue:
+                                vl
+                        });
+                        searchField.setValue(vl);
+                        setTimeout(() => {
+                            searchField.focus();
+                            searchField.$().select(vl.length, vl.length);
+                        });
+
+                    }
+
+                });
                 searchField.attachBrowserEvent("keydown", function (evt) {
+
                     if (evt.key == "ArrowDown") {
                         qv.getControl().focus();
                     }
 
                     if (evt.key == "Enter") {
-                        console.log("press enter");
                         if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {
                             setTimeout(() => {
                                 qv.getControl().setSelectionInterval(1, 0);
                             });
                         }
                     }
+
                 });
                 var hb = new sap.m.HBox({
                     width: "100%",
@@ -1116,7 +1151,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         qv.mColParent = ppms.parent;
                         qv.switchType("tree");
                         qv.getControl().setFixedBottomRowCount(0);
-                        qv.getControl().addStyleClass("sapUiSizeCondensed");
+                        qv.getControl().addStyleClass("sapUiSizeCompact");
                         if (fnOnselect != undefined) {
                             qv.getControl().attachRowSelectionChange(undefined, function () {
                                 fnOnselect();

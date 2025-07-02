@@ -287,6 +287,53 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         before_add_table: function (scrollObjs, qrj) {
                             qrj.showToolbar.showNewWnd = true;
                             UtilGen.createDefaultToolbar1(qrj, ["ORD_SHIP", "DESCR"], true);
+                            var colsetitems = UtilGen.addItemsInfoCmd({
+                                thatForm: thatForm,
+                                qrj: qrj,
+                                itemField: "ORD_REFER",
+                                itemDescrField: "DESCR",
+                                storeFeld: "STRA",
+                                qryDate: "qry1.ord_date",
+                                fnCallBack: function (rowno, data, str) {
+                                    if (str == "showQtyAllStore") {
+                                        var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+                                        var tbl = thatForm.frm.objs["qry2"].obj.getControl();
+                                        if ((thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) ||
+                                            thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW
+                                        ) {
+                                            // ld.setFieldValue(rowno, "STRA", data.NO);
+                                            thatForm.frm.objs["qry2"].obj.updateDataToControl();
+                                        }
+                                    }
+                                }
+                            });
+                            var colset = UtilGen.addDetailSetupCmd({
+                                applyCol: thatForm.frm.objs["qry2"].applyCol,
+                                fnAddMenus: function (mnus) {
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon: "sap-icon://copy",
+                                        text: Util.getLangText("menuCopyItemDetailsFrom"),
+                                        press: function () {
+                                            // thatForm.helperFunc.copyItems();
+                                            var rs = {
+                                                "POS": "ORD_POS",
+                                                "REFER": "ORD_REFER",
+                                                "PACKD": "ORD_PACKD",
+                                                "UNITD": "ORD_UNITD",
+                                                "PACK": "ORD_PACK",
+                                                "PKQTY": "ORD_PKQTY",
+                                                "UNQTY": "ORD_UNQTY",
+                                                "PRICE": "ORD_PIRCE",
+                                                "DISCAMT": "ORD_DISCAMT",
+                                                "STRA": "STRA",
+                                            }
+                                            UtilGen.PurchaseOrderFunc.copyDetails(thatForm, '"ITEMS"', '"PORD1"', rs);
+                                        }
+                                    }))
+                                }
+                            });
+                            qrj.showToolbar.toolbar.addContent(colsetitems);
+                            qrj.showToolbar.toolbar.addContent(colset);
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
                                 var totalRows = qrj.getControl().getModel().getData().length;

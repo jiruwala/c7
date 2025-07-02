@@ -1,7 +1,6 @@
 sap.ui.jsfragment("bin.forms.sl.srr", {
     //TODO_RENDER info command for items and customer , open basic data, stock card, store balance,previous sales information.
     //TODO_RENDER ITEM REFERENCE CAN BE SEARCHED IF ENTERED PARTIALY 
-    //TODO_MODEL pricing comes default from contract or pricing templates.
 
     createContent: function (oController) {
         var that = this;
@@ -248,7 +247,56 @@ sap.ui.jsfragment("bin.forms.sl.srr", {
                         table_name: "PORD2",
                         before_add_table: function (scrollObjs, qrj) {
                             UtilGen.createDefaultToolbar1(qrj, ["ORD_REFER", "DESCR"], true);
-                            var colset = UtilGen.addColSetup(thatForm.frm.objs["qry2"].applyCol);
+                            var colsetitems = UtilGen.addItemsInfoCmd({
+                                thatForm: thatForm,
+                                qrj: qrj,
+                                itemField: "ORD_REFER",
+                                itemDescrField: "DESCR",
+                                storeFeld: "STRA",
+                                qryDate: "qry1.ord_date",
+                                fnCallBack: function (rowno, data, str) {
+                                    if (str == "showQtyAllStore") {
+                                        var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+                                        var tbl = thatForm.frm.objs["qry2"].obj.getControl();
+                                        if ((thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) ||
+                                            thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW
+                                        ) {
+                                            // ld.setFieldValue(rowno, "STRA", data.NO);
+                                            thatForm.frm.objs["qry2"].obj.updateDataToControl();
+                                        }
+                                    }
+                                }
+                            });
+                            var colset = UtilGen.addDetailSetupCmd({
+                                applyCol: thatForm.frm.objs["qry2"].applyCol,
+                                fnAddMenus: function (mnus) {
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon: "sap-icon://copy",
+                                        text: Util.getLangText("menuCopyItemDetailsFrom"),
+                                        press: function () {
+                                            // thatForm.helperFunc.copyItems();
+                                            var rs = {
+                                                "POS": "ORD_POS",
+                                                "REFER": "ORD_REFER",
+                                                "PACKD": "ORD_PACKD",
+                                                "UNITD": "ORD_UNITD",
+                                                "PACK": "ORD_PACK",
+                                                "PKQTY": "ORD_PKQTY",
+                                                "UNQTY": "ORD_UNQTY",
+                                                "PRICE": "ORD_PIRCE",
+                                                "DISCAMT": "ORD_DISCAMT",
+                                                "STRA": "STRA",
+                                            }
+                                            UtilGen.PurchaseOrderFunc.copyDetails(thatForm, '"ITEMS"', '"PORD1"', rs);
+                                        }
+                                    }))
+                                }
+                            });
+                            qrj.showToolbar.toolbar.addContent(colsetitems);
+                            qrj.showToolbar.toolbar.addContent(colset);
+                            var colset = UtilGen.addItemsInfoCmd({
+                                applyCol: thatForm.frm.objs["qry2"].applyCol
+                            });
                             qrj.showToolbar.toolbar.addContent(colset);
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
@@ -2127,6 +2175,18 @@ sap.ui.jsfragment("bin.forms.sl.srr", {
                 that2.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
                 that2.frm.loadData(undefined, FormView.RecordStatus.VIEW);
             }
+        },
+        getItemPrice: function (refer) {
+            var thatForm = this.thatForm;
+            var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+            var sqcnt = ("select get_item_price2(:refer,':ref_code',:loc,:ord_date) from dual ")
+                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ord_ref"))
+                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.ord_branchno"))
+                .replaceAll(":refer", refer)
+                .replaceAll(":ord_date", Util.toOraDateString(dt));
+
+            var cnt = Util.getSQLValue(sqcnt);
+            return cnt;
         },
 
     }

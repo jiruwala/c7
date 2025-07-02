@@ -553,7 +553,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 }),
                 //2
                 ord_ref: FormView.getFactoryFields.getGeneralField(
-                    "ord_ref", "", "txtCust", "15%", "violetText", "12%",
+                    "ord_ref", "", "txtStoreOut", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: false,
@@ -571,7 +571,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         },
                     })),
                 ord_refnm: FormView.getFactoryFields.getGeneralField(
-                    "ord_refnm", "@", "", "1%", "", "22%",
+                    "ord_refnm", "@", "txtStoreIn", "1%", "", "22%",
                     {
                         require: true,
                         edit_allowed: true,

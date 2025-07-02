@@ -183,7 +183,9 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                         table_name: "c_order1",
                         before_add_table: function (scrollObjs, qrj) {
                             UtilGen.createDefaultToolbar1(qrj, ["ORD_SHIP", "DESCR"], true);
-                            var colset = UtilGen.addColSetup(thatForm.frm.objs["qry2"].applyCol);
+                            var colset = UtilGen.addItemsInfoCmd({
+                                applyCol: thatForm.frm.objs["qry2"].applyCol
+                            });
                             qrj.showToolbar.toolbar.addContent(colset);
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
@@ -1175,13 +1177,8 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
         getItemPrice: function (refer) {
 
             var thatForm = this.thatForm;
-            var dt = thatForm.frm.getFieldValue("qry1.ord_date");
-            var sqcnt = ("select get_item_price2(:refer,':ref_code',:loc,:ord_date) from dual ")
-                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ord_ref"))
-                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.ord_discamt"))
-                .replaceAll(":refer", refer)
-                .replaceAll(":ord_date", Util.toOraDateString(dt));
-
+            var sqcnt = ("select get_item_price_so(:refer,':kfld') from dual ")
+                .replaceAll(":kfld", thatForm.pord1_keyfld);
             var cnt = Util.getSQLValue(sqcnt);
             return cnt;
         },

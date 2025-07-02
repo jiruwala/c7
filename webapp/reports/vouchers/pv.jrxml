@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="jv" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="jv" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
 	<property name="ireport.zoom" value="1.5"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="32"/>
@@ -85,28 +86,28 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 	</background>
 	<title>
 		<band height="145">
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strCompanyName" x="0" y="0" width="282" height="30" uuid="81ac2c82-a569-4828-911b-a4d159e5675a"/>
 				<textElement>
 					<font fontName="DejaVu Sans" size="11" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{COMPANY_NAME}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strCompanyName" x="282" y="1" width="271" height="30" uuid="d70adcbe-dcfd-4193-9b4d-836145839c4b"/>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans" size="12" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{COMPANY_NAMEA}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strCompanySpec" x="307" y="32" width="248" height="52" uuid="64b5f1f9-5cc6-4600-9574-6c9680d1682a"/>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans" size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{COMPANY_SPECSA}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strCompanySpec" x="0" y="30" width="246" height="52" uuid="0b469f77-fab2-411b-9f4f-893e209c406e"/>
 				<textElement>
 					<font fontName="DejaVu Sans" size="12"/>
@@ -173,7 +174,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				</textElement>
 				<text><![CDATA[Description:]]></text>
 			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strHeader" x="97" y="50" width="352" height="20" uuid="3e0a31fc-f442-4103-a4cb-295677e1ec91"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -304,7 +305,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				</textElement>
 				<text><![CDATA[وذلـك  عـــن :]]></text>
 			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strHeader" x="97" y="70" width="352" height="20" uuid="eafc5df6-6bc4-4041-a9b6-1fc62a51854d"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -343,7 +344,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				</textElement>
 				<text><![CDATA[ رقم شيك :]]></text>
 			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strHeader" x="97" y="90" width="352" height="20" uuid="1a1f8ef4-c549-4fb3-aac5-f2438b9af4cf"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -382,7 +383,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				</textElement>
 				<text><![CDATA[البنك :]]></text>
 			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strHeader" x="97" y="110" width="352" height="20" uuid="de4c5114-8a63-499d-a46e-63dc8c5e9714"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
