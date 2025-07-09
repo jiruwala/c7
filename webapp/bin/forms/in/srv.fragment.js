@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.in.siv", {
+sap.ui.jsfragment("bin.forms.in.srv", {
 
     createContent: function (oController) {
         var that = this;
@@ -11,7 +11,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
         this.vars = {
             keyfld: -1,
             flag: 1,  // 1=closed,2 opened,
-            vou_code: 25,
+            vou_code: 13,
             type: 1
         };
 
@@ -71,12 +71,12 @@ sap.ui.jsfragment("bin.forms.in.siv", {
         this.frm;
         var js = {
             form: {
-                title: Util.getLangText("titStrIssueVoucher"),
+                title: Util.getLangText("titStrReceiptVoucher"),
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
                     width: { "S": 600, "M": 800, "L": 800, "XL": 900 },
-                    class: "strTvForm"
+                    class: "poDlvForm"
                 },
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
@@ -342,8 +342,8 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                             "Item # " + rfr + " not a valid !");
                         var sq = ("update invoice2 set packd=':pkd',unitd=':unitd' ,pack=:pack ," +
                             " allqty=(pkqty*:pack)+qty," +
-                            " qtyout=(pkqty*:pack)+qty," +
-                            " qtyin=0," +
+                            " qtyin=(pkqty*:pack)+qty," +
+                            " qtyout=0," +
                             " pkcost=:unit_cost , price=:price " +
                             " where keyfld=:kf and itempos=:pos ")
                             .replaceAll(":pkd", dt[0].PACKD)
@@ -397,7 +397,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                     var delbfr = "";
                     if (qry.name == "qry1") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
-                        var delbfr = "X_Post_issue_del_only(:keyfld); ".replaceAll(":keyfld", kf);
+                        var delbfr = "X_Post_receipt_del_only(:keyfld); ".replaceAll(":keyfld", kf);
                     }
                     return delbfr;
                 },
@@ -421,7 +421,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                 },
                 beforeExeSql: function (frm, sq) {
                     var kf = frm.getFieldValue("qry1.keyfld");
-                    return sq + "X_POST_ISSUE(" + kf + ");";
+                    return sq + "X_POST_RECIPT(" + kf + ");";
                 }
             };
         },
@@ -542,7 +542,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                     "type", "@", "txtIssueType",
                     "15%", "", "35%",
                     {
-                        list: "SELECT NAME,CODE FROM INVOICE_CODES WHERE (NATUR=-1) ORDER BY NAME_A",
+                        list: "SELECT NAME,CODE FROM INVOICE_CODES WHERE (NATUR=1) ORDER BY NAME_A",
                         require: true,
                         insert_allowed: true,
                         edit_allowed: false,
@@ -694,7 +694,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                         " p2.invoice_no,p2.invoice_date,p2.stra,s1.name straname, " +
                         " memo, p2.keyfld " +
                         " from invoice1 p2,store s1,invoice_codes ic where invoice_code =" + that2.vars.vou_code +
-                        " and ic.code=p2.type and ic.natur=-1  " +
+                        " and ic.code=p2.type and ic.natur=1  " +
                         " and s1.no=p2.stra " +
                         " and (p2.type=':qry1.type' or ':qry1.type' is null ) " +
                         " and (':qry1.stra'=p2.stra or ':qry1.stra' is null) " +
@@ -881,27 +881,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                 }
                 FormView.err(ld.getFieldValue(rn, "REFER") + " -  " + ds);
             }
-            var checkStoreQty = function (rn, dta) {
-                var kf = thatForm.frm.getFieldValue('qry1.keyfld');
-                var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.invoice_date'));
-                var pdt = Util.toOraDateString(ld.getFieldValue(rn, "PRD_DATE2"));
-                var edt = Util.toOraDateString(ld.getFieldValue(rn, "EXP_DATE2"));
-
-                var pkd = ld.getFieldValue(rn, "PACKD");
-                var sq = "select C7_GET_STORE_ITEM_ALLQTY(':rfr',:pdt,:str,'N',:prdt,:expdt,'','',':exckf') from dual ";
-                sq = sq.replaceAll(":user", sett["LOGON_USER"])
-                    .replaceAll(":rfr", dta.rfr)
-                    .replaceAll(":str", dta.str)
-                    .replaceAll(":pdt", odt)
-                    .replaceAll(":prdt", pdt)
-                    .replaceAll(":expdt", edt)
-                    .replaceAll(":exckf", '"' + kf + '"');
-
-
-                var can_issue = Util.getSQLValue(sq);
-                if (can_issue < Util.nvl(dta.allqty, 0))
-                    errRow(i, "Save Denied : Can issue only " + (can_issue / pk) + " " + pkd);
-            }
+            
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "REFER");
                 var qty = Util.extractNumber(ld.getFieldValue(i, "QTY"));
@@ -912,9 +892,6 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                 var allqty = (pqty * pk) + qty;
                 if (dup[rfr] != undefined)
                     errRow(i, "Save Denied : Duplicate item entry ", rfr);
-                checkStoreQty(i, {
-                    str: str, rfr: rfr, pk: pk, allqty: allqty
-                });
                 dup[rfr] = rfr;
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)
