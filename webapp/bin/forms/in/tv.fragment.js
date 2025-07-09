@@ -177,7 +177,7 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                                 qrj: qrj,
                                 itemField: "REFER",
                                 itemDescrField: "DESCR",
-                                storeFeld: "qry1.stra",
+                                storeField: "qry1.stra",
                                 qryDate: "qry1.invoice_date",
                                 fnCallBack: function (rowno, data, str) {
                                     if (str == "showQtyAllStore") {
