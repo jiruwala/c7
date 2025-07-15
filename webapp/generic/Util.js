@@ -12,26 +12,6 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 return null;
             },
-            removeObjsFromArray: function (arr, pobj) {
-                var cnts = 0
-                if (arr == undefined || arr == null) return 0;
-                if (arr.length <= 0) return 0;
-                if (Util.nvl(pobj, undefined) == undefined) return 0;
-
-                var objs = (Array.isArray(pobj) ? pobj : [pobj]);
-                objs.array.forEach(obj => {
-                    var rn = -1;
-                    for (var i = 0; i < arr.length; i++)
-                        if (arr[i] == obj) {
-                            rn = i; break;
-                        }
-                    if (rn >= 0) {
-                        arr.slice(rn, 1);
-                        cnts++;
-                    }
-                });
-                return cnts;
-            },
             isFunction: function (functionToCheck) {
                 return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
             },
@@ -90,10 +70,6 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 else
                     d.setDate(dt.getDate() - Math.abs(days));
                 return d;
-            },
-            daysBetween(todt,fromdt) {
-                var oneDay = 24 * 60 * 60 * 1000;
-                return Math.round(((todt - fromdt) / oneDay));
             },
             doAjaxGetSpin: function (path,
                 content,
@@ -1020,7 +996,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
                 var qv = new QueryView("searchTbl" + tm);
                 qv.getControl().setFixedBottomRowCount(0);
-                qv.getControl().addStyleClass("sapUiSizeCondensed");
+                qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowSelector);
+                qv.getControl().addStyleClass(/*"sapUiSizeCondensed"*/"sapUiSizeCompact");
 
                 if (fnOnselect != undefined) {
                     qv.getControl().attachRowSelectionChange(undefined, function () {
@@ -1064,19 +1041,53 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         }, 100);
                     }
                 });
+                qv.getControl().attachBrowserEvent("keydown", function (evt) {
+                    if (evt == undefined ||
+                        evt.altKey || evt.ctrlKey || evt.metaKey)
+                        return;
+
+                    var vl = Util.nvl(searchField.getValue(), "");
+
+                    if (evt.key.length == 1 && evt.keyCode != 8) {
+                        vl = vl + evt.key;
+                        searchField.fireLiveChange({
+                            newValue:
+                                vl
+                        });
+                        searchField.setValue(vl);
+                        setTimeout(() => {
+                            searchField.focus();
+                            searchField.$().select(vl.length, vl.length);
+                        });
+                    } else if (searchField.getValue().length > 0 && evt.keyCode == 8) {
+                        vl = vl.substr(0, (searchField.getValue().length - 1));
+                        searchField.fireLiveChange({
+                            newValue:
+                                vl
+                        });
+                        searchField.setValue(vl);
+                        setTimeout(() => {
+                            searchField.focus();
+                            searchField.$().select(vl.length, vl.length);
+                        });
+
+                    }
+
+                });
                 searchField.attachBrowserEvent("keydown", function (evt) {
+
                     if (evt.key == "ArrowDown") {
                         qv.getControl().focus();
                     }
 
                     if (evt.key == "Enter") {
-                        console.log("press enter");
                         if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {
                             setTimeout(() => {
                                 qv.getControl().setSelectionInterval(1, 0);
                             });
                         }
                     }
+
                 });
                 var hb = new sap.m.HBox({
                     width: "100%",
@@ -1140,7 +1151,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                         qv.mColParent = ppms.parent;
                         qv.switchType("tree");
                         qv.getControl().setFixedBottomRowCount(0);
-                        qv.getControl().addStyleClass("sapUiSizeCondensed");
+                        qv.getControl().addStyleClass("sapUiSizeCompact");
                         if (fnOnselect != undefined) {
                             qv.getControl().attachRowSelectionChange(undefined, function () {
                                 fnOnselect();

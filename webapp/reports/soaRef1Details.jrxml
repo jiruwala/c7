@@ -50,7 +50,8 @@
            G.FC_MAIN,
            G.FC_MAIN_RATE,
            G.JVPOS,
-           nvl(G.BRANCH_NAME,g.NAME) branch_name
+           nvl(G.BRANCH_NAME,g.NAME) branch_name,
+           (select nvl(max(invoice_no),'') from pur1 where keyfld=(select referkeyfld from acvoucher2 where keyfld=g.keyfld and pos=g.jvpos) )||'   '||g.DESCR inv_no
     FROM   C6_GL2 G
     where usernm= $P{SESSION_ID}  and accno= $P{PACCNO} 
 ORDER BY   POS ASC]]>
@@ -155,6 +156,10 @@ ORDER BY   POS ASC]]>
 		<property name="com.jaspersoft.studio.field.name" value="BRANCH_NAME"/>
 		<property name="com.jaspersoft.studio.field.label" value="BRANCH_NAME"/>
 	</field>
+	<field name="INV_NO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="INV_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="INV_NO"/>
+	</field>
 	<variable name="SUMDR" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{DEBIT}]]></variableExpression>
 	</variable>
@@ -179,7 +184,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="1.0"/>
 				</box>
 				<staticText>
-					<reportElement stretchType="ContainerHeight" mode="Opaque" x="180" y="0" width="120" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="ea1f100d-e482-4bd5-9e00-986d0fcb44a3">
+					<reportElement stretchType="ContainerHeight" mode="Opaque" x="180" y="0" width="240" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="ea1f100d-e482-4bd5-9e00-986d0fcb44a3">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -193,7 +198,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Descr
 المواصفات]]></text>
@@ -213,7 +218,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou No
 الرقم المرجعي]]></text>
@@ -232,7 +237,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Credit
 الدائن]]></text>
@@ -252,7 +257,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.25"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Balance
 الرصيد]]></text>
@@ -272,7 +277,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Debit
 المدين]]></text>
@@ -292,7 +297,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou Type
  نوع المعاملة]]></text>
@@ -312,28 +317,10 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.25"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou Date
 تاريخ المعاملة]]></text>
-				</staticText>
-				<staticText>
-					<reportElement stretchType="ContainerHeight" mode="Opaque" x="300" y="0" width="120" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="19dc05d6-311c-4c35-80aa-ad081ebb5468">
-						<property name="com.jaspersoft.studio.unit.height" value="px"/>
-						<property name="com.jaspersoft.studio.unit.y" value="px"/>
-						<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					</reportElement>
-					<box>
-						<pen lineWidth="0.25"/>
-						<topPen lineWidth="0.25"/>
-						<leftPen lineWidth="0.25"/>
-						<bottomPen lineWidth="0.25"/>
-						<rightPen lineWidth="0.0"/>
-					</box>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
-					</textElement>
-					<text><![CDATA[Site]]></text>
 				</staticText>
 			</frame>
 		</band>
@@ -352,7 +339,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="DejaVu Sans" size="8"/>
+					<font fontName="Arial2" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{TYPE_DESCR}]]></textFieldExpression>
 			</textField>
@@ -368,12 +355,12 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="DejaVu Sans" size="8"/>
+					<font fontName="Arial2" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{VOU_NO}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="180" y="0" width="120" height="15" uuid="1e91b0fc-32f6-4bd7-9aae-735c994cf733">
+				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="180" y="0" width="240" height="15" uuid="1e91b0fc-32f6-4bd7-9aae-735c994cf733">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -384,9 +371,9 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
-					<font fontName="DejaVu Sans" size="8"/>
+					<font fontName="Arial2" size="10"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{INV_NO}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="120" y="0" width="60" height="15" uuid="98a4fe8f-d314-44b6-b7c1-6c52f70c53ce">
@@ -400,7 +387,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
-					<font fontName="DejaVu Sans"/>
+					<font fontName="Arial2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{DEBIT}==0?null:$F{DEBIT})]]></textFieldExpression>
 				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
@@ -416,7 +403,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
-					<font fontName="DejaVu Sans"/>
+					<font fontName="Arial2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{BALANCE}]]></textFieldExpression>
 				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
@@ -431,7 +418,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
-					<font fontName="DejaVu Sans"/>
+					<font fontName="Arial2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{CREDIT}==0?null:$F{CREDIT})]]></textFieldExpression>
 				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
@@ -448,24 +435,9 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="DejaVu Sans" size="8"/>
+					<font fontName="Arial2" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{VOU_DATE}]]></textFieldExpression>
-			</textField>
-			<textField textAdjust="StretchHeight" pattern="dd/MM/yyy" isBlankWhenNull="true">
-				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="300" y="0" width="120" height="15" uuid="e9dc5236-51aa-4be8-ab73-5f1d172a04dd">
-					<property name="com.jaspersoft.studio.unit.height" value="px"/>
-					<property name="com.jaspersoft.studio.unit.y" value="px"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
-					<leftPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-				</box>
-				<textElement textAlignment="Right">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{BRANCH_NAME}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
@@ -502,7 +474,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial2" size="7" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{BALANCE}]]></textFieldExpression>
 			</textField>
@@ -519,7 +491,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial2" size="7" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{SUMCR}]]></textFieldExpression>
 			</textField>
@@ -537,7 +509,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial2" size="7" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{SUMDR}]]></textFieldExpression>
 			</textField>

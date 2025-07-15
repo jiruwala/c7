@@ -6,7 +6,16 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         this.view = oController.getView();
         this.qryStr = Util.nvl(oController.code, "");
         this.timeInLong = (new Date()).getTime();
-        this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
+        this.joApp = new sap.m.SplitApp({
+            mode: sap.m.SplitAppMode.HideMode,
+            afterDetailNavigate: function (e) {
+                if (e.getParameter("to") == that.mainPage) {
+                    that.selectedSOKfld = undefined;
+                    that.cmdNextFrom = 1; // check info page come from detailpage or delivery page.                                
+                    that.txtSO.setValue("");
+                }
+            }
+        });
 
         this.bk = new sap.m.Button({
             icon: "sap-icon://nav-back",
@@ -106,6 +115,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
                     }, undefined, undefined, true);
             }
         });
+
         var dt = Util.execSQLWithData("select code from locations order by code");
         var loc = "";
         for (var li = 0; li < dt.length; li++)
@@ -150,7 +160,6 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         });
 
         this.txtBranch = new sap.m.Input({
-
             width: "30%", showValueHelp: true,
             valueHelpRequest: function (e) {
                 var fromdt = UtilGen.getControlValue(that.txtFromDate);
@@ -170,17 +179,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
                     sq,
                     "select '' from dual ", that.txtBranchName, function (dt) {
                         console.log(dt);
-                        // if (dt.length == 1) {
-                        //     var vl = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " and brno=" + Util.quoted(that.txtBranch.getValue().replaceAll('"',"")));
-                        //     that.txtBranchName.setValue(vl);
-                        // }
-
                     }, undefined, undefined, true);
-
-                // Util.showSearchList(sq, "NAME", "CODE", function (valx, val) {
-                //     that.txtBranch.setValue(valx);
-                //     that.txtBranchName.setValue(val);
-                // });
             },
             change: function (e) {
                 // var vl = Util.getSQLValue("select b_name from cbranch where code=" + Util.quoted(that.txtRef.getValue()) + " and brno=" + Util.quoted(that.txtBranch.getValue()));
@@ -296,6 +295,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
                 new sap.m.Button(that.view.createId("cmdNext1"), {
                     text: "Next",
                     press: function () {
+
                         if (Util.nvl(that.selectedSOKfld, -1) == -1) {
                             that.joApp.toDetail(that.detailPage, "slide");
                             that.load_detailPage();
@@ -333,25 +333,197 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         }, 150);
 
     },
-    //TODO    which 'approve' and opened , attachbrowser on selection to select soKeyfld
     load_detailPage: function () {
         var that = this;
         var qv = this.qv;
-        var refName = that.txtRefName.getValue() + " - " + that.txtRef.getValue();
-        var bName = that.txtBranchName.getValue() + " - " + that.txtBranch.getValue();
+        var qv2 = this.qv2;
+
+        var fromdt = UtilGen.getControlValue(this.txtFromDate);
+        var todt = UtilGen.getControlValue(this.txtToDate);
+
+        var loc = that.txtLocations.getValue();
+        var brn = that.txtBranch.getValue();
+        var ref = that.txtRef.getValue();
+
+
+
+        var refName = that.txtRefName.getValue() + " - " + ref;
+        var bName = that.txtBranchName.getValue() + " - " + brn;
         this.detailPage.removeAllHeaderContent();
         this.detailPage.addHeaderContent(new sap.m.Title({ text: Util.getLangText("titSalWzd") + " / " + refName + " / " + bName }).addStyleClass("redText boldText"));
+
+        var getDetailSql = function () {
+            var qrKf = "";
+            var sql = "";
+            var sl = qv.getControl().getSelectedIndices();
+            if (sl.length > 0) {
+                var odata = qv.getControl().getContextByIndex(sl[0]);
+                var data = (odata.getProperty(odata.getPath()));
+                qrKf = data.KEYFLD;
+            }
+            sql = ("select dlv_ord_no," +
+                " dlv_ord_date," +
+                "  NVL (SUM (0), 0) ADD_AMT," +// chyanged to 0 
+                " SUM(c7_get_so_price(so_keyfld,so_ord_pos)*(dlv_TQTY/so_ord_pack)) AMOUNT, " +
+                " SUM(C7_GET_SO_DISCAMTGROSS(so_keyfld,so_ord_pos)) disc_amt," +
+                " 0 NET_AMT, " +
+                " dlv_keyfld keyfld " +
+                " from C7_SO_PORD2_DLV " +
+                " where so_keyfld=':keyfld' and DLV_SALEINV is null and dlv_keyfld is not null  " +
+                " group by dlv_ord_no,dlv_ord_date,dlv_keyfld order by 1").replaceAll(":keyfld", qrKf);
+            return sql;
+        }
+        var getSqlMaster = function () {
+            var locWhere = " ('" + loc + "' like '%\"'||LOCATION_CODE ||'\"%' )";
+            var branWhere = " ('" + brn + "' is null or '" + brn + "' like '%\"'||ORD_BRANCHNO||'\"%' )";
+
+            return ("select  LOCATION_CODE, ORD_NO, ORD_DATE, ORD_REF, " +
+                "ORD_REFNM, ORD_BRANCHNO, B_NAME, MIN_DLV_DT, MAX_DLV_DT, CNT_DLV, " +
+                "KEYFLD FROM C7_SO_DLV_NOT_INV1 " +
+                " where ord_date>=" + Util.toOraDateString(fromdt) + " and " +
+                " ord_date<=" + Util.toOraDateString(todt) + " and " +
+                "(':ordref' is null or ord_ref=':ordref' ) and " +
+                locWhere + " and " +
+                branWhere +
+                " order by ord_no ").replaceAll(":ordref", ref);
+        }
+        var showMaster = function () {
+            var dt = Util.execSQL(getSqlMaster());
+            if (dt.ret == "SUCCESS") {
+                qv.setJsonStrMetaData("{" + dt.data + "}");
+                qv.mLctb.getColByName("KEYFLD").getMUIHelper().display_width = 0;
+
+                Util.setColProperties(qv, "LOCATION_CODE", {
+                    "mTitle": "locationTxt",
+                    "display_width": 70,
+                });
+                Util.setColProperties(qv, "ORD_NO", {
+                    "mTitle": "slsOrdN",
+                    "display_width": 80
+                });
+
+                Util.setColProperties(qv, "ORD_REF", {
+                    "mTitle": "txtCode",
+                    "display_width": 80
+                });
+                Util.setColProperties(qv, "ORD_REFNM", {
+                    "mTitle": "txtName",
+                    "display_width": 150
+                });
+                Util.setColProperties(qv, "ORD_DATE", {
+                    "mTitle": "ordDate",
+                    "display_width": 80,
+                    "display_format": "SHORT_DATE_FORMAT"
+                });
+
+                Util.setColProperties(qv, "MIN_DLV_DT", {
+                    "mTitle": "First Date",
+                    "display_width": 80,
+                    "display_format": "SHORT_DATE_FORMAT"
+                });
+                Util.setColProperties(qv, "MAX_DLV_DT", {
+                    "mTitle": "Last Date",
+                    "display_width": 80,
+                    "display_format": "SHORT_DATE_FORMAT"
+                });
+
+                Util.setColProperties(qv, "ORD_BRANCHNO", {
+                    "mTitle": "txtBranch",
+                    "display_width": 65
+                });
+
+                Util.setColProperties(qv, "B_NAME", {
+                    "mTitle": "branchNmTxt",
+                    "display_width": 130
+                });
+                Util.setColProperties(qv, "CNT_DLV", {
+                    "mTitle": "No Of Dlv",
+                    "display_width": 80,
+                    "display_format": "QTY_FORMAT"
+                });
+
+                qv.getControl().attachRowSelectionChange(undefined, function () {
+                    showDetails();
+                });
+
+                qv.mLctb.parse("{" + dt.data + "}", true);
+                qv.loadData();
+                setTimeout(() => {
+                    qv.loadData();
+                    if (qv.mLctb.rows.length > 0) {
+                        qv.getControl().setSelectedIndex(0);
+                        qv.getControl().setFirstVisibleRow(0);
+                    }
+                }, 100);
+            }
+        }
+        var showDetails = function () {
+            var dt = Util.execSQL(getDetailSql());
+            if (dt.ret == "SUCCESS") {
+                qv2.setJsonStrMetaData("{" + dt.data + "}");
+                qv2.mLctb.getColByName("KEYFLD").getMUIHelper().display_width = 0;
+                Util.setColProperties(qv2, "DLV_ORD_NO", {
+                    "mTitle": "txtNo",
+                    "display_width": 80
+                });
+                Util.setColProperties(qv2, "DLV_ORD_DATE", {
+                    "mTitle": "ordDate",
+                    "display_width": 80,
+                    "display_format": "SHORT_DATE_FORMAT"
+                });
+                Util.setColProperties(qv2, "AMOUNT", {
+                    "mTitle": "amountTxt",
+                    "display_width": 80,
+                    "display_format": "MONEY_FORMAT"
+                });
+                Util.setColProperties(qv2, "ADD_AMT", {
+                    "mTitle": "txtAddAmt",
+                    "display_width": 80,
+                    "display_format": "MONEY_FORMAT"
+                });
+                Util.setColProperties(qv2, "DISC_AMT", {
+                    "mTitle": "txtDisc",
+                    "display_width": 80,
+                    "display_format": "MONEY_FORMAT"
+                });
+                Util.setColProperties(qv2, "NET_AMT", {
+                    "mTitle": "txtNetAmt",
+                    "display_width": 80,
+                    "display_format": "MONEY_FORMAT"
+                });
+
+                qv2.mLctb.parse("{" + dt.data + "}", true);
+                qv2.loadData();
+
+                var ld = qv2.mLctb;
+                for (var li = 0; li < ld.rows.length; li++) {
+                    var amt = ld.getFieldValue(li, "AMOUNT");
+                    var disc = ld.getFieldValue(li, "ORD_DISCAMT");
+                    // var aa = ld.getFieldValue(li, "ADD_AMT");
+                    var net = (amt - disc) //+ aa;
+                    ld.setFieldValue(li, "NET_AMT", net);
+                }
+                qv2.updateDataToControl();
+
+
+                setTimeout(() => {
+                    qv2.getControl().selectAll();
+                }, 100);
+            }
+        }
+        showMaster();
 
     },
     validatSO: function () {
         var that = this;
-        var qv = this.qvDlv;
         var errMsgAndRetFirstPage = function (msg) {
             that.joApp.toDetail(that.mainPage, "slide");
             FormView.err(msg);
         }
+
         if (Util.nvl(that.selectedSOKfld, -1) == -1)
             errMsgAndRetFirstPage("SO is not selected !");
+
         var sodt = UtilGen.SalesOrderFunc.checkSOStatus(that.selectedSOKfld, false);
         if (sodt.ORD_FLAG != 2)
             errMsgAndRetFirstPage(" SO either not approved or closed !");
@@ -359,9 +531,11 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
             sodt.ORDACC != UtilGen.SalesOrderFunc.initAction.issueDeliver)
             errMsgAndRetFirstPage("Initial action for SO either should be 'APPROVE' or 'DELIVERY' ");
 
+        // check SO have valid branch
         var sodt = Util.execSQLWithData("select p.ord_no,p.ord_ref,p.ord_refnm,p.ord_branchno,b.b_name branchname " +
             " from pord1 p,cbranch b where p.keyfld=" + that.selectedSOKfld +
             " and b.brno=p.ord_branchno and b.code=p.ord_ref");
+
         if (sodt == undefined || sodt.length == 0)
             errMsgAndRetFirstPage("Unexpected error , not found SO !");
         return sodt;
@@ -395,7 +569,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
                 "                    AND o.ord_ref = cbranch.code) " +
                 "               AND ( (items.REFERENCE = o.ord_ship))" +
                 " and o.ord_code=9 and " +
-                "  o.keyfld=" + that.selectedSOKfld + " and " +
+                "  o.pord1_keyfld=" + that.selectedSOKfld + " and " +
                 ordDates +
                 " and " + locWhere +
                 " and ord_ref=" + Util.quoted(refCode) +
@@ -640,8 +814,6 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
             that.txtInfoLocations.fireSelectionChange();
         }, 100);
     },
-    //TODO CREATE QUERYVIEW FOR SOs
-
     createDetailPage: function () {
         var that = this;
         var sett = sap.ui.getCore().getModel("settings").getData();
@@ -664,18 +836,34 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         this.qv = new QueryView("qrDet" + this.timeInLong);
         // this.qv.getControl().addStyleClass("sapUiSizeCondensed");
         this.qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowSelector);
-        this.qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.MultiToggle);
+        this.qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
         this.qv.getControl().setAlternateRowColors(true);
         this.qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         // this.qv.getControl().setRowHeight(26);        
-        that.qv.getControl().setVisibleRowCount(10);
+        that.qv.getControl().setVisibleRowCount(4);
         // this.qv.setAutoDispRecords(this.detailPage, { "S": 70, "M": 70, "L": 70, "XL": 70 });
         that.qv.getControl().setRowHeight(20);
         this.qv.getControl().setFixedBottomRowCount(0);
 
-        this.txtTotalAmount = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
-        this.txtAddAmt = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
-        this.txtTotalDlv = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
+        this.qv2 = new QueryView("qrDet2" + this.timeInLong);
+        // this.qv.getControl().addStyleClass("sapUiSizeCondensed");
+        this.qv2.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowSelector);
+        this.qv2.getControl().setSelectionMode(sap.ui.table.SelectionMode.MultiToggle);
+        this.qv2.getControl().setAlternateRowColors(true);
+        this.qv2.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
+        // this.qv.getControl().setRowHeight(26);        
+        that.qv2.getControl().setVisibleRowCount(4);
+        // this.qv.setAutoDispRecords(this.detailPage, { "S": 70, "M": 70, "L": 70, "XL": 70 });
+        that.qv2.getControl().setRowHeight(20);
+        this.qv2.getControl().setFixedBottomRowCount(0);
+
+        this.txtTotalAmount = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont yellowInput");
+        this.txtAddAmt = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont yellowInput");
+        this.txtTotalDlv = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont yellowInput");
+
+        this.qv2.getControl().attachRowSelectionChange(function (e) {
+            that.calcSummary(that.qv2, that.txtTotalAmount, that.txtAddAmt, that.txtTotalDlv);
+        });
 
         var hbl = new sap.m.HBox({
             items: [
@@ -683,19 +871,21 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
                 new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, text: "Additional", width: "200px" }),
                 new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, text: "Selected Deliveries", width: "200px" })
             ]
-        })
+        }).addStyleClass("sapUiLargeMarginBegin")
 
         var hbt = new sap.m.HBox({
             items: [that.txtTotalAmount, that.txtAddAmt, that.txtTotalDlv]
-        })
+        }).addStyleClass("sapUiLargeMarginBegin");
 
         this.detailPage.addContent(this.qv.getControl());
+        this.detailPage.addContent(new sap.m.Title({ text: "Deliveries:" }));
+        this.detailPage.addContent(this.qv2.getControl());
         this.detailPage.addContent(sc);
 
         sc.addContent(new sap.m.VBox({ items: [hbl, hbt] }));
         sc.addContent(new sap.m.VBox({ height: "20px" }));
 
-        Util.destroyID("cmdNext2", that.view);
+        Util.destroyID("cmdNext22", that.view);
         this.detailPage.setFooter(new sap.m.Toolbar({
             content: [
                 new sap.m.ToolbarSpacer(),
@@ -706,11 +896,11 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
                         // that.loadData();
                     }
                 }),
-                new sap.m.Button(that.view.createId("cmdNext2"), {
+                new sap.m.Button(that.view.createId("cmdNext22"), {
                     text: "Next",
                     press: function () {
                         that.joApp.toDetail(that.infoPage, "slide");
-                        that.load_infoPage();
+                        that.load_infoPage(2);
                     }
                 }),
                 new sap.m.Button({
@@ -725,7 +915,26 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
 
 
     },
-    //TODO :  additional amount in SO and wizard same like discount
+    calcSummary: function (qv, txtTotalAmount, txtAddAmt, txtTotalDlv) {
+        var that = this;
+        var tot = 0;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+        var slices = qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
+        var slicesof = qv.getControl().getBinding("rows").aIndices;
+        var amtx = 0;
+        var addamt = 0;
+        var totalcounts = 0;
+        for (var i = 0; i < slices.length; i++) {
+            amtx += Util.extractNumber(Util.nvl(Util.getCellColValue(qv.getControl(), slicesof[slices[i]], "NET_AMT"), "0"));
+            addamt += Util.extractNumber(Util.nvl(Util.getCellColValue(qv.getControl(), slicesof[slices[i]], "ADD_AMT"), "0"));
+            totalcounts++;
+        }
+
+        txtTotalAmount.setValue(df.format(amtx));
+        txtAddAmt.setValue(df.format(addamt));
+        txtTotalDlv.setValue(totalcounts);
+    },
     generatePur: function () {
         var that = this;
         var sqp = "";
@@ -834,10 +1043,13 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
             " end;";
 
         var kfldStr = "";
-        var slices = that.qvDlv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
-        var slicesof = that.qvDlv.getControl().getBinding("rows").aIndices;
+
+        var qvDlv = (that.cmdNextFrom == 2) ? that.qv2 : that.qvDlv;
+
+        var slices = qvDlv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
+        var slicesof = qvDlv.getControl().getBinding("rows").aIndices;
         for (var i = 0; i < slices.length; i++) {
-            var kfld = Util.nvl(Util.getCellColValue(that.qvDlv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
+            var kfld = Util.nvl(Util.getCellColValue(qvDlv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
             kfldStr = kfldStr + (kfldStr.length > 0 ? "," : "") + kfld;
         }
         if (kfldStr.length <= 0)
@@ -908,9 +1120,13 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         that.qvDlv.getControl().setRowHeight(20);
         this.qvDlv.getControl().setFixedBottomRowCount(0);
 
-        this.txtTotalAmount = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
-        this.txtAddAmt = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
-        this.txtTotalDlv = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
+        this.txtTotalAmountd = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
+        this.txtAddAmtd = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
+        this.txtTotalDlvd = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "200px", editable: false }).addStyleClass("largeFont");
+
+        this.qvDlv.getControl().attachRowSelectionChange(function (e) {
+            that.calcSummary(that.qvDlv, that.txtTotalAmountd, that.txtAddAmtd, that.txtTotalDlvd);
+        });
 
         var hbl = new sap.m.HBox({
             items: [
@@ -921,7 +1137,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         })
 
         var hbt = new sap.m.HBox({
-            items: [that.txtTotalAmount, that.txtAddAmt, that.txtTotalDlv]
+            items: [that.txtTotalAmountd, that.txtAddAmtd, that.txtTotalDlvd]
         })
 
         this.dlvPage.addContent(this.qvDlv.getControl());
@@ -946,7 +1162,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
                     text: "Next",
                     press: function () {
                         that.joApp.toDetail(that.infoPage, "slide");
-                        that.load_infoPage();
+                        that.load_infoPage(1);
                     }
                 }),
                 new sap.m.Button({
@@ -964,8 +1180,17 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
     },
     createViewHeader: function () {
     },
-    load_infoPage: function () {
+    load_infoPage: function (cmdNextFrom) {
         var that = this;
+        that.cmdNextFrom = Util.nvl(cmdNextFrom, 1);
+        if (that.cmdNextFrom == 2) {
+            var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
+            if (slices.length <= 0) errMsgAndRetFirstPage("SO is not selected !");
+            var slicesof = that.qv.getControl().getBinding("rows").aIndices;
+            that.selectedSOKfld = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[0]], "KEYFLD"), undefined);
+            that.selectedSOKfld = that.selectedSOKfld != undefined ? Util.extractNumber(that.selectedSOKfld) : undefined;
+        }
+
         var sett = sap.ui.getCore().getModel("settings").getData();
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var sodt = that.validatSO();
@@ -1004,8 +1229,6 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         //     that.txtInfoBranchName.setValue(brnam);
         // }
         that.calcInfoAmt(true, true);
-
-
     },
     calcInfoAmt: function (pRfresh, pRefreshAdd) {
         var that = this;
@@ -1013,12 +1236,14 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
         var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var rfresh = Util.nvl(pRfresh, false);
         var rfreshAdd = Util.nvl(pRefreshAdd, false);
+        var qvDlv = (that.cmdNextFrom == 2) ? that.qv2 : that.qvDlv;
         if (rfresh) {
             var kfldStr = "";
-            var slices = that.qvDlv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
-            var slicesof = that.qvDlv.getControl().getBinding("rows").aIndices;
+
+            var slices = qvDlv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
+            var slicesof = qvDlv.getControl().getBinding("rows").aIndices;
             for (var i = 0; i < slices.length; i++) {
-                var kfld = Util.nvl(Util.getCellColValue(that.qvDlv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
+                var kfld = Util.nvl(Util.getCellColValue(qvDlv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
                 kfldStr = kfldStr + (kfldStr.length > 0 ? "," : "") + kfld;
             }
             if (kfldStr.length <= 0)
@@ -1046,6 +1271,15 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
     loadData: function () {
         var thatForm = this;
         this.selectedSOKfld = undefined;
+        this.cmdNextFrom = 1; // check info page come from detailpage or delivery page.
+        if (thatForm.oController.soKeyFld != undefined) {
+            setTimeout(() => {
+                thatForm.selectedSOKfld = thatForm.oController.soKeyFld;
+                thatForm.txtSO.setValue(Util.getSQLValue("select ord_no from pord1 where keyfld=" + thatForm.selectedSOKfld));
+                thatForm.joApp.toDetail(thatForm.dlvPage, "slide");
+                thatForm.load_dlvPage();
+            }, 100);
+        }
     },
 
     validateSave: function () {

@@ -175,13 +175,30 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 colname: "showFirstPur",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"Show First Purchase\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"Show First Purchase\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 display_width: colSpan,
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                other_settings: { selected: false, width: "10%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
+                            showRsrvStock: {
+                                colname: "showRsrvStock",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '@{\"text\":\"Show Reserve Stock\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: { selected: false, width: "10%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -216,28 +233,38 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 canvasType: ReportView.CanvasType.VBOX,
                                 beforeLoadQry: function (sql) {
                                     var showFirstPur = thatForm.frm.getFieldValue("parameter.showFirstPur");
+                                    var showRsrvStock = thatForm.frm.getFieldValue("parameter.showRsrvStock");
                                     var ob2 = "(select refer,min(dat) first_pur_date from pur2 where invoice_code=11 group by refer) ob2 ";
-                                    var sq = "SELECT    JI.REFER, nvl(descr,descra) DESCRA, first_pur_date, ITPACKD,max(ob1.BAL) qtybf ," +
+                                    var ob3 = "(select ord_refer,nvl(sum(avail_allqty),0) reserve_stock from c7_rsrv_stock " +
+                                        " where ord_date >=:parameter.fromdate and  ord_date <=:parameter.todate " +
+                                        "group by ord_refer) ob3 ";
+
+                                    var sq = "SELECT    JI.REFER, nvl(descr,descra) DESCRA, first_pur_date,ITPACKD,max(ob1.BAL) qtybf ," +
                                         "NVL (SUM (ROUND ( (qtyin ), 3) / PACK), 0) qtyin ," +
                                         "NVL (SUM (ROUND ( (qtyout ), 3) / PACK), 0) qtyout ," +
-                                        "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) qtyx, MAX(0) PACK_COST," +
+                                        "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) qtyx," +
+                                        " reserve_stock/pack reserve_stock,NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) - (reserve_stock/pack) available_stock," +
+                                        " MAX(0) PACK_COST," +
                                         "PKAVER, NVL (SUM ( (pkcost / itpack) * (qtyin - qtyout)), 0) costamt, descr2," +
                                         "PARENTITEM , PARENTITEMDESCR , barcode " +
                                         " FROM   JOINED_INVOICE JI , " +
                                         " (select refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3) / invoice2.PACK), 0) bal " +
                                         " from invoice2 where  dat<:parameter.fromdate AND (invoice2.STRA = :parameter.strno or :parameter.strno=0 ) group by refer ) ob1 , " +
-                                        (showFirstPur == "Y" ? ob2 : "(select null refer,null first_pur_date from dual) ob2 ") +
-                                        " WHERE   ob1.refer(+)=ji.refer and ob2.refer(+)=ji.refer " +
+                                        (showFirstPur == "Y" ? ob2 + " , " : "(select null refer,null first_pur_date from dual) ob2 , ") +
+                                        (showRsrvStock == "Y" ? ob3 : " (select null ord_refer,0 reserve_stock from dual) ob3 ") +
+                                        " WHERE   ob1.refer(+)=ji.refer and ob2.refer(+)=ji.refer  and  ob3.ord_refer(+)=ji.refer " +
                                         " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
-                                        " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode ,first_pur_date " +
+                                        " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode ,first_pur_date ,reserve_stock/pack " +
                                         " ORDER BY  descr2 ";
                                     return sq;
                                 },
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
                                         var showFirstPur = thatForm.frm.getFieldValue("parameter.showFirstPur");
+                                        var showRsrvStock = thatForm.frm.getFieldValue("parameter.showRsrvStock");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("FIRST_PUR_DATE")].mHideCol = (showFirstPur != "Y");
-
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("RESERVE_STOCK")].mHideCol = (showRsrvStock != "Y");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("AVAILABLE_STOCK")].mHideCol = (showRsrvStock != "Y");
                                     }
                                 },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
@@ -413,7 +440,41 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         display_width: "150",
                                         display_align: "ALIGN_CENTER",
                                         grouped: false,
-                                        display_style: "",
+                                        display_style: "boldText",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    reserve_stock: {
+                                        colname: "reserve_stock",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtRsrvStock",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "background-color:lavendar;",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    available_stock: {
+                                        colname: "available_stock",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtStkAvail",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "background-color:lightgrey;",
                                         display_format: "QTY_FORMAT",
                                         default_value: "",
                                         other_settings: {},

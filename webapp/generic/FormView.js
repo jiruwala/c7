@@ -1,6 +1,7 @@
 sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
     function (QueryView) {
         'use strict'
+        //TODO_RENDER when exit on mode edit/new then confirm
 
         function FormView(pg) {
             this.timeInLong = (new Date()).getTime();
@@ -69,6 +70,14 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
             oMessageToastDOM.css('color', "red");
             UtilGen.DashboardWidget.statusBarText(Util.nvl(msg, "").substr(0, 200), true);
+            setTimeout(function () {
+                $(".sapMMessageToast").css({
+                    "width": "auto",
+                    "max-width": "none",
+                    "white-space": "normal",
+                    "text-align": "left"
+                });
+            }, 10);
             throw msg;
         };
         FormView.msgSuccess = function (msg) {
@@ -78,6 +87,15 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             oMessageToastDOM.css('color', "darkgreen");
             oMessageToastDOM.css('font-size', "18px");
             UtilGen.DashboardWidget.statusBarText(Util.nvl(msg, "").substr(0, 200), true);
+            setTimeout(function () {
+                $(".sapMMessageToast").css({
+                    "width": "auto",
+                    "max-width": "none",
+                    "white-space": "normal",
+                    "text-align": "left"
+                });
+            }, 10);
+
             // throw "FormView Error: " + msg;
         };
         FormView.msgCustom = function (msg, color, bkcolor, fontSize) {
@@ -244,6 +262,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 qr.insert_allowed = Util.nvl(qrys[i].insert_allowed, true);
                 qr.delete_allowed = Util.nvl(qrys[i].delete_allowed, true);
                 qr.dispRecords = UtilGen.dispTblRecsByDevice(Util.nvl(qrys[i].dispRecords, 7));
+                qr.qvLabelStyle = Util.nvl(qrys[i].qvLabelStyle, "background-color:#e0ffff;");
                 qr.fields = {};
                 qr.summary = {};
 
@@ -572,6 +591,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     // qr.sumObj.destroyToolbar();
                     scrollObjs.push(qr.sumObj);
                 }
+                if (thatForm.form.events.hasOwnProperty("afterFormCreated"))
+                    thatForm.form.events.afterFormCreated(this);
 
             }
 
@@ -692,8 +713,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             // when validation of field.
                             if (thatForm.form.events.hasOwnProperty("afterApplyCols"))
                                 thatForm.form.events.afterApplyCols(qryObj);
-
-
+                            // if sap.m.lable ad no style then apply default style qvLabelStyle
+                            var ld = qryObj.obj.mLctb;
+                            for (var qi = 0; qi < ld.cols.length; qi++)
+                                if (!ld.cols[qi].mHideCol &&
+                                    ld.cols[qi].mColClass == "sap.m.Text" &&
+                                    ld.cols[qi].mUIHelper.display_style == "")
+                                    ld.cols[qi].mUIHelper.display_style = qryObj.qvLabelStyle;
                         }
                     }
                     qryObj.obj.mLctb.parse("{" + data.data + "}", true);
@@ -2170,6 +2196,12 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         "PONO": {
                             colname: "PONO",
                             mTitle: Util.getLangText("titPurOrd"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+                        "SONO": {
+                            colname: "SONO",
+                            mTitle: Util.getLangText("slsOrdN"),
                             display_width: 75,
                             mSummary: "COUNT",
                         },

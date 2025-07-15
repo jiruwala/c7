@@ -1363,7 +1363,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                                     }
                                     return true;
-                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx
+                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx, cx.listPara
                                 );
 
                             }
@@ -2610,7 +2610,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }, "100%", "50%", undefined, false);
 
                     });
-                    var btNw = new sap.m.Button(this.tableId + "cmdNewWnd", {
+                    var btNw = new sap.m.Button({
                         icon: "sap-icon://full-screen", press: function () {
                             qrj.createNewWnd();
                         }
@@ -3782,7 +3782,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
-            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds, showNewWnd, pOnEdit, showEdit) {
+            createDefaultToolbar1: function (qrj, findCols, addSpace, pOnDel, pOnAdd, showDel, showAdd, fnAddCmds, showNewWnd) {
                 qrj.createToolbar("", [],
                     // EVENT ON APPLY PERSONALIZATION
                     function (prsn, qv) {
@@ -3820,43 +3820,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     icon: "sap-icon://sys-minus",
                     tooltip: "select and delete a row ",
                 });
-                var btEditRow = new sap.m.Button({
-                    icon: "sap-icon://edit",
-                    tooltip: "Edit the row... ",
-                });
-
-
-                var onEdit = function () {
-                    var rowno = -1;
-                    var colno = -1;
-                    if (qrj.getControl().getSelectedIndices().length == 0) {
-                        const currentFocusedControlId = sap.ui.getCore().getCurrentFocusedControlId();
-                        if (Util.nvl(currentFocusedControlId, "") == "" ||
-                            sap.ui.getCore().byId(currentFocusedControlId) == undefined ||
-                            sap.ui.getCore().byId(currentFocusedControlId).indexOfRow == undefined
-                        ) setTimeout(function () {
-                            FormView.err("Selection may invalid !");
-                        });
-                        var _input = sap.ui.getCore().byId(currentFocusedControlId);
-                        // if (_input != undefined || (!_input.getParent() instanceof sap.ui.table.Row)) return;
-                        rowno = qrj.getControl().indexOfRow(_input.getParent());
-                        colno = _input.getParent().indexOfCell(_input);
-                        qrj.getControl().setSelectedIndex(rowno);
-                    }
-
-                    if (qrj.getControl().getSelectedIndices().length == 0) {
-                        sap.m.MessageToast.show("Must select a row !");
-                        return;
-                    }
-
-                    var sl = qrj.getControl().getSelectedIndices();
-                    if (pOnEdit != undefined)
-                        pOnEdit(sl);
-                    // else
-                    // for (var s = sl.length - 1; s >= -1; s--)
-                    //     qrj.deleteRow(sl[s]);
-                }
-                btEditRow.attachBrowserEvent("mousedown", onEdit);
                 var onAdd = function () {
 
                     var rowno = -1;
@@ -3925,8 +3888,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(btAddRow);
                 if (Util.nvl(showDel, true))
                     qrj.showToolbar.toolbar.addContent(btDelRow);
-                if (Util.nvl(showEdit, false))
-                    qrj.showToolbar.toolbar.addContent(btEditRow);
                 if (fnAddCmds != undefined)
                     fnAddCmds(qrj.showToolbar.toolbar);
 
@@ -4087,148 +4048,356 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     .replaceAll(":ADVANCE_DATA", Util.nvl(setx.advance_data, ""));
                 return sqx;
             },
-            addColSetup: function (pApplyCol) {
-                var fnApply = function (qv, applyCol) {
-                    var sett = sap.ui.getCore().getModel("settings").getData();
-                    var pn = sett["PROFILENO"];
-                    qv.updateDataToTable();
-                    var ld = qv.mLctb;
-                    var inSql = "insert into cp_setcols " +
-                        "(PROFILE, SETGRPCODE, ITEM_NAME, DISPLAY_TYPE, DISPLAY_WIDTH, DESCR, DESCRA, POSITION, GETFOCUS, ALIGN, USE_FORMAT, EDITOR_CLASS, LOV_SQL, OTHER_STYLES, LOOKUP_COLUMN, DEFAULT_VALUE, RETURN_VALUES, PARAMS, VALIDATE_EVENT, MULTISELECT, HIDE_COLS) " +
-                        " select :PROFILENO, SETGRPCODE, ITEM_NAME, DISPLAY_TYPE, DISPLAY_WIDTH, DESCR, DESCRA, POSITION, GETFOCUS, ALIGN, USE_FORMAT, EDITOR_CLASS, LOV_SQL, OTHER_STYLES, LOOKUP_COLUMN, DEFAULT_VALUE, RETURN_VALUES, PARAMS, VALIDATE_EVENT, MULTISELECT, HIDE_COLS " +
-                        " from cp_setcols where  profile=0 and setgrpcode=':APPLYCOL'; ";
-                    var delSql = (pn != 0 ? "delete from cp_setcols where profile=:PROFILENO and setgrpcode=':APPLYCOL';" + inSql
-                        : "");
-                    var updSql = "";
-                    var wrSq = " profile=:PROFILENO and setgrpcode=':APPLYCOL' and item_name='";
-                    for (var i = 0; i < ld.rows.length; i++) {
-                        var tmpsq = "update cp_setcols " +
-                            " set display_width=" + ld.getFieldValue(i, "DISPLAY_WIDTH") +
-                            ", display_type='" + ld.getFieldValue(i, "DISPLAY_TYPE") + "'" +
-                            ", position='" + ld.getFieldValue(i, "POSITION") + "'" +
-                            ", align='" + ld.getFieldValue(i, "ALIGN") + "'" +
-                            " where " + wrSq + ld.getFieldValue(i, "ITEM_NAME") + "';";
-                        updSql += tmpsq;
-                    }
-                    var sqle = "begin " + delSql + updSql + "end;";
-                    sqle = sqle.replaceAll(":APPLYCOL", applyCol)
-                        .replaceAll(":PROFILENO", pn);
-                    var dt = Util.execSQL(sqle);
-                    if (dt.ret == "SUCCESS") {
-                        FormView.msgSuccess(Util.getLangText("msgSaved"));
-                        return true;
-                    }
-                    if (dt != undefined && dt.ret != "SUCCESS")
-                        UtilGen.showCustomMessageToast("Error in saving..." + dt.ret, 100, "red", "#fff");
-                    return false;
-                }
-                var fnExe = function (applyCol) {
-                    var sett = sap.ui.getCore().getModel("settings").getData();
-                    var pn = sett["PROFILENO"];
-                    var sq = "select SETGRPCODE,ITEM_NAME,POSITION,DESCR,DISPLAY_TYPE,DISPLAY_WIDTH," +
-                        "GETFOCUS,ALIGN from cp_setcols where setgrpcode='" +
-                        applyCol + "' and (profile=" + pn + " or profile=0) order by position";
-                    var qv = new QueryView("qrCols" + (new Date()).getTime());
-                    qv.getControl().setEditable(true);
-                    qv.getControl().view = UtilGen.DBView;
-                    qv.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
-                    qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
-                    qv.getControl().setFixedBottomRowCount(0);
-                    qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
-                    UtilGen.createDefaultToolbar1(qv, ["DESCR"], false, undefined, undefined, false, false);
-                    qv.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
-                    qv.insertable = false;
-                    qv.deletable = false;
-                    qv.editable = true;
-                    var dt = Util.execSQL(sq);
-                    if (dt.ret == "SUCCESS") {
-                        qv.setJsonStrMetaData("{" + dt.data + "}");
+            showPropDialog: function (props) {
+                // if (props == undefined) return;
+                // var kys = Object.keys(prop);
+                // var fe = [];
+                // for (var k = 0; k < kys.length; k++) {
 
-                        Util.setColProp(qv, "SETGRPCODE", "mHideCol", true);
-                        Util.setColProp(qv, "ITEM_NAME", "mHideCol", true);
-                        Util.setColProp(qv, "GETFOCUS", "mHideCol", true);
+                // }
+            },
+            addDetailSetupCmd: function (settings) {
+                if (settings == undefined) return;
+                var activeObj = undefined;
+                var selecedRow = undefined;
 
-                        Util.setColProperties(qv, "DESCR", {
-                            "mTitle": "Descr",
-                            "display_width": 220,
-                        });
-
-                        Util.setColProperties(qv, "DISPLAY_TYPE", {
-                            "mColClass": "sap.m.Input",
-                            "mTitle": "Display Type",
-                            "display_width": 100,
-                        });
-                        Util.setColProperties(qv, "DISPLAY_WIDTH", {
-                            "mColClass": "sap.m.Input",
-                            "mTitle": "Width",
-                            "display_width": 100,
-                        });
-                        Util.setColProperties(qv, "POSITION", {
-                            "mColClass": "sap.m.Input",
-                            "mTitle": "POS",
-                            "display_width": 80,
-                        });
-                        Util.setColProperties(qv, "ALIGN", {
-                            "mColClass": "sap.m.Input",
-                            "mTitle": "Align",
-                            "display_width": 130,
-                        });
-
-                        // qv.mLctb.cols[qv.mLctb.getColPos("GETFOCUS")].mColClass = "sap.m.Input";
-
-                        qv.mLctb.parse("{" + dt.data + "}", true);
+                var addColSetup = function (applyCol) {
+                    var fnApply = function (qv, applyCol) {
+                        var sett = sap.ui.getCore().getModel("settings").getData();
+                        var pn = sett["PROFILENO"];
+                        qv.updateDataToTable();
                         var ld = qv.mLctb;
-                        for (var i = 0; i < ld.rows.length; i++)
-                            ld.setFieldValue(i, "DESCR", Util.getLangText(ld.getFieldValue(i, "DESCR")));
-                        qv.loadData();
-
-
+                        var inSql = "insert into cp_setcols " +
+                            "(PROFILE, SETGRPCODE, ITEM_NAME, DISPLAY_TYPE, DISPLAY_WIDTH, DESCR, DESCRA, POSITION, GETFOCUS, ALIGN, USE_FORMAT, EDITOR_CLASS, LOV_SQL, OTHER_STYLES, LOOKUP_COLUMN, DEFAULT_VALUE, RETURN_VALUES, PARAMS, VALIDATE_EVENT, MULTISELECT, HIDE_COLS) " +
+                            " select :PROFILENO, SETGRPCODE, ITEM_NAME, DISPLAY_TYPE, DISPLAY_WIDTH, DESCR, DESCRA, POSITION, GETFOCUS, ALIGN, USE_FORMAT, EDITOR_CLASS, LOV_SQL, OTHER_STYLES, LOOKUP_COLUMN, DEFAULT_VALUE, RETURN_VALUES, PARAMS, VALIDATE_EVENT, MULTISELECT, HIDE_COLS " +
+                            " from cp_setcols where  profile=0 and setgrpcode=':APPLYCOL'; ";
+                        var delSql = (pn != 0 ? "delete from cp_setcols where profile=:PROFILENO and setgrpcode=':APPLYCOL';" + inSql
+                            : "");
+                        var updSql = "";
+                        var wrSq = " profile=:PROFILENO and setgrpcode=':APPLYCOL' and item_name='";
+                        for (var i = 0; i < ld.rows.length; i++) {
+                            var tmpsq = "update cp_setcols " +
+                                " set display_width=" + ld.getFieldValue(i, "DISPLAY_WIDTH") +
+                                ", display_type='" + ld.getFieldValue(i, "DISPLAY_TYPE") + "'" +
+                                ", position='" + ld.getFieldValue(i, "POSITION") + "'" +
+                                ", align='" + ld.getFieldValue(i, "ALIGN") + "'" +
+                                " where " + wrSq + ld.getFieldValue(i, "ITEM_NAME") + "';";
+                            updSql += tmpsq;
+                        }
+                        var sqle = "begin " + delSql + updSql + "end;";
+                        sqle = sqle.replaceAll(":APPLYCOL", applyCol)
+                            .replaceAll(":PROFILENO", pn);
+                        var dt = Util.execSQL(sqle);
+                        if (dt.ret == "SUCCESS") {
+                            FormView.msgSuccess(Util.getLangText("msgSaved"));
+                            return true;
+                        }
+                        if (dt != undefined && dt.ret != "SUCCESS")
+                            UtilGen.showCustomMessageToast("Error in saving..." + dt.ret, 100, "red", "#fff");
+                        return false;
                     }
+                    var fnExe = function (applyCol) {
+                        var sett = sap.ui.getCore().getModel("settings").getData();
+                        var pn = sett["PROFILENO"];
+                        var sq = "select SETGRPCODE,ITEM_NAME,POSITION,DESCR,DISPLAY_TYPE,DISPLAY_WIDTH," +
+                            "GETFOCUS,ALIGN from cp_setcols where setgrpcode='" +
+                            applyCol + "' and (profile=" + pn + " or profile=0) order by position";
+                        var qv = new QueryView("qrCols" + (new Date()).getTime());
+                        qv.getControl().setEditable(true);
+                        qv.getControl().view = UtilGen.DBView;
+                        qv.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+                        qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+                        qv.getControl().setFixedBottomRowCount(0);
+                        qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+                        UtilGen.createDefaultToolbar1(qv, ["DESCR"], false, undefined, undefined, false, false);
+                        qv.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
+                        qv.insertable = false;
+                        qv.deletable = false;
+                        qv.editable = true;
+                        var dt = Util.execSQL(sq);
+                        if (dt.ret == "SUCCESS") {
+                            qv.setJsonStrMetaData("{" + dt.data + "}");
 
-                    var pg = new sap.m.Page({
-                        showHeader: true,
-                        content: [],
-                        showFooter: true
-                    }).addStyleClass("sapUiSizeCompact");
-                    var tbHeader = new sap.m.Toolbar();
-                    pg.setFooter(tbHeader);
-                    pg.removeAllHeaderContent();
-                    pg.addHeaderContent(qv.showToolbar.toolbar);
-                    pg.addContent(qv.getControl());
+                            Util.setColProp(qv, "SETGRPCODE", "mHideCol", true);
+                            Util.setColProp(qv, "ITEM_NAME", "mHideCol", true);
+                            Util.setColProp(qv, "GETFOCUS", "mHideCol", true);
 
-                    var dlg = new sap.m.Dialog({
-                        title: "Advance Column Setup",
-                        contentWidth: UtilGen.dispWidthByDevice({ "S": 100, "M": 70, "L": 70, "XL": 40 }) + "%",
-                        contentHeight: "400px",
-                        content: pg,
-                        buttons: [
-                            new sap.m.Button({
-                                text: Util.getLangText("saveRec"),
-                                icon: "sap-icon://accept",
-                                press: function () {
-                                    if (fnApply(qv, applyCol))
+                            Util.setColProperties(qv, "DESCR", {
+                                "mTitle": "Descr",
+                                "display_width": 220,
+                            });
+
+                            Util.setColProperties(qv, "DISPLAY_TYPE", {
+                                "mColClass": "sap.m.Input",
+                                "mTitle": "Display Type",
+                                "display_width": 100,
+                            });
+                            Util.setColProperties(qv, "DISPLAY_WIDTH", {
+                                "mColClass": "sap.m.Input",
+                                "mTitle": "Width",
+                                "display_width": 100,
+                            });
+                            Util.setColProperties(qv, "POSITION", {
+                                "mColClass": "sap.m.Input",
+                                "mTitle": "POS",
+                                "display_width": 80,
+                            });
+                            Util.setColProperties(qv, "ALIGN", {
+                                "mColClass": "sap.m.Input",
+                                "mTitle": "Align",
+                                "display_width": 130,
+                            });
+
+                            // qv.mLctb.cols[qv.mLctb.getColPos("GETFOCUS")].mColClass = "sap.m.Input";
+
+                            qv.mLctb.parse("{" + dt.data + "}", true);
+                            var ld = qv.mLctb;
+                            for (var i = 0; i < ld.rows.length; i++)
+                                ld.setFieldValue(i, "DESCR", Util.getLangText(ld.getFieldValue(i, "DESCR")));
+                            qv.loadData();
+
+
+                        }
+
+                        var pg = new sap.m.Page({
+                            showHeader: true,
+                            content: [],
+                            showFooter: true
+                        }).addStyleClass("sapUiSizeCompact");
+                        var tbHeader = new sap.m.Toolbar();
+                        pg.setFooter(tbHeader);
+                        pg.removeAllHeaderContent();
+                        pg.addHeaderContent(qv.showToolbar.toolbar);
+                        pg.addContent(qv.getControl());
+
+                        var dlg = new sap.m.Dialog({
+                            title: "Advance Column Setup",
+                            contentWidth: UtilGen.dispWidthByDevice({ "S": 100, "M": 70, "L": 70, "XL": 40 }) + "%",
+                            contentHeight: "400px",
+                            content: pg,
+                            buttons: [
+                                new sap.m.Button({
+                                    text: Util.getLangText("saveRec"),
+                                    icon: "sap-icon://accept",
+                                    press: function () {
+                                        if (fnApply(qv, applyCol))
+                                            dlg.close();
+                                    }
+
+                                }),
+                                new sap.m.Button({
+                                    text: Util.getLangText("cmdClose"),
+                                    press: function () {
                                         dlg.close();
-                                }
+                                    }
+                                })
 
-                            }),
-                            new sap.m.Button({
-                                text: Util.getLangText("cmdClose"),
-                                press: function () {
-                                    dlg.close();
-                                }
-                            })
-
-                        ]
-                    });
-                    dlg.open();
+                            ]
+                        });
+                        dlg.open();
+                    }
+                    fnExe(applyCol);
                 }
-                return new sap.m.Button({
+                var getMenus = function () {
+                    var mnus = [];
+                    if (settings.applyCol != undefined)
+                        mnus.push(new sap.m.MenuItem({
+                            icon: "sap-icon://column-chart-dual-axis",
+                            text: Util.getLangText("itemInfoColSet"),
+                            press: function () {
+                                addColSetup(settings.applyCol);
+                            }
+                        }));
+                    if (settings.fnAddMenus != undefined)
+                        settings.fnAddMenus(mnus);
+                    var mnu = new sap.m.Menu({
+                        items: mnus
+                    });
+                    return mnu;
+                }
+                var cmdDetailSetCmd = new sap.m.Button({
                     icon: "sap-icon://settings",
                     press: function () {
-                        fnExe(pApplyCol);
+                        this.focus();
+                        var mnu = getMenus();
+                        mnu.openBy(cmdDetailSetCmd);
                     }
                 });
+                cmdDetailSetCmd.attachBrowserEvent("mousedown", function () {
+                    activeObj = sap.ui.getCore().getCurrentFocusedControlId();
+                });
+                return cmdDetailSetCmd;
 
+            },
+            addItemsInfoCmd: function (settings) {
+                if (settings == undefined) return;
+                var activeObj = undefined;
+                var selecedRow = undefined;
+
+                var thatForm = settings.thatForm;
+                var qrj = settings.qrj;
+                var itemField = Util.nvl(settings.itemField, "ORD_REFER");
+                var storeField = Util.nvl(settings.storeField, "STRA");
+                var itemDescrField = Util.nvl(settings.itemDescrField, "DESCR");
+                var qryDate = Util.nvl(settings.qryDate, "qry1.ord_date");
+                var fromdate = sap.ui.getCore().getModel("fiscalData").getData().fiscal_from;
+                var fnCallBack = Util.nvl(settings.fnCallBack, undefined);
+
+                var ld = (Util.nvl(qrj, undefined) != undefined ? qrj.mLctb : undefined);
+                var getRowSel = function () {
+                    var rowno = -1;
+                    var colno = -1;
+                    // if (qrj.getControl().getSelectedIndices().length == 0) {
+                    const currentFocusedControlId = activeObj;
+                    if (currentFocusedControlId == undefined) return undefined;
+                    var _input = sap.ui.getCore().byId(currentFocusedControlId);
+                    // if (_input != undefined || (!_input.getParent() instanceof sap.ui.table.Row)) return;
+                    rowno = qrj.getControl().indexOfRow(_input.getParent());
+                    colno = _input.getParent().indexOfCell(_input);
+                    qrj.getControl().setSelectedIndex(rowno);
+                    // }
+
+                    if (qrj.getControl().getSelectedIndices().length == 0) {
+                        sap.m.MessageToast.show("Must select a row !");
+                        return undefined;
+                    }
+
+                    var sl = qrj.getControl().getSelectedIndices();
+                    selecedRow = sl;
+                };
+                var showAllStoreDialog = function (sqdt, dtx) {
+
+                    qrj.updateDataToTable();
+                    var i1 = selecedRow[0];
+                    var rfr = ld.getFieldValue(i1, itemField);
+                    var descr = ld.getFieldValue(i1, itemDescrField);
+                    var odt = Util.toOraDateString(thatForm.frm.getFieldValue(qryDate));
+
+                    var str = (storeField.indexOf(".") >= 0) ? thatForm.frm.getFieldValue(storeField) :
+                        ld.getFieldValue(i1, storeField);
+                    var sq = "select descr,childcounts,packd,unitd,pack," +
+                        " C7_GET_STORE_ITEM_ALLQTY_RSRV(reference,'')/items.pack rsrv, " +
+                        " prd_dt,exp_dt from items where reference=':rfr'";
+                    sq = sq.replaceAll(":ordate", odt)
+                        .replaceAll(":rfr", rfr)
+                        .replaceAll(":store", str);
+
+                    var sq2 = "select no,name," +
+                        "C7_GET_STORE_ITEM_ALLQTY(':rfr',:ordate,no)/:PACK qih , " +
+                        " ':PACKD' PACKD ,':UNITD' UNITD, :PACK PACK " +
+                        " from store where flag=1 order by no ";
+                    var sqdt = Util.execSQLWithData(sq);
+                    if (sqdt.length > 0) {
+                        sq2 = sq2.replaceAll(":PACKD", sqdt[0].PACKD)
+                            .replaceAll(":PACK", sqdt[0].PACK)
+                            .replaceAll(":ordate", odt)
+                            .replaceAll(":rfr", rfr)
+                            .replaceAll(":UNITD", sqdt[0].UNITD);
+                        UtilGen.Search.do_quick_search_simple(sq2,
+                            ["NO", "NAME"], function (data) {
+                                if (fnCallBack != undefined)
+                                    fnCallBack(i1, data, "showQtyAllStore");
+                            }, { pWidth: "40%" }, undefined, undefined, "Item : " + rfr + " - " + descr, [
+                            {
+                                NO: {
+                                    colname: "NO",
+                                    display_width: 50,
+                                    mTitle: Util.getLangText("locationTxt"),
+                                },
+                            },
+
+                        ]);
+                    }
+                };
+                var getMenus = function () {
+                    var mnus = [];
+                    if (Util.nvl(activeObj, undefined) != undefined &&
+                        Util.nvl(selecedRow, []).length > 0) {
+                        if (Util.nvl(settings.showStockCard, true))
+                            mnus.push(new sap.m.MenuItem({
+                                icon: "sap-icon://list",
+                                text: Util.getLangText("stkCardRepTit") + ((ld != undefined &&
+                                    selecedRow != undefined &&
+                                    selecedRow.length > 0) ? " - " + ld.getFieldValue(selecedRow[0], itemField) : ""),
+                                press: function () {
+                                    qrj.updateDataToTable();
+                                    var itm = ld.getFieldValue(selecedRow[0], itemField);
+                                    var str = (storeField.indexOf(".") >= 0) ? thatForm.frm.getFieldValue(storeField) :
+                                        ld.getFieldValue(selecedRow[0], storeField);
+
+                                    UtilGen.execCmd("rp.in.st formType=dialog formSize=100%,100% repno=1 " +
+                                        "para_PARAFORM=false para_EXEC_REP=true prefer=" + itm + " fromdate=@" + fromdate, UtilGen.DBView, this, UtilGen.DBView.newPage);
+                                }
+                            }));
+                        if (Util.nvl(settings.showQtyStore, true))
+                            mnus.push(new sap.m.MenuItem({
+                                icon: "sap-icon://list",
+                                text: Util.getLangText("sbRepTit") + ((ld != undefined &&
+                                    selecedRow != undefined &&
+                                    selecedRow.length > 0) ? " - " + ld.getFieldValue(selecedRow[0], itemField) : ""),
+                                press: function () {
+                                    qrj.updateDataToTable();
+                                    var i1 = selecedRow[0];
+                                    var rfr = ld.getFieldValue(i1, itemField);
+                                    var descr = ld.getFieldValue(i1, itemDescrField);
+                                    var odt = Util.toOraDateString(thatForm.frm.getFieldValue(qryDate));
+                                    var str = (storeField.indexOf(".") >= 0) ? thatForm.frm.getFieldValue(storeField) :
+                                        ld.getFieldValue(i1, storeField);
+                                    var sq = "select descr,childcounts,packd,unitd,pack," +
+                                        " C7_GET_STORE_ITEM_ALLQTY(reference,:ordate,:store)/items.pack qih, " +
+                                        " prd_dt,exp_dt from items where reference=':rfr'";
+                                    sq = sq.replaceAll(":ordate", odt)
+                                        .replaceAll(":rfr", rfr)
+                                        .replaceAll(":store", str);
+
+                                    var sqdt = Util.execSQLWithData(sq);
+                                    if (sqdt.length > 0)
+                                        UtilGen.showCustomMessageToast(rfr + "- " + descr + " - Store # " + str + " , " + sqdt[0].QIH + " " + sqdt[0].PACKD, 100);
+                                }
+                            }));
+
+                        if (Util.nvl(settings.showQtyAllStore, true))
+                            mnus.push(new sap.m.MenuItem({
+                                icon: "sap-icon://list",
+                                text: Util.getLangText("sbRepTit") + ((ld != undefined &&
+                                    selecedRow != undefined &&
+                                    selecedRow.length > 0) ? " - " + ld.getFieldValue(selecedRow[0], itemField) : ""),
+                                press: function () {
+                                    showAllStoreDialog();
+                                }
+                            }));
+                    }
+
+                    var mnu = new sap.m.Menu({
+                        items: mnus
+                    });
+                    return mnu;
+                }
+                var cmdSet = new sap.m.Button({
+                    icon: "sap-icon://information",
+                    press: function () {
+                        try {
+                            getRowSel();
+                        } catch (m) { console.log(m); };
+                        this.focus();
+                        var mnu = getMenus();
+                        mnu.openBy(cmdSet);
+                    }
+                });
+                cmdSet.attachBrowserEvent("mousedown", function () {
+                    activeObj = sap.ui.getCore().getCurrentFocusedControlId();
+                });
+                return cmdSet;
+            },
+            getSettingSalesp: function (frag, ordref, ordrefnm, typ) {
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: frag,
+                    code: Util.nvl(ordref),
+                    name: Util.nvl(ordrefnm),
+                    sqlChange: "select name from salesp where no = ':CODE'",
+                    sqlList: "select no code,name title from salesp where type='" + typ + "'  order by no ",
+                    sqlListChange: "select no code,name title from salesp where no=:CODE",
+                });
             },
             SalesOrderFunc: {
                 initAction: {
@@ -4243,7 +4412,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 },
                 checkSOStatus: function (soKf, pRaiseErr) {
                     var raiseErr = Util.nvl(pRaiseErr, true);
-                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc from pord1 where keyfld=" + soKf, "No data found !");
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag," +
+                        " nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc, " +
+                        " max(DELIVEREDQTY) DLV_QTY,MAX(ORDERDQTY) ORD_QTY , " +
+                        "max(PURQTY) SOLD_QTY " +
+                        " from pord1 where keyfld=" + soKf, "No data found !");
                     if (!raiseErr) return podt[0];
 
                     if (podt[0].ORD_FLAG < 0)
@@ -4256,6 +4429,37 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
             },
+            SalesRetReqFunc: {
+                initAction: {
+                    none: 'none',
+                    approve: 'approve',
+                    issueRV: 'issueRV',
+                    saleRets: 'saleRets',
+                    closeSRR: 'closeSRR',
+                },
+                init: function (frag) {
+                    this.frag = frag;
+                },
+                checkSOStatus: function (soKf, pRaiseErr) {
+                    var raiseErr = Util.nvl(pRaiseErr, true);
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag," +
+                        " nvl(max(ord_no),-1) ord_no,max(ordacc) ordacc, " +
+                        " max(DELIVEREDQTY) DLV_QTY,MAX(ORDERDQTY) ORD_QTY , " +
+                        "max(PURQTY) SOLD_QTY " +
+                        " from pord1 where keyfld=" + soKf, "No data found !");
+                    if (!raiseErr) return podt[0];
+
+                    if (podt[0].ORD_FLAG < 0)
+                        FormView.err("SO is not avaialble !");
+                    if (podt[0].ORD_FLAG == 1)
+                        FormView.err("SO is not approved !");
+                    if (podt[0].ORD_FLAG >= 3)
+                        FormView.err("SO is closed !");
+                    return podt[0];
+
+                }
+            },
+
 
             PurchaseOrderFunc: {
                 initAction: {
@@ -4282,7 +4486,160 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         FormView.err("PO is closed !");
                     return podt[0];
 
+                },
+
+                copyDetails: function (frag, kinds, tables, recordSet) {
+                    var thatForm = frag;
+                    var copyItems = function () {
+                        var selItems = function (cod, tbl) {
+                            var sq = "SELECT ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ord_amt,KEYFLD FROM PORD1 " +
+                                " WHERE ORD_CODE=" + cod + " and ord_flag=2 ORDER BY KEYFLD desc ";
+                            if (tbl == "PUR1")
+                                sq = "SELECT INVOICE_NO ORD_NO,INVOICE_DATE ORD_DATE,C_CUS_NO ORD_REF,INV_REFNM ORD_REFNM,INV_AMT ord_amt,KEYFLD FROM PUR1 " +
+                                    " WHERE INVOICE_CODE=" + cod + " and flag=2 ORDER BY KEYFLD desc ";
+                            UtilGen.Search.do_quick_search_simple(sq,
+                                ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM", "ORD_AMT"], function (data) {
+                                    copyVouItems(data, cod, tbl);
+
+                                }, { pWidth: "80%" }, undefined, true, Util.getLangText("titSalesOrder"), [
+                                {
+                                    ORD_NO: {
+                                        colname: "ORD_NO",
+                                        display_width: 80,
+                                        mTitle: Util.getLangText("titPurOrd"),
+                                    }
+                                },
+                                {
+                                    ORD_DATE: {
+                                        colname: "ORD_DATE",
+                                        display_format: "SHORT_DATE_FORMAT",
+                                        mTitle: Util.getLangText("ordDate"),
+                                        display_width: 100
+                                    }
+                                },
+                                {
+                                    ORD_REF: {
+                                        colname: "ORD_REF",
+                                        mTitle: Util.getLangText("refCode"),
+                                        display_width: 100,
+                                    }
+                                },
+                                {
+                                    ORD_REFNM: {
+                                        colname: "ORD_REFNM",
+                                        mTitle: Util.getLangText("refName"),
+                                        display_width: 250
+
+                                    }
+                                },
+                                {
+                                    KEYFLD: {
+                                        colname: 'KEYFLD',
+                                        return_field: "pac",
+                                        hide: true
+                                    }
+                                },
+                                {
+                                    ORD_AMT: {
+                                        colname: "ORD_AMT",
+                                        display_format: "MONEY_FORMAT",
+                                        mTitle: Util.getLangText("amountTxt"),
+                                        display_width: 120,
+                                        mSummary: "SUM"
+                                    }
+                                }
+                            ]);
+                        }
+
+                        var sq = "select TRANS_DESCR DESCR,trans_code,trans_table" +
+                            " FROM C7_TRANS_CODES WHERE ':kinds' like '%'||TRANS_KIND||'%' and ':tables' like '%\"'||trans_table||'\"%' order by pos";
+                        sq = sq.replaceAll(":kinds", kinds)
+                            .replaceAll(":tables", tables);
+                        UtilGen.Search.do_quick_search_simple(sq,
+                            ["TRAMS_DESCR"], function (data) {
+                                var cod = data.TRANS_CODE;
+                                var tbl = data.TRANS_TABLE;
+                                setTimeout(() => {
+                                    selItems(cod, tbl);
+                                });
+                            }, { pWidth: "400px" }, undefined, undefined, "select kind ... ", [
+                            {
+                                TRANS_CODE: {
+                                    colname: 'TRANS_CODE',
+                                    hide: true
+                                }
+                            },
+                            {
+                                TRANS_TABLE: {
+                                    colname: 'TRANS_TABLE',
+                                    hide: true
+                                }
+                            },
+
+                        ]);
+                    };
+                    var copyVouItems = function (data, cod, tbl) {
+                        var qrj = thatForm.frm.objs["qry2"].obj;
+                        var vars = thatForm.vars;
+                        if (data == null || data == undefined || data.length <= 0)
+                            return false;
+                        if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW &&
+                            thatForm.frm.objs["qry1"].status != FormView.RecordStatus.EDIT) {
+                            sap.m.MessageToast.show("Not in new / edit mode !");
+                            return;
+                        }
+                        var sqRec = "select P.ORD_POS,P.ORD_REFER,P.ORD_PKQTY," +
+                            "P.ORD_UNQTY,P.ORD_PRICE,P.ORD_DISCAMT,P.STRA,P.ORD_PACKD,P.ORD_UNITD,P.ORD_PACK , I.DESCR,I.DESCRA " +
+                            "  from pord2 P,ITEMS I where P.keyfld=:KEYFLD AND P.ORD_REFER=I.REFERENCE order by ord_pos";
+                        if (tbl == "PUR1")
+                            sqRec = "select P.ITEMPOS ORD_POS,P.REFER ORD_REFER,P.PKQTY ORD_PKQTY," +
+                                "P.QTY ORD_UNQTY,P.PRICE ORD_PRICE,P.DISC_AMT ORD_DISCAMT,P.STRA,P.PACKD ORD_PACKD,P.UNITD ORD_UNITD,P.PACK ORD_PACK , I.DESCR,I.DESCRA " +
+                                "  from PUR2 P,ITEMS I where P.keyfld=:KEYFLD AND P.REFER=I.REFERENCE order by ord_pos";
+                        var copyRec = function (dtx) {
+                            var rs = recordSet;
+                            if (tbl == "PORD1" || tbl == "PUR1") {
+                                var r = qrj.mLctb.rows.length - 1;
+                                if (Util.nvl(qrj.mLctb.getFieldValue(qrj.mLctb.rows.length - 1, rs["REFER"]), "") != "")
+                                    r = qrj.mLctb.addRow();
+                                if (rs["POS"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["POS"], r + 1);
+                                qrj.mLctb.setFieldValue(r, rs["REFER"], dtx.ORD_REFER);
+                                if (rs["DESCR"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["DESCR"], dtx.DESCR);
+                                if (rs["PACKD"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["PACKD"], dtx.ORD_PACKD);
+                                if (rs["UNITD"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["UNITD"], dtx.ORD_UNITD);
+                                if (rs["PACK"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["PACK"], dtx.ORD_PACK);
+                                if (rs["PKQTY"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["PKQTY"], dtx.ORD_PKQTY);
+                                if (rs["UNQTY"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["UNQTY"], dtx.ORD_UNQTY);
+                                if (rs["PRICE"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["PRICE"], dtx.ORD_PRICE);
+                                if (rs["DISCAMT"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["DISCAMT"], dtx.ORD_DISCAMT);
+                                if (rs["STRA"] != undefined)
+                                    qrj.mLctb.setFieldValue(r, rs["STRA"], dtx.STRA);
+                            }
+                        };
+                        for (var d in data) {
+                            var sqx = sqRec.replaceAll(":KEYFLD", data[d].KEYFLD);
+                            var dat = Util.execSQL(sqx);
+                            if (dat.ret == "SUCCESS" && dat.data.length > 0) {
+                                var dtx = JSON.parse("{" + dat.data + "}").data;
+                                for (var i in dtx)
+                                    copyRec(dtx[i]);
+                            }
+                        }
+                        qrj.updateDataToControl();
+                        qrj.eventCalc(qrj, undefined, -1, true, true);
+                    }
+                    copyItems();
                 }
+
+
             },
             JOFunc: {
                 checkJOStatus: function (poKf, pRaiseErr) {

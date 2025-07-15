@@ -830,12 +830,6 @@ sap.ui.jsview('bin.Dashboard', {
             dt = JSON.parse(data);
             if (Util.nvl(dt["C7_VER_NO"], 7) <= 7.5)
                 FormView.err("Err ! , version below than equal to 7.5 is not compatiable !");
-            if (Util.nvl(dt["DEMO_EXPIRE_DATE"], '') != '') {
-                var exdt = new Date(dt["DEMO_EXPIRE_DATE"]);
-                var dys = Util.daysBetween(exdt, new Date());
-                if (dys < 0) FormView.err("Your DEMO period is expired !");
-                alert("demo expires in " + dys + " Days !");
-            }
             var oModel = new sap.ui.model.json.JSONModel(dt);
             sap.ui.getCore().setModel(oModel, "settings");
             var tit = (Util.getLangDescrAR("title", "nvl(titlea,title) title"));
@@ -899,12 +893,7 @@ sap.ui.jsview('bin.Dashboard', {
         var sett = sap.ui.getCore().getModel("settings").getData();
         if (Util.nvl(sett["C7_VER_NO"], 7) <= 7.5)
             FormView.err("Err ! , version below than equal to 7.5 is not compatiable !");
-        if (Util.nvl(sett["DEMO_EXPIRE_DATE"], '') != '') {
-            var exdt = new Date(sett["DEMO_EXPIRE_DATE"]);
-            var dys = Util.daysBetween(exdt, new Date());
-            if (dys < 0) FormView.err("Your DEMO period is expired !");
-            alert("demo expires in " + dys + " Days !");
-        }
+
         var fisc = sap.ui.getCore().getModel("fiscalData").getData();
         that.today_date.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         that.today_date.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
@@ -1070,7 +1059,7 @@ sap.ui.jsview('bin.Dashboard', {
     },
     show_main_menus: function () {
         var that = this;
-
+        var sett = sap.ui.getCore().getModel("settings").getData();
         UtilGen.clearPage(this.pgMain);
         if (this.standAlonMode) {
             this.app.setMode(sap.m.SplitAppMode.HideMode);
@@ -1294,49 +1283,50 @@ sap.ui.jsview('bin.Dashboard', {
             var toe = oData.getProperty(oData.getPath())["TYPE_OF_EXEC"];
             var mnu = e.getParameter("contextMenu");
             mnu.removeAllItems();
-            if (toe == "PARENT") {
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "New Menu..",
-                    press: function () {
-                        that.showMenuForm("", mc);
-                    }
-                }));
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "Edit..",
-                    press: function () {
-                        that.showMenuForm(mc);
-                    }
-                }));
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "Copy menus..",
-                    press: function () {
-                        that.copyMenus(mc);
-                    }
-                }));
+            if (sett["PROFILENO"] == 0) {
+                if (toe == "PARENT") {
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "New Menu..",
+                        press: function () {
+                            that.showMenuForm("", mc);
+                        }
+                    }));
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Edit..",
+                        press: function () {
+                            that.showMenuForm(mc);
+                        }
+                    }));
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Copy menus..",
+                        press: function () {
+                            that.copyMenus(mc);
+                        }
+                    }));
 
-            } else {
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "Copy menu..",
-                    press: function () {
-                        that.copyMenus2(mc);
-                    }
-                }));
+                } else {
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Copy menu..",
+                        press: function () {
+                            that.copyMenus2(mc);
+                        }
+                    }));
 
-                mnu.addItem(new sap.m.MenuItem({
-                    text: "Edit..",
-                    press: function () {
-                        that.showMenuForm(mc);
-                    }
-                }));
+                    mnu.addItem(new sap.m.MenuItem({
+                        text: "Edit..",
+                        press: function () {
+                            that.showMenuForm(mc);
+                        }
+                    }));
 
-            }
-            mnu.addItem(new sap.m.MenuItem({
-                text: "Delete..",
-                press: function () {
-                    that.deleteMenu(mc);
                 }
-            }));
-
+                mnu.addItem(new sap.m.MenuItem({
+                    text: "Delete..",
+                    press: function () {
+                        that.deleteMenu(mc);
+                    }
+                }));
+            }
         });
 
         setTimeout(function () {
@@ -2261,6 +2251,9 @@ sap.ui.jsview('bin.Dashboard', {
         openPoCls: function () {
 
         }
+
+    },
+    SOManageFunc: {
 
     }
 });
