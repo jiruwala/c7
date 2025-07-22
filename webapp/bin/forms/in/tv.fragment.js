@@ -98,7 +98,7 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "br/salord",
+                        reportFile: "tv",
                     }
                 ],
                 events: thatForm.helperFunc.getEvents(),
@@ -163,9 +163,6 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                             "PKCOST": "( :qry2.price / :qry2.pack ) ",
                             "PRD_DATE": "(select prd_dt from items where reference=':qry2.refer')",
                             "EXP_DATE": "(select exp_dt from items where reference=':qry2.refer')",
-
-
-
                         },
                         update_default_values: {
                         },
@@ -234,25 +231,54 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                                 }
                                 return true;
                             }
+                            qrj.eventRowChange = function (rowno, currentRowoIndexContext) {
+                                setTimeout(() => {
+                                    var oModel = currentRowoIndexContext.oModel;
+                                    var rfr = oModel.getProperty(currentRowoIndexContext.sPath + "/REFER");
+                                    if (Util.nvl(rfr, "") != "") {
+                                        var des = oModel.getProperty(currentRowoIndexContext.sPath + "/DESCR");
+                                        var stra = thatForm.frm.getFieldValue("qry1.stra");
+                                        var od = thatForm.frm.getFieldValue("qry1.invoice_date");
+                                        UtilGen.showMsgStoreBal(rfr, stra, des, od);
+                                    }
 
+                                }, 10);
+                            }
                         },
                         when_validate_field: function (table, currentRowoIndexContext, cx, rowno, colno) {
+                            var oModel = currentRowoIndexContext.oModel;
+                            if (cx.mColName == "REFER") {
+                                var rfr = oModel.getProperty(currentRowoIndexContext.sPath + "/REFER");
+                                var des = oModel.getProperty(currentRowoIndexContext.sPath + "/DESCR");
+                                var stra = thatForm.frm.getFieldValue("qry1.stra");
+                                var od = thatForm.frm.getFieldValue("qry1.invoice_date");
+                                UtilGen.showMsgStoreBal(rfr, stra, des, od);
+                            }
                             return true;
                         },
                         eventCalc: function (qv, cx, rowno, reAmt) {
                             var sett = sap.ui.getCore().getModel("settings").getData();
                             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+                            var qdf = new DecimalFormat(sett["FORMAT_QTY_1"]);
 
                             if (reAmt)
                                 qv.updateDataToTable();
 
                             var ld = qv.mLctb;
                             var sumAmt = 0;
+                            var sumQty = 0;
 
-                            for (var i = 0; i < ld.rows.length; i++)
+                            for (var i = 0; i < ld.rows.length; i++) {
+                                var pq = Util.nvl(Util.extractNumber(ld.getFieldValue(i, "PKQTY")), 0);
+                                var qt = Util.nvl(Util.extractNumber(ld.getFieldValue(i, "QTY")), 0);
+                                var pk = Util.nvl(Util.extractNumber(ld.getFieldValue(i, "PACK")), 0);
                                 sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
+                                sumQty += (((pq * pk) + qt) / pk);
+                            }
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
+                            thatForm.frm.setFieldValue('totqty', qdf.format(sumQty));
+
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
                                 thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
 
@@ -368,6 +394,22 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                 beforeDeleteValidate: function (frm) {
                     var kf = frm.getFieldValue("keyfld");
                 },
+                afterFormCreated: function (frm) {
+                    if (this.blurAdded != undefined) return;
+                    this.blurAdded = true;
+                    setTimeout(() => {
+                        var obj = frm.objs["qry1.invoice_no"].obj;
+
+                        obj.$().find("input").blur(function (oEvent) {
+                            if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
+                                setTimeout(() => {
+                                    thatForm.helperFunc.fetchRef();
+                                }, 10);
+
+                        });
+                    }, 10);
+
+                },
                 beforeDelRow: function (qry, idx, ld, data) {
                     var delbfr = "";
                     if (qry.name == "qry1") {
@@ -386,13 +428,13 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                 },
                 beforePrint: function (rptName, params) {
                     var no = that.frm.getFieldValue("qry1.invoice_no");
-                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
+                    var loc = that.frm.getFieldValue("qry1.location_code");
+                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no + "&_para_plocation=" + loc;
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
 
                     }
-
                 },
                 beforeExeSql: function (frm, sq) {
                     var kf = frm.getFieldValue("qry1.keyfld");
@@ -443,8 +485,24 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                     colname: "totamt",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"Total DR\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                    title: '@{\"text\":\"Total Cost\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
                     title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                totqty: {
+                    colname: "totqty",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"Total Packing Qty\",\"width\":\"105%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
                     canvas: "default_canvas",
                     display_width: sumSpan,
                     display_align: "ALIGN_RIGHT",
@@ -514,7 +572,7 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                         display_style: "redText boldText"
                     }, {
                     change: function () {
-                        thatForm.helperFunc.fetchInv(false);
+                        // thatForm.helperFunc.fetchInv(false);
                     }
                 }),
                 stra: FormView.getFactoryFields.getGeneralField(
@@ -548,7 +606,7 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
-                    }, UtilGen.getSettingSalesp(thatForm, "qry1.ord_empno", "qry1.drivername", "D")),
+                    }, UtilGen.getSettingSalesp(thatForm, "qry1.slsmn", "qry1.slsname", "")),
                 slsname: FormView.getFactoryFields.getGeneralField(
                     "slsname", "@", "", "1%", "", "22%",
                     {
@@ -590,7 +648,7 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                         {
                             colname: "INVOICE_DATE",
                             mTitle: Util.getLangText("txtInvDate"),
-                            display_width: 75,
+                            display_width: 120,
                         },
                         {
                             colname: "STRA",
@@ -623,15 +681,31 @@ sap.ui.jsfragment("bin.forms.in.tv", {
                         {
                             colname: 'KEYFLD',
                             return_field: "pac",
+                            hide: true,
                         },
-
+                        {
+                            colname: "SLSMN",
+                            mTitle: Util.getLangText("txtDriver"),
+                            display_width: 75,
+                        },
+                        {
+                            colname: "SLSNAME",
+                            mTitle: Util.getLangText("txtName"),
+                            display_width: 75,
+                        },
+                        {
+                            colname: "MEMO",
+                            mTitle: Util.getLangText("txtRemark"),
+                            display_width: 150,
+                        },
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
                     sql: "select * from (" +
                         "select p2.invoice_no,p2.invoice_date,p2.stra,s1.name straname, " +
-                        " s2.name strbname ,memo, p2.keyfld " +
-                        " from PUR1 p2,store s1,store s2 where invoice_code =" + that2.vars.vou_code +
+                        " p2.strb,s2.name strbname ,slsmn, sls.name slsname,memo,p2.keyfld " +
+                        " from PUR1 p2,store s1,store s2,salesp sls where invoice_code =" + that2.vars.vou_code +
                         " and s1.no=p2.stra and s2.no=p2.strb " +
+                        " and sls.no(+)=p2.slsmn " +
                         " and (':qry1.stra'=p2.stra or ':qry1.stra' is null) " +
                         " order by p2.invoice_date desc,p2.invoice_no desc ) " +
                         " where (rownum <=^^list_key or ^^list_key=-1) ",
@@ -837,7 +911,23 @@ sap.ui.jsfragment("bin.forms.in.tv", {
             }
 
         },
-        fetchInv: function () {
+        fetchRef: function () {
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) return;
+            var rfr = thatForm.frm.getFieldValue("qry1.invoice_no");
+            var loc = thatForm.frm.getFieldValue("qry1.location_code");
+            var qr = Util.execSQLWithData("select keyfld,(select max(name) from store where no=stra ) stranm from pur1 where invoice_code=3 and " +
+                " invoice_no='" + rfr + "' and location_code='" + loc + "' ");
+            var rfrx = qr[0].KEYFLD;
+            var desx = qr[0].STRANM;
+
+            if (qr.length == 1)
+                Util.simpleConfirmDialog("Transfer Voucher is existed for store out :" + desx + " fetch data ?", function (oAction) {
+                    thatForm.frm.setFieldValue('pac', rfrx);
+                    thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                    thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+
+                }, undefined, undefined, "OK");
 
         }
     }

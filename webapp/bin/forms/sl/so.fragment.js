@@ -314,7 +314,19 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                 }
                                 return true;
                             }
+                            qrj.eventRowChange = function (rowno, currentRowoIndexContext) {
+                                setTimeout(() => {
+                                    var oModel = currentRowoIndexContext.oModel;
+                                    var rfr = oModel.getProperty(currentRowoIndexContext.sPath + "/ORD_REFER");
+                                    if (Util.nvl(rfr, "") != "") {
+                                        var des = oModel.getProperty(currentRowoIndexContext.sPath + "/DESCR");
+                                        var stra = thatForm.frm.getFieldValue("qry1.stra");
+                                        var od = thatForm.frm.getFieldValue("qry1.ord_date");
+                                        UtilGen.showMsgStoreBal(rfr, stra, des, od);
+                                    }
 
+                                }, 10);
+                            }
                         },
                         when_validate_field: function (table, currentRowoIndexContext, cx, rowno, colno) {
                             if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '')
@@ -323,6 +335,16 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                 FormView.err(Util.getLangText("msgBRMustEnterOrdRef"));
                             if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_branchno"), '') == '')
                                 FormView.err(Util.getLangText("msgBRMustEnterBranch"));
+
+                            var oModel = currentRowoIndexContext.oModel;
+                            if (cx.mColName == "ORD_REFER") {
+                                var rfr = oModel.getProperty(currentRowoIndexContext.sPath + "/ORD_REFER");
+                                var des = oModel.getProperty(currentRowoIndexContext.sPath + "/DESCR");
+                                var stra = thatForm.frm.getFieldValue("qry1.stra");
+                                var od = thatForm.frm.getFieldValue("qry1.ord_date");
+                                UtilGen.showMsgStoreBal(rfr, stra, des, od);
+                            }
+
 
                             // thatForm.helperFunc.validity.updateFieldsEditing();
                             return true;

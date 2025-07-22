@@ -99,7 +99,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "br/salord",
+                        reportFile: "siv",
                     }
                 ],
                 events: thatForm.helperFunc.getEvents(),
@@ -233,13 +233,35 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                                 }
                                 return true;
                             }
+                            qrj.eventRowChange = function (rowno, currentRowoIndexContext) {
+                                setTimeout(() => {
+                                    var oModel = currentRowoIndexContext.oModel;
+                                    var rfr = oModel.getProperty(currentRowoIndexContext.sPath + "/REFER");
+                                    if (Util.nvl(rfr, "") != "") {
+                                        var des = oModel.getProperty(currentRowoIndexContext.sPath + "/DESCR");
+                                        var stra = thatForm.frm.getFieldValue("qry1.stra");
+                                        var od = thatForm.frm.getFieldValue("qry1.invoice_date");
+                                        UtilGen.showMsgStoreBal(rfr, stra, des, od);
+                                    }
 
+                                }, 10);
+                            }
                         },
                         when_validate_field: function (table, currentRowoIndexContext, cx, rowno, colno) {
                             var oModel = currentRowoIndexContext.oModel;
                             var cs = Util.nvl(oModel.getProperty(currentRowoIndexContext.sPath + '/COSTCENT'), "");
-                            if (cx.mColName == "REFER" && cs == "" && thatForm.frm.getFieldValue("qry1.costcent") != "")
+                            if (cx.mColName == "REFER" && cs == "" && thatForm.frm.getFieldValue("qry1.costcent") != "") {
                                 oModel.setProperty(currentRowoIndexContext.sPath + "/COSTCENT", that.frm.getFieldValue("qry1.costcent"));
+                                oModel.setProperty(currentRowoIndexContext.sPath + "/COSTCENTNM", that.frm.getFieldValue("qry1.costcentnm"));
+                            }
+                            if (cx.mColName == "REFER") {
+                                var rfr = oModel.getProperty(currentRowoIndexContext.sPath + "/REFER");
+                                var des = oModel.getProperty(currentRowoIndexContext.sPath + "/DESCR");
+                                var stra = thatForm.frm.getFieldValue("qry1.stra");
+                                var od = thatForm.frm.getFieldValue("qry1.invoice_date");
+                                UtilGen.showMsgStoreBal(rfr, stra, des, od);
+                            }
+
                             return true;
                         },
                         eventCalc: function (qv, cx, rowno, reAmt) {
@@ -362,7 +384,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                         var objtyp = thatForm.frm.objs["qry1.type"].obj;
-                        var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
+                        var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from invoice1");
                         var dt = thatForm.view.today_date.getDateValue();
                         UtilGen.setControlValue(objtyp, "", "", true);
                         objtyp.setSelectedKey(null);
@@ -393,6 +415,21 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                     }
                     return true;
                 },
+                afterFormCreated: function (frm) {
+                    if (this.blurAdded != undefined) return;
+                    this.blurAdded = true;
+                    setTimeout(() => {
+                        var obj = frm.objs["qry1.invoice_no"].obj;
+                        obj.$().find("input").blur(function (oEvent) {
+                            if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
+                                setTimeout(() => {
+                                    thatForm.helperFunc.fetchRef();
+                                }, 10);
+
+                        });
+                    }, 10);
+
+                },
                 beforeDelRow: function (qry, idx, ld, data) {
                     var delbfr = "";
                     if (qry.name == "qry1") {
@@ -411,7 +448,10 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                 },
                 beforePrint: function (rptName, params) {
                     var no = that.frm.getFieldValue("qry1.invoice_no");
-                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
+                    var loc = that.frm.getFieldValue("qry1.location_code");
+                    var typ = that.frm.getFieldValue("qry1.type");
+                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no + "&_para_plocation=" + loc +
+                        "&_para_vouType=" + typ;
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
@@ -575,7 +615,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                         display_style: "redText boldText"
                     }, {
                     change: function () {
-                        thatForm.helperFunc.fetchInv(false);
+
                     }
                 }),
                 stra: FormView.getFactoryFields.getGeneralField(
@@ -650,7 +690,6 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                             mTitle: Util.getLangText("txtInvNo"),
                             display_width: 75,
                             mSummary: "COUNT",
-
                         },
                         {
                             colname: "INVOICE_DATE",
@@ -842,12 +881,13 @@ sap.ui.jsfragment("bin.forms.in.siv", {
 
                 var on = qry.formview.getFieldValue("qry1.invoice_no");
                 var loc = qry.formview.getFieldValue("qry1.location_code");
+                var typ = qry.formview.getFieldValue("qry1.type");
                 var findno = 0;
                 if (Util.nvl(on, "") != "")
-                    findno = Util.getSQLValue("select nvl(max(invoice_no),'') from invoice1 where invoice_no=" + on + " and invoice_code=" + thatForm.vars.vou_code + " and location_code='" + loc + "' ");
+                    findno = Util.getSQLValue("select nvl(max(invoice_no),'') from invoice1 where invoice_no=" + on + " and invoice_code=" + thatForm.vars.vou_code + " and location_code='" + loc + "' and type=" + typ);
                 if (Util.nvl(findno, '') != '') {
-                    var no = Util.getSQLValue("select nvl(max(invoice_no),0)+1 from invoice1 where invoice_code=" + thatForm.vars.vou_code + " and location_code='" + loc + "' ");
-                    qry.formview.setFieldValue("qry1.ord_no", no, no, true);
+                    var no = Util.getSQLValue("select nvl(max(invoice_no),0)+1 from invoice1 where invoice_code=" + thatForm.vars.vou_code + " and location_code='" + loc + "' type=" + typ);
+                    qry.formview.setFieldValue("qry1.invoice_no", no, no, true);
                 }
 
             }
@@ -930,7 +970,25 @@ sap.ui.jsfragment("bin.forms.in.siv", {
             }
 
         },
-        fetchInv: function () {
+        fetchRef: function () {
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW) return;
+            var rfr = thatForm.frm.getFieldValue("qry1.invoice_no");
+            var loc = thatForm.frm.getFieldValue("qry1.location_code");
+            var typ = thatForm.frm.getFieldValue("qry1.type");
+            var typObj = thatForm.frm.objs["qry1.type"].obj;
+            var qr = Util.execSQLWithData("select keyfld,(select max(name) from store where no=stra ) stranm from invoice1 where invoice_code=25 and " +
+                " invoice_no='" + rfr + "' and location_code='" + loc + "' and type=" + typ);
+            var rfrx = qr[0].KEYFLD;
+            var desx = qr[0].STRANM;
+
+            if (qr.length == 1)
+                Util.simpleConfirmDialog("Issue Voucher is existed for store out :" + desx + " ,type: " + typObj.getValue() + ",  fetch data ?", function (oAction) {
+                    thatForm.frm.setFieldValue('pac', rfrx);
+                    thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                    thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+
+                }, undefined, undefined, "OK");
 
         }
     }

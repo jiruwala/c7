@@ -48,30 +48,6 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
 
             var it = tbl.getRows()[rr].getCells()[0].getText();
             UtilGen.execCmd("rp.in.st formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-
-            // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
-
-            // var mnu = new sap.m.Menu();
-            // mnu.removeAllItems();
-
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "SOA A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + accno + " toacc=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "View A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view accno=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.openBy(obj);
-
         }
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};

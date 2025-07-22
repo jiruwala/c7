@@ -4233,7 +4233,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (settings == undefined) return;
                 var activeObj = undefined;
                 var selecedRow = undefined;
-
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var df = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
                 var thatForm = settings.thatForm;
                 var qrj = settings.qrj;
                 var itemField = Util.nvl(settings.itemField, "ORD_REFER");
@@ -4324,9 +4325,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     var itm = ld.getFieldValue(selecedRow[0], itemField);
                                     var str = (storeField.indexOf(".") >= 0) ? thatForm.frm.getFieldValue(storeField) :
                                         ld.getFieldValue(selecedRow[0], storeField);
-
-                                    UtilGen.execCmd("rp.in.st formType=dialog formSize=100%,100% repno=1 " +
-                                        "para_PARAFORM=false para_EXEC_REP=true prefer=" + itm + " fromdate=@" + fromdate, UtilGen.DBView, this, UtilGen.DBView.newPage);
+                                    var todt = df.format(thatForm.frm.getFieldValue(qryDate));
+                                    UtilGen.execCmd("rp.in.st2 formType=dialog formSize=100%,100% repno=0 store=" + str +
+                                        " para_PARAFORM=false para_EXEC_REP=true prefer=" + itm + " fromdate=@" + fromdate + " todate=@" + todt, UtilGen.DBView, this, UtilGen.DBView.newPage);
                                 }
                             }));
                         if (Util.nvl(settings.showQtyStore, true))
@@ -4343,7 +4344,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     var odt = Util.toOraDateString(thatForm.frm.getFieldValue(qryDate));
                                     var str = (storeField.indexOf(".") >= 0) ? thatForm.frm.getFieldValue(storeField) :
                                         ld.getFieldValue(i1, storeField);
-                                    var sq = "select descr,childcounts,packd,unitd,pack," +
+                                    var sq = "select descr,childcounts,packd,unitd,pack,(select max(name) from store where no=:store ) strname ," +
                                         " C7_GET_STORE_ITEM_ALLQTY(reference,:ordate,:store)/items.pack qih, " +
                                         " prd_dt,exp_dt from items where reference=':rfr'";
                                     sq = sq.replaceAll(":ordate", odt)
@@ -4351,8 +4352,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                         .replaceAll(":store", str);
 
                                     var sqdt = Util.execSQLWithData(sq);
-                                    if (sqdt.length > 0)
-                                        UtilGen.showCustomMessageToast(rfr + "- " + descr + " - Store # " + str + " , " + sqdt[0].QIH + " " + sqdt[0].PACKD, 100);
+                                    if (sqdt.length > 0) {
+                                        var strStr = str != 0 ? " - Store # " + str + "-" + sqdt[0].STRNAME : "All store -";
+                                        var msgstr = sqdt[0].QIH + " " + sqdt[0].PACKD + " , Item:  " + rfr + "- " + descr + ", " + strStr + " , ";
+                                        UtilGen.showCustomMessageToast(msgstr, 100);
+                                    }
                                 }
                             }));
 
@@ -4389,13 +4393,34 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 });
                 return cmdSet;
             },
+            showMsgStoreBal: function (rfr, stra, pDescr, pDate) {
+                // var rfr = ld.getFieldValue(i1, itemField);
+                var descr = Util.nvl(pDescr, Util.getSQLValue("select descr from items where reference='" + rfr + "'"));
+                var odt = Util.toOraDateString(Util.nvl(pDate, new Date()));
+                var str = Util.nvl(stra, 0);
+                var fnqty = str != 0 ? " C7_GET_STORE_ITEM_ALLQTY(reference,:ordate,:store)/items.pack qih, " :
+                    "C7_GET_STORE_ITEM_ALLQTY(reference,:ordate)/items.pack qih,";
+                var sq = "select descr,childcounts,packd,unitd,pack,(select max(name) from store where no=:store ) strname ," +
+                    fnqty +
+                    " prd_dt,exp_dt from items where reference=':rfr'";
+                sq = sq.replaceAll(":ordate", odt)
+                    .replaceAll(":rfr", rfr)
+                    .replaceAll(":store", str);
+
+                var sqdt = Util.execSQLWithData(sq);
+                var strStr = str != 0 ? " - Store # " + str + "-" + sqdt[0].STRNAME : "All store -";
+                var msgstr = sqdt[0].QIH + " " + sqdt[0].PACKD + " , Item:  " + rfr + "- " + descr + ", " + strStr + " , ";
+                if (sqdt.length > 0)
+                    UtilGen.DashboardWidget.statusBarText(Util.getLangText(msgstr).substr(0, 255), false, undefined, false);
+                // UtilGen.showCustomMessageToast(rfr + "- " + descr + ", " + strStr + " , " + sqdt[0].QIH + " " + sqdt[0].PACKD, 100);
+            },
             getSettingSalesp: function (frag, ordref, ordrefnm, typ) {
                 return FormView.getFactoryFields.getSettingsGeneral({
                     thatForm: frag,
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
                     sqlChange: "select name from salesp where no = ':CODE'",
-                    sqlList: "select no code,name title from salesp where type='" + typ + "'  order by no ",
+                    sqlList: "select no code,name title from salesp where (type='" + typ + "' or '" + typ + "' is null)   order by no ",
                     sqlListChange: "select no code,name title from salesp where no=:CODE",
                 });
             },

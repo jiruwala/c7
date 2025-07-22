@@ -539,13 +539,44 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
             var thatForm = this.thatForm;
             var view = this.thatForm.view;
             var cmdLink = undefined;
-            // function (obj, rowno, colno, lctb, frm) {
-            //     if (obj == undefined) return;
-            //     var tbl = obj.getParent().getParent();
-            //     var rr = tbl.getRows().indexOf(obj.getParent());
-            //     var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "SALEINV")].getText());
-            //     // UtilGen.execCmd("bin.forms.br.forms.dlv formType=dialog formSize=900px,400px status=view keyfld=" + kfld, thatForm.view, obj, undefined);
-            // };
+            var cmdLinkPo = function (obj, rowno, colno, lctb, frm) {
+                if (obj == undefined) return;
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var sdf = new simpleDateFormat("MM/dd/yyyy");
+
+                var tbl = obj.getParent().getParent();
+                var mdl = tbl.getModel();
+                var rr = tbl.getRows().indexOf(obj.getParent());
+                var cont = tbl.getContextByIndex(rr);
+                var todate = sdf.format(frm.getFieldValue("parameter.todate"));
+                var fromdate = frm.getFieldValue("parameter.fromdate" == undefined) ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate"));
+
+                var gkfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "GR_KEYFLD")].getText());
+                var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "PO_KEYFLD")].getText());
+                var jvpos = parseInt(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "PO_POSNO")].getText());
+                var typd = (tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "INVOICE_CODE")].getText());
+                // if (Util.nvl(gkfld, "") != "") FormView.err("Click on delivery to check transaction !");
+                if (Util.nvl(kfld, "") != "" && (typd == 21 || typd == "21"))
+                    UtilGen.execCmd("bin.forms.sl.so formType=page readonly=true keyfld=" + kfld, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            };
+            var cmdLinkGo = function (obj, rowno, colno, lctb, frm) {
+                if (obj == undefined) return;
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var sdf = new simpleDateFormat("MM/dd/yyyy");
+
+                var tbl = obj.getParent().getParent();
+                var mdl = tbl.getModel();
+                var rr = tbl.getRows().indexOf(obj.getParent());
+                var cont = tbl.getContextByIndex(rr);
+                var todate = sdf.format(frm.getFieldValue("parameter.todate"));
+                var fromdate = frm.getFieldValue("parameter.fromdate" == undefined) ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate"));
+
+                var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "GR_KEYFLD")].getText());
+                // var jvpos = parseInt(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "GO_POSNO")].getText());
+                var typd = (tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "INVOICE_CODE")].getText());
+                if (Util.nvl(kfld, "") != "" && (typd == 21 || typd == "21"))
+                    UtilGen.execCmd("bin.forms.sl.sodlv formType=page readonly=true keyfld=" + kfld, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            };
             var flds = {
                 invoice_date: {
                     colname: "invoice_date",
@@ -589,7 +620,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "100",
+                    display_width: "80",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
@@ -597,6 +628,40 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                     default_value: "",
                     other_settings: {},
                     commandLinkClick: cmdLink
+                },
+                pord_no: {
+                    colname: "pord_no",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtPoSO",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                    commandLinkClick: cmdLinkPo
+                },
+                gord_no: {
+                    colname: "gord_no",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtDlvNo",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                    commandLinkClick: cmdLinkGo
                 },
                 qtyin: {
                     colname: "qtyin",
@@ -704,7 +769,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                     summary: "",
                     other_settings: {},
                     commandLinkClick: cmdLink
-                },                
+                },
                 costprice: {
                     colname: "costprice",
                     data_type: FormView.DataType.Number,
@@ -722,12 +787,12 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                     summary: "",
                     other_settings: {},
                     commandLinkClick: cmdLink
-                },  
+                },
                 strno: {
                     colname: "strno",
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.LABEL,
-                    title: "storeNo",   
+                    title: "storeNo",
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
@@ -811,6 +876,86 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                 },
                 keyfld: {
                     colname: "keyfld",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "refName",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "0",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                },
+                po_keyfld: {
+                    colname: "po_keyfld",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "refName",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "0",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                },
+                po_posno: {
+                    colname: "po_posno",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "refName",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "0",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                },
+                po_keyfld: {
+                    colname: "po_keyfld",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "refName",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "0",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                },
+                gr_keyfld: {
+                    colname: "gr_keyfld",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "refName",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "0",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                },
+                invoice_code: {
+                    colname: "invoice_code",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
                     title: "refName",

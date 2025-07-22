@@ -99,7 +99,7 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "br/salord",
+                        reportFile: "srv",
                     }
                 ],
                 events: thatForm.helperFunc.getEvents(),
@@ -233,13 +233,35 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                                 }
                                 return true;
                             }
+                            qrj.eventRowChange = function (rowno, currentRowoIndexContext) {
+                                setTimeout(() => {
+                                    var oModel = currentRowoIndexContext.oModel;
+                                    var rfr = oModel.getProperty(currentRowoIndexContext.sPath + "/REFER");
+                                    if (Util.nvl(rfr, "") != "") {
+                                        var des = oModel.getProperty(currentRowoIndexContext.sPath + "/DESCR");
+                                        var stra = thatForm.frm.getFieldValue("qry1.stra");
+                                        var od = thatForm.frm.getFieldValue("qry1.invoice_date");
+                                        UtilGen.showMsgStoreBal(rfr, stra, des, od);
+                                    }
 
+                                }, 10);
+                            }
                         },
                         when_validate_field: function (table, currentRowoIndexContext, cx, rowno, colno) {
                             var oModel = currentRowoIndexContext.oModel;
                             var cs = Util.nvl(oModel.getProperty(currentRowoIndexContext.sPath + '/COSTCENT'), "");
-                            if (cx.mColName == "REFER" && cs == "" && thatForm.frm.getFieldValue("qry1.costcent") != "")
+                            if (cx.mColName == "REFER" && cs == "" && thatForm.frm.getFieldValue("qry1.costcent") != "") {
                                 oModel.setProperty(currentRowoIndexContext.sPath + "/COSTCENT", that.frm.getFieldValue("qry1.costcent"));
+                                oModel.setProperty(currentRowoIndexContext.sPath + "/COSTCENTNM", that.frm.getFieldValue("qry1.costcentnm"));
+                            }
+                            if (cx.mColName == "REFER") {
+                                var rfr = oModel.getProperty(currentRowoIndexContext.sPath + "/REFER");
+                                var des = oModel.getProperty(currentRowoIndexContext.sPath + "/DESCR");
+                                var stra = thatForm.frm.getFieldValue("qry1.stra");
+                                var od = thatForm.frm.getFieldValue("qry1.invoice_date");
+                                UtilGen.showMsgStoreBal(rfr, stra, des, od);
+                            }
+
                             return true;
                         },
                         eventCalc: function (qv, cx, rowno, reAmt) {
@@ -362,7 +384,7 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                         var objtyp = thatForm.frm.objs["qry1.type"].obj;
-                        var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
+                        var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from invoice1");
                         var dt = thatForm.view.today_date.getDateValue();
                         UtilGen.setControlValue(objtyp, "", "", true);
                         objtyp.setSelectedKey(null);
@@ -411,7 +433,10 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                 },
                 beforePrint: function (rptName, params) {
                     var no = that.frm.getFieldValue("qry1.invoice_no");
-                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
+                    var loc = that.frm.getFieldValue("qry1.location_code");
+                    var typ = that.frm.getFieldValue("qry1.type");
+                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no + "&_para_plocation=" + loc +
+                        "&_para_vouType=" + typ;
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
@@ -842,12 +867,13 @@ sap.ui.jsfragment("bin.forms.in.srv", {
 
                 var on = qry.formview.getFieldValue("qry1.invoice_no");
                 var loc = qry.formview.getFieldValue("qry1.location_code");
+                var typ = qry.formview.getFieldValue("qry1.type");
                 var findno = 0;
                 if (Util.nvl(on, "") != "")
-                    findno = Util.getSQLValue("select nvl(max(invoice_no),'') from invoice1 where invoice_no=" + on + " and invoice_code=" + thatForm.vars.vou_code + " and location_code='" + loc + "' ");
+                    findno = Util.getSQLValue("select nvl(max(invoice_no),'') from invoice1 where invoice_no=" + on + " and invoice_code=" + thatForm.vars.vou_code + " and location_code='" + loc + "' and type=" + typ);
                 if (Util.nvl(findno, '') != '') {
-                    var no = Util.getSQLValue("select nvl(max(invoice_no),0)+1 from invoice1 where invoice_code=" + thatForm.vars.vou_code + " and location_code='" + loc + "' ");
-                    qry.formview.setFieldValue("qry1.ord_no", no, no, true);
+                    var no = Util.getSQLValue("select nvl(max(invoice_no),0)+1 from invoice1 where invoice_code=" + thatForm.vars.vou_code + " and location_code='" + loc + "' and type=" + typ);
+                    qry.formview.setFieldValue("qry1.invoice_no", no, no, true);
                 }
 
             }
@@ -881,7 +907,7 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                 }
                 FormView.err(ld.getFieldValue(rn, "REFER") + " -  " + ds);
             }
-            
+
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "REFER");
                 var qty = Util.extractNumber(ld.getFieldValue(i, "QTY"));

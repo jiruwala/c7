@@ -956,6 +956,11 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         onfocusin: function (event) {
                             var _input = event.srcControl;
                             var rowno = that.getControl().indexOfRow(_input.getParent());
+                            if (Util.nvl(that.lastRowNow, -1) != rowno) {
+                                var currentRowContext = that.getControl().getRows()[rowno].getBindingContext();
+                                if (that.eventRowChange != undefined) that.eventRowChange(rowno, currentRowContext);
+                                that.lastRowNow = rowno
+                            }
                             that.highlightSelectedRow(rowno);
                         },
                         onsapenter: function (event) {

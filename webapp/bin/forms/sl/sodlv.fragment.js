@@ -2081,11 +2081,10 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
                 var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                 var objNo = thatForm.frm.objs["qry1.ord_no"].obj;
 
-                var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_purship");
-                var dtPo = Util.execSQLWithData("select location_code,ord_ref,ord_refnm,ord_empno,ord_branchno,ord_type,keyfld,ord_no from pord1 where keyfld=" + sokf);
+                var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
+                var dtPo = Util.execSQLWithData("select location_code,ord_ref,ord_refnm,ord_empno,ord_branchno,ord_type,keyfld,ord_no from pord1 where ord_code=21 and keyfld=" + sokf);
 
                 if (dtPo.length <= 0) FormView.err("No PO data found, re-open this form !");
-
 
                 UtilGen.setControlValue(thatForm.frm.objs["qry1.so_no"].obj, dtPo[0].ORD_NO, dtPo[0].ORD_NO, true);
                 UtilGen.setControlValue(thatForm.frm.objs["qry1.location_code"].obj, dtPo[0].LOCATION_CODE, dtPo[0].LOCATION_CODE, true);
@@ -2115,8 +2114,11 @@ sap.ui.jsfragment("bin.forms.sl.sodlv", {
             }
             UtilGen.showCustomMessageToast("slMsgSelectSO", 100);
             var sq = "SELECT ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ord_amt,KEYFLD FROM PORD1" +
-                " WHERE ORD_CODE=21 and ord_flag=2 and ordacc='" +
-                UtilGen.SalesOrderFunc.initAction.approve + "' ORDER BY KEYFLD desc ";
+                " WHERE ORD_CODE=21 and ord_flag=2 and (ordacc='" +
+                UtilGen.SalesOrderFunc.initAction.approve + "'" +
+                " or ordacc='" + UtilGen.SalesOrderFunc.initAction.none + "')" +
+
+                " ORDER BY KEYFLD desc ";
             UtilGen.Search.do_quick_search_simple(sq,
                 ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM", "ORD_AMT"], function (data) {
                     thatForm.oController.soKf = data.KEYFLD;
