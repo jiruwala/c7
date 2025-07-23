@@ -50,7 +50,7 @@ sap.ui.jsfragment("bin.forms.rp.in.ss", {
             // var rowid = mdl.getProperty("_rowid", cont);
             // var it = Util.nvl(lctb.getFieldValue(rowid, "ACCNO"), "");
             var it = tbl.getRows()[rr].getCells()[0].getText();
-            UtilGen.execCmd("rp.in.st formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            UtilGen.execCmd("rp.in.st2 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
             // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
 
             // var mnu = new sap.m.Menu();

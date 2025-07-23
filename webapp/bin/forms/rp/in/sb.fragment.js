@@ -47,37 +47,16 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
             var fromdate = frm.getFieldValue("parameter.fromdate" == undefined) ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate"));
 
             var it = tbl.getRows()[rr].getCells()[0].getText();
-            UtilGen.execCmd("rp.in.st formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-
-            // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
-
-            // var mnu = new sap.m.Menu();
-            // mnu.removeAllItems();
-
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "SOA A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + accno + " toacc=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "View A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view accno=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.openBy(obj);
-
+            UtilGen.execCmd("rp.in.st2 formType=dialog formSize=100%,100% repno=0 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
         }
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};
         var fe = [];
 
         var sc = new sap.m.ScrollContainer();
+        var repCode = "SB001";
+        var repCode2 = "SB002";
+        var repCode3 = "SB003";
 
         var js = {
             title: Util.getLangText("sbRepTit"),
@@ -95,7 +74,6 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     showFilterCols: true,
                     showDispCols: true,
                     onSubTitHTML: function () {
-
                         var tbstr = Util.getLangText("sbRepName1");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
@@ -103,18 +81,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin-left: 10%;" +
-                            "margin-right: 10%;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {
@@ -169,6 +136,56 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true,
+                                dispInPara: true,
+                            },
+                            prefer: {
+                                colname: "prefer",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"itemCode\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.prefer", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.prefname", vlnm, vlnm, false);
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        UtilGen.Search.do_quick_search(event, this,
+                                            "select reference code,descr title from items where itprice4=0 order by descr2",
+                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs[repCode + "@parameter.prefname"].obj);
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            prefname: {
+                                colname: "prefname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
                                 dispInPara: true,
                             },
                             showFirstPur: {
@@ -254,6 +271,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         (showRsrvStock == "Y" ? ob3 : " (select null ord_refer,0 reserve_stock from dual) ob3 ") +
                                         " WHERE   ob1.refer(+)=ji.refer and ob2.refer(+)=ji.refer  and  ob3.ord_refer(+)=ji.refer " +
                                         " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
+                                        " and descr2 like (select max(descr2) from items ix where ix.reference=':parameter.prefer')||'%' " +
                                         " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode ,first_pur_date ,reserve_stock/pack " +
                                         " ORDER BY  descr2 ";
                                     return sq;
@@ -505,18 +523,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     showCustomPara: function (vbPara, rep) {
 
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin-left: 10%;" +
-                            "margin-right: 10%;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             todate: {
@@ -555,6 +562,56 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            prefer: {
+                                colname: "prefer",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"itemCode\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue(repCode2 + "@parameter.prefer", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue(repCode2 + "@parameter.prefname", vlnm, vlnm, false);
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        UtilGen.Search.do_quick_search(event, this,
+                                            "select reference code,descr title from items where itprice4=0 order by descr2",
+                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs[repCode2 + "@parameter.prefname"].obj);
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            prefname: {
+                                colname: "prefname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
                         },
                         print_templates: [
                             {
@@ -577,6 +634,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                     " PARENTITEM , PARENTITEMDESCR ,barcode" +
                                     " FROM   JOINED_INVOICE" +
                                     " WHERE  ITPRICE4=0 and INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
+                                    " and descr2 like (select max(descr2) from items ix where ix.reference=':parameter.prefer')||'%' " +
                                     " GROUP BY   REFER, barcode, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR " +
                                     " ORDER BY  descr2 ",
                                 parent: "",
@@ -605,7 +663,6 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 bat7CustomAddQry: function (qryObj, ps) {
 
                                 },
-
                                 fields: {
                                     parentitemdescr: {
                                         colname: "parentitemdescr",
@@ -769,18 +826,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         return ht;
                     },
-                    mainParaContainerSetting: {
-                        width: "600px",
-                        cssText: [
-                            "padding-left:50px;" +
-                            "padding-top:20px;" +
-                            "border-style: inset;" +
-                            "margin-left: 10%;" +
-                            "margin-right: 10%;" +
-                            "border-radius:25px;" +
-                            "background-color:#dcdcdc;"
-                        ]
-                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
                             fromdate: {
@@ -833,19 +879,15 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 other_settings: {
                                     showValueHelp: true,
                                     change: function (e) {
-
                                         var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("SB003@parameter.prefer", vl, vl, false);
+                                        thatForm.frm.setFieldValue(repCode3 + "@parameter.prefer", vl, vl, false);
                                         var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("SB003@parameter.acname", vlnm, vlnm, false);
-
+                                        thatForm.frm.setFieldValue(repCode3 + "@parameter.prefname", vlnm, vlnm, false);
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select reference,descr from items where itprice4=0 order by path", "DESCR", "REFERENCE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SB003@parameter.prefer", valx, valx, true);
-                                            thatForm.frm.setFieldValue("SB003@parameter.prefname", val, val, true);
-                                        });
-
+                                        UtilGen.Search.do_quick_search(event, this,
+                                            "select reference code,descr title from items where itprice4=0 order by descr2",
+                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs[repCode3 + "@parameter.prefname"].obj);
                                     },
                                     width: "35%"
                                 },
@@ -891,6 +933,31 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            showsqtycost: {
+                                colname: "showsqtycost",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"showDetailsCol\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: {
+                                    width: "20%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "1",
+                                },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                list: "@0/By Qty,1/Cost Value"
+                            },
                             exclzero: {
                                 colname: "exclzero",
                                 data_type: FormView.DataType.String,
@@ -908,6 +975,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
+
                         },
                         print_templates: [
                             {
@@ -929,7 +997,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 levelCol: "levelno",
                                 code: "ACCNO",
                                 title: "NAME",
-                                fixedCols: 2,
+                                fixedCols: 3,
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
@@ -964,16 +1032,42 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                     }, false).done(function (data) {
                                     });
                                     var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-                                    return "select field1 accno,field2 name,field19 parentacc,field17 path," +
-                                        " to_number(field5) bdeb,to_number(field6) bcrd," +
+                                    var qc = thatForm.frm.getFieldValue("parameter.showsqtycost");
+                                    var sx = " to_number(field5) bdeb,to_number(field6) bcrd," +
                                         " to_number(field7) tdeb, to_number(field8) tcrd, " +
-                                        " to_number(field13) cdeb, to_number(field14) ccrd, " +
-                                        " to_number(FIELD16) levelno , to_number(field18) childcount " +
+                                        " to_number(field13) cdeb, to_number(field14) ccrd, ";
+                                    if (qc == 0 || qc == "0")
+                                        sx = " to_number(field25)/to_number(field37) bdeb,to_number(field26)/to_number(field37) bcrd," +
+                                            " to_number(field27)/to_number(field37) tdeb, to_number(field28)/to_number(field37) tcrd, " +
+                                            " to_number(field33)/to_number(field37) cdeb, to_number(field34)/to_number(field37) ccrd, ";
+                                    return "select field1 accno,field2 name,field19 parentacc,field17 path," +
+                                        sx +
+                                        " to_number(FIELD16) levelno , to_number(field18) childcount,field35 packd " +
                                         " from temporary " +
                                         " where idno=99901 " +
                                         (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
                                         " and usernm='01' order by field17 ";
                                 },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var qc = thatForm.frm.getFieldValue("parameter.showsqtycost");
+                                        if (qc == 0 || qc == "0") {
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BDEB")].mTitle = Util.getLangText("qtyIn");
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BCRD")].mTitle = Util.getLangText("qtyOut");
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TDEB")].mTitle = Util.getLangText("qtyIn");
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TCRD")].mTitle = Util.getLangText("qtyOut");
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CDEB")].mTitle = Util.getLangText("qtyIn");
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CCRD")].mTitle = Util.getLangText("qtyOut");                                            
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BDEB")].mUIHelper.display_format ="QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BCRD")].mUIHelper.display_format ="QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TDEB")].mUIHelper.display_format ="QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TCRD")].mUIHelper.display_format ="QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CDEB")].mUIHelper.display_format ="QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CCRD")].mUIHelper.display_format ="QTY_FORMAT";
+                                        }
+                                    }
+                                },
+
                                 fields: {
                                     accno: {
                                         colname: "accno",
@@ -1017,7 +1111,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
-                                        display_width: "300",
+                                        display_width: "0",
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
                                         display_format: "",
@@ -1033,11 +1127,27 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
-                                        display_width: "10",
+                                        display_width: "0",
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
                                         display_format: "",
                                         display_type: "INVISIBLE",
+                                        other_settings: {},
+                                        grouped: false,
+                                    },
+                                    packd: {
+                                        colname: "packd",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "itemPackD",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "80",
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "",
+                                        display_format: "",
+                                        display_type: "NONE",
                                         other_settings: {},
                                         grouped: false,
                                     },

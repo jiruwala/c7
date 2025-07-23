@@ -202,7 +202,8 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
                 var sq = "select ord_no,ord_date,ord_ref,ord_refnm,keyfld,ord_amt,location_code from pord1 o1 where  " +
                     " ord_date>=" + Util.toOraDateString(fromdt) +
                     " and ord_date<=" + Util.toOraDateString(todt) + " and " +
-                    " ord_flag=2 and ordacc='approve' and DELIVEREDQTY>0 and " +
+                    " ord_code=21 and " +
+                    " ord_flag=2 and (ordacc='approve' or ordacc='none') and DELIVEREDQTY>0 and " +
                     locWhere +
                     " and  (ord_ref=" + Util.quoted(that.txtRef.getValue()) + " or " +
                     Util.quoted(that.txtRef.getValue()) + " is null ) " +
@@ -998,7 +999,7 @@ sap.ui.jsfragment("bin.forms.sl.sowzd", {
             "                 ISSUED_KEYFLD, FREE_ALLQTY,costcent,size_of_descr,recipt_date,po_keyfld,po_posno)" +
             "                 values (" +
             "                 pcode, ploc, pinvno," +
-            "                 21, ptype, posx, x.ord_ship, nvl(x.strb,x.stra) , pr,  x.pkcost ," +
+            "                 21, ptype, posx, x.ord_ship, x.stra , pr,  x.pkcost ," +
             "                 idsc, x.pack, x.packd, x.unitd, pdate," +
             "                 0, x.tqty/x.pack, 0, 0," +
             "                 x.tqty, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
