@@ -1190,6 +1190,26 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                         editable: false
                     },
                 },
+                bx1: {
+                    colname: "bx1",
+                    data_type: FormView.DataType.String,
+                    class_name: "sap.m.VBox",
+                    title: '{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    onPrintField: function () {
+                        return this.obj.$().outerHTML();
+                    },
+                    other_settings: {
+                        width: "0px",
+                        height:"200px",
+                        editable: false
+                    },
+                },
             };
         },
         getQry1: function (repCode) {

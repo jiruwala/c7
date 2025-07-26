@@ -564,10 +564,10 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation}]]>
 		</groupFooter>
 	</group>
 	<detail>
-		<band height="300" splitType="Immediate">
+		<band height="425" splitType="Immediate">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<subreport overflowType="NoStretch">
-				<reportElement stretchType="ElementGroupBottom" x="0" y="0" width="595" height="299" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
+				<reportElement stretchType="ElementGroupBottom" x="0" y="0" width="595" height="425" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>

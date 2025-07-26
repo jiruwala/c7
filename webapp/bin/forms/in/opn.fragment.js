@@ -329,8 +329,6 @@ sap.ui.jsfragment("bin.forms.in.opn", {
                             return thatForm.frm.parseString(sq);
                         };
 
-
-
                 },
                 beforeLoadQry: function (qry, sql) {
                     return sql;

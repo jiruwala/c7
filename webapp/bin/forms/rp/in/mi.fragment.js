@@ -91,7 +91,7 @@ sap.ui.jsfragment("bin.forms.rp.in.mi", {
             var fromdate = frm.getFieldValue("parameter.fromdate") == undefined ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate"));
 
             var it = tbl.getRows()[rr].getCells()[0].getText();
-            UtilGen.execCmd("rp.in.st formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            UtilGen.execCmd("rp.in.st2 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
 
         }
         // UtilGen.clearPage(this.mainPage);

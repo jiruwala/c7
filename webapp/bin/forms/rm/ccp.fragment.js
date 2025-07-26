@@ -435,7 +435,7 @@ sap.ui.jsfragment("bin.forms.rm.ccp", {
                             // st = "UtilGen.execCmd('', UtilGen.DBView, this, UtilGen.DBView.newPage)";
                             st = "var mn = new sap.m.Menu({" +
                                 "items: [new sap.m.MenuItem({ text: 'Stock card..',press:function(){" +
-                                " UtilGen.execCmd('rp.in.st formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=:item fromdate=@:fromdate', UtilGen.DBView, this, UtilGen.DBView.newPage);" +
+                                " UtilGen.execCmd('rp.in.st2 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true prefer=:item fromdate=@:fromdate', UtilGen.DBView, this, UtilGen.DBView.newPage);" +
                                 "} })]" +
                                 "}); mn.openBy(this);"
                             st = st.replaceAll(":item", oData[rowno]["REFER"]
