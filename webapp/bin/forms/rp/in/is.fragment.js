@@ -35,34 +35,6 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
         var colSpan = "XL2 L2 M2 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var cmdLink = function (obj, rowno, colno, lctb, frm) {
-            // var mdl = frm.objs["CAGE1@qry2"].obj.getControl().getModel();
-            // var rr = frm.objs["CAGE1@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
-            // var cont = frm.objs["CAGE1@qry2"].obj.getControl().getContextByIndex(rr);
-            // var rowid = mdl.getProperty("_rowid", cont);
-            // var ac = Util.nvl(lctb.getFieldValue(rowid, "ACCNO"), "");
-            // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
-
-            // var mnu = new sap.m.Menu();
-            // mnu.removeAllItems();
-
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "SOA A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + accno + " toacc=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "View A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view accno=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.openBy(obj);
-
         }
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};
@@ -179,7 +151,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                     },
                                     selectedKey: "1",
                                 },
-                                list: "@1/None,2/Date,3/Locations",
+                                list: "@1/None,2/Date,3/Locations,4/Types",
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true,
@@ -187,10 +159,6 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                             },
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -199,7 +167,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: -1,
                                 execOnShow: false,
                                 dml: "SELECT LOCATION_NAME,LOCATION_CODE,INVOICE_NO,INVOICE_DATE,MEMO,SHORT_NAME,COSTCENT,CS_NAME,itempos,sum(PKCOST*pack) pkcost,SUM(PKCOST*ALLQTY) AMOUNT FROM JOINED_INVOICE " +
                                     " where (type=:parameter.invtype or :parameter.invtype='-1' ) and invoice_date>=:parameter.fromdate and invoice_date<=:parameter.todate " +
@@ -211,7 +179,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["MEMO", "LOCATION_NAME", "SHORT_NAME", "COSTCENT", "CS_NAME"],
+                                filterCols: ["MEMO", "LOCATION_NAME", "SHORT_NAME", "COSTCENT", "CS_NAME", "AMOUNNT"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -222,7 +190,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         var iq = thatForm.frm.getFieldValue("parameter.grpby");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("INVOICE_DATE")].mGrouped = iq == "2";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mGrouped = iq == "3";
-
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SHORT_NAME")].mGrouped = iq == "4";
                                     }
                                 },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
@@ -254,7 +222,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "SHORT_DATE_FORMAT",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     invoice_no: {
                                         colname: "invoice_no",
@@ -271,7 +239,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "QTY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     location_name: {
                                         colname: "location_name",
@@ -288,7 +256,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     short_name: {
                                         colname: "short_name",
@@ -305,7 +273,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     costcent: {
                                         colname: "costcent",
@@ -322,7 +290,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     cs_name: {
                                         colname: "cs_name",
@@ -339,7 +307,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     memo: {
                                         colname: "memo",
@@ -356,7 +324,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     amount: {
                                         colname: "amount",
@@ -374,8 +342,8 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         default_value: "",
                                         summary: "SUM",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },                                    
+                                        commandLinkClick: undefined
+                                    },
                                 }
                             }
                         ]
@@ -479,7 +447,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                     },
                                     selectedKey: "1",
                                 },
-                                list: "@1/None,3/Locations,4/Group Items,5/Items",
+                                list: "@1/None,3/Locations,4/Group Items,5/Items,6/Types",
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: true,
@@ -499,7 +467,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                 name: "qry2",
                                 showType: FormView.QueryShowType.QUERYVIEW,
                                 disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                dispRecords: -1,
                                 execOnShow: false,
                                 dml: "SELECT LOCATION_NAME,LOCATION_CODE,SHORT_NAME,PARENTITEM,PARENTITEMDESCR,REFER,DESCR, (SUM(PKCOST*ALLQTY)/SUM(ALLQTY))*(ITPACK) PKCOST ,(SUM(ALLQTY)/(ITPACK)) PKQTY, SUM(PKCOST*ALLQTY) AMOUNT FROM JOINED_INVOICE " +
                                     " where (type=:parameter.invtype or :parameter.invtype='-1' ) and invoice_date>=:parameter.fromdate and invoice_date<=:parameter.todate " +
@@ -525,6 +493,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("PARENTITEMDESCR")].mGrouped = iq == "4";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("REFER")].mGrouped = iq == "5";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DESCR")].mGrouped = iq == "5";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SHORT_NAME")].mGrouped = iq == "6";
 
                                     }
                                 },
@@ -557,7 +526,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     short_name: {
                                         colname: "short_name",
@@ -574,7 +543,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     parentitem: {
                                         colname: "parentitem",
@@ -591,7 +560,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     parentitemdescr: {
                                         colname: "parentitemdescr",
@@ -608,7 +577,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     refer: {
                                         colname: "refer",
@@ -625,7 +594,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     descr: {
                                         colname: "descr",
@@ -642,7 +611,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     itpackd: {
                                         colname: "itpackd",
@@ -659,7 +628,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     pkcost: {
                                         colname: "pkcost",
@@ -677,7 +646,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         default_value: "",
                                         summary: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     pkqty: {
                                         colname: "pkqty",
@@ -688,14 +657,14 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "100",
-                                        display_align: "ALIGN_LEFT",
+                                        display_align: "ALIGN_CENTER",
                                         grouped: false,
                                         display_style: "",
                                         display_format: "QTY_FORMAT",
                                         default_value: "",
                                         summary: "",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                     amount: {
                                         colname: "amount",
@@ -713,7 +682,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                         default_value: "",
                                         summary: "SUM",
                                         other_settings: {},
-                                        commandLinkClick: cmdLink
+                                        commandLinkClick: undefined
                                     },
                                 }
                             }

@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rp.in.sa", {
+sap.ui.jsfragment("bin.forms.rp.in.sa1", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -282,9 +282,6 @@ sap.ui.jsfragment("bin.forms.rp.in.sa", {
                                 masterToolbarInMain: false,
                                 filterCols: ["REFERENCE", "DESCR",],
                                 canvasType: ReportView.CanvasType.VBOX,
-                                beforeLoadQry: function (sql) {
-                                    var sqe = "";
-                                },
                                 afterApplyCols: function (qryObj) {
                                     thatForm.dtxQry = undefined;
                                     if (qryObj.name == "qry2") {
@@ -380,7 +377,68 @@ sap.ui.jsfragment("bin.forms.rp.in.sa", {
 
                                 },
                                 eventCalc: function (qv, cx, rowno, reAmt) {
+                                    var sett = sap.ui.getCore().getModel("settings").getData();
+                                    var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+                                    if (rowno >= 0) return;
 
+                                    var ld = qv.mLctb;
+                                    var iq = thatForm.frm.getFieldValue("parameter.inclQty");
+                                    var iq = thatForm.frm.getFieldValue("parameter.inclQty");
+                                    if (thatForm.dtxQry == undefined) {
+                                        var sq = "SELECT   REFER, invoice_date,nvl(descr,descra) DESCRA, ITPACKD, " +
+                                            " NVL (SUM ( (PKCOST) * (qtyin)), 0) TOTIN," +
+                                            " NVL (SUM ( (PKCOST) * (qtyout)), 0) TOTOUT," +
+                                            " NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0) qtyx,max(0) pack_cost,  " +
+                                            " PKAVER, NVL (SUM ( (PKCOST) * (qtyin - qtyout)), 0) costamt, descr2," +
+                                            " NVL (SUM (qtyin), 0) qtyin," +
+                                            " NVL (SUM ( qtyout), 0) qtyout," +
+                                            " PARENTITEM , PARENTITEMDESCR " +
+                                            " FROM   JOINED_INVOICE  WHERE  ITPRICE4=0 and (STRA = 0 or 0=0 ) " +
+                                            " AND invoice_date<=:parameter.todate " +
+                                            " GROUP BY   REFER, invoice_date,descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR  " +
+                                            " ORDER BY  descr2 ";
+                                        sq = thatForm.frm.parseString(sq);
+                                        var dt = Util.execSQL(sq);
+                                        if (dt.ret == "SUCCESS") {
+                                            thatForm.dtxQry = new LocalTableData();
+                                            thatForm.dtxQry.parse("{" + dt.data + "}", false);
+                                        }
+                                    }
+                                    for (var ri = 0; ri < ld.rows.length; ri++) {
+
+                                        // for  cost 
+                                        var cl = thatForm.calcAge(thatForm.frm.getFieldValue("parameter.todate"), thatForm.dtxQry, {
+                                            colDebit: "TOTIN",
+                                            colCredit: "TOTOUT",
+                                            colDate: "INVOICE_DATE",
+                                            pathCol: "DESCR2"
+                                        }, ld.getFieldValue(ri, "DESCR2"));
+                                        qv.mLctb.setFieldValue(ri, "B30", cl.b30);
+                                        qv.mLctb.setFieldValue(ri, "B60", cl.b60);
+                                        qv.mLctb.setFieldValue(ri, "B90", cl.b90);
+                                        qv.mLctb.setFieldValue(ri, "B120", cl.b120);
+                                        qv.mLctb.setFieldValue(ri, "B150", cl.b150);
+                                        qv.mLctb.setFieldValue(ri, "TOTCOST", cl.b150 + cl.b120 + cl.b90 + cl.b60 + cl.b30);
+
+                                        // for quanitty
+                                        // if (iq == "Y") {    
+                                        var cl = thatForm.calcAge(thatForm.frm.getFieldValue("parameter.todate"), thatForm.dtxQry, {
+                                            colDebit: "QTYIN",
+                                            colCredit: "QTYOUT",
+                                            colDate: "INVOICE_DATE",
+                                            pathCol: "DESCR2"
+                                        }, ld.getFieldValue(ri, "DESCR2"));
+                                        qv.mLctb.setFieldValue(ri, "BQ30", cl.b30);
+                                        qv.mLctb.setFieldValue(ri, "BQ60", cl.b60);
+                                        qv.mLctb.setFieldValue(ri, "BQ90", cl.b90);
+                                        qv.mLctb.setFieldValue(ri, "BQ120", cl.b120);
+                                        qv.mLctb.setFieldValue(ri, "BQ150", cl.b150);
+                                        qv.mLctb.setFieldValue(ri, "TOTQTY", cl.b150 + cl.b120 + cl.b90 + cl.b60 + cl.b30);
+
+                                        // qryObj.obj.loadData();
+
+                                        // }
+                                    }
                                 },
                                 fields: {
                                     reference: {
@@ -713,6 +771,121 @@ sap.ui.jsfragment("bin.forms.rp.in.sa", {
 
     }
     ,
+    calcAge: function (currDate, ld, sett, pth) {
+        var b150, b120, b90, b60, b30 = 0;
+        if (ld.rows.length == 0) return;
+        var totdebit = 0, totcredit = 0, balance = 0;
+        var getBal = function () {
+            var tot = 0;
+            var dta_processed = false; // processed the data once then break 
+            for (var i = 0; i < ld.rows.length; i++) {
+                if (!ld.getFieldValue(i, sett.pathCol).startsWith(pth) && dta_processed)
+                    break;
+                if (!ld.getFieldValue(i, sett.pathCol).startsWith(pth))
+                    continue;
+                else {
+                    tot += (ld.getFieldValue(i, sett.colDebit) - ld.getFieldValue(i, sett.colCredit));
+                    if (sett.colDebit != sett.colCredit) {
+                        totdebit += ld.getFieldValue(i, sett.colDebit);
+                        totcredit += ld.getFieldValue(i, sett.colCredit);
+                    } else {
+                        if (ld.getFieldValue(i, sett.colDebit) > 0)
+                            totdebit += ld.getFieldValue(i, sett.colDebit);
+                        else
+                            totcredit += Math.abs(ld.getFieldValue(i, sett.colCredit));
+                    }
+                    dta_processed = true;
+                }
+            }
+            balance = tot;
+            return tot;
+        };
+        var getDebitByDate = function (fromdt, todt) {
+            var dr = 0;
+            var dta_processed = false; // processed the data once then break 
+            for (var i = 0; i < ld.rows.length; i++) {
+                if (!ld.getFieldValue(i, sett.pathCol).startsWith(pth) && dta_processed)
+                    break;
+                if (!ld.getFieldValue(i, sett.pathCol).startsWith(pth))
+                    continue;
+                else {
+                    var dt = new Date(ld.getFieldValue(i, sett.colDate).replaceAll(".", ":"));
+                    if ((fromdt == undefined || dt.setHours(0, 0, 0, 0) >= fromdt.setHours(0, 0, 0, 0)) && dt.setHours(0, 0, 0, 0) <= todt.setHours(0, 0, 0, 0))
+                        if (sett.colDebit == sett.colCredit)
+                            dr += (ld.getFieldValue(i, sett.colDebit) > 0 ? ld.getFieldValue(i, sett.colDebit) : 0);
+                        else
+                            dr += ld.getFieldValue(i, sett.colDebit);
+                }
+            }
+            return dr;
+        };
+        var getCreditByDate = function (fromdt, todt) {
+            var cr = 0;
+            for (var i = 0; i < ld.rows.length; i++) {
+                var dt = new Date(ld.getFieldValue(i, sett.colDate).replaceAll(".", ":"));
+                if ((fromdt == undefined || dt.setHours(0, 0, 0, 0) >= fromdt.setHours(0, 0, 0, 0)) && dt.setHours(0, 0, 0, 0) <= todt.setHours(0, 0, 0, 0))
+                    if (sett.colDebit == sett.colCredit)
+                        cr += (ld.getFieldValue(i, sett.colCredit) < 0 ? Math.abs(ld.getFieldValue(i, sett.colCredit)) : 0);
+                    else
+                        cr += ld.getFieldValue(i, sett.colCredit);
+
+            }
+            return cr;
+        };
+        balance = getBal();
+        b150 = getDebitByDate(undefined, Util.addDaysFromDate(currDate, -121));
+        if (b150 - totcredit < 0 && totcredit > 0) {
+            totcredit = totcredit - b150;
+            b150 = 0;
+        } else {
+            b150 = b150 - totcredit;
+            totcredit = 0;
+        }
+
+        b120 = getDebitByDate(Util.addDaysFromDate(currDate, -120), Util.addDaysFromDate(currDate, -91));
+        if (b120 - totcredit < 0 && totcredit > 0) {
+            totcredit = totcredit - b120;
+            b120 = 0;
+        } else {
+            b120 = b120 - totcredit;
+            totcredit = 0;
+        }
+
+        b90 = getDebitByDate(Util.addDaysFromDate(currDate, -90), Util.addDaysFromDate(currDate, -61));
+        if (b90 - totcredit < 0 && totcredit > 0) {
+            totcredit = totcredit - b90;
+            b90 = 0;
+        } else {
+            b90 = b90 - totcredit;
+            totcredit = 0;
+        }
+
+        b60 = getDebitByDate(Util.addDaysFromDate(currDate, -60), Util.addDaysFromDate(currDate, -31));
+        if (b60 - totcredit < 0 && totcredit > 0) {
+            totcredit = totcredit - b60;
+            b60 = 0;
+        } else {
+            b60 = b60 - totcredit;
+            totcredit = 0;
+        }
+
+        b30 = getDebitByDate(Util.addDaysFromDate(currDate, -30), currDate);
+        if (b30 - totcredit < 0 && totcredit > 0) {
+            totcredit = totcredit - b30;
+            b30 = 0;
+        } else {
+            b30 = b30 - totcredit;
+            totcredit = 0;
+        }
+
+        return {
+            "b150": b150,
+            "b120": b120,
+            "b90": b90,
+            "b60": b60,
+            "b30": b30
+        };
+    },
     loadData: function () {
     }
 

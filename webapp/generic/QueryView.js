@@ -84,6 +84,10 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     }
                     // sap.m.MessageToast.show();
                     UtilGen.DashboardWidget.statusBarText(that.mTable.getSelectedIndices().length + " selected", true, undefined, true);
+                    setTimeout(function () {
+                        that.colorRows();
+                    });
+
                 }
             });
             this.mTable.attachRowsUpdated(function (e) {
@@ -2419,6 +2423,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             Util.nvl(this.mLctb.cols[(j + groupedAdd)].getMUIHelper().display_style, "").trim() != "") {
                             var s = this.mLctb.cols[j + groupedAdd].getMUIHelper().display_style;
                             col_fmt1 = s;
+                            if (this.getControl().getRows()[i].$().attr("class").split(" ").indexOf("sapUiTableRowSel") >= 0)
+                                s = "";
                             this.getControl().getRows()[i].getCells()[(j)].$().parent().parent().attr("style", this.b4_cf_val1[j] + ";" + s);
                             this.getControl().getRows()[i].getCells()[(j)].$().attr("style", this.b4_cf_val[j] + ";" + s);
                             this.getControl().getRows()[i].getCells()[(j)].$().parent().parent().find("input").attr("style", s);

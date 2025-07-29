@@ -34,7 +34,8 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
         var fullSpan = "XL8 L8 M8 S12";
         var colSpan = "XL2 L2 M2 S12";
         var sumSpan = "XL2 L2 M2 S12";
-        var cmdLink = function (obj, rowno, colno, lctb, frm) {
+        var cmdLink = function (obj, rowno, colno, lctb) {
+            var frm = thatForm.frm;
             if (obj == undefined) return;
             var sett = sap.ui.getCore().getModel("settings").getData();
             var sdf = new simpleDateFormat("MM/dd/yyyy");
@@ -47,7 +48,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
             var fromdate = frm.getFieldValue("parameter.fromdate" == undefined) ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate"));
 
             var it = tbl.getRows()[rr].getCells()[0].getText();
-            UtilGen.execCmd("rp.in.st2 formType=dialog formSize=100%,100% repno=0 para_PARAFORM=false para_EXEC_REP=true prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+            UtilGen.execCmd("rp.in.st2 formType=dialog formSize=100%,100% repno=0 para_PARAFORM=false para_EXEC_REP=true showCost=Y prefer=" + it + " fromdate=@" + fromdate + " todate=@" + todate, UtilGen.DBView, obj, UtilGen.DBView.newPage);
         }
         // UtilGen.clearPage(this.mainPage);
         this.o1 = {};
@@ -1057,13 +1058,13 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                             qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TDEB")].mTitle = Util.getLangText("qtyIn");
                                             qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TCRD")].mTitle = Util.getLangText("qtyOut");
                                             qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CDEB")].mTitle = Util.getLangText("qtyIn");
-                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CCRD")].mTitle = Util.getLangText("qtyOut");                                            
-                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BDEB")].mUIHelper.display_format ="QTY_FORMAT";
-                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BCRD")].mUIHelper.display_format ="QTY_FORMAT";
-                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TDEB")].mUIHelper.display_format ="QTY_FORMAT";
-                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TCRD")].mUIHelper.display_format ="QTY_FORMAT";
-                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CDEB")].mUIHelper.display_format ="QTY_FORMAT";
-                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CCRD")].mUIHelper.display_format ="QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CCRD")].mTitle = Util.getLangText("qtyOut");
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BDEB")].mUIHelper.display_format = "QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BCRD")].mUIHelper.display_format = "QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TDEB")].mUIHelper.display_format = "QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TCRD")].mUIHelper.display_format = "QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CDEB")].mUIHelper.display_format = "QTY_FORMAT";
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CCRD")].mUIHelper.display_format = "QTY_FORMAT";
                                         }
                                     }
                                 },
