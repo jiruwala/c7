@@ -1363,7 +1363,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                                     }
                                     return true;
-                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx
+                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx, cx.listPara
                                 );
 
                             }
@@ -4665,6 +4665,22 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 }
 
 
+            },
+            JOFunc: {
+                checkJOStatus: function (poKf, pRaiseErr) {
+                    var raiseErr = Util.nvl(pRaiseErr, true);
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,nvl(max(ordacc),'') ordacc from pord1 where keyfld=" + poKf, "No data found !");
+                    if (!raiseErr) return podt[0];
+
+                    if (podt[0].ORD_FLAG < 0)
+                        FormView.err("JO is not avaialble !");
+                    if (podt[0].ORD_FLAG == 1)
+                        FormView.err("JO is not approved !");
+                    if (podt[0].ORD_FLAG >= 3)
+                        FormView.err("JO is closed !");
+                    return podt[0];
+
+                }
             },
             DashboardWidget: {
                 inputGuageTarget: function (kf, title, msg) {
