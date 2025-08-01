@@ -191,10 +191,10 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     setCaption(thatForm.commands.cmdStock, 'joCmdShowStock', 'joCmdUpdStock');
                     setCaption(thatForm.commands.cmdDesign, 'joCmdShowDesign', 'joCmdUpdDesign');
                     setCaption(thatForm.commands.cmdDye, 'joCmdShowDye', 'joCmdUpdDye');
-                    setCaption(thatForm.commands.cmdProduction, 'joCmdProdSteps');
+                    setCaption(thatForm.commands.cmdProduction, 'joCmdShowProdSteps', 'joCmdProdSteps');
                     setCaption(thatForm.commands.cmdDlv, 'joCmdShowDlv', 'joCmdAddDlv');
                     setCaption(thatForm.commands.cmdSales, 'joCmdShowSales', 'joCmdAddSales');
-                    setCaption(thatForm.commands.cmdClose, 'closeJO');
+                    setCaption(thatForm.commands.cmdClose, 'showCloseJo', 'closeJO');
 
                     var hb1 = new sap.m.HBox({
                         items: [thatForm.commands.cmdApprove, thatForm.commands.cmdDesign, thatForm.commands.cmdDye, thatForm.commands.cmdStock,
@@ -240,8 +240,10 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             "ORD_CODE": thatForm.vars.vou_code,
                             "STRA": sett["DEFAULT_STORE"],
                             "ORD_TYPE": 1,
+                            "ORD_AMT": ":qry2.totamt",
                         },
                         update_default_values: {
+                            "ORD_AMT": ":qry2.totamt",
                         },
                         table_name: "PORD1",
                         edit_allowed: true,
@@ -322,7 +324,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             var ld = qv.mLctb;
                             var sumAmt = 0;
                             var ordrd = 0;
-                            var rcvd = Util.nvl(thatForm.rcvd, 0);
+                            var dlv = Util.nvl(thatForm.dlvqty, 0);
+                            var sold = Util.nvl(thatForm.soldqty, 0);
 
                             for (var i = 0; i < ld.rows.length; i++) {
                                 sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
@@ -330,12 +333,12 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             }
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
-                            var rcvdp = 0
+                            // var rcvdp = 0;
 
-                            if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
+                            // if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
 
-                            if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");
+                            // if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
+                            //     thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");
 
 
                             // thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
@@ -374,9 +377,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
     setFormEditable: function () {
 
-    }
-    ,
-
+    },
     createViewHeader: function () {
     },
     executeStep: function (para) {
@@ -424,6 +425,164 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 update_rec();
             });
         }
+        var showCloseJo = function () {
+            var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
+            var txtStepType = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "50%", editable: false });
+            var txtStepTime = new sap.m.DateTimePicker({
+                textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: podt.ORD_FLAG == 2,
+                change: function (e) {
+                }
+
+            });
+            var txtEmpNo = new sap.m.Input({
+                textAlign: sap.ui.core.TextAlign.Begin,
+                width: "20%",
+                editable: podt.ORD_FLAG == 2,
+                showValueHelp: true,
+                change: function (e) {
+                    var sq = "select name from salesp where no = :CODE";
+                    UtilGen.Search.getLOVSearchField(sq, this, undefined, txtEmpName);
+                },
+                valueHelpRequest: function (e) {
+                    UtilGen.Search.do_quick_search(e, this,
+                        "select no code,name title from salesp  order by no ",
+                        "select no code,name title from salesp where NO=:CODE", txtEmpName, undefined, undefined, undefined);
+                }
+
+            });
+            var txtEmpName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: false });
+            var txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: podt.ORD_FLAG == 2 });
+
+            txtStepTime.setValueFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
+            txtStepTime.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
+            var vb = new sap.m.VBox();
+
+            var dovalidate = function () {
+                var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
+                if (podt.ORD_FLAG != 2) FormView.err("Either JO is approved or closed !");
+
+                var rcvd = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where ord_code=9 and pord1_keyfld=" + kf);
+                var sold = Util.getSQLValue("select nvl(sum(allqty),0) from pur2 where invoice_code=21 and po_keyfld=" + kf);
+                if (sold < rcvd) FormView.err("can't close JO , Delivered qty have not sold all !");
+
+                if (txtEmpNo.getValue() != "") {
+                    var emp = Util.getSQLValue("select max(no) from salesp where no='" + txtEmpNo.getValue() + "'");
+                    if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
+                }
+                var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+                if (Util.nvl(txtStepTime.getDateValue(), null) == null)
+                    FormView.err("Cant close without date time !");
+
+                if (Util.nvl(txtStepTime.getDateValue(), null) != null &&
+                    dt.getTime() >= txtStepTime.getDateValue().getTime())
+                    FormView.err("Err ! Step date is more than JO date !");
+
+                if (Util.nvl(txtEmpNo.getValue(), '') == '')
+                    FormView.err("Err ! EWmployee is  mandatory  !");
+                var cnts = Util.getSQLValue("select nvl(count(*),0) from salesp where no=" + txtEmpNo.getValue());
+                if (cnts == 0)
+                    FormView.err("Employee no is not valid !");
+            }
+            var doSave = function () {
+                dovalidate();
+                var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+                var usr = sett["LOGON_USER"];
+                var sq = "update pord1 set ord_flag=3, closed_by=':user' ,  " +
+                    " closed_date=:regtime , closed_empno=':empno' ," +
+                    "closed_remarks=':remarks' where keyfld=" + kf;
+
+                var tme = Util.nvl(txtStepTime.getDateValue(), null) != null ? Util.toOraDateTimeString(txtStepTime.getDateValue()) : "null";
+                sq = sq.replaceAll(":user", usr)
+                    .replaceAll(":regtime", tme)
+                    .replaceAll(":empno", txtEmpNo.getValue())
+                    .replaceAll(":remarks", txtRemarks.getValue());
+
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS") {
+                    FormView.msgSuccess("This JO is closed now ! !");
+                }
+            };
+
+            var fe = [
+                Util.getLabelTxt("Step Type", "30%", "", "redText"), txtStepType,
+                Util.getLabelTxt("Received Time", "30%", ""), txtStepTime,
+                Util.getLabelTxt("Emp NO", "30%", ""), txtEmpNo,
+                Util.getLabelTxt("", "0px", "@"), txtEmpName,
+                Util.getLabelTxt("Remarks", "30%", ""), txtRemarks,
+            ];
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: { "S": 280, "M": 380, "L": 480, "XL": 480 },
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+            cnt.addContent(new sap.m.VBox({ height: "20px" }));
+            vb.addItem(cnt);
+            Util.navEnter(fe);
+            var dlg = new sap.m.Dialog({
+                title: "Steps : " + para,
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 500, "XL": 500 }) + "px",
+                contentHeight: "250px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdDone"),
+                        icon: "sap-icon://accept",
+                        pressed: false,
+                        enabled: podt.ORD_FLAG == 2,
+                        press: function () {
+                            dovalidate();
+                            Util.simpleConfirmDialog(Util.getLangText("Are you sure to CLOSE this JO , # " + podt.ORD_NO + " ? "), function (oAction) {
+                                doSave();
+                                dlg.close();
+                                thatForm.queryCommands();
+                            });
+
+                        }
+
+                    }),
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdClose"),
+                        icon: "sap-icon://decline",
+                        press: function () {
+                            dlg.close();
+                            thatForm.queryCommands();
+                        }
+                    })
+
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+            //load data            
+            txtStepType.setValue(para);
+            txtStepTime.setDateValue(null);
+            txtRemarks.setValue("");
+            txtEmpNo.setValue("");
+            txtEmpName.setValue("");
+            var sqj = ("select ord_flag,ordacc,closed_by JO_STEP_USER, " +
+                "closed_empno JO_STEP_EMP,CLOSEd_REMARKS JO_STEP_REMARKS," +
+                "to_char(closed_date,'mm/dd/rrrr hh24.mi' ) JO_STEP_TIME, " +
+                " (select max(name) from salesp where no=closed_empno) JO_STEP_EMPNAME " +
+                "from pord1 where keyfld="
+                + thatForm.frm.getFieldValue("keyfld"));
+            var dt = Util.execSQLWithData(sqj);
+            if (dt.length > 0 && dt[0].USER != "") {
+                var tme = Util.nvl(dt[0].JO_STEP_TIME, undefined) == undefined ? null : new Date(dt[0].JO_STEP_TIME.replaceAll(".", ":"));
+                txtStepTime.setDateValue(tme);
+                txtRemarks.setValue(dt[0].JO_STEP_REMARKS);
+                txtEmpNo.setValue(dt[0].JO_STEP_EMP);
+                txtEmpName.setValue(dt[0].JO_STEP_EMPNAME);
+            }
+
+
+        }
         var do_basic_steps = function () {
 
             var txtStepType = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "50%", editable: false });
@@ -466,8 +625,12 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 });
 
             var txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: commands[para].showRecs ? false : true });
+
             var vb = new sap.m.VBox();
             var doSave = function () {
+                var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
+                if (podt.ORD_FLAG != 2) FormView.err("Either JO is approved or closed !");
+
                 if (txtEmpNo.getValue() != "") {
                     var emp = Util.getSQLValue("select max(no) from salesp where no='" + txtEmpNo.getValue() + "'");
                     if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
@@ -586,7 +749,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             if (dt.length > 0 && dt[0].USER != "") {
                 var sendtme = Util.nvl(dt[0].JO_STEP_TIME_SEND, undefined) == undefined ? null : new Date(dt[0].JO_STEP_TIME_SEND.replaceAll(".", ":"));
                 var tme = Util.nvl(dt[0].JO_STEP_TIME, undefined) == undefined ? null : new Date(dt[0].JO_STEP_TIME.replaceAll(".", ":"));
-                txtStepTime.setDateValue(sendtme);
+                txtStepTimeSend.setDateValue(sendtme);
                 txtStepTime.setDateValue(tme);
                 txtRemarks.setValue(dt[0].JO_STEP_REMARKS);
                 txtEmpNo.setValue(dt[0].JO_STEP_EMP);
@@ -647,6 +810,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 break;
             case "production":
                 thatForm.do_step_production();
+                break;
+            case "closeJO":
+                showCloseJo();
                 break;
             default:
                 break;
@@ -711,13 +877,25 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             if (Util.nvl(dt[0].ACTIVE_DATE, undefined) != undefined)
                 thatForm.frm.setFieldValue("qry1.jo_status", "Active");
             else thatForm.frm.setFieldValue("qry1.jo_status", "Not-Active");
+            if (Util.nvl(dt[0].ORD_FLAG, 1) == 3)
+                thatForm.frm.setFieldValue("qry1.jo_status", "Closed");
+            if (Util.nvl(dt[0].ORD_FLAG, 1) == 1)
+                thatForm.frm.setFieldValue("qry1.jo_status", "Pending");
 
             if (Util.nvl(dt[0].JO_DESIGN_USER, "") != "") thatForm.commands.cmdDesign.dataUpdated = true;
             if (Util.nvl(dt[0].JO_DYE_USER, "") != "") thatForm.commands.cmdDye.dataUpdated = true;
             if (Util.nvl(dt[0].JO_STOCK_USER, "") != "") thatForm.commands.cmdStock.dataUpdated = true;
             if (Util.nvl(dt[0].JO_PROD_USER, "") != "") thatForm.commands.cmdProduction.dataUpdated = true;
+            if (Util.nvl(dt[0].ORD_FLAG, 1) == 3) {
+                thatForm.commands.cmdClose.dataUpdated = true;
+                thatForm.commands.cmdDlv.dataUpdated = true;
+                thatForm.commands.cmdSales.dataUpdated = true;
+            }
+
+
             if (Util.nvl(dt[0].ORDERDQTY, 0) == Util.nvl(dt[0].DELIVEREDQTY, 0))
                 thatForm.commands.cmdDlv.dataUpdated = true;
+
             if (Util.nvl(dt[0].ORDERDQTY, 0) == Util.nvl(dt[0].PURQTY, 0))
                 thatForm.commands.cmdSales.dataUpdated = true;
             showUpdate(undefined, false);
@@ -755,7 +933,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             } else if (approve == 3) {
                 thatForm.enableCommands(undefined, true);
                 showUpdate(undefined, true);
-                thatForm.enableCommands(cmdClose, false);
+
+                // thatForm.enableCommands(cmdClose, false);
             }
         }
         thatForm.refreshIcons();
@@ -1829,11 +2008,15 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         thatForm.queryCommands();
 
                         var rcvd = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where ord_code=9 and pord1_keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var sold = Util.getSQLValue("select nvl(sum(allqty),0) from pur2 where invoice_code=21 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
                         var ordrd = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where keyfld=" + qry.formview.getFieldValue("keyfld"));
-                        var rcvdp = 0;
+                        var rcvdp = 0; var soldp = 0;
                         thatForm.dlvqty = rcvd;
+                        thatForm.soldqty = sold;
                         if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
-                        thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");
+                        if (ordrd > 0) soldp = Math.round((100 / ordrd) * sold, 2);
+                        // thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");
+                        thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("D/S: " + rcvdp + (soldp == rcvdp ? "" : " / " + soldp) + " %");
                     }
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
                         qry.obj.mLctb.getColByName("DESCR").beforeSearchEvent = function (sq, ctx, model) {
@@ -2413,25 +2596,104 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     name: 'list1',
                     title: "List of Orders",
                     list_type: "sql",
+                    list_para: {
+                        selectStr: "@100/Last 100,200/Last 200,1000/Last 1000,-1/All",
+                        defaultKey: "1000",
+                    },
                     cols: [
                         {
                             colname: "ORD_NO",
+                            mTitle: Util.getLangText("txtOrdNo"),
+                            display_width: 75,
+                            mSummary: "COUNT",
                         },
+                        {
+                            colname: "STATUS",
+                            mTitle: Util.getLangText("txtStatus"),
+                            display_width: 100,
+                        },
+                        {
+                            colname: "INVOICE_NO",
+                            mTitle: Util.getLangText("referenceNo"),
+                            display_width: 75,
+                            mSummary: "COUNT",
+                        },
+
+                        {
+                            colname: "ORD_DATE",
+                            display_format: "SHORT_DATE_FORMAT",
+                            mTitle: Util.getLangText("ordDate"),
+                            display_width: 100
+                        },
+
                         {
                             colname: "ORD_REF",
+                            mTitle: Util.getLangText("refCode"),
+                            display_width: 100,
                         },
                         {
-                            colname: "ORD_REFNM"
+                            colname: "ORD_REFNM",
+                            mTitle: Util.getLangText("refName"),
+                            display_width: 250
+
                         },
                         {
                             colname: 'KEYFLD',
                             return_field: "pac",
+                            hide: true
                         },
+                        {
+                            colname: "PURP",
+                            mTitle: Util.getLangText("txtSold"),
+                            display_width: 80,
+                        },
+
+                        {
+                            colname: "DLVP",
+                            mTitle: Util.getLangText("txtDeliver"),
+                            display_width: 80,
+                        },
+
+                        {
+                            colname: "ord_amt",
+                            display_format: "MONEY_FORMAT",
+                            mTitle: Util.getLangText("amountTxt"),
+                            display_width: 120,
+                            mSummary: "SUM"
+
+                        },
+                        {
+                            colname: "ord_discamt",
+                            display_format: "MONEY_FORMAT",
+                            mTitle: Util.getLangText("txtDisc"),
+                            display_width: 100,
+                            mSummary: "SUM"
+
+                        },
+                        {
+                            colname: "netamt",
+                            display_format: "MONEY_FORMAT",
+                            mTitle: Util.getLangText("txtNetAmt"),
+                            display_width: 100,
+                            mSummary: "SUM"
+
+                        }
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from pord1 o1 where ord_code =" + that2.vars.vou_code +
-                        " order by o1.ord_date desc,ord_no desc",
+                    sql: "select *from (select o1.ord_no,o1.ord_date," +
+                        "(case when jo_active_from is not null and ord_flag=3 then 'Closed'  " +
+                        " when jo_active_from is not null and ord_flag!=3 then 'Active'  " +
+                        " else 'Pending' end ) status , " +
+                        " pur.invoice_no,o1.ord_ref,o1.ord_refnm," +
+                        "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * purqty, 2)) else 0 end)||'%' purp ," +
+                        "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * DELIVEREDQTY, 2)) else 0 end)||'%' dlvp ," +
+                        "o1.ord_amt,o1.ord_discamt,o1.ord_amt-o1.ord_discamt netamt, o1.keyfld from pord1 o1," +
+                        " (select max(p.keyfld) kfld,max(p.invoice_no) invoice_no,po_keyfld  from pur1 p where p.invoice_code=21 and po_keyfld is not null group by p.po_keyfld) pur " +
+                        "  " +
+                        " where o1.ord_code =" + that2.vars.vou_code +
+                        " and pur.po_keyfld(+) =o1.keyfld " +
+                        " order by o1.ord_date desc,o1.ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1) ",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
