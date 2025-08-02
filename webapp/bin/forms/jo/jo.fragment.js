@@ -482,6 +482,13 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 var cnts = Util.getSQLValue("select nvl(count(*),0) from salesp where no=" + txtEmpNo.getValue());
                 if (cnts == 0)
                     FormView.err("Employee no is not valid !");
+                // check for production steps completed.
+                var sqd = Util.getSQLValue("select  nvl(count(*),0) from PORD_JO_STEPS " +
+                    " where step_end is null and pord_keyfld=" + kf);
+                if (sqd > 0) {
+                    thatForm.do_step_production();
+                    FormView.err("Productoin steps are still pending..");
+                }
             }
             var doSave = function () {
                 dovalidate();
@@ -2635,7 +2642,6 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             colname: "ORD_REFNM",
                             mTitle: Util.getLangText("refName"),
                             display_width: 250
-
                         },
                         {
                             colname: 'KEYFLD',
@@ -2655,7 +2661,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         },
 
                         {
-                            colname: "ord_amt",
+                            colname: "ORD_AMT",
                             display_format: "MONEY_FORMAT",
                             mTitle: Util.getLangText("amountTxt"),
                             display_width: 120,
@@ -2663,12 +2669,11 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
                         },
                         {
-                            colname: "ord_discamt",
+                            colname: "ORD_DISCAMT",
                             display_format: "MONEY_FORMAT",
                             mTitle: Util.getLangText("txtDisc"),
                             display_width: 100,
                             mSummary: "SUM"
-
                         },
                         {
                             colname: "netamt",
@@ -2688,7 +2693,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         " pur.invoice_no,o1.ord_ref,o1.ord_refnm," +
                         "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * purqty, 2)) else 0 end)||'%' purp ," +
                         "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * DELIVEREDQTY, 2)) else 0 end)||'%' dlvp ," +
-                        "o1.ord_amt,o1.ord_discamt,o1.ord_amt-o1.ord_discamt netamt, o1.keyfld from pord1 o1," +
+                        " o1.ord_amt,o1.ord_discamt,o1.ord_amt-o1.ord_discamt netamt, o1.keyfld from pord1 o1," +
                         " (select max(p.keyfld) kfld,max(p.invoice_no) invoice_no,po_keyfld  from pur1 p where p.invoice_code=21 and po_keyfld is not null group by p.po_keyfld) pur " +
                         "  " +
                         " where o1.ord_code =" + that2.vars.vou_code +

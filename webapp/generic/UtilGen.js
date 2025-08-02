@@ -1363,7 +1363,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                                     }
                                     return true;
-                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx,cx.listPara
+                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx, cx.listPara
                                 );
 
                             }
@@ -3908,7 +3908,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 }
 
             },
-            createDefaultToolbar2: function (qrj, findCols, addSpace) {
+            createDefaultToolbar2: function (qrj, pfindCols, addSpace) {
+                var findCols = Util.nvl(pfindCols, []);
+                if (findCols.length == 0) {
+                    var cols = qrj.mLctb.cols;
+                    for (var c in cols)
+                        if (!cols[c].mHideCol) findCols.push(cols[c].mColName);
+
+                }
                 if (Util.nvl(findCols, []).length > 0) {
                     qrj.showToolbar.filterCols = findCols;
                     qrj.showToolbar.showFilter = true;
