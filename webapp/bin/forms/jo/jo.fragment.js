@@ -482,6 +482,13 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 var cnts = Util.getSQLValue("select nvl(count(*),0) from salesp where no=" + txtEmpNo.getValue());
                 if (cnts == 0)
                     FormView.err("Employee no is not valid !");
+                // check for production steps completed.
+                var sqd = Util.getSQLValue("select  nvl(count(*),0) from PORD_JO_STEPS " +
+                    " where step_end is null and pord_keyfld=" + kf);
+                if (sqd > 0) {
+                    thatForm.do_step_production();
+                    FormView.err("Productoin steps are still pending..");
+                }
             }
             var doSave = function () {
                 dovalidate();
