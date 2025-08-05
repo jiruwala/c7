@@ -59,7 +59,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
 
         var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + thatForm.vars.vou_code + " ORDER BY O1.ORD_POS ";
-            
+
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.frm;
@@ -710,6 +710,24 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     insert_allowed: true,
                     require: true
                 },
+                payterm: {
+                    colname: "payterm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtSupplier\",\"width\":\"15%\","textAlign":"End","styleClass":"darkBlueText boldText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        editable: true, width: "20%",
+                    },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
                 ord_ref: {
                     colname: "ord_ref",
                     data_type: FormView.DataType.String,
@@ -826,7 +844,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     colname: "payterm",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"truckNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '{\"text\":\"truckNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -1294,6 +1312,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
                 if (txtStartDate.getValue() != "" && txtItem.getValue() != "" && parseFloat(txtNewPrice.getValue()) > 0) ed = true;
                 if (lastDate != undefined && sdf.format(lastDate) == sdf.format(txtStartDate.getDateValue())) ed = false;
+
                 btAp.setEnabled(ed);
             }
             var txtStartDate = new sap.m.DatePicker({

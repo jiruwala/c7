@@ -135,6 +135,12 @@ sap.ui.jsview('bin.Dashboard', {
         });
 
         Util.destroyID("txtWindow", this);
+        Util.destroyID("txtStatus", this);
+        this.txtStatus = new sap.m.Text(this.createId("txtStatus"), {
+            text: "",
+            width: "60%",
+        }).addStyleClass("statusBar");
+
         this.lstPgs = new sap.m.ComboBox(this.createId("txtWindow"), {
             selectionChange: function (e) {
                 that.lstPageChange();

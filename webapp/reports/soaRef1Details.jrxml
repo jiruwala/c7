@@ -166,9 +166,6 @@ ORDER BY   POS ASC]]>
 	<variable name="SUMCR" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{CREDIT}]]></variableExpression>
 	</variable>
-	<variable name="SUMm3" class="java.math.BigDecimal" calculation="Sum">
-		<variableExpression><![CDATA[$F{TQTY}]]></variableExpression>
-	</variable>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -529,7 +526,7 @@ ORDER BY   POS ASC]]>
 		</band>
 	</pageFooter>
 	<summary>
-		<band height="20" splitType="Stretch">
+		<band height="16" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<textField pattern="#,##0.000;-#,##0.000" isBlankWhenNull="true">
 				<reportElement mode="Opaque" x="0" y="0" width="60" height="15" backcolor="#FFFF00" uuid="b96ca05a-d05c-4c9e-abe2-86383fdded35">
@@ -595,24 +592,6 @@ ORDER BY   POS ASC]]>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
-			<textField pattern="#,##0.0;-#,##0.0">
-				<reportElement mode="Opaque" x="178" y="0" width="42" height="15" backcolor="#FFFF00" uuid="dbdfeda3-1689-4797-81df-e09d228a7d1e">
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<property name="com.jaspersoft.studio.unit.height" value="px"/>
-					<property name="com.jaspersoft.studio.unit.y" value="px"/>
-				</reportElement>
-				<box>
-					<pen lineWidth="0.25"/>
-					<topPen lineWidth="0.25"/>
-					<leftPen lineWidth="0.25"/>
-					<bottomPen lineWidth="0.25"/>
-					<rightPen lineWidth="0.25"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="10" isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$V{SUMm3}]]></textFieldExpression>
-			</textField>
 		</band>
 	</summary>
 </jasperReport>
