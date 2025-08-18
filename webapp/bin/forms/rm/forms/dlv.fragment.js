@@ -378,6 +378,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         "payterm": "':qry1.payterm'",
                         "validatiy": "':qry1.validatiy'",
                         "attn": "':qry1.branchname'",
+                        "lcno": ":qry1.typofcem",
                         "created_time": Util.nvl(crdt, "sysdate"),
                         "modified_time": "sysdate",
                         "usernm": Util.quoted(sett["LOGON_USER"]),
@@ -485,6 +486,12 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     sqlChange: "select name from salesp where no = ':CODE'",
                     sqlList: "select no code,name title from salesp where type='" + typ + "'  order by no ",
                     sqlListChange: "select no code,name title from salesp where no=:CODE",
+                    fnAfteUpdate: function () {
+                        if (typ != "D") return;
+                        var locval = thatForm.frm.objs[ordref].obj.getValue();
+                        var s = Util.getSQLValue("select vehicleno from salesp where no='" + locval + "'");
+                        thatForm.frm.setFieldValue("qry1.typofcem", s);
+                    }
                 });
             };
             var getSettingContItems = function (seq) {
@@ -667,19 +674,28 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                 //5                
                 ord_empno: FormView.getFactoryFields.getGeneralField(
-                    "ord_empno", "", "txtDriver", "15%", "violetText", "12%",
+                    "ord_empno", "", "txtDriver", "15%", "violetText", "8%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true,
                     }, getSettingSalesp("qry1.ord_empno", "qry1.drivername", "D")),
                 drivername: FormView.getFactoryFields.getGeneralField(
-                    "drivername", "@", "", "1%", "", "22%",
+                    "drivername", "@", "", "1%", "", "13%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
                         keyboardFocus: false,
+
+                    }, {}),
+                typofcem: FormView.getFactoryFields.getGeneralField(
+                    "typofcem", "@", "truckNo", "7%", "", "7%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        keyboardFocus: true,
 
                     }, {}),
                 salesp: FormView.getFactoryFields.getGeneralField(

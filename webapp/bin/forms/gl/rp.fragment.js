@@ -1355,7 +1355,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
         var ld = that2.qb.mLctb;
         var sqls = "";
         var sq2 = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME,AREA,BLOCK,JEDDA,QASIMA,STREET) " +
-            " VALUES (':BRNO',':qry1.code',':qr1.ac_no',':B_NAME'," +
+            " VALUES (':BRNO',':qry1.code',':qry1.ac_no',':B_NAME'," +
             " ':AREA' ,':BLOCK' ,':JEDDA' ,':QASIMA',':STREET' );";
         var checkDuplicate = {};
         for (var i = 0; i < ld.rows.length; i++) {

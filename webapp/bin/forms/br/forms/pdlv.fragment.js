@@ -358,6 +358,12 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 beforeDelRow: function (qry, idx, ld, data) {
 
                 },
+                afterDelSqlAdd: function () {
+                    var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                    var delAdd = " c7_rm_gr(" + kf + ",'Y');";
+                    return delAdd;
+
+                },
                 afterDelRow: function (qry, ld, data) {
                     // var delAdd = "";
                     // if (qry.name == "qry1")
@@ -372,6 +378,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                                 FormView.err("This Delivery is posted to invoice !");
                             }
                         }
+
                     }
 
                     if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
@@ -390,7 +397,12 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
 
                     }
 
-                }
+                },
+                beforeExeSql: function (frm, sq) {
+                    var gkf = thatForm.frm.getFieldValue("qry1.keyfld");
+                    var sq1 = " c7_rm_gr(" + gkf + ");";
+                    return sq + sq1;
+                },
             };
         },
         getSummary: function () {

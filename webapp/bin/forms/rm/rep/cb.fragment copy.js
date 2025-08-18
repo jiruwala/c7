@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rp.cb", {
+sap.ui.jsfragment("bin.forms.rm.rep.cb", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
