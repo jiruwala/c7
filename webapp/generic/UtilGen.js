@@ -351,6 +351,29 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             _oInput.getCustomData()[0].setKey(val);
 
                     });
+                    if (Util.nvl(c.getTooltip_AsString(), "") != "")
+                        setTimeout(() => {
+                            c.addEventDelegate({
+                                onfocusin: function (e) {
+                                    var oInput = e.srcControl;
+                                    var sTooltip = oInput.getTooltip_AsString();
+                                    UtilGen.DashboardWidget.statusBarText(sTooltip, false, undefined,
+                                        //     function (msg) {
+                                        //     UtilGen.showCustomMessageToast(msg, 100, "black",
+                                        //         "lightgrey", "18px", {
+                                        //         width: "50vw",
+                                        //         offset: "0 20",
+                                        //         my: sap.ui.core.Popup.Dock.CenterBottom,
+                                        //         at: sap.ui.core.Popup.Dock.CenterBottom,
+                                        //     });
+                                        // }
+                                    );
+                                },
+                                onfocusout: function (e) {
+                                    UtilGen.DashboardWidget.statusBarText("", false, undefined);
+                                }
+                            });
+                        });
                 if (c instanceof sap.m.SearchField)
                     c.attachChange(function (oEvent) {
                         var _oInput = oEvent.getSource();
@@ -425,6 +448,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             _oInput.getCustomData()[0].setKey(val);
 
                     });
+                    c.attachChange(function () {
+                        if (c.getItems().length > 0 && c.getValue() != "" && !Util.isCBValValid(c))
+                            setTimeout(() => { c.focus(); c.setValue(""); c.setSelectedKey(""); }, 150);
+                    })
                 }
                 if (c instanceof sap.m.MultiComboBox && sqlStr != undefined) {
                     if (sqlStr.startsWith("@")) {
@@ -1684,8 +1711,13 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         UtilGen.cmdOpenForm(txt2, view, obj, pg1, pOnWndClose);
                     else {
                         if (UtilGen.getIndexByKey(view.lstPgs, formnm) != undefined || UtilGen.getIndexByKey(view.lstPgs, "bin.forms." + formnm) != undefined) {
-                            if (formnm == UtilGen.getControlValue(view.lstPgs))
+                            if (formnm == UtilGen.getControlValue(view.lstPgs)) {
+                                UtilGen.setControlValue(view.lstPgs, "main");
+                                view.lstPgs.fireSelectionChange();
+                                UtilGen.setControlValue(view.lstPgs, formnm);
+                                view.lstPgs.fireSelectionChange();
                                 return;
+                            }
                             UtilGen.setControlValue(view.lstPgs, formnm);
                             view.lstPgs.fireSelectionChange();
                             /*

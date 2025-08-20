@@ -2024,7 +2024,18 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
                 */
                 return value; // Return as is if it's neither number nor string
+            },
+            isCBValValid: function (cb) {
+                if (!cb.getEditable())
+                    return true;
+                var itms = {};
+                var sel = cb.getSelectedKey();
+                for (var i = 0; i < cb.getItems().length; i++)
+                    itms[cb.getItems()[i].getKey()] = "1";
+                if (itms[sel] == undefined) return false;
+                return true;
             }
+
         };
 
         return Util;

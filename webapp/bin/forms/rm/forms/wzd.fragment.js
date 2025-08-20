@@ -327,13 +327,13 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             var sql = "SELECT  " +
                 "              c_order1.ord_ref," +
                 "              c_order1.ord_refnm," +
-                "              c_custitems.descr itemname," +        
+                "              c_custitems.descr itemname," +
                 "              MAX(GETAVGPRICEDLV(c_order1.keyfld)) SALE_PRICE ," +
                 "              SUM (c_order1.tqty) qnty," +
                 "              COUNT (c_order1.ord_no) counting ," +
-                "              c_custitems.packd," +                
+                "              c_custitems.packd," +
                 "              MAX (nvl(c_order1.attn,cbranch.b_name)) bname," +
-                "              c_order1.ord_ship," +                
+                "              c_order1.ord_ship," +
                 "              c_order1.ord_discamt," +
                 "              c_custitems.unitd," +
                 "              max(trunc(ord_date)) ord_date," +
@@ -343,6 +343,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "              items c_custitems," +
                 "              cbranch WHERE " +
                 " c_order1.saleinv is null and " +
+                " c_order1.ord_code=9  and " +
                 locWhere + " and " +
                 ordDates + " and " +
                 refWhere + " and " +
@@ -508,6 +509,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 " and o.ord_code=9 and " +
                 ordDates +
                 " and " + locWhere +
+                " and o.ord_code=9 " +
                 " and ord_ref=" + Util.quoted(selCust) +
                 " and ( ord_ship=" + Util.quoted(selProd) +
                 " or " + Util.quoted(selProd) + " is null) " +

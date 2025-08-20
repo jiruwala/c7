@@ -571,6 +571,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     require: true,
                     list: "select no code,name  from store order by no"
                 },
+                
                 location_code: {
                     colname: "location_code",
                     data_type: FormView.DataType.String,

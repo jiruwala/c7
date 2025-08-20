@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rp.cb", {
+sap.ui.jsfragment("bin.forms.rm.rep.cb", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -58,7 +58,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                 customData: { key: ac },
                 press: function () {
                     var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("bin.forms.gl.rp formType=dialog readonly=true formSize=80%,80% status=view code=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    UtilGen.execCmd("bin.forms.gl.rp formType=dialog formSize=650px,300px status=view code=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
                 }
             }));
             mnu.openBy(obj);
@@ -222,7 +222,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
                                     " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +
                                     " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
-                                    " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
+                                    " where ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
                                     " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and iscust='Y' " +
                                     " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
                                     " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP,sl.name ,0," +

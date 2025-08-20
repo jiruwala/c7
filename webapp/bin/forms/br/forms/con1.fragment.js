@@ -204,8 +204,8 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from c_contract where no=':pac'",
-                        where_clause: " no=':keyfld'",
+                        dml: "select *from c_contract where keyfld=':pac'",
+                        where_clause: " keyfld=':keyfld'",
                         update_exclude_fields: ["default_date", "keyfld", "address", "branchname"],
                         insert_exclude_fields: ["default_date", "address", "branchname"],
                         insert_default_values: {
@@ -482,7 +482,7 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
             }
             return;
         }
-
+        else 
         this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
     },
     helperFunc: {

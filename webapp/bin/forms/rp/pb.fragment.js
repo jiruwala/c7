@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rp.cb", {
+sap.ui.jsfragment("bin.forms.rp.pb", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -35,12 +35,12 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
         var colSpan = "XL2 L2 M2 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var cmdLink = function (obj, rowno, colno, lctb, frm) {
-            var mdl = frm.objs["CB001@qry2"].obj.getControl().getModel();
-            var rr = frm.objs["CB001@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
-            var cont = frm.objs["CB001@qry2"].obj.getControl().getContextByIndex(rr);
+            var mdl = frm.objs["PB001@qry2"].obj.getControl().getModel();
+            var rr = frm.objs["PB001@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
+            var cont = frm.objs["PB001@qry2"].obj.getControl().getContextByIndex(rr);
             var rowid = mdl.getProperty("_rowid", cont);
             // var ac = Util.nvl(lctb.getFieldValue(rowid, "ACCNO"), "");
-            var ac = frm.objs["CB001@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
+            var ac = frm.objs["PB001@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
 
             var mnu = new sap.m.Menu();
             mnu.removeAllItems();
@@ -76,8 +76,8 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
             show_para_pop: false,
             reports: [
                 {
-                    code: "CB001",
-                    name: "Customer Balances",
+                    code: "PB001",
+                    name: "Supplier's Balances",
                     descr: "By periodic balances for receivables",
                     paraColSpan: undefined,
                     hideAllPara: false,
@@ -87,7 +87,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                     showDispCols: true,
                     onSubTitHTML: function () {
                         var up = thatForm.frm.getFieldValue("parameter.unposted");
-                        var tbstr = Util.getLangText("titRcvBalance");
+                        var tbstr = Util.getLangText("Supplier's Balances");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         // if (cs != "")
                         //     ht += "<div class='reportTitle2'>" +"</div > ";
@@ -133,15 +133,15 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                     showValueHelp: true,
                                     change: function (e) {
                                         var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("CB001@parameter.cust_code", vl, vl, false);
+                                        thatForm.frm.setFieldValue("PB001@parameter.cust_code", vl, vl, false);
                                         var vlnm = Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("CB001@parameter.custname", vlnm, vlnm, false);
+                                        thatForm.frm.setFieldValue("PB001@parameter.custname", vlnm, vlnm, false);
 
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select code,name from c_ycust where iscust='Y' order by path", "NAME", "CODE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("CB001@parameter.cust_code", valx, valx, true);
-                                            thatForm.frm.setFieldValue("CB001@parameter.custname", val, val, true);
+                                        Util.showSearchList("select code,name from c_ycust where issupp='Y' order by path", "NAME", "CODE", function (valx, val) {
+                                            thatForm.frm.setFieldValue("PB001@parameter.cust_code", valx, valx, true);
+                                            thatForm.frm.setFieldValue("PB001@parameter.custname", val, val, true);
                                         });
                                     },
                                     width: "35%"
@@ -222,8 +222,8 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
                                     " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +
                                     " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
-                                    " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
-                                    " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and iscust='Y' " +
+                                    " where ord_code=11 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
+                                    " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and issupp='Y' " +
                                     " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
                                     " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP,sl.name ,0," +
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code",

@@ -253,6 +253,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     if (qry.name == "qry1") {
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         var objSt = thatForm.frm.objs["qry1.stra"].obj;
+                        var objStb = thatForm.frm.objs["qry1.strb"].obj;
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                         var objno = thatForm.frm.objs["qry1.ord_no"].obj;
                         var objopno = thatForm.frm.objs["qry1.op_no"].obj;
@@ -263,6 +264,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         var dt = thatForm.view.today_date.getDateValue();
                         UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
                         UtilGen.setControlValue(objSt, sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
+                        UtilGen.setControlValue(objStb, sett["DEFAULT_PRODUCT_STORE"], sett["DEFAULT_PRODUCT_STORE"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
 
                         var newno = Util.getSQLValue("select nvl(max(ord_no),0)+1 from c_order1 where ord_code=9 and location_code='" + objOn.getSelectedKey() + "'");
@@ -302,6 +304,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 },
                 afterDelRow: function (qry, ld, data) {
                     var delAdd = "";
+                    var delIasm = "";
+
                     if (qry.name == "qry1") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var ordn = thatForm.frm.getFieldValue("qry1.ord_no");
@@ -320,11 +324,17 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                             advance_data: "Previous Data -> " + thatForm.frm.getRawOriginData("qry1", "queryValues")
                         }, "");
                         delAdd += sqLog + "";
+
+
+                        var geniasm = Util.nvl(sett["BR_GEN_IASM_ON_DELIVERY"], 'FALSE');
+                        delIasm = geniasm == "TRUE" ? "c7_generate_iasm_from_dlv(" + kf + ",'Y');" : "";
+
                     }
                     if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                         qry.obj.addRow();
 
-                    return delAdd;
+
+                    return delIasm + " " + delAdd;
                 },
                 onCellRender: function (qry, rowno, colno, currentRowContext) {
                 },
@@ -378,6 +388,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         "payterm": "':qry1.payterm'",
                         "validatiy": "':qry1.validatiy'",
                         "attn": "':qry1.branchname'",
+                        "lcno": "':qry1.typofcem'",
                         "created_time": Util.nvl(crdt, "sysdate"),
                         "modified_time": "sysdate",
                         "usernm": Util.quoted(sett["LOGON_USER"]),
@@ -398,7 +409,22 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         notify_type: "",
                         advance_data: stat == "UPDATE" ? "Previous Data -> " + thatForm.frm.getRawOriginData("qry1", "changedOnly") : "",
                     }, "");
-                    return sq + sq1 + sqOr + ";" + sqLog + "";
+                    var geniasm = Util.nvl(sett["BR_GEN_IASM_ON_DELIVERY"], 'FALSE');
+                    var sqi = "";
+                    if (geniasm == 'TRUE') {
+                        sqi = "c7_generate_iasm_from_dlv(" + kf + ");";
+                    }
+
+                    return sq + sq1 + sqOr + ";" + sqi + sqLog + "";
+                },
+                addSqlBeforeUpdate: function (qry, rn) {
+                    var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                    if (qry.name == "qry1" && thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) {
+                        var sq1 = "";
+                        sq1 = "c7_generate_iasm_from_dlv(" + kf + ",'Y');";
+                        return sq1;
+                    }
+                    return "";
                 }
             };
         },
@@ -485,6 +511,12 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     sqlChange: "select name from salesp where no = ':CODE'",
                     sqlList: "select no code,name title from salesp where type='" + typ + "'  order by no ",
                     sqlListChange: "select no code,name title from salesp where no=:CODE",
+                    fnAfteUpdate: function () {
+                        if (typ != "D") return;
+                        var locval = thatForm.frm.objs[ordref].obj.getValue();
+                        var s = Util.getSQLValue("select vehicleno from salesp where no='" + locval + "'");
+                        thatForm.frm.setFieldValue("qry1.typofcem", s);
+                    }
                 });
             };
             var getSettingContItems = function (seq) {
@@ -667,19 +699,28 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                 //5                
                 ord_empno: FormView.getFactoryFields.getGeneralField(
-                    "ord_empno", "", "txtDriver", "15%", "violetText", "12%",
+                    "ord_empno", "", "txtDriver", "15%", "violetText", "8%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true,
                     }, getSettingSalesp("qry1.ord_empno", "qry1.drivername", "D")),
                 drivername: FormView.getFactoryFields.getGeneralField(
-                    "drivername", "@", "", "1%", "", "22%",
+                    "drivername", "@", "", "1%", "", "13%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
                         keyboardFocus: false,
+
+                    }, {}),
+                typofcem: FormView.getFactoryFields.getGeneralField(
+                    "typofcem", "@", "truckNo", "7%", "", "7%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        keyboardFocus: true,
 
                     }, {}),
                 salesp: FormView.getFactoryFields.getGeneralField(
@@ -759,6 +800,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     }, {}),
                 stra: FormView.getFactoryFields.getComboField(
                     "stra", "@", "storeNo", "15%", "", "35%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        list: "select no code,name  from store order by no",
+                    }, {}),
+                strb: FormView.getFactoryFields.getComboField(
+                    "strb", "", "Product store", "65%", "", "35%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -1435,6 +1484,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
     }
     ,
     showRawItems: function () {
+        var thatForm = this;
+        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+        var jokf = Util.getSQLValue("select jobno from c_order1 where keyfld=" + kf);
+        UtilGen.execCmd("bin.forms.br.forms.iasm formTitle=Assembly formType=dialog readonly=true keyfld=" + jokf + " formSize=80%,80%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+
+        });
+
+    },
+    showRawItemsOld: function () {
         var that2 = this;
         var generateCtgs = function () {
             var view = that2.view;

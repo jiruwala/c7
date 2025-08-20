@@ -1184,14 +1184,23 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
     }
     ,
     loadData: function () {
-        // if (Util.nvl(this.oController.accno, "") != "" &&
-        //     Util.nvl(this.oController.status, "view") == FormView.RecordStatus.VIEW) {
-        //     this.frm.setFieldValue("pac", this.oController.accno, this.oController.accno, true);
-        //     this.frm.loadData(undefined, FormView.RecordStatus.VIEW);
-        //     this.oController.accno = "";
-        //     return;
+        var frag = this;
+        if (Util.nvl(this.oController.code, "") != "" &&
+            Util.nvl(this.oController.status, "view") == FormView.RecordStatus.VIEW) {
+            this.frm.setFieldValue("pac", this.oController.code, this.oController.code, true);
+            this.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+            this.oController.code = "";
+            if (Util.nvl(frag.oController.readonly, false)) {
+                frag.frm.cmdButtons.cmdNew.setVisible(false);
+                frag.frm.cmdButtons.cmdEdit.setVisible(false);
+                frag.frm.cmdButtons.cmdDel.setVisible(false);
+                frag.frm.cmdButtons.cmdSave.setVisible(false);
 
-        // }
+            }
+
+            return;
+
+        }
         this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
     }
     ,
@@ -1311,7 +1320,9 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
                 || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
             press: function () {
-                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                if (that2.frm.cmdButtons.cmdEdit.getVisible() &&
+                    that2.frm.cmdButtons.cmdEdit.getEnabled() &&
+                    that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
                     that2.frm.cmdButtons.cmdEdit.setPressed(true);
                     that2.frm.cmdButtons.cmdEdit.firePress();
                 }
@@ -1565,7 +1576,9 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             pressed: (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT
                 || that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW),
             press: function () {
-                if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                if (that2.frm.cmdButtons.cmdEdit.getVisible() &&
+                    that2.frm.cmdButtons.cmdEdit.getEnabled() &&
+                    that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
                     that2.frm.cmdButtons.cmdEdit.setPressed(true);
                     that2.frm.cmdButtons.cmdEdit.firePress();
                 }

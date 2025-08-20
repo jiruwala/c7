@@ -58,7 +58,7 @@ sap.ui.jsfragment("bin.forms.rm.rep.cb", {
                 customData: { key: ac },
                 press: function () {
                     var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("bin.forms.gl.rp formType=dialog formSize=650px,300px status=view code=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    UtilGen.execCmd("bin.forms.gl.rp formType=dialog formSize=80%,80% status=view code=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
                 }
             }));
             mnu.openBy(obj);
@@ -219,7 +219,7 @@ sap.ui.jsfragment("bin.forms.rm.rep.cb", {
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT,C_YCUST.TEL," +
                                     " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance," +
                                     " (select nvl(sum((sale_price)*tqty),0) from c_order1 " +
-                                    " where ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
+                                    " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
                                     " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code " +
                                     " and (nvl(':parameter.pstatus','ALL')='ALL' or c_ycust.mov_type=':parameter.pstatus')  " +
                                     " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +

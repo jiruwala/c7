@@ -368,8 +368,10 @@ sap.ui.jsfragment("bin.forms.gl.acclist", {
         this.mColName = "NAME";
         this.mColParent = "PARENTACC";
         var mColLevel = "";
-        var sq = "select acaccount.accno, acaccount.name, acaccount.parentacc ,acaccount.path,acaccount.childcount,acaccount.usecount,  " +
-            "accno||'-'||name acname from acaccount order by path";
+        var nm = Util.getLangDescrAR("nvl(acaccount.namea,acaccount.name) name ", "acaccount.name ");
+        var nm2 = "accno||'-'||" + Util.getLangDescrAR("nvl(namea,name)", "name");
+        var sq = "select acaccount.accno," + nm + " , acaccount.parentacc ,acaccount.path,acaccount.childcount,acaccount.usecount,  " +
+            nm2 + " acname from acaccount order by path";
         if (mod == "cc") {
             sq = "select cc.*,CODE||'-'||TITLE acname  from accostcent1 cc order by path";
             this.mColCodName = "ACNAME";
@@ -416,8 +418,8 @@ sap.ui.jsfragment("bin.forms.gl.acclist", {
         var pacc = Util.nvl(pacn, "");
         var cs = Util.nvl(childs, 0);
         var up = that.view.byId("chkUnpost").getSelected() ? 2 : 0;
-
-        var sql = "select ac.accno,ac.name,ac.childcount, (select sum(debit-credit) from ACC_TRANSACTION_UP where " + " (flag=" + up + " or " + up + "=0" + ") and path like ac.path||'%') balance" +
+        var nm = Util.getLangDescrAR("nvl(ac.namea,ac.name) name ", "ac.name ");
+        var sql = "select ac.accno," + nm + ",ac.childcount, (select sum(debit-credit) from ACC_TRANSACTION_UP where " + " (flag=" + up + " or " + up + "=0" + ") and path like ac.path||'%') balance" +
             "  from acaccount ac" +
             " where ac.parentacc=" + Util.quoted(pacc) + " order by ac.path";
         if (cs > 0)

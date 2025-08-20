@@ -75,8 +75,8 @@ sap.ui.jsfragment("bin.forms.rp.page", {
             reports: [
                 {
                     code: "PAGE1",
-                    name: "Receivables Ageing",
-                    descr: "Recievables Ageing by period",
+                    name: "Payable Ageing",
+                    descr: "Payables Ageing by period",
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -85,7 +85,7 @@ sap.ui.jsfragment("bin.forms.rp.page", {
                     showDispCols: true,
                     onSubTitHTML: function () {
                         var up = thatForm.frm.getFieldValue("parameter.unposted");
-                        var tbstr = Util.getLangText("Receivables Ageing");
+                        var tbstr = Util.getLangText("Payable Ageing");
                         var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
                         // if (cs != "")
                         //     ht += "<div class='reportTitle2'>" +"</div > ";
@@ -211,8 +211,8 @@ sap.ui.jsfragment("bin.forms.rp.page", {
                             pstatus: {
                                 colname: "pstatus",
                                 data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"clientStatus\",\"width\":\"15%\","textAlign":"End"}',
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"currentStatus\",\"width\":\"15%\","textAlign":"End"}',
                                 title2: "",
                                 display_width: colSpan,
                                 display_align: "ALIGN_RIGHT",
@@ -220,9 +220,15 @@ sap.ui.jsfragment("bin.forms.rp.page", {
                                 display_format: "",
                                 default_value: "",
                                 other_settings: {
-                                    width: "35%"
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "ACTIVE",
                                 },
-                                list: undefined,
+                                list: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -588,6 +594,7 @@ sap.ui.jsfragment("bin.forms.rp.page", {
         paras += " parent_cust varchar2(255) := ':parameter.pcust'; ";
         paras += " pstatus varchar2(255) := ':parameter.pstatus'; ";
         paras += " get_unpostbal varchar2(100) := 'FALSE'; ";
+        paras += " showoverdue varchar2(255) := ':Y'; ";
         paras += " slp number ; ";
         paras += " hide_zero varchar2(100) := 'FALSE'; ";
         paras += " hide_negative varchar2(100) := 'FALSE'; ";

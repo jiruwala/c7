@@ -675,7 +675,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
                 var sq = "select nvl(sum(op_no*tqty),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
                 sq = sq.replaceAll(":txtKflds", kfldStr);
                 var sumadd = Util.getSQLValue(sq);
-                that.txtInfoAdd.setValue(df.format(sumadd));
+                // that.txtInfoAdd.setValue(df.format(sumadd));
             }
 
         }
@@ -732,18 +732,18 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             "                 DISC_AMT, PACK, PACKD, UNITD, DAT, QTY, PKQTY, FREEQTY, FREEPKQTY, " +
             "                 ALLQTY, PRD_DATE, EXP_DATE, YEAR, FLAG, ORDWAS, KEYFLD, RATE, CURRENCY," +
             "                 CREATDT, ORDERNO, QTYIN, QTYOUT, DISC_AMT_GROSS, SLSMNXX," +
-            "                 RECIEVED_KEYFLD, FREE_ALLQTY,costcent,size_of_descr)" +
+            "                 RECIEVED_KEYFLD, FREE_ALLQTY,costcent,size_of_descr,gr_pos)" +
             "                 values (" +
             "                 pcode, ploc, pinvno," +
-            "                 11, ptype, posx, x.ord_ship, pstr , pr*x.pack,  x.pkaver ," +
+            "                 11, ptype, posx, x.ord_ship, x.stra , pr*x.pack,  pr ," +
             "                 0, x.pack, x.packd, x.unitd, pdate," +
             "                 0, x.tqty, 0, 0," +
             "                 x.tqty*x.pack, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
             "                 kfld , 1, 'KWD', SYSDATE, X.KEYFLD, X.tqty*X.PACK, 0, 0, x.ORD_EMPNO," +
-            "                 null, 0,'',x.PAYTERM) ;" +
+            "                 null, 0,'',x.PAYTERM,x.ord_pos) ;" +
             "     totamt:=totamt+(x.TQTY*pr);                " +
             " " +
-            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=11 and keyfld=x.keyfld;" +
+            "   update C_ORDER1 set sale_price=pr*x.pack,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=11 and keyfld=x.keyfld and ord_pos=x.ord_pos;" +
             "   update ORDER1 set SALEINV=kfld,ord_flag=2 where ord_code=11 and keyfld=x.keyfld; " +
             " " +
             " end loop;" +
