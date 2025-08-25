@@ -337,8 +337,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "              c_order1.ord_discamt," +
                 "              c_custitems.unitd," +
                 "              max(trunc(ord_date)) ord_date," +
-                "          location_code," +
-                "              ord_code " +
+                "              min(stra) stra," +
+                "              min(strb) strb," +
+                "              location_code," +
+                "               ord_code " +
                 "       FROM   c_order1," +
                 "              items c_custitems," +
                 "              cbranch WHERE " +
@@ -578,6 +580,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "               cbranch.b_name branchname," +
                 "               GETAVGPRICEDLV(o.keyfld) PRICE2 ," +
                 "               GETSUMPRICEDLV(o.keyfld) AMT2 ," +
+                "               o.stra," +
+                "               o.strb," +
                 "               o.KEYFLD" +
                 "        FROM   c_order1 o , " +
                 "               items ," +
@@ -595,6 +599,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "               o.KEYFLD," +
                 "               o.ATTN," +
                 "              items.descr ," +
+                "               o.stra," +
+                "               o.strb," +
                 "               GETAVGPRICEDLV(o.keyfld) , " +
                 "               GETSUMPRICEDLV(o.keyfld), " +
                 "               GETAVGPRICEDLV(o.keyfld,'N') , " +
@@ -734,7 +740,23 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 },
                 value: ""
             });
+        this.txtInfoStra = new sap.m.ComboBox(
+            {
+                width: "35%",
+                customData: [{ key: "" }],
+                items: {
+                    path: "/",
+                    template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{NO}" }),
+                    templateShareable: true
+                },
+                selectionChange: function (ev) {
+                },
+                value: ""
+            });
+
         Util.fillCombo(this.txtInfoLocations, "select code,name from locations order by code");
+
+        Util.fillCombo(this.txtInfoStra, "select no,name from store order by no");
         // this.txtLocations.setSelectedItem(Util.findComboItem(this.txtLocations, sett["DEFAULT_LOCATION"]));
         //UtilGen.setControlValue(that.txtInfoLocations, sett["DEFAULT_LOCATION"]);
 
@@ -812,6 +834,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
             Util.getLabelTxt("locationTxt", "20%"), this.txtInfoLocations,
             Util.getLabelTxt("txtOrdType", "20%", "@"), this.txtInfoInvType,
+            Util.getLabelTxt("storeNo", "20%"), this.txtInfoStra,
             Util.getLabelTxt("txtInvNo", "20%", ""), this.txtInfoInvNo,
             Util.getLabelTxt("dateTxt", "20%", "@"), this.txtInfoInvDate,
             Util.getLabelTxt("", "100%", "#", undefined, "Begin"),
@@ -1053,12 +1076,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         var selBrName = that.txtBranchName.getValue();
         var selProd = that.txtProd.getValue();
         var selDate = that.txtToDate.getDateValue();
+
+        var selStrb = '';
         if (rn >= 0) {
             selCust = that.qvRef.mLctb.getFieldValue(rn, "ORD_REF");
             selCustName = that.qvRef.mLctb.getFieldValue(rn, "ORD_REFNM");
             selBrno = that.qvRef.mLctb.getFieldValue(rn, "ORD_DISCAMT");
             selBrName = that.qvRef.mLctb.getFieldValue(rn, "BNAME");
             selProd = that.qvRef.mLctb.getFieldValue(rn, "ORD_SHIP");
+            selStrb = that.qvRef.mLctb.getFieldValue(rn, "STRB");
             // selDate = that.qvRef.mLctb.getFieldValue(rn, "ORD_DATE");
         }
 
@@ -1069,9 +1095,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         this.infoPage.addHeaderContent(new sap.m.Title({ text: Util.getLangText("titSalWzd") + " / " + refName + " / " + bName }).addStyleClass("redText boldText"));
 
         var loc = UtilGen.getControlValue(that.txtLocations);
+
         UtilGen.setControlValue(that.txtInfoLocations, "-", "-", true);
         UtilGen.setControlValue(that.txtInfoLocations, loc, loc, true);
+        UtilGen.setControlValue(that.txtInfoStra, selStrb, selStrb, true);
         that.txtInfoLocations.fireSelectionChange();
+        that.txtInfoStra.fireSelectionChange();
+
+
+
         var adamt = df.format(parseFloat("0"));
         that.txtInfoRef.setValue(selCust);
         that.txtInfoRefName.setValue(selCustName);
@@ -1202,7 +1234,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             " totaag number:=0;" +
             " totamt number:=0;" +
             " " +
-            " cursor ds is select o.*,it.packd, it.pack,it.unitd,it.pkaver,it.prd_dt prd_date,it.exp_dt exp_date from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;" +
+            " cursor ds is select o.*,it.packd, it.pack,it.unitd,get_item_cost(it.reference,o.ord_date) pkaver,it.prd_dt prd_date,it.exp_dt exp_date from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;" +
             " cursor pu(kfx number) is select *from pur2 where keyfld=kfx order by itempos;" +
             " " +
             " begin" +

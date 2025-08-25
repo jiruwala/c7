@@ -239,7 +239,8 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
 
                         },
                         valueHelpRequest: function (event) {
-                            Util.showSearchList("select accno,name from acaccount where actype=0 order by path", "NAME", "ACCNO", function (valx, val) {
+                            var nm = Util.getLangDescrAR("nvl(namea,name) name ", "name ");
+                            Util.showSearchList("select accno," + nm + " from acaccount where actype=0 order by path", "NAME", "ACCNO", function (valx, val) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.accno", valx, valx, true);
                                 thatForm.frm.setFieldValue(repCode + "@parameter.acname", val, val, true);
                             });
@@ -452,15 +453,16 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
             }, false).done(function (data) {
             });
             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-            var sq = "select field1 accno,field2 name,field19 parentacc,field17 path," +
+            var nm = Util.getLangDescrAR("nvl(acaccount.namea,field2) name ", "field2 name");
+            var sq = "select field1 accno," + nm + ",field19 parentacc,field17 path," +
                 " to_number(field5) bdeb,to_number(field6) bcrd," +
                 " to_number(field7) tdeb, to_number(field8) tcrd, " +
                 " to_number(field13) cdeb, to_number(field14) ccrd, " +
                 " to_number(FIELD16) levelno , to_number(field18) childcount " +
-                " from temporary " +
-                " where idno=66601 " +
+                " from temporary,acaccount " +
+                " where idno=66601 and  temporary.field1=acaccount.accno " +
                 (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
-                " and usernm='01' order by field17 ";
+                " and temporary.usernm='01' order by field17 ";
             sq = thatForm.frm.parseString(sq);
             var pars = Util.nvl(qryObj.rep.parameters, []);
 
