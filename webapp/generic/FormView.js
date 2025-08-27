@@ -2124,7 +2124,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 var brname = Util.nvl(pSet.branchname, "qry1.branchname");
 
                 return this.getSettingsGeneral({
-                    thatForm: pSet, thatForm,
+                    thatForm: pSet.thatForm,
                     fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
                     fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
                     fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
@@ -2140,6 +2140,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     },
                     sqlList: function () {
                         var locval = UtilGen.getControlValue(thatForm.frm.objs[ordref].obj);
+                        var btns = (pSet.getBtns != undefined ? pSet.getBtns() : undefined);
                         return "select brno code,b_name title,AREA,BLOCK,JEDDA,QASIMA from cbranch where code=':locationx' order by brno ".replaceAll(":locationx", locval);
                     },
                     sqlListChange: function () {
