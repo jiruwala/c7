@@ -1215,7 +1215,6 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                 .replaceAll(":user", sett["LOGON_USER"])
                 ;
             var dt = Util.execSQL(sq);
-
         }
     },
     calcAge: function (currDate, ld, sett) {
