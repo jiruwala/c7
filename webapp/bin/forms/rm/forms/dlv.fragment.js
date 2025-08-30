@@ -626,6 +626,13 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                     }, FormView.getFactoryFields.getSettingsBr({
                         thatForm: thatForm,
+                        getBtns: function () {
+                            return [new sap.m.Button({
+                                text: 'New Branch', press: function () {
+                                    thatForm.helperFunc.showBranch(this);
+                                }
+                            })]
+                        },
                         fnBeforeChange: function () {
                             thatForm.frm.setFieldValue("qry1.ord_ship", "", "", true);
                         }
@@ -1502,7 +1509,146 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 buttons: [
                     btAp,
                     new sap.m.Button({
-                        text: Util.getLangText("closeTxt"),
+                        text: Util.getLangText("cmdClose"),
+                        press: function () {
+                            dlg.close();
+                        }
+                    })
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+        },
+        showBranch: function () {
+            var thatForm = this.thatForm;
+            if (UtilGen.Security.isReadOnly("formsec_custbranches", "", false))
+                FormView.err("you can not add/edit branches");
+
+            var vb = new sap.m.VBox();
+            var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
+            var nam = thatForm.frm.getFieldValue("qry1.ord_refnm");
+            if (Util.nvl(cod, '') == "")
+                FormView.err("Err !, No customer is assigned !");
+            var btAp = new sap.m.Button({
+                text: Util.getLangText("saveRec"),
+                enabled: false,
+                press: function () {
+                    saveData();
+                }
+            });
+            var enableDisableSave = function () {
+                var ed = false;
+                if (txtBrNo.getValue() != "" && txtbname.getValue() != "") ed = true;
+                btAp.setEnabled(ed);
+            }
+            var txtCustCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Center, width: "25%" }).addStyleClass("redText");
+            var txtCustName = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "85%" }).addStyleClass("redText");
+            var txtBrNo = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true });
+            var txtbname = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: true });
+            var txtbName2 = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "59%", editable: true });
+            var txtArea = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtBlock = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtStreet = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtJedda = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtQasima = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+            var txtTel = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "17%", editable: true });
+
+            txtBrNo.attachLiveChange(enableDisableSave);
+            txtbname.attachLiveChange(enableDisableSave);
+
+            var newNo = Util.getSQLValue("select nvl(max(brno),0)+1 from cbranch where code='" + cod + "'");
+            txtBrNo.setValue(newNo + "");
+            txtCustCode.setText(cod);
+            txtCustName.setText(nam);
+
+            var checkBrNoExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(b_name),'') from cbranch where code='" + cod + "' and  brno=" + txtBrNo.getValue());
+                if (msg && Util.nvl(exis, '') != '')
+                    FormView.err("Branch No Existed .with name " + exis);
+                return (msg ? true : pmsg);
+            };
+
+            var checkNameExist = function (pmsg) {
+                var msg = Util.nvl(pmsg, true);
+                var exis = Util.getSQLValue("select nvl(max(brno||''),'') from cbranch where code='" + cod + "' and upper(b_name)=upper('" + txtbname.getValue() + "')");
+                if (msg && Util.nvl(exis, '') != '')
+                    FormView.err("Branch NAME Existed .with NO # " + exis);
+                return (msg ? true : pmsg);
+            };
+
+            txtBrNo.attachChange(function () {
+                checkBrNoExist(true);
+            });
+            txtbname.attachChange(function () {
+                checkNameExist(true);
+            });
+
+
+            var saveData = function () {
+                checkBrNoExist(true);
+                checkNameExist(true);
+                var acno = Util.getSQLValue("select ac_no from c_ycust where code='" + txtCustCode.getText() + "'");
+                var sq = "Insert into cbranch (BRNO, CODE, ACCNO, B_NAME, B_NAMEA, AREA, TEL, BLOCK, STREET, JEDDA, QASIMA) VALUES  " +
+                    " (:BRNO, ':CODE', ':ACCNO', ':B_NAME', ':B_NAMEA', ':AREA', ':TEL', ':BLOCK', ':STREET', ':JEDDA', ':QASIMA') ";
+                sq = sq.replaceAll(":BRNO", txtBrNo.getValue())
+                    .replaceAll(":CODE", txtCustCode.getText())
+                    .replaceAll(":B_NAMEA", txtbName2.getValue())
+                    .replaceAll(":B_NAME", txtbname.getValue())
+                    .replaceAll(":ACCNO", acno)
+                    .replaceAll(":AREA", txtArea.getValue())
+                    .replaceAll(":TEL", txtTel.getValue())
+                    .replaceAll(":BLOCK", txtBlock.getValue())
+                    .replaceAll(":STREET", txtStreet.getValue())
+                    .replaceAll(":JEDDA", txtJedda.getValue())
+                    .replaceAll(":QASIMA", txtQasima.getValue());
+
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS") {
+                    sap.m.MessageToast.show("Successfully Saved new BRANCH, refresh list ");
+                    dlg.close();
+                }
+
+            }
+            var fe = [
+                Util.getLabelTxt("txtCust", "15%", ""), txtCustName,
+                Util.getLabelTxt("txtBranch", "15%"), txtBrNo,
+                Util.getLabelTxt("", "1%", "@"), txtbname,
+                Util.getLabelTxt("txtName2", "41%", ""), txtbName2,
+                Util.getLabelTxt("Area", "15%", ""), txtArea,
+                Util.getLabelTxt("Block", "17%", "@"), txtBlock,
+                Util.getLabelTxt("Street", "17%", "@"), txtStreet,
+                Util.getLabelTxt("Jedda", "15%", ""), txtJedda,
+                Util.getLabelTxt("Qasima", "17%", "@"), txtQasima,
+                Util.getLabelTxt("Tel", "17%", "@"), txtTel,
+
+            ];
+
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                width: { "S": 280, "M": 380, "L": 520 },
+                cssText: [
+                    "padding-left:5px ;" +
+                    "padding-top:3px;" +
+                    "border-style: groosve;" +
+                    "margin-left: 1%;" +
+                    "margin-right: 1%;" +
+                    "border-radius:20px;" +
+                    "margin-top: 3px;"
+                ]
+            }, "sapUiSizeCompact", "");
+
+            cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            vb.addItem(cnt);
+            Util.navEnter(fe);
+            var dlg = new sap.m.Dialog({
+                title: Util.getLangText("newBranch"),
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 550 }) + "px",
+                contentHeight: "200px",
+                content: [vb],
+                modal: true,
+                buttons: [
+                    btAp,
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdClose"),
                         press: function () {
                             dlg.close();
                         }
@@ -1513,6 +1659,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         },
         showEmpsWnd: function (obj, empType) {
             var thatForm = this.thatForm;
+            if (UtilGen.Security.isReadOnly("formsec_drivers", "", false))
+                FormView.err("you can not add/edit drivers");
+
             var empTypeWrd = {
                 "D": "Driver",
                 "E": "Employee",

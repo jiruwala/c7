@@ -572,10 +572,21 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                 var fromdate = frm.getFieldValue("parameter.fromdate" == undefined) ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate"));
 
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "GR_KEYFLD")].getText());
+                var ikfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "INVOICE_KEYFLD")].getText());
                 // var jvpos = parseInt(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "GO_POSNO")].getText());
                 var typd = (tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "INVOICE_CODE")].getText());
-                if (Util.nvl(kfld, "") != "" && (typd == 21 || typd == "21"))
-                    UtilGen.execCmd("bin.forms.sl.sodlv formType=page readonly=true keyfld=" + kfld, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                if (Util.nvl(ikfld, "") != "" && (typd == 21 || typd == "21"))
+                    UtilGen.execCmd("bin.forms.rm.forms.unpost formType=dialog formSize=650px,550px readonly=true keyfld=" + ikfld, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                if (Util.nvl(kfld, "") != "" && (typd == 11 || typd == "11"))
+                    UtilGen.execCmd("bin.forms.br.forms.pdlv formType=dialog readonly=true keyfld=" + kfld, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                if (Util.nvl(ikfld, "") != "" && (typd == 27 || typd == "27" || typd == 17 || typd == "17")) {
+                    var ordk = Util.getSQLValue("select keyfld from c_order1 where jobno=" + ikfld);
+                    if (Util.nvl(ordk, "") != "")
+                        UtilGen.execCmd("bin.forms.rm.forms.dlv formType=dialog readonly=true keyfld=" + ordk, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    else
+                        UtilGen.execCmd("bin.forms.br.forms.iasm formType=dialog readonly=true keyfld=" + ikfld, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                }
+
             };
             var flds = {
                 invoice_date: {
@@ -627,7 +638,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                     display_format: "",
                     default_value: "",
                     other_settings: {},
-                    commandLinkClick: cmdLink
+                    commandLinkClick: cmdLinkGo
                 },
                 pord_no: {
                     colname: "pord_no",
@@ -910,7 +921,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                     colname: "po_posno",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
-                    title: "refName",
+                    title: "",
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
@@ -942,7 +953,23 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                     colname: "gr_keyfld",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
-                    title: "refName",
+                    title: "",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "0",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                },
+                invoice_keyfld: {
+                    colname: "invoice_keyfld",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "",
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
@@ -1215,6 +1242,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st2", {
                 .replaceAll(":user", sett["LOGON_USER"])
                 ;
             var dt = Util.execSQL(sq);
+
         }
     },
     calcAge: function (currDate, ld, sett) {
