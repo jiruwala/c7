@@ -2125,6 +2125,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                 return this.getSettingsGeneral({
                     thatForm: pSet.thatForm,
+                    getBtns: pSet.getBtns,
                     fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
                     fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
                     fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),

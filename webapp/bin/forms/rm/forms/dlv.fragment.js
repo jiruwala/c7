@@ -1509,7 +1509,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 buttons: [
                     btAp,
                     new sap.m.Button({
-                        text: Util.getLangText("closeTxt"),
+                        text: Util.getLangText("cmdClose"),
                         press: function () {
                             dlg.close();
                         }
@@ -1520,6 +1520,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         },
         showBranch: function () {
             var thatForm = this.thatForm;
+            if (UtilGen.Security.isReadOnly("formsec_custbranches", "", false))
+                FormView.err("you can not add/edit branches");
+
             var vb = new sap.m.VBox();
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
             var nam = thatForm.frm.getFieldValue("qry1.ord_refnm");
@@ -1645,7 +1648,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 buttons: [
                     btAp,
                     new sap.m.Button({
-                        text: Util.getLangText("closeTxt"),
+                        text: Util.getLangText("cmdClose"),
                         press: function () {
                             dlg.close();
                         }
@@ -1656,6 +1659,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         },
         showEmpsWnd: function (obj, empType) {
             var thatForm = this.thatForm;
+            if (UtilGen.Security.isReadOnly("formsec_drivers", "", false))
+                FormView.err("you can not add/edit drivers");
+
             var empTypeWrd = {
                 "D": "Driver",
                 "E": "Employee",

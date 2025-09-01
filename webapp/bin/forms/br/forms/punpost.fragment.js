@@ -65,7 +65,7 @@ sap.ui.jsfragment("bin.forms.br.forms.punpost", {
                     }
                 }),
                 new sap.m.Button({
-                    text: Util.getLangText("cmdShowDlvs"),
+                    text: Util.getLangText("Receipts"),
                     press: function () {
                         that.showDlvs();
                     }
@@ -94,18 +94,15 @@ sap.ui.jsfragment("bin.forms.br.forms.punpost", {
     showDlvs: function () {
         var that = this;
         var inp = new sap.m.Input();
-        UtilGen.Search.do_quick_search(undefined, inp,
-            "select inv.ordwas,inv.refer,it.descr,inv.price,inv.allqty,round(inv.price*inv.allqty,3) amount " +
+        var sq = "select inv.ordwas keyid,stra store,inv.refer,it.descr,inv.price,inv.allqty,round(inv.price*inv.allqty,3) amount " +
             " from items it,pur2 inv where inv.refer=it.reference " +
             " and inv.keyfld='" + that.keyfld.getValue() + "'" +
-            " order by inv.ordwas ",
-            "select reference code,descr title from items  where reference=:CODE", inp, undefined,
-            {
-                pWidth: "90%", pHeight: "400px",
-                "background-color": 'blue',
-                "dialogStyle": "cyanDialog"
-            });
-
+            " order by inv.ordwas ";
+        UtilGen.Search.do_quick_search_simple(sq,
+            ["KEYID", "DESCR", "REFER"], function (data) {
+                var kfld = data.KEYID;
+                UtilGen.execCmd("bin.forms.br.forms.pdlv formType=dialog readonly=true keyfld=" + kfld, UtilGen.DBView, inp, UtilGen.DBView.newPage);
+            }, { pWidth: "80%" });
     },
     createView: function () {
         var that = this;
