@@ -1596,7 +1596,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                                 grp = df.format(o[i][v]);
                             if (this.mLctb.getColByName(vv).getMUIHelper().display_format === "QTY_FORMAT")
                                 o[i][v] = dfq.format(o[i][v]);
-                            if (this.mLctb.getColByName(vv).getMUIHelper().display_format != "" && typeof (o[i][v]) == "number"
+                            if (Util.nvl(this.mLctb.getColByName(vv).getMUIHelper().display_format,"") != "" && typeof (o[i][v]) == "number"
                                 && numberFormats[fmt] == undefined) {
                                 var dfx = new DecimalFormat(this.mLctb.getColByName(vv).getMUIHelper().display_format);
                                 o[i][v] = dfx.format(o[i][v]);

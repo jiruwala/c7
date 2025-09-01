@@ -173,7 +173,7 @@ sap.ui.jsfragment("bin.forms.rp.sl.slsum", {
                                             qr.getControl().setVisibleRowCount(10);
                                             qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 35, "XL": 20 });
                                             qr.getControl().setRowHeight(18);
-                                            qr.filterCols = ["DESCR", "INV_REFNM", "REFER", "LOCATION_NAME", "SLSMN_NAME", "MONTH"];
+                                            qr.filterCols = ["DESCR", "INV_REFNM", "REFER", "LOCATION_NAME", "SLSMN_NAME", "MONTH", "C_CUS_NO", "SLSMN", "SLSMN_NAME"];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
                                                 // EVENT ON APPLY PERSONALIZATION
                                                 function (prsn, qv) {

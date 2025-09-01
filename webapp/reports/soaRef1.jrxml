@@ -297,6 +297,38 @@ ORDER BY   ACCNO]]>
 					</textElement>
 					<text><![CDATA[Tel. /]]></text>
 				</staticText>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strCompanySpec" x="321" y="32" width="244" height="29" uuid="13da5408-f1d1-419d-9923-ba14d7df1a09"/>
+					<textElement textAlignment="Right">
+						<font fontName="DejaVu Sans" size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SPECIFICATIONA}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strCompanyName" x="14" y="2" width="246" height="30" uuid="17a8246d-8954-486d-9789-209770be4f59"/>
+					<textElement>
+						<font fontName="DejaVu Sans" size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{COMP_NAME}]]></textFieldExpression>
+				</textField>
+				<image scaleImage="FillFrame">
+					<reportElement x="260" y="7" width="61" height="54" uuid="ef6fae0e-28ab-47d3-80e9-5abdb2544f60"/>
+					<imageExpression><![CDATA["company_logo.bmp"]]></imageExpression>
+				</image>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strCompanySpec" x="14" y="31" width="246" height="31" uuid="065ce795-6aa0-4260-a293-c35897da8a88"/>
+					<textElement>
+						<font fontName="DejaVu Sans" size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SPECIFICATION}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strCompanyName" x="321" y="2" width="244" height="30" uuid="eaa90787-7963-48a9-bcd6-0bff1d3267fb"/>
+					<textElement textAlignment="Right">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{COMP_NAMEA}]]></textFieldExpression>
+				</textField>
 			</band>
 		</groupHeader>
 		<groupFooter>

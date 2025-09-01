@@ -41,7 +41,7 @@ sap.ui.jsfragment("bin.forms.in.lists", {
             that.frm.refreshDisplay();
         };
         this.mainPage.attachBrowserEvent("keydown", function (oEvent) {
-            if (that.frm.isFormEditable() && oEvent.key == 'F10') {
+            if (oEvent.key == 'F10') {
                 that.btSave.firePress();
             }
 
@@ -68,7 +68,7 @@ sap.ui.jsfragment("bin.forms.in.lists", {
         UtilGen.clearPage(this.mainPage);
         this.createViewHeader();
         var qr = new QueryView("qryInvs" + that2.timeInLong);
-        qr.getControl().setEditable(false);
+        qr.editable = false;
         qr.getControl().view = view;
         qr.view = view;
         qr.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
@@ -77,14 +77,13 @@ sap.ui.jsfragment("bin.forms.in.lists", {
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(7);
         var filtercol = [];
-        UtilGen.createDefaultToolbar2(qr, filtercol, false);
+        UtilGen.createDefaultToolbar1(qr, filtercol, false);
         qr.insertable = true;
         qr.deletable = true;
         qr.editable = true;
         this.qr = qr;
         this.mainPage.addContent(this.qr.showToolbar.toolbar);
         this.mainPage.addContent(this.qr.getControl());
-
         this.qv = qr;
         // this.mainPage.addContent(sc);
 
@@ -107,6 +106,7 @@ sap.ui.jsfragment("bin.forms.in.lists", {
                 width: "35%",
                 value: "15",
                 selectionChange: function (e) {
+                    that.qv.editable = false;
                     that.loadData_details();
                     var cnt = this;
                     setTimeout(function () {
@@ -120,21 +120,19 @@ sap.ui.jsfragment("bin.forms.in.lists", {
             icon: "sap-icon://save",
             text: Util.getLangText("saveRec"),
             press: function () {
-
+                that.saveData();
             }
         });
         this.btEdit = new sap.m.ToggleButton({
             icon: "sap-icon://edit",
             text: Util.getLangText("editRec"),
             press: function () {
-                if (this.getPressed()) {
-                    that.loadData_details();
-                    that.qv.getControl().setEditable(true);
-                }
-                else {
-                    that.qv.getControl().setEditable(false);
-                    that.loadData_details();
-                }
+                that.loadData_details();
+                setTimeout(() => {
+                    if (that.qv.getControl().getRows().length > 0 &&
+                        that.qv.getControl().getRows()[0].getCells().length > 0)
+                        that.qv.getControl().getRows()[0].getCells()[0].focus();
+                }, 10);
             }
         });
         var btClose = new sap.m.Button({
@@ -175,23 +173,74 @@ sap.ui.jsfragment("bin.forms.in.lists", {
             });
         });
 
+    },
+    saveData: function () {
+        var thatForm = this;
+        var errRow = function (rown) {
+            var rn = rown;
+            if (rn - 1 < 0) {
+                qv.getControl().setFirstVisibleRow(0);
+                qv.getControl().addSelectionInterval(0, 0);
+            }
+            else if (Util.nvl(rn, -1) >= 0) {
+                qv.getControl().setFirstVisibleRow(rn - 1);
+                qv.getControl().addSelectionInterval(rn, rn);
+            }
+            FormView.err("value is invalid !");
+        }
+        if (!thatForm.btEdit.getPressed()) FormView.err("Form is not in Edit mode !");
+
+        var vl = thatForm.cbListName.getSelectedKey();
+        if (Util.nvl(vl, "") == "") {
+            UtilGen.errorObj(thatForm.cbListName, 3500);
+            FormView.err("select a value !");
+        }
+        var sql = "insert into relists(idlist,name,descr,descra,pos) " +
+            "values (':idlist',':name',':descr','',':pos'); ";
+        var sqs = "";
+        thatForm.qv.updateDataToTable();
+        var ld = thatForm.qv.mLctb;
+        for (var i = 0; i < ld.rows.length; i++) {
+            var des = ld.getFieldValue(i, "DESCR");
+            var pos = Util.extractNumber(ld.getFieldValue(i, "POS"));
+            if (pos == 0) pos = "";
+            if (Util.nvl(des, "") == "") errRow(i);
+            var sq1 = sql.replaceAll(":idlist", vl)
+                .replaceAll(":name", des)
+                .replaceAll(":descr", des)
+                .replaceAll(":pos", pos);
+            sqs += sq1;
+        }
+        sqs = "begin delete from relists where idlist='" + vl + "';" + sqs + " end;";
+        var dt = Util.execSQL(sqs);
+        if (dt.ret == "SUCCESS") {
+            FormView.msgSuccess(Util.getLangText("msgSaved"));
+            thatForm.btEdit.setPressed(false);
+            thatForm.loadData_details();
+        }
     }
     ,
     loadData: function () {
+
         if (this.cbListName.getItems().length > 0)
             this.cbListName.setSelectedItem(this.cbListName.getItems()[0]);
 
+
+
         if (Util.nvl(this.oController.idlist, "").trim() != "")
             this.cbListName.setSelectedKey(Util.nvl(this.oController.idlist, "").trim());
-        // if (Util.nvl(this.oController.readonly, false))
 
+        this.cbListName.fireSelectionChange();
+        // if (Util.nvl(this.oController.readonly, false))
     },
+
     loadData_details: function () {
         var thatForm = this;
         var vl = thatForm.cbListName.getSelectedKey();
         var sq = "select descr,pos from relists where idlist='" + vl + "' order by pos,descr";
         var dt = Util.execSQL(sq);
         var qv = this.qv;
+        qv.editable = thatForm.btEdit.getPressed();
         if (dt.ret == "SUCCESS") {
             qv.setJsonStrMetaData("{" + dt.data + "}");
             qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].mColClass = "sap.m.Input";
@@ -200,6 +249,8 @@ sap.ui.jsfragment("bin.forms.in.lists", {
             qv.loadData();
             qv.getControl().setFirstVisibleRow(0);
         }
+
+
     }
 });
 

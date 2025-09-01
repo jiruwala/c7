@@ -238,6 +238,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
         var sq = "SELECT   o.periodcode," +
             "               '001' location_code," +
             "               o.ORD_NO," +
+            "               max((select max(ord_reference) from order1 where order1.keyfld=o.keyfld)) pono," +
             "               o.ord_ref," +
             "               ord_code," +
             "               TRIM (o.ord_refnm) ORD_REFNM," +
