@@ -85,7 +85,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY"],
+                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "ORD_REFERENCE", "DRIVER_NAME", "TRUCKNO"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -114,13 +114,13 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                 beforeLoadQry: function (sql) {
                                     var eq = thatForm.frm.getFieldValue("RPPDLV1@parameter.grpby");
                                     var sq = "SELECT ORD_REF, ORD_REFNM," +
-                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
+                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv,ord_reference," +
                                         " SUM(TQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT," +
                                         " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS " +
                                         " FROM " +
-                                        " JOINED_CORDER,PUR1 INVOICE1 " +
+                                        " JOINED_CORDER11 JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=11 " +
                                         " AND SALEINV=INVOICE1.KEYFLD (+) " +
                                         " and (invoice1.invoice_no=':parameter.pinvoice_no' or ':parameter.pinvoice_no' is null)  " +
@@ -133,7 +133,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                         " ORD_REF, ORD_REFNM," +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS," +
-                                        " DRIVER_NAME ,TEL,TRUCKNO," +
+                                        " DRIVER_NAME ,TEL,TRUCKNO,ORD_REFERENCE," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
                                         " SALE_PRICE,item_descr, BRANCH_NAME , saleinv " +
                                         " ORDER BY ord_date,ord_no ";
@@ -531,6 +531,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     parentTitle: "",
                     parentSpan: 1,
                     display_width: "120",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                ord_reference: {
+                    colname: "ord_reference",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "PONO",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
                     display_align: "ALIGN_BEGIN",
                     grouped: false,
                     display_style: "",

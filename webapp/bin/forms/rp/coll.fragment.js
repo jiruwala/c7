@@ -284,13 +284,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 disp_class: "reportTable2",
                                 dispRecords: -1,
                                 execOnShow: false,
-                                dml: "select a.*,decode(a.type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type, sls.name salesname , " +
-                                    " (select max(descr2) from acvoucher2 where keyfld=a.keyfld and credit>0 ) acc_name " +
-                                    " from ACC_TRANSACTION_up a,salesp sls " +
-                                    " where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and " +
-                                    " (a.accno=':parameter.accno' or ':parameter.accno' is null) and " +
-                                    " ( sls.no=a.slsmn(+) ) " +
-                                    " and  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by a.keyfld",
+                                dml: "",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -298,8 +292,25 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ACCNO", "DESCR2", "CUST_CODE", "VOU_DATE", "CHEQUENO", "RCVFROM", "CREDOT", "NO", "SLSNM", "SALESNAME"],
+                                filterCols: ["ACCNO", "DESCR2", "CUST_CODE", "VOU_DATE", "CHEQUENO", "RCVFROM", "CREDOT", "NO", "SLSMN", "SALESNAME"],
                                 canvasType: ReportView.CanvasType.VBOX,
+                                beforeLoadQry: function (sql) {
+                                    var sq = "select a.*,decode(a.type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type, sls.name salesname , " +
+                                        " (select max(descr2) from acvoucher2 where keyfld=a.keyfld and credit>0 ) acc_name " +
+                                        " from ACC_TRANSACTION_up a,salesp sls " +
+                                        " where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and " +
+                                        " (a.accno=':parameter.accno' or ':parameter.accno' is null) and " +
+                                        " ( sls.no=a.slsmn(+) ) " +
+                                        " and  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by a.keyfld";
+                                    return thatForm.frm.parseString(sq);
+
+                                },
+                                eventAfterQV: function (qryObj) {
+                                    // var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                    // if (iq != "none")
+                                    qryObj.obj.showToolbar.showGroupFilter = true;//!(iq == "1");
+
+                                },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     // var oModel = this.getControl().getModel();
                                     // var bal = parseFloat(oModel.getProperty("BALANCE", currentRowContext));

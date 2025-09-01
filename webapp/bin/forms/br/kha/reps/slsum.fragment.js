@@ -122,7 +122,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["GROSSAT", "ADDAMT", "DISCAMT", "NETAMT", "C_CUS_NO", "ORD_REFNM", "BRANCH_NAME"],
+                                filterCols: ["GROSSAT", "ADDAMT", "DISCAMT", "NETAMT", "C_CUS_NO", "ORD_REFNM", "BRANCH_NAME", "SLSMN", "SLSMN_NAME"],
                                 canvasType: ReportView.CanvasType.SCROLLCONTAINER,
                                 eventAfterQV: function (qryObj) {
                                 },
@@ -173,7 +173,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                                             qr.getControl().setVisibleRowCount(10);
                                             qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 35, "XL": 20 });
                                             qr.getControl().setRowHeight(18);
-                                            qr.filterCols = ["GROSSAT", "ADDAMT", "DISCAMT", "NETAMT", "C_CUS_NO", "INV_REFNM", "BRANCHNAME"];
+                                            qr.filterCols = ["GROSSAT", "ADDAMT", "DISCAMT", "NETAMT", "C_CUS_NO", "INV_REFNM", "BRANCHNAME", "SLSMN", "SLSMN_NAME"];
                                             qr.createToolbar(qr.disp_class, qr.filterCols,
                                                 // EVENT ON APPLY PERSONALIZATION
                                                 function (prsn, qv) {
