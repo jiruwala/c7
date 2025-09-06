@@ -821,8 +821,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
         if (dt.length > 0) {
             var invn = dt[0].INVOICE_NO;
             var loc = dt[0].LOCATION_CODE;
-            Util.printServerReport("br/brpur", "_para_pfromno=" +
-                invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
+            Util.printServerReport("br/brpur", "_para_pac=" + kfld);
         }
     },
     validateSave: function () {

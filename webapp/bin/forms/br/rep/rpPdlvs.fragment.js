@@ -85,7 +85,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "ORD_REFERENCE", "DRIVER_NAME", "TRUCKNO"],
+                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "ORD_REFERENCE", "DRIVER_NAME", "TRUCKNO", "LOCATION_NAME"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -113,7 +113,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                 },
                                 beforeLoadQry: function (sql) {
                                     var eq = thatForm.frm.getFieldValue("RPPDLV1@parameter.grpby");
-                                    var sq = "SELECT ORD_REF, ORD_REFNM," +
+                                    var sq = "SELECT joined_corder.location_code,joined_corder.LOCATION_NAME,ORD_REF, ORD_REFNM," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv,ord_reference," +
                                         " SUM(TQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT," +
                                         " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
@@ -121,7 +121,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                         " ORD_POS " +
                                         " FROM " +
                                         " JOINED_CORDER11 JOINED_CORDER,PUR1 INVOICE1 " +
-                                        " WHERE ( ORD_CODE=11 " +
+                                        " WHERE ( ORD_CODE=11 and " +
+                                        " (':parameter.ploc'='ALL' or JOINED_CORDER.location_code=':parameter.ploc' ) " +
                                         " AND SALEINV=INVOICE1.KEYFLD (+) " +
                                         " and (invoice1.invoice_no=':parameter.pinvoice_no' or ':parameter.pinvoice_no' is null)  " +
                                         " AND ORD_DATE>=:parameter.fromdate " +
@@ -130,6 +131,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
                                         " GROUP BY " +
+                                        " joined_corder.location_code,joined_corder.LOCATION_NAME, " +
                                         " ORD_REF, ORD_REFNM," +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS," +
@@ -139,12 +141,19 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                         " ORDER BY ord_date,ord_no ";
                                     return thatForm.frm.parseString(sq);
                                 },
+                                eventAfterQV: function (qryObj) {
+                                    // var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                    // if (iq != "none")
+                                    qryObj.obj.showToolbar.showGroupFilter = true;//!(iq == "1");
+
+                                },
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
                                         var iq = thatForm.frm.getFieldValue("parameter.grpby");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_REFNM")].mGrouped = iq == "customers";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ITEM_DESCR")].mGrouped = iq == "items";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mGrouped = iq == "drivers";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mGrouped = iq == "locations";
                                     }
                                 },
                                 fields: thatForm.helperFunc.getFields("RPPDLV1")
@@ -258,7 +267,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
 
                         },
                         valueHelpRequest: function (event) {
-                            var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
+                            var sq = "select code,name from c_ycust where issupp='Y' and childcount=0 order by path";
                             Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcust", data.CODE, data.CODE, true);
                                 thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", data.NAME, data.NAME, true);
@@ -383,7 +392,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                         },
                         selectedKey: "customers",
                     },
-                    list: "@none/None,customers/Suppliers,items/Items,drivers/Drivers",
+                    list: "@none/None,customers/Suppliers,items/Items,drivers/Drivers,locations/Locations",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -406,6 +415,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                 UtilGen.execCmd("bin.forms.br.forms.pdlv formType=dialog formSize=900px,400px status=view keyfld=" + kfld, thatForm.view, obj, undefined);
             };
             var flds = {
+                location_name: {
+                    colname: "location_name",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "locationTxt",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
                 ord_no: {
                     colname: "ord_no",
                     data_type: FormView.DataType.Number,

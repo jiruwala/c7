@@ -417,8 +417,7 @@ sap.ui.jsfragment("bin.forms.br.forms.punpost", {
 
         var invn = this.invoice_no.getValue();
         var loc = UtilGen.getControlValue(this.location_code);
-        Util.printServerReport("br/brpur", "_para_pfromno=" +
-            invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
+        Util.printServerReport("br/brpur", "_para_pac=" + kfld);
     }
 
 
