@@ -53,8 +53,8 @@ sap.ui.jsfragment("bin.forms.gl.postv", {
         that.createViewHeader();
         var recs = UtilGen.dispTblRecsByDevice({ "S": 8, "M": 12, "L": 15, "XL": 23 });
         var qr = new QueryView("qryInvs" + that2.timeInLong);
-        qr.getControl().setEditable(true);
-        qr.getControl().view = that2;
+        qr.getControl().setEditable(false);
+        qr.getControl().view = that2.view;
         qr.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
         qr.getControl().setSelectionMode(sap.ui.table.SelectionMode.MultiToggle);
         qr.getControl().setFixedBottomRowCount(0);
@@ -63,8 +63,9 @@ sap.ui.jsfragment("bin.forms.gl.postv", {
         qr.insertable = false;
         qr.deletable = false;
         this.qr = qr;
-
-
+        var cols = ["NO", "VOU_DATE", "TYPEDESCR", "DESCR", "DEBAMT", "USERNM", "POSTED_BY"]
+        UtilGen.createDefaultToolbar2(qr, cols, false);
+        this.mainPage.addContent(this.qr.showToolbar.toolbar);
         this.mainPage.addContent(this.qr.getControl());
 
         this.loadData();
@@ -266,7 +267,7 @@ sap.ui.jsfragment("bin.forms.gl.postv", {
             qv.getControl().setFirstVisibleRow(0);
             if (vcS == 1)
                 that.view.byId("cmdPost" + that.timeInLong).setText(Util.getLangText("postVou"));
-            else that.view.byId("cmdPost" + that.timeInLong).setText(Util.getLangText("postVou"));
+            else that.view.byId("cmdPost" + that.timeInLong).setText(Util.getLangText("unpostVou"));
 
         }
 
@@ -309,7 +310,7 @@ sap.ui.jsfragment("bin.forms.gl.postv", {
                 FormView.err("Only Admin user is Allowed to Un-post");
             FormView.err("Not Allowed to UNPOST VOUCHER !");
         }
-        that.loadData();
+        // that.loadData();
 
         var updateData = function () {
             var sqls = "";

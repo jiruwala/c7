@@ -2940,7 +2940,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 ps = ps + (ps.length > 0 ? "&" : "") + s;
 
             }
-            ps += ps + Util.nvl(addParas, "");
+            ps += Util.nvl(addParas, "");
             ps = ps + (ps.length > 0 ? "&" : "") + "_para_CP_USER=" + sett["LOGON_USER"];
             Util.doXhr("report?reportfile=" + rpt + "&" + ps, true, function (e) {
                 if (this.status == 200) {

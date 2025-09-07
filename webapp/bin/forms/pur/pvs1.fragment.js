@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.rp.vs1", {
+sap.ui.jsfragment("bin.forms.pur.pvs1", {
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -21,7 +21,7 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
         this.loadData();
         this.jp.onWndClose = function () {
             sap.m.MessageToast.show("Closing the report !");
-            that.frm.helperFunctions.destoryRV();   
+            that.frm.helperFunctions.destoryRV();
         };
         return this.jp;
     },
@@ -45,13 +45,13 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: "Vouchers",
+            title: "Purchase Prints",
             title2: "",
             show_para_pop: false,
             reports: [
                 {
-                    code: "VS101",
-                    name: "vouchers",
+                    code: "PVS1",
+                    name: "Purchase Prints",
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -65,18 +65,18 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                     },
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(undefined, "500px"),
                     rep: {
-                        parameters: thatForm.helperFunc.getParas("VS101"),
+                        parameters: thatForm.helperFunc.getParas("PVS1"),
                         print_templates: [
                             {
                                 title: "Print..",
-                                reportFile: "vouchers/jv_rng",
+                                reportFile: "br/purord",
                                 beforeExec: function (idx, rptName) {
                                     var paras = {};
                                     var rptNo = idx;
-                                    paras["pfromno"] = thatForm.frm.objs["VS101@parameter.pfromno"].obj.mainObj;
-                                    paras["ptono"] = thatForm.frm.objs["VS101@parameter.ptono"].obj.mainObj;
-                                    paras["ptype"] = thatForm.frm.objs["VS101@parameter.ptype"].obj.mainObj;
-                                    paras["ptype2"] = thatForm.frm.objs["VS101@parameter.ptype2"].obj.mainObj;
+                                    paras["pfromno"] = thatForm.frm.objs["PVS1@parameter.pfromno"].obj.mainObj;
+                                    paras["ptono"] = thatForm.frm.objs["PVS1@parameter.ptono"].obj.mainObj;
+                                    paras["ptype"] = thatForm.frm.objs["PVS1@parameter.ptype"].obj.mainObj;
+                                    paras["vouType"] = thatForm.frm.objs["PVS1@parameter.vouType"].obj.mainObj;
                                     for (var fld in paras) {
                                         var vl = UtilGen.getControlValue(paras[fld]);
                                         var parent = thatForm.view.byId("rep" + rptNo + "_parameter" + fld + thatForm.frm.timeInLong);
@@ -84,19 +84,15 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                                         UtilGen.setControlValue(parent, vl, vl, true);
                                         UtilGen.setControlValue(para, vl, vl, true);
 
-                                        if (Util.nvl(vl, "") == "" && thatForm.helperFunctions.misc.getObjectByObj(parent).require) {
+                                        if (Util.nvl(vl, "") == "" && thatForm.frm.helperFunctions.misc.getObjectByObj(parent).require) {
                                             UtilGen.errorObj(paras[fld]);
                                             ReportView.err(thatForm.helperFunctions.misc.getObjectByObj(parent).colname + " field rquired a value !");
                                         }
                                     }
                                     var rpt = rptName;
-                                    var pt = UtilGen.getControlValue(thatForm.frm.objs["VS101@parameter.ptype"].obj.mainObj);
-                                    var pt2 = UtilGen.getControlValue(thatForm.frm.objs["VS101@parameter.ptype2"].obj.mainObj);
-                                    var rpts = ["vouchers/jv_rng", "vouchers/rv_rng" + pt2, "vouchers/pv_rng" + pt2];
-                                    if (pt == 1)
-                                        rpt = rpts[0];
-                                    if (pt == 2 || pt == 3)
-                                        rpt = rpts[pt - 1];
+                                    var pt = UtilGen.getControlValue(thatForm.frm.objs["PVS1@parameter.ptype"].obj.mainObj);
+                                    var pt2 = UtilGen.getControlValue(thatForm.frm.objs["PVS1@parameter.vouType"].obj.mainObj);
+                                    var rpt = "br/" + pt;
 
                                     return { reportFile: rpt, paras: "&_para_vouType=" + pt2 };
                                 }
@@ -176,6 +172,104 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
             var sumSpan = "XL2 L2 M2 S12";
 
             var para = {
+                ptype: {
+                    colname: "ptype",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"acvouType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "-1",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "brpur",
+                        selectionChange: function () {
+                            var cbttype = thatForm.frm.objs["PVS1@parameter.ptype"].obj.mainObj
+                            thatForm.frm.objs["PVS1@parameter.vouType"].obj.mainObj.setEnabled(true);
+                            if (cbttype.getSelectedKey() == "purord")
+                                thatForm.frm.objs["PVS1@parameter.vouType"].obj.mainObj.setEnabled(false);
+                            thatForm.frm.objs["PVS1@parameter.plocation"].obj.mainObj.fireSelectionChange();;
+                        }
+                    },
+                    list: "@purord/Goods Receipts,brpur/Closing Purchase",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
+                plocation: {
+                    colname: "plocation",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: sett["DEFAULT_LOCATION"],
+                        selectionChange: function (e) {
+                            var cbtyp = thatForm.frm.objs["PVS1@parameter.ptype"].obj.mainObj;
+                            if (cbtyp.getSelectedKey() == "brpur") {
+                                var cb = thatForm.frm.objs["PVS1@parameter.vouType"].obj.mainObj;
+                                var lo = this.getSelectedKey();
+                                Util.fillCombo(cb, "select no code,descr name from invoicetype " +
+                                    " where accno is null and location_code='" + lo + "' " +
+                                    " order by no "
+                                );
+                                if (cb.getItems().length > 0)
+                                    cb.setSelectedItem(cb.getItems()[0]);
+                            }
+                        },
+                    },
+                    list: "select code,name from locations order by code",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
+                vouType: {
+                    colname: "vouType",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"acvouType\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "-1",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{CODE}- {NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "1",
+                    },
+                    list: "select '1' code,'credit' name  from dual",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
                 pfromno: {
                     colname: "pfromno",
                     data_type: FormView.DataType.Number,
@@ -211,123 +305,6 @@ sap.ui.jsfragment("bin.forms.rp.vs1", {
                     default_value: "0",
                     other_settings: { width: "35%" },
                     list: undefined,
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true,
-                    dispInPara: true,
-                },
-                ptype: {
-                    colname: "ptype",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '{\"text\":\"acvouType\",\"width\":\"15%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "-1",
-                    other_settings: {
-                        width: "35%",
-                        items: {
-                            path: "/",
-                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                            templateShareable: true
-                        },
-                        selectedKey: "1",
-                    },
-                    list: "@JV,2/Recipt Vouchers/,3/Payment Vouchers",
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true,
-                    dispInPara: true,
-                },
-                ptype: {
-                    colname: "ptype",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '{\"text\":\"acvouType\",\"width\":\"15%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "-1",
-                    other_settings: {
-                        width: "35%",
-                        items: {
-                            path: "/",
-                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                            templateShareable: true
-                        },
-                        selectedKey: "1",
-                    },
-                    list: "@-/General JV,2/Recipt Vouchers/,3/Payment Vouchers",
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true,
-                    dispInPara: true,
-                },
-                ptype: {
-                    colname: "ptype",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '{\"text\":\"acvouType\",\"width\":\"15%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "1",
-                    other_settings: {
-                        width: "35%",
-                        items: {
-                            path: "/",
-                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                            templateShareable: true
-                        },
-                        selectionChange: function (e) {
-                            var cnt = this;
-                            var cntVal = UtilGen.getControlValue(cnt);
-                            var cbt2 = thatForm.frm.objs["VS101@parameter.ptype2"].obj.mainObj;
-                            if (cntVal == "1")
-                                Util.fillCombo(cbt2, "@1/General JV,2/Purchase JV,3/Sales JV");
-                            if (cntVal == "2" || cntVal == 3)
-                                Util.fillCombo(cbt2, "@1/Bank,2/Cash");
-                            if (cbt2.getItems().length > 0)
-                                cbt2.setSelectedItem(cbt2.getItems()[0]);
-
-
-                        },
-                        selectedKey: "1",
-                    },
-                    list: "@1/General JV,2/Recipt Vouchers/,3/Payment Vouchers",
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true,
-                    dispInPara: true,
-                },
-                ptype2: {
-                    colname: "ptype2",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '{\"text\":\"acvouType2\",\"width\":\"15%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "-1",
-                    other_settings: {
-                        width: "35%",
-                        items: {
-                            path: "/",
-                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                            templateShareable: true
-                        },
-                        selectedKey: "1",
-                    },
-                    list: "@1/General JV,2/Purchase JV,3/Sales JV",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,

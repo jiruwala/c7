@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="brpur" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="206"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="784"/>
+	<property name="net.sf.jasperreports.print.create.bookmarks" value="true"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="kh7"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<template><![CDATA["voucherStyle.jrtx"]]></template>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_NAME" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_NAMEA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_SPECS" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_SPECSA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="VOU_TITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="VOU_TITLEA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DETAIL_REP" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["brpurdetails.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TOTAL_IN_WORDS" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="CURRENCY_FORMAT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["#,##0.00;-#,##0.00"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="pfromno" class="java.lang.String">
+		<parameterDescription><![CDATA[FROM NO]]></parameterDescription>
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ptono" class="java.lang.String">
+		<parameterDescription><![CDATA[TO NO]]></parameterDescription>
+		<defaultValueExpression><![CDATA[99999]]></defaultValueExpression>
+	</parameter>
+	<parameter name="plocation" class="java.lang.String"/>
+	<parameter name="vouType" class="java.lang.String"/>
+	<parameter name="pac" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT ALL pur1.keyfld,PUR1.INVOICE_NO, PUR1.INVOICE_DATE, 
+DECODE(TYPE,1,'CREDIT',2,'CASH',3,'CHEQUE',4,'K-NET') TYPEE,CTG,
+PUR1.SLSMN, lpno,duedate,PUR1.memo,c_cus_no,pur1.reference_information,
+PUR1.INV_REF, PUR1.INV_REFNM, PUR1.STRA, PUR1.DISC_AMT,TYPE,DEPTNO,c_branch_no,
+pur1.inv_amt ,pur1.deptno add_amt,(pur1.inv_amt+pur1.deptno)-pur1.disc_amt net_amt,
+( 
+	select max(descr) from invoicetype where location_code=pur1.location_code and no=pur1.type
+) type_descr,
+(
+  select b_name
+  from cbranch where code=pur1.c_cus_no and brno=pur1.c_branch_no) addr
+
+,F_WORDS(((select nvl(sum(price*(allqty/pack)),0) from pur2 where pur2.keyfld=pur1.keyfld)+pur1.deptno)-pur1.disc_amt) WRDS,
+(select nvl(sum(price*(allqty/pack)),0) from pur2 where pur2.keyfld=pur1.keyfld) inv_amt2,
+(select max(name) from salesp where no=slsmn) sls_name,
+(select max(ord_no) from pord1 where keyfld=po_keyfld) sono,
+pur1.location_code,
+(select name from locations where code=pur1.location_code) location_name,
+(select name from store where no=pur1.stra) straname
+FROM pur1
+WHERE PUR1.INVOICE_CODE=11 AND ((PUR1.INVOICE_NO>= $P{pfromno} 
+AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.type=$P{vouType})
+or (pur1.keyfld=$P{pac})
+)
+order by pur1.location_code,pur1.invoice_no]]>
+	</queryString>
+	<field name="KEYFLD" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="KEYFLD"/>
+		<property name="com.jaspersoft.studio.field.label" value="KEYFLD"/>
+	</field>
+	<field name="INVOICE_NO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="INVOICE_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="INVOICE_NO"/>
+	</field>
+	<field name="INVOICE_DATE" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="INVOICE_DATE"/>
+		<property name="com.jaspersoft.studio.field.label" value="INVOICE_DATE"/>
+	</field>
+	<field name="TYPEE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="TYPEE"/>
+		<property name="com.jaspersoft.studio.field.label" value="TYPEE"/>
+	</field>
+	<field name="CTG" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="CTG"/>
+		<property name="com.jaspersoft.studio.field.label" value="CTG"/>
+	</field>
+	<field name="SLSMN" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="SLSMN"/>
+		<property name="com.jaspersoft.studio.field.label" value="SLSMN"/>
+	</field>
+	<field name="LPNO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="LPNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="LPNO"/>
+	</field>
+	<field name="DUEDATE" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="DUEDATE"/>
+		<property name="com.jaspersoft.studio.field.label" value="DUEDATE"/>
+	</field>
+	<field name="MEMO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="MEMO"/>
+		<property name="com.jaspersoft.studio.field.label" value="MEMO"/>
+	</field>
+	<field name="C_CUS_NO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="C_CUS_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="C_CUS_NO"/>
+	</field>
+	<field name="REFERENCE_INFORMATION" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="REFERENCE_INFORMATION"/>
+		<property name="com.jaspersoft.studio.field.label" value="REFERENCE_INFORMATION"/>
+	</field>
+	<field name="INV_REF" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="INV_REF"/>
+		<property name="com.jaspersoft.studio.field.label" value="INV_REF"/>
+	</field>
+	<field name="INV_REFNM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="INV_REFNM"/>
+		<property name="com.jaspersoft.studio.field.label" value="INV_REFNM"/>
+	</field>
+	<field name="STRA" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="STRA"/>
+		<property name="com.jaspersoft.studio.field.label" value="STRA"/>
+	</field>
+	<field name="DISC_AMT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="DISC_AMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="DISC_AMT"/>
+	</field>
+	<field name="TYPE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="TYPE"/>
+		<property name="com.jaspersoft.studio.field.label" value="TYPE"/>
+	</field>
+	<field name="DEPTNO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="DEPTNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="DEPTNO"/>
+	</field>
+	<field name="C_BRANCH_NO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="C_BRANCH_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="C_BRANCH_NO"/>
+	</field>
+	<field name="INV_AMT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="INV_AMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="INV_AMT"/>
+	</field>
+	<field name="ADD_AMT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ADD_AMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="ADD_AMT"/>
+	</field>
+	<field name="NET_AMT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="NET_AMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="NET_AMT"/>
+	</field>
+	<field name="TYPE_DESCR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="TYPE_DESCR"/>
+		<property name="com.jaspersoft.studio.field.label" value="TYPE_DESCR"/>
+	</field>
+	<field name="ADDR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ADDR"/>
+		<property name="com.jaspersoft.studio.field.label" value="ADDR"/>
+	</field>
+	<field name="WRDS" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="WRDS"/>
+		<property name="com.jaspersoft.studio.field.label" value="WRDS"/>
+	</field>
+	<field name="INV_AMT2" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="INV_AMT2"/>
+		<property name="com.jaspersoft.studio.field.label" value="INV_AMT2"/>
+	</field>
+	<field name="SLS_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="SLS_NAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="SLS_NAME"/>
+	</field>
+	<field name="SONO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="SONO"/>
+		<property name="com.jaspersoft.studio.field.label" value="SONO"/>
+	</field>
+	<field name="LOCATION_CODE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="LOCATION_CODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="LOCATION_CODE"/>
+	</field>
+	<field name="LOCATION_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="LOCATION_NAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="LOCATION_NAME"/>
+	</field>
+	<field name="STRANAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="STRANAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="STRANAME"/>
+	</field>
+	<variable name="NET_AMT2" class="java.lang.Double">
+		<variableExpression><![CDATA[($F{INV_AMT2}.doubleValue() +$F{ADD_AMT}.doubleValue()) -$F{DISC_AMT}.doubleValue()]]></variableExpression>
+	</variable>
+	<group name="vou" isResetPageNumber="true" isReprintHeaderOnEachPage="true" keepTogether="true">
+		<groupExpression><![CDATA[$F{KEYFLD}]]></groupExpression>
+		<groupHeader>
+			<band height="255">
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<textField pattern="dd/MM/yyyy">
+					<reportElement style="strHeader" x="466" y="168" width="110" height="20" uuid="d219fe6c-5256-494a-adf1-3f02b3f7ef6c">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<pen lineWidth="0.25" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INVOICE_DATE}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="strHeader" x="466" y="148" width="110" height="18" uuid="c227dd6b-a5c2-4c3f-9cb1-10cc55a6d84f">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
+						<pen lineWidth="0.25" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INVOICE_NO}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="102" y="206" width="268" height="44" uuid="86f2c0e9-2b8d-48f3-bb04-89f2d5fb076a"/>
+					<box>
+						<pen lineWidth="0.25" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{MEMO}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="102" y="165" width="268" height="18" uuid="919766aa-c4b4-4e79-9f90-1a0a9d49c53d">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box>
+						<pen lineWidth="0.0" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{C_CUS_NO}+" / "+$F{INV_REFNM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement style="strTitle" x="160" y="86" width="250" height="33" uuid="864f148b-f87c-4e48-9602-ae04f93eeb26"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#006666"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#006666"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#006666"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#006666"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA["إقفال فاتورة الشراء"+"\nClosing Purchase Invoice"]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strCompanyName" x="81" y="10" width="503" height="18" uuid="4cbb1b17-b5c8-4c77-8bbd-1bd4829d7ad9">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right">
+						<font fontName="Arial2" size="16" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{COMPANY_NAME}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strCompanyName" x="80" y="33" width="505" height="16" uuid="f53a1c56-2932-4447-8fb7-b0adaa4e37b5">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right">
+						<font fontName="Arial2" size="14" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{COMPANY_NAMEA}]]></textFieldExpression>
+				</textField>
+				<image scaleImage="FillFrame">
+					<reportElement x="20" y="10" width="61" height="54" uuid="af93b3cc-4def-4ad5-b65e-a5693b8f5cf1"/>
+					<imageExpression><![CDATA["/../company_logo.bmp"]]></imageExpression>
+				</image>
+				<textField isBlankWhenNull="true">
+					<reportElement style="strCompanySpec" x="7" y="63" width="584" height="15" uuid="17b3add6-5fd4-4de2-9294-ffa7a3b2bd4f"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="Arial2" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{COMPANY_SPECS}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="370" y="148" width="93" height="18" uuid="42d7bfac-f5af-4940-a171-7dc72018ddd3">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial2" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Invoice No:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="8" y="164" width="93" height="16" uuid="10bfe6f1-2ec1-4dbc-ae64-dc26360f1514"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial2" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Customer:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="8" y="202" width="93" height="16" uuid="22414695-158b-453b-84e8-e2e0bd694aaa"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial2" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Remarks:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="370" y="168" width="93" height="18" uuid="b69b9d49-0f1f-4568-812c-63377816e791">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial2" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Date:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="370" y="188" width="93" height="18" uuid="846b96d1-9355-4487-b71d-5a155e956cdf">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial2" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Employee]]></text>
+				</staticText>
+				<textField textAdjust="ScaleFont" pattern="dd/MM/yyyy">
+					<reportElement style="strHeader" x="466" y="188" width="110" height="20" uuid="eb649117-bcb6-4fee-b970-9a552adfbc4c">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<pen lineWidth="0.25" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SLSMN}+" / "+$F{SLS_NAME}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="strHeader" x="464" y="78" width="69" height="18" uuid="333e9165-c0c7-421f-9088-1b8227f3a5eb">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
+						<pen lineWidth="0.25" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Page : "+$V{PAGE_NUMBER} +" / "]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement style="strHeader" x="533" y="78" width="41" height="18" uuid="8e340630-7a44-4c84-a047-4f0315d50e02">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
+						<pen lineWidth="0.25" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="107" y="186" width="268" height="16" uuid="ea19060a-5add-4c38-9ea5-2b8d02f75d82">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box>
+						<pen lineWidth="0.0" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{C_BRANCH_NO} +" / "+$F{ADDR}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="8" y="186" width="93" height="16" uuid="a0691403-14c4-4a2b-9aff-80ddd3ee3b19"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial2" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Address:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="8" y="124" width="92" height="31" uuid="77b7d991-a363-454b-8fee-a468d69346c3"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial2" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Location/Store :
+: الموقع / المخزن]]></text>
+				</staticText>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="102" y="125" width="268" height="27" uuid="3ad84bad-e5cf-4fc3-bd8f-bd6691e74b7b">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box>
+						<pen lineWidth="0.0" lineStyle="Dashed"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="Arial2" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{LOCATION_CODE}+" / "+$F{LOCATION_NAME}+"\n"+$F{STRA}+" / "+$F{STRANAME}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="170">
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<textField textAdjust="ScaleFont">
+					<reportElement style="strHeader" x="470" y="6" width="104" height="18" uuid="68e33dfe-6e2b-4e96-bcad-c14b6bea1cde">
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="14" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INV_AMT2}]]></textFieldExpression>
+					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+				</textField>
+				<textField textAdjust="ScaleFont">
+					<reportElement style="strHeader" x="470" y="25" width="104" height="20" uuid="2f97af56-3017-42fb-874c-d06b4188feca">
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{DISC_AMT}]]></textFieldExpression>
+					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+				</textField>
+				<textField textAdjust="ScaleFont">
+					<reportElement style="frameColHeader" x="468" y="53" width="104" height="20" uuid="bdce6395-7d3d-4d0b-b5b0-ad39981c05b7">
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="14" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{NET_AMT2}]]></textFieldExpression>
+					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="20" y="51" width="390" height="20" uuid="ba204ccd-2355-44c8-9df7-59e3b5da3038"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{WRDS}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="74" y="25" width="390" height="20" uuid="d4dc3986-8b9b-4567-8b7a-add432e3db3e"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["خصم"]]></textFieldExpression>
+				</textField>
+				<frame>
+					<reportElement x="8" y="90" width="578" height="80" uuid="6b80b1c6-92bc-4057-8442-8aa993215371">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textField textAdjust="StretchHeight" pattern="">
+						<reportElement style="strHeader" x="22" y="4" width="110" height="28" uuid="fd5ffcd9-c388-497d-8cf7-693eafaefcd4">
+							<property name="com.jaspersoft.studio.unit.y" value="px"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						</reportElement>
+						<box leftPadding="1" rightPadding="1">
+							<pen lineWidth="0.0"/>
+							<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+							<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+							<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+							<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textElement textAlignment="Center" verticalAlignment="Middle">
+							<font fontName="Arial2" size="14" isBold="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA["المصادقة"+ "\nApproved "]]></textFieldExpression>
+					</textField>
+					<textField textAdjust="StretchHeight" pattern="">
+						<reportElement style="strHeader" x="368" y="4" width="174" height="28" uuid="e8fe41d3-2694-4606-8542-08d2b4eab237">
+							<property name="com.jaspersoft.studio.unit.y" value="px"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						</reportElement>
+						<box leftPadding="1" rightPadding="1">
+							<pen lineWidth="0.0"/>
+							<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+							<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+							<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+							<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textElement textAlignment="Center" verticalAlignment="Middle">
+							<font fontName="Arial2" size="14" isBold="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA["المخول بالتوقيع"+ "\nAuthorized Signature"]]></textFieldExpression>
+					</textField>
+				</frame>
+			</band>
+		</groupFooter>
+	</group>
+	<detail>
+		<band height="350" splitType="Immediate">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<subreport overflowType="NoStretch">
+				<reportElement stretchType="ElementGroupBottom" x="0" y="0" width="595" height="349" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<subreportParameter name="KEYFLD">
+					<subreportParameterExpression><![CDATA[$F{KEYFLD}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CURRENCY_FORMAT">
+					<subreportParameterExpression><![CDATA[$P{CURRENCY_FORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{DETAIL_REP}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>
