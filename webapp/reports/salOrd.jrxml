@@ -51,7 +51,8 @@ pur1.inv_amt ,pur1.deptno add_amt,(pur1.inv_amt+pur1.deptno)-pur1.disc_amt net_a
 ,F_WORDS(((select nvl(sum(price*(allqty/pack)),0) from pur2 where pur2.keyfld=pur1.keyfld)+pur1.deptno)-pur1.disc_amt) WRDS,
 (select nvl(sum(price*(allqty/pack)),0) from pur2 where pur2.keyfld=pur1.keyfld) inv_amt2,
 (select max(name) from salesp where no=slsmn) sls_name,
-(select max(ord_no) from pord1 where keyfld=po_keyfld) sono
+(select max(ord_no) from pord1 where keyfld=po_keyfld) sono,
+(select max(reference) from pord1 where keyfld=po_keyfld) reference
 FROM pur1
 WHERE PUR1.INVOICE_CODE=21 AND PUR1.INVOICE_NO>= $P{pfromno} 
 AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.type=$P{vouType}]]>
@@ -164,6 +165,10 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 		<property name="com.jaspersoft.studio.field.name" value="SONO"/>
 		<property name="com.jaspersoft.studio.field.label" value="SONO"/>
 	</field>
+	<field name="REFERENCE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="REFERENCE"/>
+		<property name="com.jaspersoft.studio.field.label" value="REFERENCE"/>
+	</field>
 	<variable name="NET_AMT2" class="java.lang.Double">
 		<variableExpression><![CDATA[($F{INV_AMT2}.doubleValue() +$F{ADD_AMT}.doubleValue()) -$F{DISC_AMT}.doubleValue()]]></variableExpression>
 	</variable>
@@ -205,7 +210,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 					<textFieldExpression><![CDATA[$F{INVOICE_NO}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="102" y="189" width="268" height="24" uuid="86f2c0e9-2b8d-48f3-bb04-89f2d5fb076a"/>
+					<reportElement style="strHeader" x="102" y="197" width="268" height="24" uuid="86f2c0e9-2b8d-48f3-bb04-89f2d5fb076a"/>
 					<box>
 						<pen lineWidth="0.25" lineStyle="Dashed"/>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -213,29 +218,29 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 						<bottomPen lineWidth="0.0" lineStyle="Dotted" lineColor="#000000"/>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
-					<textElement textAlignment="Left" verticalAlignment="Top">
+					<textElement textAlignment="Left" verticalAlignment="Middle">
 						<font fontName="DejaVu Sans" size="12" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{MEMO}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="102" y="127" width="268" height="18" uuid="919766aa-c4b4-4e79-9f90-1a0a9d49c53d">
+					<reportElement style="strHeader" x="102" y="121" width="268" height="32" uuid="919766aa-c4b4-4e79-9f90-1a0a9d49c53d">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
-					<box>
-						<pen lineWidth="0.0" lineStyle="Dashed"/>
+					<box topPadding="1" leftPadding="2" bottomPadding="0" rightPadding="1">
+						<pen lineWidth="0.25" lineStyle="Solid"/>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="0.0" lineStyle="Dotted" lineColor="#000000"/>
+						<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
-					<textElement textAlignment="Left" verticalAlignment="Top">
+					<textElement textAlignment="Left" verticalAlignment="Middle">
 						<font fontName="DejaVu Sans" size="12" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{C_CUS_NO}+" / "+$F{INV_REFNM}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
-					<reportElement style="strTitle" x="160" y="100" width="250" height="22" uuid="864f148b-f87c-4e48-9602-ae04f93eeb26"/>
+					<reportElement style="strTitle" x="160" y="90" width="250" height="22" uuid="864f148b-f87c-4e48-9602-ae04f93eeb26"/>
 					<box>
 						<pen lineWidth="0.5"/>
 						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#006666"/>
@@ -290,14 +295,14 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 					<text><![CDATA[Invoice No:]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="8" y="126" width="93" height="16" uuid="10bfe6f1-2ec1-4dbc-ae64-dc26360f1514"/>
+					<reportElement x="8" y="121" width="93" height="32" uuid="10bfe6f1-2ec1-4dbc-ae64-dc26360f1514"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
 						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
-					<text><![CDATA[Customer:]]></text>
+					<text><![CDATA[: العميل / Customer]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="8" y="185" width="93" height="16" uuid="22414695-158b-453b-84e8-e2e0bd694aaa"/>
+					<reportElement x="8" y="193" width="93" height="16" uuid="22414695-158b-453b-84e8-e2e0bd694aaa"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
 						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
@@ -319,7 +324,7 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 					<textElement textAlignment="Right" verticalAlignment="Middle">
 						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
-					<text><![CDATA[Delivery:]]></text>
+					<text><![CDATA[PO #]]></text>
 				</staticText>
 				<textField pattern="dd/MM/yyyy">
 					<reportElement style="strHeader" x="466" y="167" width="110" height="20" uuid="eb649117-bcb6-4fee-b970-9a552adfbc4c">
@@ -335,17 +340,17 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 					<textElement textAlignment="Center" verticalAlignment="Middle">
 						<font fontName="DejaVu Sans" size="12" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{INVOICE_DATE}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{REFERENCE}]]></textFieldExpression>
 				</textField>
 				<staticText>
-					<reportElement x="8" y="168" width="93" height="16" uuid="6d77533d-b695-40c3-81f3-ab8edeac5cc2"/>
+					<reportElement x="8" y="176" width="93" height="16" uuid="6d77533d-b695-40c3-81f3-ab8edeac5cc2"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
 						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Sales Person:]]></text>
 				</staticText>
 				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="102" y="168" width="268" height="16" uuid="fca8ba95-0ac0-4f7b-bddd-1b15cc57c1cf">
+					<reportElement style="strHeader" x="102" y="176" width="268" height="16" uuid="fca8ba95-0ac0-4f7b-bddd-1b15cc57c1cf">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
 					<box>
@@ -421,11 +426,11 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 					<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-					<reportElement style="strHeader" x="107" y="148" width="268" height="16" uuid="ea19060a-5add-4c38-9ea5-2b8d02f75d82">
+					<reportElement style="strHeader" x="100" y="151" width="268" height="23" uuid="950a8f70-9117-4b55-8201-961cab66b376">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
-					<box>
-						<pen lineWidth="0.0" lineStyle="Dashed"/>
+					<box topPadding="1" leftPadding="2" bottomPadding="0" rightPadding="1">
+						<pen lineWidth="0.5" lineStyle="Solid"/>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
@@ -437,16 +442,16 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 					<textFieldExpression><![CDATA[$F{C_BRANCH_NO} +" / "+$F{ADDR}]]></textFieldExpression>
 				</textField>
 				<staticText>
-					<reportElement x="8" y="148" width="93" height="16" uuid="a0691403-14c4-4a2b-9aff-80ddd3ee3b19"/>
+					<reportElement x="8" y="151" width="93" height="23" uuid="35753cb1-9f19-4c75-8c8d-8b40fe767fb4"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
 						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
-					<text><![CDATA[Address:]]></text>
+					<text><![CDATA[Branch / الفرع:]]></text>
 				</staticText>
 			</band>
 		</groupHeader>
 		<groupFooter>
-			<band height="297">
+			<band height="217">
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<textField textAdjust="ScaleFont">
 					<reportElement style="strHeader" x="470" y="6" width="104" height="18" uuid="68e33dfe-6e2b-4e96-bcad-c14b6bea1cde">
@@ -524,68 +529,17 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 					<textFieldExpression><![CDATA["خصم"]]></textFieldExpression>
 				</textField>
 				<frame>
-					<reportElement x="7" y="90" width="578" height="119" uuid="6b80b1c6-92bc-4057-8442-8aa993215371">
+					<reportElement x="7" y="100" width="578" height="109" uuid="6b80b1c6-92bc-4057-8442-8aa993215371">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
 					<box>
 						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
-						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
-						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
-						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textField textAdjust="StretchHeight" pattern="">
-						<reportElement style="strHeader" x="20" y="11" width="110" height="28" uuid="fd5ffcd9-c388-497d-8cf7-693eafaefcd4">
-							<property name="com.jaspersoft.studio.unit.y" value="px"/>
-							<property name="com.jaspersoft.studio.unit.height" value="px"/>
-						</reportElement>
-						<box leftPadding="1" rightPadding="1">
-							<pen lineWidth="0.0"/>
-							<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						</box>
-						<textElement textAlignment="Center" verticalAlignment="Middle">
-							<font fontName="Arial2" size="14" isBold="true"/>
-						</textElement>
-						<textFieldExpression><![CDATA["المصادقة"+ "\nApproved "]]></textFieldExpression>
-					</textField>
-					<textField textAdjust="StretchHeight" pattern="">
-						<reportElement style="strHeader" x="161" y="12" width="110" height="28" uuid="9645f394-c39d-461a-b1c9-76fc540cd1b2">
-							<property name="com.jaspersoft.studio.unit.y" value="px"/>
-							<property name="com.jaspersoft.studio.unit.height" value="px"/>
-						</reportElement>
-						<box leftPadding="1" rightPadding="1">
-							<pen lineWidth="0.0"/>
-							<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						</box>
-						<textElement textAlignment="Center" verticalAlignment="Middle">
-							<font fontName="Arial2" size="14" isBold="true"/>
-						</textElement>
-						<textFieldExpression><![CDATA["السائق"+ "\nDriver "]]></textFieldExpression>
-					</textField>
-					<textField textAdjust="StretchHeight" pattern="">
-						<reportElement style="strHeader" x="301" y="12" width="110" height="28" uuid="b2e17e8d-f691-42a0-9bd6-b7d926107317">
-							<property name="com.jaspersoft.studio.unit.y" value="px"/>
-							<property name="com.jaspersoft.studio.unit.height" value="px"/>
-						</reportElement>
-						<box leftPadding="1" rightPadding="1">
-							<pen lineWidth="0.0"/>
-							<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-						</box>
-						<textElement textAlignment="Center" verticalAlignment="Middle">
-							<font fontName="Arial2" size="14" isBold="true"/>
-						</textElement>
-						<textFieldExpression><![CDATA["أم ني المخزن"+ "\nStore Keeper "]]></textFieldExpression>
-					</textField>
-					<textField textAdjust="StretchHeight" pattern="">
-						<reportElement style="strHeader" x="440" y="11" width="130" height="108" uuid="4359ee2e-3405-4c77-ad66-a2bfa7e38134">
+						<reportElement style="strHeader" x="181" y="21" width="390" height="89" uuid="4359ee2e-3405-4c77-ad66-a2bfa7e38134">
 							<property name="com.jaspersoft.studio.unit.y" value="px"/>
 							<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						</reportElement>
@@ -599,19 +553,19 @@ AND PUR1.INVOICE_NO<= $P{ptono}  and pur1.location_code= $P{plocation} and pur1.
 						<textElement textAlignment="Right" verticalAlignment="Top">
 							<font fontName="Arial2" size="12" isBold="true"/>
 						</textElement>
-						<textFieldExpression><![CDATA["Received By  اسم المستلم"+"\n"+
-"Signature   التوقيع"+"\n"+
-"Date     التاري خ"]]></textFieldExpression>
+						<textFieldExpression><![CDATA["Received By ___________________________ اسم المستلم"+"\n\n"+
+"Signature______________________________   التوقيع"+"\n\n"+
+"Date _________________________  التاري خ"]]></textFieldExpression>
 					</textField>
 				</frame>
 			</band>
 		</groupFooter>
 	</group>
 	<detail>
-		<band height="300" splitType="Immediate">
+		<band height="375" splitType="Immediate">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<subreport overflowType="NoStretch">
-				<reportElement stretchType="ElementGroupBottom" x="0" y="0" width="595" height="299" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
+				<reportElement stretchType="ElementGroupBottom" x="0" y="0" width="595" height="374" uuid="171752cf-094d-4cd2-9dd2-c13c33d03e42">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>

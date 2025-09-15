@@ -502,7 +502,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial" size="9" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{BALANCE}]]></textFieldExpression>
 			</textField>
@@ -519,7 +519,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial" size="9" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{SUMCR}]]></textFieldExpression>
 			</textField>
@@ -537,7 +537,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial" size="9" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{SUMDR}]]></textFieldExpression>
 			</textField>
