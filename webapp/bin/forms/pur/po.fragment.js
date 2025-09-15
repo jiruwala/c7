@@ -213,7 +213,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "br/salord",
+                        reportFile: "pord11",
                     }
                 ],
                 events: thatForm.helperFunc.getEvents(),
@@ -734,8 +734,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 onCellRender: function (qry, rowno, colno, currentRowContext) {
                 },
                 beforePrint: function (rptName, params) {
-                    var no = that.frm.getFieldValue("qry1.ord_no");
-                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
+                    var pokf = thatForm.frm.getFieldValue("qry1.keyfld");
+                    return params + "&_para_pac=" + pokf;
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {

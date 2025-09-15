@@ -2635,6 +2635,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             colname: "ORD_REFNM",
                             mTitle: Util.getLangText("refName"),
                             display_width: 250
+
                         },
                         {
                             colname: 'KEYFLD',
@@ -2654,7 +2655,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         },
 
                         {
-                            colname: "ORD_AMT",
+                            colname: "ord_amt",
                             display_format: "MONEY_FORMAT",
                             mTitle: Util.getLangText("amountTxt"),
                             display_width: 120,
@@ -2662,11 +2663,12 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
                         },
                         {
-                            colname: "ORD_DISCAMT",
+                            colname: "ord_discamt",
                             display_format: "MONEY_FORMAT",
                             mTitle: Util.getLangText("txtDisc"),
                             display_width: 100,
                             mSummary: "SUM"
+
                         },
                         {
                             colname: "netamt",
@@ -2686,7 +2688,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         " pur.invoice_no,o1.ord_ref,o1.ord_refnm," +
                         "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * purqty, 2)) else 0 end)||'%' purp ," +
                         "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * DELIVEREDQTY, 2)) else 0 end)||'%' dlvp ," +
-                        " o1.ord_amt,o1.ord_discamt,o1.ord_amt-o1.ord_discamt netamt, o1.keyfld from pord1 o1," +
+                        "o1.ord_amt,o1.ord_discamt,o1.ord_amt-o1.ord_discamt netamt, o1.keyfld from pord1 o1," +
                         " (select max(p.keyfld) kfld,max(p.invoice_no) invoice_no,po_keyfld  from pur1 p where p.invoice_code=21 and po_keyfld is not null group by p.po_keyfld) pur " +
                         "  " +
                         " where o1.ord_code =" + that2.vars.vou_code +

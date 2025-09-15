@@ -1363,7 +1363,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                                     }
                                     return true;
-                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx, cx.listPara
+                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx,cx.listPara
                                 );
 
                             }

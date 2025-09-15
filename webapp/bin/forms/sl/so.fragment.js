@@ -184,7 +184,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     {
                         title: "Print",
                         reportFile: "salOrd",
+                    },
+                    {
+                        title: "Print 2",
+                        reportFile: "salOrd2",
                     }
+
                 ],
                 events: thatForm.helperFunc.getEvents(),
                 parameters: [
@@ -2023,20 +2028,25 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 var qty = Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
                 var uqty = Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY"));
                 var pk = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"))
-                var pr = Util.extractNumber(ld.getFieldValue(i, "PRICE"));
+                var pr = Util.extractNumber(ld.getFieldValue(i, "ORD_PRICE"));
+                var ds = Util.extractNumber(ld.getFieldValue(i, "ORD_DISCAMT"));
                 checkStockReserve(i, {
                     str: str, rfr: rfr, qty: qty, uqty: uqty, pk: pk
                 });
-                if (dup[rfr + "-" + str] != undefined)
+                if (dup[rfr + "-" + str + "-" + (pr - ds)] != undefined)
                     errRow(i, "Save Denied : Duplicate item entry # store = " + str);
-                dup[rfr + "-" + str] = rfr;
+                dup[rfr + "-" + str + "-" + (pr - ds)] = rfr;
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)
                     errRow(i, "Save Denied : Item is a group item ! ");
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where " + flg + " reference='" + rfr + "'");
                 if (cnt == 0)
                     errRow(i, "Save Denied: Item " + rfr + " is invalid entry !");
-                if (pr < 0)
+                var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from store where " + flg + " no='" + str + "'");
+                if (cnt == 0)
+                    errRow(i, "Save Denied: STORE # " + stra + " is invalid entry !");
+
+                if ((pr - ds) < 0)
                     errRow(i, "Save Denied: PRICE invalid value !");
                 if ((qty * pk) + uqty <= 0)
                     errRow(i, "Save Denied: QTY invalid value !");
