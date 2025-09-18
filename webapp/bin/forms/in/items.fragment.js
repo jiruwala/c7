@@ -250,6 +250,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
                         UtilGen.Search.getLOVSearchField("select descr name from items where reference = ':CODE' ", qry.formview.objs["qry1.parentitem"].obj, undefined, that.frm.objs["qry1.parentitemname"].obj);
                         UtilGen.Search.getLOVSearchField("select name from c_ycust where code = ':CODE' ", qry.formview.objs["qry1.mfcode"].obj, undefined, that.frm.objs["qry1.mfcodename"].obj);
 
+
                     }
 
                 },
@@ -303,6 +304,14 @@ sap.ui.jsfragment("bin.forms.in.items", {
                     }
                 },
                 afterEditRow(qry, index, ld) {
+                    var kf = qry.formview.getFieldValue("reference");
+                    var totcnt = Util.getSQLValue("select nvl(count(*),0) from pur2 where refer='" + kf + "'");
+                    totcnt += Util.extractNumber(Util.getSQLValue("select nvl(count(*),0) from invoice2 where refer='" + kf + "'"));
+                    totcnt += Util.extractNumber(Util.getSQLValue("select nvl(count(*),0) from c_order1 where ord_ship='" + kf + "'"));
+                    totcnt += Util.extractNumber(Util.getSQLValue("select nvl(count(*),0) from masterasm where refer='" + kf + "'"));
+                    qry.formview.objs["qry1.pack"].obj.setEditable(true);
+                    if (totcnt > 0)
+                        qry.formview.objs["qry1.pack"].obj.setEditable(false);
 
                 },
                 beforeDeleteValidate: function (frm) {
