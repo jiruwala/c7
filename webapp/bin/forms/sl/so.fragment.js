@@ -60,7 +60,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
         var sumSpan2 = "XL2 L6 M6 S12";
         var qih = " C7_GET_STORE_ITEM_ALLQTY(ord_refer,o2.ord_date,o2.stra,'Y',o2.ord_prd_date,o2.ord_exp_date,'\"'||o2.keyfld||'\"')/o2.ord_pack qih , ";
         var rsrv = " C7_GET_STORE_ITEM_ALLQTY_RSRV(ord_refer,'\"'||o2.keyfld||'\"')/o2.ord_pack reserved, "
-        var dmlSq = "select NVL(O2.DESCR,i.descr) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount,i.descr descrx, " +
+        var dmlSq = "select NVL(O2.DESCR,i.descr) DESCR2,o2.*,((o2.ord_price-o2.ord_discamt)*(o2.ord_allqty/o2.ord_pack)) amount," +
+            "case when o2.ord_price>0 and o2.ord_discamt>0 then (o2.ord_discamt/o2.ord_price)*100 else 0 end discp ," +
+            " i.descr descrx, " +
             " DELIVEREDQTY/i.pack dlv_pkqty," +
             " purqty/i.pack sold_pkqty," +
             " TO_CHAR(ORD_PRD_DATE,'DD/MM/RRRR') ORD_PRD_DATE2, " +
@@ -238,8 +240,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         delete_allowed: true,
                         delete_before_update: "delete from pord2 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED", "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
-                        insert_exclude_fields: ['DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED", "ORD_PRD_DATE2", "ORD_EXP_DATE2"],
+                        update_exclude_fields: ['KEYFLD', 'DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED", "ORD_PRD_DATE2", "ORD_EXP_DATE2", "DISCP"],
+                        insert_exclude_fields: ['DESCRX', 'AMOUNT', 'PACKD', 'PACK', 'DLV_PKQTY', 'QIH', "COST_AMT", "LSAMT", "LSPRICE", "PACK_COST", "RESERVED", "ORD_PRD_DATE2", "ORD_EXP_DATE2", "DISCP"],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -383,6 +385,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     var pack = Util.extractNumber(ld.getFieldValue(i1, "ORD_PACK"));
                                     var price = Util.extractNumber(ld.getFieldValue(i1, "ORD_PRICE"));
                                     var ds = Util.extractNumber(ld.getFieldValue(i1, "ORD_DISCAMT"));
+                                    var dp = 0;
                                     var sq = '';
                                     var child = 0;
                                     var packd = ld.getFieldValue(i1, "ORD_PACKD");
@@ -413,6 +416,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                         cstamt = (pcost / pack) * ((pqt * pack) + qt);
                                         lsamt = (lsprice / pack) * ((pqt * pack) + qt);
                                         amt = ((price - ds) / pack) * ((pqt * pack) + qt);
+                                        if (price > 0 && ds > 0)
+                                            dp = (ds / price) * 100;
                                     }
                                     if (Util.nvl(ld.getFieldValue(i1, "DESCRX"), "").trim() == "")
                                         ld.setFieldValue(i1, "DESCR", sq);
@@ -422,6 +427,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     ld.setFieldValue(i1, "ORD_UNITD", unitd);
                                     ld.setFieldValue(i1, "ORD_PACK", pack);
                                     ld.setFieldValue(i1, "AMOUNT", amt);
+                                    ld.setFieldValue(i1, "DISCP", dp);
                                     ld.setFieldValue(i1, "PACK_COST", pcost);
                                     ld.setFieldValue(i1, "LSPRICE", lsprice);
                                     ld.setFieldValue(i1, "LSAMT", lsamt);
