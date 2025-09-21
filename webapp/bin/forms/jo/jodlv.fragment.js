@@ -1996,14 +1996,15 @@ sap.ui.jsfragment("bin.forms.jo.jodlv", {
             }
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
+                var ds = ld.getFieldValue(i, "DESCR");
                 var pk = ld.getFieldValue(i, "PACK");
                 var qty = (Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY")) * pk)
                     + (Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY")));
 
                 var pr = ld.getFieldValue(i, "SALE_PRICE");
-                if (dup[rfr] != undefined)
+                if (dup[rfr + "-" + ds] != undefined)
                     errRow(i, "Save Denied : Duplicate item entry # " + rfr);
-                dup[rfr] = rfr;
+                dup[rfr + "-" + ds] = rfr + "-" + ds;
                 checkItemDelivery(i);
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)

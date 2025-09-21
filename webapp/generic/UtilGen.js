@@ -4687,6 +4687,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         FormView.err("JO is closed !");
                     return podt[0];
 
+                },
+                Security: {
+
                 }
             },
             DashboardWidget: {
