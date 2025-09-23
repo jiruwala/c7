@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
-//copying from mp
+//copying from mm
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
