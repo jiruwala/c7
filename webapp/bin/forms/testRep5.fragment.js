@@ -94,14 +94,17 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             var typd = (tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "TYPE_DESCR")].getText());
             // var  = tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "")].getText();
 
-            var dtx = Util.execSQLWithData("select vou_code,type,refercode,refertype from acvoucher1 where keyfld=" + kfld, "No data found ..");
+            var dtx = Util.execSQLWithData("select vou_code,type,refercode,refertype,referkeyfld from acvoucher1 where keyfld=" + kfld, "No data found ..");
 
             if (dtx.length > 0) {
                 var vcd = dtx[0].VOU_CODE;
                 var typ = dtx[0].TYPE;
+                var rkld = dtx[0].REFERKEYFLD;
 
                 if (vcd == 1 && typ == 1) {
                     UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                } else if (vcd == 1 && typ == 3) {
+                    UtilGen.execCmd("bin.forms.rm.forms.unpost readonly=true formType=dialog formSize=70%,70% status=view keyfld=" + rkld, thatForm.view, obj, undefined);
                 } else if (vcd == 3 && (typ == 1 || typ == 6)) {
                     UtilGen.execCmd("gl.pv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
                 } else if (vcd == 2 && (typ == 1 || typ == 6)) {
@@ -119,9 +122,9 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                 }
             } else {  // if dtx.length>0 
                 if (typd == "dlv" && vername == "KHA")
-                    UtilGen.execCmd("bin.forms.br.kha.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
+                    UtilGen.execCmd("bin.forms.rm.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
                 if (typd == "dlv" && vername == "BR")
-                    UtilGen.execCmd("bin.forms.br.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
+                    UtilGen.execCmd("bin.forms.rm.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
 
             }
         }
@@ -561,6 +564,14 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                     thatForm.save_soa();
                                     return "select *from C6_GL2 where 1=1 and usernm=c6_session.get_user_session order by pos";
                                 },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+
+                                        var iq = Util.nvl(thatForm.frm.getFieldValue("parameter.pref"), "");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TQTY")].mHideCol = (iq == "");
+
+                                    }
+                                },
                                 fields: {
                                     vou_date: {
                                         colname: "vou_date",
@@ -663,6 +674,22 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_type: "NONE",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
+                                    },
+                                    tqty: {
+                                        colname: "tqty",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "m3Qty",
+                                        title2: "",
+                                        parentTitle: undefined,
+                                        parentSpan: 1,
+                                        display_width: "80",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        display_type: "NONE",
+                                        other_settings: {},
                                     },
                                     accno: {
                                         colname: "ACCNO",
@@ -1570,6 +1597,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
         var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
         var incUnpostDlv = thatForm.frm.getFieldValue("parameter.inclUnpostDlv");
+        var qtySql = " max((select NVL(sum(allqty),0) from :PUR2 where keyfld=v.REFERKEYFLD)) tqty  ";
         var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
         // if (bk.length > 0) {
         var plsql = "declare ";
@@ -1586,7 +1614,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var sqxAx2 = "select SUM(DEBIT) CRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
             " A.ACCNO=V.ACCNO AND  " +
             " V.VOU_DATE<=TODATE :KEYFLD_CONDITION ";
-        var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO,0 tqty FROM :ACVOUCHER2 V, ACACCOUNT A " +
+        var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO," + qtySql + " FROM :ACVOUCHER2 V, ACACCOUNT A " +
             " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT " +
             " AND V.ACCNO=A.ACCNO AND (V.COSTCENT=CC or cc is null) " + vflg +
             " AND (CUST_CODE=PCUST OR PCUST IS NULL)  :KEYFLD_CONDITION " +
@@ -1595,7 +1623,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         //     " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
         //     " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
         //     " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
-        var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":PUR2", "PUR2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs1 = [sqxAB.replaceAll(":V_STATMENT_1", "V_STATMENT_1").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs2 = [sqxAx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs3 = [sqxAx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
@@ -1603,6 +1631,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         for (var bi in bk) {
             sqs.push(sqx.
                 replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":PUR2", bk[bi].fiscal_schema).
                 replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
             sqs1.push(sqxAB.
                 replaceAll(":V_STATMENT_1", bk[bi].fiscal_schema + ".V_STATMENT_1").

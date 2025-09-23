@@ -300,7 +300,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         " from ACC_TRANSACTION_up a,salesp sls " +
                                         " where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and " +
                                         " (a.accno=':parameter.accno' or ':parameter.accno' is null) and " +
-                                        " ( sls.no=a.slsmn(+) ) " +
+                                        " ( sls.no(+)=a.slsmn ) " +
                                         " and  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by a.keyfld";
                                     return thatForm.frm.parseString(sq);
 

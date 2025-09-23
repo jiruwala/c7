@@ -125,8 +125,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         name: "qry1",
                         dml: "select *from c_order1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv0", "lblLv00", "lblLv", "lblLv2", "lblLv3", "lblLv4", "lblLv5"],
-                        insert_exclude_fields: ['branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv", "lblLv0", "lblLv00", "lblLv2", "lblLv3", "lblLv4", "lblLv5"],
+                        update_exclude_fields: ['keyfld', 'branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv0", "lblLv00", "lblLv", "lblLv2", "lblLv3", "lblLv4", "lblLv5", "tot_today"],
+                        insert_exclude_fields: ['branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv", "lblLv0", "lblLv00", "lblLv2", "lblLv3", "lblLv4", "lblLv5", "tot_today"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "ORD_CODE": thatForm.vars.vou_code,
@@ -193,7 +193,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.op_no"].obj, undefined, that.frm.objs["qry1.opname"].obj);
                         UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.salesp"].obj, undefined, that.frm.objs["qry1.salesname"].obj);
                         UtilGen.Search.getLOVSearchField("select descr from items where reference = ':CODE' ", qry.formview.objs["qry1.ord_ship"].obj, undefined, that.frm.objs["qry1.itemname"].obj);
-
+                        thatForm.helperFunc.setTotToday();
                         var saleinv = Util.getSQLValue("select saleinv from order1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
                         if (Util.nvl(saleinv, '') != '') {
                             var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
@@ -491,6 +491,16 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             },
 
         },
+        setTotToday: function () {
+            var thatForm = this.thatForm;
+            var sqt = thatForm.frm.parseString("select nvl(sum(tqty),0) from c_order1 where keyfld!=:qry1.keyfld and " +
+                " ord_date=:qry1.ord_date and ord_ship=':qry1.ord_ship'" +
+                " and ord_discamt=':qry1.ord_discamt' and ord_ref=':qry1.ord_ref' ");
+            var totqt = Util.getSQLValue(sqt);
+            var tq = totqt + Util.extractNumber(Util.nvl(thatForm.frm.getFieldValue("qry1.tqty"), "0"));
+            thatForm.frm.setFieldValue("qry1.tot_today", tq + " m3", tq + " m3");
+
+        },
         getFields1: function () {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
@@ -542,6 +552,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         var locval = thatForm.frm.objs[ordref].obj.getValue();
                         var s = Util.getSQLValue("select packd from items where reference='" + locval + "'");
                         thatForm.frm.setFieldValue("qry1.ord_packd", s);
+                        thatForm.helperFunc.setTotToday();
                     }
                 });
             };
@@ -670,7 +681,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         require: true,
                         edit_allowed: false,
                         insert_allowed: true,
-                    }, {}),
+                    }, {
+                    change: function () {
+                        thatForm.helperFunc.setTotToday();
+                    }
+                }),
                 ord_packd: FormView.getFactoryFields.getGeneralField(
                     "ord_packd", "@", "", "1%", "", "12%",
                     {
@@ -896,6 +911,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     displayFormat: "hh:mm a",
                     valueFormat: "hh:mm a"
                 }),
+                tot_today: FormView.getFactoryFields.getNumberField(
+                    "tot_today", "", "Total Today", "15%", "violetText", "22%",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        display_style: "keyIdText redText"
+                    }, {}),
             };
 
         },

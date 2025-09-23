@@ -398,7 +398,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.unpost", {
     },
     secureInit: function () {
         var that = this;
-        if (!UtilGen.Security.canEdit("formsec_all", "", true)) {
+        if (!UtilGen.Security.canEdit("formsec_all", "", true) ||
+            that.oController.readonly == "true") {
             that.cmdUpdatePrice.setEnabled(false);
             that.view.byId("cmdUpdateInv" + that.timeInLong).setEnabled(false);
             that.view.byId("cmdDelInv" + that.timeInLong).setEnabled(false);
