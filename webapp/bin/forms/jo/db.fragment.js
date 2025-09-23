@@ -431,7 +431,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 // if (Util.nvl(knd, "") == "") return;
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "KEYFLD")].getText());
                 var frm = "bin.forms.jo.jo";
-                UtilGen.execCmd(frm + " formTitle=JO formType=page keyfld=" + kfld + " formSize=750px,500px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                UtilGen.execCmd(frm + " formTitle=JO formType=dialog formSize=80%,80% keyfld=" + kfld + "", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
                     // sap.m.MessageToast.show("closing...");
                     that.loadData();
                 });
@@ -488,6 +488,11 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             sos = {};
             for (var i = 0; i < slices.length; i++) {
                 var kfld = Util.nvl(Util.getCellColValue(that.qr.getControl(), slicesof[slices[i]], "PO_KEYFLD"), undefined)
+                var podt = UtilGen.JOFunc.checkJOStatus(kfld, false);
+                if (podt.ORD_FLAG != 2) {
+                    var kfld = Util.nvl(Util.getCellColValue(that.qr.getControl(), slicesof[slices[i]], "PO_KEYFLD"), undefined)
+                }
+
                 kfld = (kfld != undefined) ? Util.extractNumber(kfld) : undefined;
                 var sono = Util.nvl(Util.getCellColValue(that.qr.getControl(), slicesof[slices[i]], "ORD_NO"), undefined)
                 sono = (sono != undefined) ? Util.extractNumber(sono) : undefined;

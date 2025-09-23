@@ -431,6 +431,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             var txtStepTime = new sap.m.DateTimePicker({
                 textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: podt.ORD_FLAG == 2,
                 change: function (e) {
+
                 }
 
             });
@@ -926,7 +927,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 thatForm.enableCommands([
                     thatForm.commands.cmdDesign,
                     thatForm.commands.cmdDye,
-                    thatForm.commands.cmdStock
+                    thatForm.commands.cmdStock,
+                    thatForm.commands.cmdClose
                 ], true);
                 thatForm.enableCommands([
                     thatForm.commands.cmdProduction,
@@ -1192,8 +1194,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         var thatForm = this;
         var para = "production";
         var isProdClosed = function () {
-            var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
-            if (Util.nvl(upd, '') != '') return true;
+            // var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
+            // if (Util.nvl(upd, '') != '') return true;
             return false;
 
         }
@@ -1296,7 +1298,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 qv.loadData();
 
                 setTimeout(() => {
-                    if (isProdClosed() || getStepsNotDone() > 0) cmdSave.setEnabled(false); else cmdSave.setEnabled(true);
+                    // if (isProdClosed() || getStepsNotDone() > 0) cmdSave.setEnabled(false); else cmdSave.setEnabled(true);
 
                 });
 
@@ -1305,15 +1307,15 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         }
         var doSave = function () {
             if (isProdClosed() || getStepsNotDone() > 0) FormView.err("Either producton closed or some steps not done in production !");
-            Util.simpleConfirmDialog(Util.getLangText("You can not change later producton steps if done ,Are you sure to proceed ?"), function (oAction) {
-                var sqj = thatForm.frm.parseString("update pord1 set jo_prod_user='" + sett["LOGON_USER"] + "' , " +
-                    "jo_prod_time=(select nvl(max(step_end),sysdate) from pord_jo_steps where pord_keyfld=:qry1.keyfld ) " +
-                    " where keyfld=:qry1.keyfld ");
-                var dt = Util.execSQL(sqj);
-                if (dt.ret = "SUCCESS")
-                    FormView.msgSuccess("Production is done !");
-                thatForm.queryCommands();
-            });
+            // Util.simpleConfirmDialog(Util.getLangText("You can not change later producton steps if done ,Are you sure to proceed ?"), function (oAction) {
+            var sqj = thatForm.frm.parseString("update pord1 set jo_prod_user='" + sett["LOGON_USER"] + "' , " +
+                "jo_prod_time=(select nvl(max(step_end),sysdate) from pord_jo_steps where pord_keyfld=:qry1.keyfld ) " +
+                " where keyfld=:qry1.keyfld ");
+            var dt = Util.execSQL(sqj);
+            if (dt.ret = "SUCCESS")
+                FormView.msgSuccess("Production is done !");
+            thatForm.queryCommands();
+            // });
 
         }
         var pg = new sap.m.Page({
@@ -2159,7 +2161,28 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     var kf = frm.getFieldValue("qry1.keyfld");
                     // return sq + "update_dlv_add_amt(" + kf + ");";
                     var sq2 = "update pord1 set ORDERDQTY=(select nvl(sum(ord_allqty),0) from pord2 where keyfld=" + kf + ") where keyfld=" + kf + "; "
-                    return sq + sq2;
+                    var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+
+                    var sql1 = UtilGen.getInsertRowStringByObj("positems", {
+                        "keyfld": "(select nvl(max(keyfld),0)+1 from positems) ",
+                        "refer": "':qry1.ord_ship'",
+                        "descr": "':qry2.descr'",
+                        "item_color": "':qry2.item_color'",
+                        "item_size": "':qry2.item_size'",
+                        "add_work": "':qry2.add_work'",
+                        "recto_verso": "':qry2.recto_verso'",
+                        "srno": "':qry2.srno'",
+                        "machine": "':qry2.machine'",
+                        "material": "':qry2.material'",
+                        "price": ":qry2.ord_price",
+                    });
+                    sql1 = "delete from positems where refer=':qry1.ord_ship' and descr=':qry2.descr';" + sql1 + ";";
+                    sql1 = thatForm.frm.parseString(sql1);
+                    var sqls = "";
+                    for (var i = 0; i < ld.rows.length; i++) 
+                        sqls += thatForm.frm.parseString(sql1, i);                    
+
+                    return sq + sq2 + sqls;
                 }
             };
         },

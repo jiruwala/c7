@@ -959,7 +959,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     var qryObj = this.objs[qr[0]];
                     if ((qryObj.showType == FormView.QueryShowType.QUERYVIEW)) {
                         var vl = qryObj.obj.mLctb.getFieldValue(rowno, qr[1].toUpperCase());
-                        if (vl instanceof Date) {
+                        if (Util.nvl(qryObj.obj.mLctb.getColByName(qr[1].toUpperCase()), null) != null
+                            && qryObj.obj.mLctb.getColByName(qr[1].toUpperCase()).mUIHelper.data_type == "NUMBER") {
+                            vl = Util.extractNumber(vl);
+                        } else if (vl instanceof Date) {
                             if (vl.getTime() === vl.setHours(0, 0, 0, 0))
                                 vl = Util.toOraDateString(vl);
                             else
