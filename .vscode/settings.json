@@ -1,4 +1,5 @@
 {
+
     "todo-tree.general.tags": [
         "BUG",
         "HACK",
@@ -39,5 +40,6 @@
     ],
     "todo-tree.tree.showBadges": true,
     "workbench.colorCustomizations": {},
-    "todo-tree.tree.disableCompactFolders": true
+    "todo-tree.tree.disableCompactFolders": true,
+    "todo-tree.tree.scanMode": "workspace"
 }

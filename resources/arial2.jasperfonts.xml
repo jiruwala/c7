@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies>
+	<fontFamily name="Arial2">
+		<normal>
+			<ttf><![CDATA[fonts/arial2/arial.ttf]]></ttf>
+		</normal>
+		<bold>
+			<ttf><![CDATA[fonts/arial2/arialbd.ttf]]></ttf>
+		</bold>
+		<italic>
+			<ttf><![CDATA[fonts/arial2/ariali.ttf]]></ttf>
+		</italic>
+		<boldItalic>
+			<ttf><![CDATA[fonts/arial2/arialbi.ttf]]></ttf>
+			<pdf><![CDATA[Arial2]]></pdf>
+		</boldItalic>
+		<pdfEncoding><![CDATA[Identity-H]]></pdfEncoding>
+		<pdfEmbedded><![CDATA[true]]></pdfEmbedded>
+		<exportFonts/>
+	</fontFamily>
+</fontFamilies>
