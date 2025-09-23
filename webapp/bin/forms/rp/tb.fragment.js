@@ -524,7 +524,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     // ld.getColByName("CDEB").mHideCol = true;
                     // ld.getColByName("CCRD").mHideCol = true;
                     // ld.getColByName("BALANCE").mHideCol =true;
-                    ld.getColByName("ACCNO").mHideCol = true;
+                    // ld.getColByName("ACCNO").mHideCol = true;
                     ld.getColByName("LEVELNO").mHideCol = true;
                     // ld.getColByName("FLG").mHideCol = true;
                     ld.getColByName("CHILDCOUNT").mHideCol = true;

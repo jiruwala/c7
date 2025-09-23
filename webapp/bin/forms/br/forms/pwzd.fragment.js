@@ -738,9 +738,9 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             "                 pcode, ploc, pinvno," +
             "                 11, ptype, posx, x.ord_ship, x.stra , pr*x.pack,  pr ," +
             "                 0, x.pack, x.packd, x.unitd, pdate," +
-            "                 0, x.tqty, 0, 0," +
-            "                 x.tqty*x.pack, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
-            "                 kfld , 1, 'KWD', SYSDATE, X.KEYFLD, X.tqty*X.PACK, 0, 0, x.ORD_EMPNO," +
+            "                 0, x.tqty/x.pack, 0, 0," +
+            "                 x.tqty, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
+            "                 kfld , 1, 'KWD', SYSDATE, X.KEYFLD, X.tqty, 0, 0, x.ORD_EMPNO," +
             "                 null, 0,'',x.PAYTERM,x.ord_pos) ;" +
             "     totamt:=totamt+(x.TQTY*pr);                " +
             " " +

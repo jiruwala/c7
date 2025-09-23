@@ -57,7 +57,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
 
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
+        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + thatForm.vars.vou_code + " ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
@@ -146,8 +146,8 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         delete_allowed: true,
                         delete_before_update: "delete from c_order1 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'PACKD', 'PACK'],
-                        insert_exclude_fields: ['DESCR', 'AMOUNT', 'PACKD', 'PACK'],
+                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT'],
+                        insert_exclude_fields: ['DESCR', 'AMOUNT', ],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -316,6 +316,22 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
                     thatForm.helperFunc.beforeSaveValidateQry(qry);
+                    if (qry.name == "qry2") {
+                        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                        var ld = qry.obj.mLctb;
+                        var rfr = ld.getFieldValue(rowno, "ORD_SHIP");
+                        var pos = ld.getFieldValue(rowno, "ORD_POS");
+                        var rfnm = ld.getFieldValue(rowno, "ORD_REFNM");
+                        var dt = Util.execSQLWithData("select packd,unitd,pack from items where reference='" + rfr + "'", "Item # " + rfr + " not a valid !");
+                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', ord_refnm=':rfnm', tqty=ord_pkqty*:pack where keyfld=:kf and ord_pos=:pos "
+                            .replaceAll(":pkd", dt[0].PACKD)
+                            .replaceAll(":unitd", dt[0].UNITD)
+                            .replaceAll(":pack", dt[0].PACK)
+                            .replaceAll(":kf", kf)
+                            .replaceAll(":pos", pos)
+                            .replaceAll(":rfnm", rfnm);
+                        return sqlRow + ";" + sq;
+                    }
                     return "";
                 },
                 afterNewRow: function (qry, idx, ld) {
@@ -1623,7 +1639,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
-                var qty = ld.getFieldValue(i, "TQTY");
+                var qty = ld.getFieldValue(i, "ORD_PKQTY");
                 var pr = ld.getFieldValue(i, "SALE_PRICE");
                 if (dup[rfr] != undefined)
                     FormView.err("Save Denied : Duplicate item entry # " + rfr);
