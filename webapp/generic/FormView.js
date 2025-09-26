@@ -742,7 +742,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var that = this;
             if (this.view == undefined)
                 return;
-
+            that.secure.init(that);
             Util.destroyID("cmdSave" + this.timeInLong, this.view);
             this.cmdButtons.cmdSave = new sap.m.Button(this.view.createId("cmdSave" + this.timeInLong), {
                 icon: "sap-icon://save",
@@ -1091,6 +1091,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         this.setQueryStatus(qryObj, Util.nvl(status, FormView.RecordStatus.VIEW));
                 }
             }
+            setTimeout(() => {
+                that.secure.initSec();
+            }, 100);
         };
 
         FormView.prototype.fetchQuery = function (qryName, execBeforeSql) {
@@ -1322,8 +1325,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 }
 
             }
-        }
-            ;
+            setTimeout(() => {
+                thatForm.secure.initSec();
+            }, 100);
+        };
         FormView.prototype._setQryEnableForEditing = function (qryName) {
             var qryObj = undefined;
             if (typeof qryName == "string")
@@ -1855,6 +1860,36 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 return str;
             }
         };
+        FormView.prototype.secure = {
+            init: function (thatForm) {
+                this.thatForm = thatForm;
+            },
+            initSec: function () {
+                var thatForm = this.thatForm;
+
+                //first check all 
+                if ((UtilGen.Security.isReadOnly("formsec_all", "", true) && thatForm.readonly == false)) {
+                    thatForm.setFormReadOnly(true);
+                }
+
+                if (!UtilGen.Security.canEdit("formsec_all", "", true) && thatForm.cmdButtons.cmdEdit.getEnabled() == true)
+                    thatForm.cmdButtons.cmdEdit.setEnabled(false);
+
+                if (!UtilGen.Security.canDelete("formsec_all", "", true) && thatForm.cmdButtons.cmdDel.getEnabled() == true)
+                    thatForm.cmdButtons.cmdDel.setEnabled(false);
+
+
+
+                if (Util.nvl(thatForm.formName, "") == "") return;
+
+                // if (UtilGen.Security.isReadOnly(thatForm.formCtg, thatForm.formName)) {
+                //     if (thatForm.readonly == false)
+                //         thatForm.readonly = true;
+                // }
+
+            }
+
+        }
         FormView.getFactoryControls = {
             getControls: function (pOSett) {
                 var timeInLong = (new Date()).getTime();

@@ -40,7 +40,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
 
         setTimeout(function () {
             that.loadData();
-            // UtilGen.DBView.autoShowHideMenu(true, that.joApp);
+            UtilGen.DBView.autoShowHideMenu(false, that.joApp);
         }, 100);
 
         // UtilGen.setFormTitle(this.oController.getForm(), "Journal Voucher", this.mainPage);
@@ -172,7 +172,9 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 value: "0",
                 selectedKey: "0",
                 selectionChange: function (e) {
-                    // that.loadData();
+                    var cbv = Util.extractNumber(that.view.byId("cb1" + that.timeInLong).getValue());
+                    if (cbv != -1)
+                        that.loadData();
                     var cnt = this;
                     setTimeout(function () {
                         cnt.$().find("input").attr("readonly", true);
@@ -182,25 +184,39 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         );
         Util.destroyID("cmdApprove" + this.timeInLong, this.view);
         Util.destroyID("cmdRefresh" + this.timeInLong, this.view);
+        Util.destroyID("cmdNewJo" + this.timeInLong, this.view);
+        Util.destroyID("cmdClose" + this.timeInLong, this.view);
 
         var fromdate = UtilGen.addControl(fe, "From Date", sap.m.DatePicker, "fromdate" + this.timeInLong,
             {
-                width: "20%"
+                width: "20%",
+                change: function () {
+                    var cbv = Util.extractNumber(that.view.byId("cb1" + that.timeInLong).getValue());
+                    if (cbv != -1)
+                        that.loadData();
+                }
             }, "date", undefined, this.view);
         var todate = UtilGen.addControl(fe, "To Date", sap.m.DatePicker, "todate" + this.timeInLong,
             {
-                width: "20%"
+                width: "20%",
+                change: function () {
+                    var cbv = Util.extractNumber(that.view.byId("cb1" + that.timeInLong).getValue());
+                    if (cbv != -1)
+                        that.loadData();
+                }
             }, "date", undefined, this.view);
 
 
-        var cmdRefresh = new sap.m.Button(this.view.createId("cmdRefresh" + this.timeInLong), {
-            icon: "sap-icon://details",
-            text: Util.getLangText("execute_query"),
+        var cmdNewJO = new sap.m.Button(this.view.createId("cmdNewJo" + this.timeInLong), {
+            icon: "sap-icon://document",
+            text: Util.getLangText("New JO"),
             press: function () {
-                that.loadData();
+                var frm = "bin.forms.jo.jo";
+                UtilGen.execCmd(frm + " formTitle=JO formType=page formSize=80%,80% status=new", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                    that.loadData();
+                });
             }
         });
-
         var cmdApprove = new sap.m.Button(this.view.createId("cmdApprove" + this.timeInLong), {
             icon: "sap-icon://accept",
             text: Util.getLangText("poApprove"),
@@ -209,6 +225,21 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 that.doApprove();
             }
         });
+        var cmdClose = new sap.m.Button(this.view.createId("cmdClose" + this.timeInLong), {
+            icon: "sap-icon://decline",
+            text: Util.getLangText("cmdClose"),
+            press: function () {
+                that.joApp.backFunction();
+            }
+        });
+        var cmdRefresh = new sap.m.Button(this.view.createId("cmdRefresh" + this.timeInLong), {
+            icon: "sap-icon://refresh",
+            text: Util.getLangText("execute_query"),
+            press: function () {
+                that.loadData();
+            }
+        });
+
         var fe = [
             Util.getLabelTxt("txtTitJOLists", "100%", "", "titleFontWithoutPad2 boldText"),
             Util.getLabelTxt("txtDaysOff", "20%", "", "", "Center"), new sap.m.Text({ width: "0px" }),
@@ -258,7 +289,8 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         });
         var tb = new sap.m.Toolbar({
             content: [
-                cmdRefresh, cmdApprove, new sap.m.ToolbarSpacer()
+                cmdNewJO, cmdRefresh, new sap.m.ToolbarSpacer(),
+                (that.oController.showClose == 'Y' ? cmdClose : new sap.m.Text())
             ]
         }).addStyleClass("toolBarBackgroundColor1");
         this.mainPage.setSubHeader(tb);

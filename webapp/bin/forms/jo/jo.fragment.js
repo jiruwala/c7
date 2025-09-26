@@ -826,6 +826,26 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 break;
         }
     },
+    checkStepSecurity: function () {
+        var thatForm = this;
+        var varias = {
+            "approve": thatForm.commands.cmdApprove,
+            "design": thatForm.commands.cmdDesign,
+            "dye": thatForm.commands.cmdDye,
+            "production": thatForm.commands.cmdProduction,
+            "stock": thatForm.commands.cmdStock,
+            "deliveries": thatForm.commands.cmdDlv,
+            "sales": thatForm.commands.cmdSales,
+            "closeJO": thatForm.commands.cmdClose
+        }
+        var objs = Object.keys(varias);
+        for (var o in objs) {
+            var fls = UtilGen.Security.getParaSec("formsec_jo__step_" + objs[o], false, true);
+            if (!fls &&
+                !varias[objs[o]].showRecs
+            ) varias[objs[o]].setEnabled(false);
+        }
+    },
     refreshIcons: function () {
         var thatForm = this;
         var checkCommand = function (cmd) {
@@ -853,6 +873,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             cmd.setEnabled(enableValue);
         });
     },
+
     queryCommands: function () {
         var thatForm = this;
         var showUpdate = function (pcmds, pEnableValue) {
@@ -947,7 +968,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             }
         }
         thatForm.refreshIcons();
-
+        thatForm.checkStepSecurity();
     },
     do_stock_step: function () {
         var thatForm = this;
@@ -1267,7 +1288,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 thatForm.showProdStep(sp, undefined, function () { fetchData(); });
             }
             var sqf = thatForm.frm.parseString("select s.step_pos,s.step_code,si.descr," +
-                "s.step_emp,sls.name step_empname,s.estimated_hour, " +
+                "s.step_emp,sls.name step_empname,s.estimated_hour, item_descr,qty," +
                 "to_char(s.step_start,'dd/mm/rrrr HH24.mi') step_start ," +
                 "to_char(s.step_end,'dd/mm/rrrr HH24.mi') step_end," +
                 "step_remarks " +
@@ -1285,6 +1306,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 qv.mLctb.cols[qv.mLctb.getColPos("STEP_CODE")].commandLinkClick = fnEdit;
                 qv.mLctb.cols[qv.mLctb.getColPos("STEP_POS")].commandLinkClick = fnEdit;
                 qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].getMUIHelper().display_width = 250;
+                qv.mLctb.cols[qv.mLctb.getColPos("ITEM_DESCR")].getMUIHelper().display_width = 250;
+                qv.mLctb.cols[qv.mLctb.getColPos("QTY")].getMUIHelper().display_width = 60;
                 qv.mLctb.cols[qv.mLctb.getColPos("STEP_EMP")].getMUIHelper().display_width = 60;
                 qv.mLctb.cols[qv.mLctb.getColPos("STEP_EMPNAME")].getMUIHelper().display_width = 100;
                 qv.mLctb.cols[qv.mLctb.getColPos("STEP_START")].getMUIHelper().display_width = 150;
@@ -1293,6 +1316,16 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
                 qv.mLctb.cols[qv.mLctb.getColPos("STEP_POS")].mTitle = Util.getLangText("Sr");
                 qv.mLctb.cols[qv.mLctb.getColPos("STEP_CODE")].mTitle = Util.getLangText("txtCode");
+                qv.mLctb.cols[qv.mLctb.getColPos("DESCR")].mTitle = Util.getLangText("descrTxt");
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_EMP")].mTitle = Util.getLangText("txtNo");
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_START")].mTitle = Util.getLangText("puShipstartfrom");
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_END")].mTitle = Util.getLangText("puShipendto");
+                qv.mLctb.cols[qv.mLctb.getColPos("STEP_REMARKS")].mTitle = Util.getLangText("txtRemark");
+                qv.mLctb.cols[qv.mLctb.getColPos("ITEM_DESCR")].mTitle = Util.getLangText("Item");
+                qv.mLctb.cols[qv.mLctb.getColPos("QTY")].mTitle = Util.getLangText("txtQty");
+
+
+
 
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
@@ -1363,7 +1396,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             title: tit,
             content: pg,
             contentWidth: "80%",
-            contentHeight: "400px",
+            contentHeight: "450px",
 
         });
         fetchData();
@@ -1375,7 +1408,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
 
         var txtStepPos, txtStepCode, txtStepName,
-            txtEmpNo, txtEmpName, txtEstHours,
+            txtEmpNo, txtEmpName, txtEstHours, txtItemDescr, txtItemPos, txtQty,
             txtStartTime, txtEndTime, txtRemarks, dlg;
 
         var vb = new sap.m.VBox();
@@ -1420,8 +1453,26 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 }
 
             });
+            txtItemDescr = new sap.m.Input({
+                textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose,
+                showValueHelp: true,
+                change: function (e) {
+                    var sq = thatForm.frm.parseString("select ord_pos from pord2 where keyfld=:qry1.keyfld");
+                    UtilGen.Search.getLOVSearchField(sq, this, undefined, txtItemPos);
+                },
+                valueHelpRequest: function (e) {
+                    UtilGen.Search.do_quick_search(e, this,
+                        thatForm.frm.parseString("select descr code,ord_pos from pord2 where keyfld=:qry1.keyfld order by ord_pos "),
+                        thatForm.frm.parseString("select descr title from pord2 where keyfld=:qry1.keyfld and descr=:CODE"), txtItemDescr, function (data) {
+                            txtItemDescr.fireChange();
+                        }, undefined);
+                }
+
+            });
             txtEmpName = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "30%", editable: false });
             txtEstHours = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose });
+            txtQty = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: !isclose });
+            txtItemPos = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "15%", editable: false });
             txtStartTime = new sap.m.DateTimePicker({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose });
             txtEndTime = new sap.m.DateTimePicker({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose });
             txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: !isclose });
@@ -1438,6 +1489,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 Util.getLabelTxt("txtEmp", "30%", ""), txtEmpNo,
                 Util.getLabelTxt("", "0px", "@"), txtEmpName,
                 Util.getLabelTxt("Estimated hours", "30%", ""), txtEstHours,
+                Util.getLabelTxt("Item", "30%", ""), txtItemDescr,
+                Util.getLabelTxt("Qty", "30%", ""), txtQty,
+                Util.getLabelTxt("Pos", "10%", "@"), txtItemPos,
                 Util.getLabelTxt("Start", "30%", ""), txtStartTime,
                 Util.getLabelTxt("End", "30%", ""), txtEndTime,
                 Util.getLabelTxt("Remarks", "30%", ""), txtRemarks,
@@ -1463,7 +1517,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             dlg = new sap.m.Dialog({
                 title: sp <= -1 ? "New step " : " Edit position : " + sp,
                 contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 500, "XL": 500 }) + "px",
-                contentHeight: "250px",
+                contentHeight: "350px",
                 content: [vb],
                 modal: true,
                 buttons: [
@@ -1499,15 +1553,20 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             txtEmpName.setValue("");
             txtEmpNo.setValue("");
             txtEstHours.setValue("0");
+            txtQty.setValue("0");
+            txtItemDescr.setValue("");
+            txtItemPos.setValue("");
             txtStartTime.setDateValue(null);
             txtEndTime.setDateValue(null);
             txtRemarks.setValue("");
             if (Util.nvl(sp, -1) != -1) {
                 var sqj = ("select S.STEP_CODE, S.STEP_EMP, S.STEP_REMARKS, S.STEP_DONE, S.ESTIMATED_HOUR, S.STEP_USER, " +
+                    "ITEM_DESCR,QTY," +
                     "to_char(STEP_START,'mm/dd/rrrr hh24.mi' ) STEP_START, " +
                     "to_char(STEP_END,'mm/dd/rrrr hh24.mi' ) STEP_END, " +
                     " (select max(name) from salesp where no=STEP_emp) STEP_EMPNAME, " +
-                    " (select max(DESCR) from PORD_JO_STEPS_INFO where CODE=STEP_CODE) STEP_DESCR " +
+                    " (select max(DESCR) from PORD_JO_STEPS_INFO where CODE=STEP_CODE) STEP_DESCR, " +
+                    " ITEM_POS " +
                     " from PORD_JO_STEPS S where pord_keyfld= "
                     + thatForm.frm.getFieldValue("keyfld"))
                     + " AND STEP_POS='" + sp + "'";
@@ -1518,6 +1577,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     txtEmpName.setValue(dt[0].STEP_EMPNAME);
                     txtEmpNo.setValue(dt[0].STEP_EMP);
                     txtEstHours.setValue(dt[0].ESTIMATED_HOUR);
+                    txtQty.setValue(dt[0].QTY);
+                    txtItemPos.setValue(dt[0].ITEM_POS);
+                    txtItemDescr.setValue(dt[0].ITEM_DESCR);
                     txtStartTime.setDateValue(new Date(dt[0].STEP_START.replaceAll(".", ":")));
                     txtEndTime.setDateValue(new Date(dt[0].STEP_END.replaceAll(".", ":")));
                     txtRemarks.setValue(dt[0].STEP_REMARKS);
@@ -1545,6 +1607,14 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 FormView.err("Start date or End date is Invalid !");
             if (Util.extractNumber(Util.nvl(txtEstHours.getValue(), "0")) < 0)
                 FormView.err("Estimated number is not valid !");
+            if (Util.extractNumber(txtQty.getValue()) < 0) FormView.err("Invalid qty !");
+            if (txtItemDescr.getValue() != "") {
+                var qt = Util.extractNumber(txtQty.getValue());
+                var totqty = Util.extractNumber(Util.getSQLValue(thatForm.frm.parseString("select nvl(sum(ORD_PKQTY),0) from pord2 " +
+                    "where keyfld=:qry1.keyfld and descr='" + txtItemDescr.getValue() + "'")));
+                if (qt > totqty)
+                    FormView.err(txtItemDescr.getValue() + " , qty limit is " + totqty);
+            }
 
             var sql = "";
             var colvals = {
@@ -1552,6 +1622,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 "pord_keyfld": thatForm.frm.getFieldValue("keyfld"),
                 "step_code": Util.quoted(txtStepCode.getValue()),
                 "step_emp": Util.quoted(txtEmpNo.getValue()),
+                "qty": Util.extractNumber(txtQty.getValue()),
+                "item_pos": Util.extractNumber(txtItemPos.getValue()),
+                "item_descr": Util.quoted(txtItemDescr.getValue()),
                 "estimated_hour": Util.quoted(txtEstHours.getValue()),
                 "step_start": Util.nvl(txtStartTime.getDateValue(), undefined) ? Util.toOraDateTimeString(txtStartTime.getDateValue()) : "null",
                 "step_end": Util.nvl(txtEndTime.getDateValue(), undefined) ? Util.toOraDateTimeString(txtEndTime.getDateValue()) : "null",
@@ -2179,8 +2252,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     sql1 = "delete from positems where refer=':qry1.ord_ship' and descr=':qry2.descr';" + sql1 + ";";
                     sql1 = thatForm.frm.parseString(sql1);
                     var sqls = "";
-                    for (var i = 0; i < ld.rows.length; i++) 
-                        sqls += thatForm.frm.parseString(sql1, i);                    
+                    for (var i = 0; i < ld.rows.length; i++)
+                        sqls += thatForm.frm.parseString(sql1, i);
 
                     return sq + sq2 + sqls;
                 }

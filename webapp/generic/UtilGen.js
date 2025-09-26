@@ -4888,7 +4888,59 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
 
-            }
+            },
+            Security: {
+                getParaSec: function (varia, pForceful, recheckdata) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var setvar = sett[varia];
+                    if (Util.nvl(recheckdata, false)) {
+                        setvar = Util.getSQLValue("select nvl(max(value),'') from cp_user_profiles where variable='" + varia + "' and (profileno='" + sett["PROFILENO"] + "')");
+                        if (Util.nvl(setvar, '').trim() == "")
+                            setvar = Util.getSQLValue("select nvl(max(value),'') from cp_user_profiles where variable='" + varia + "' and (profileno=0)");
+                    }
+                    if (!forceful && Util.nvl(setvar, 'TRUE') != "TRUE")
+                        return false;
+                    if (forceful && Util.nvl(setvar, 'FALSE') != "TRUE")
+                        return false;
+                    return true;
+                },
+                canEdit: function (grp, form, pForceful, recheckdata) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData(); 
+                    return this.getParaSec(grp + "_" + form + "_editable", forceful, recheckdata);
+                    // if (!forceful && Util.nvl(sett[grp + "_" + form + "_editable"], 'TRUE') != "TRUE")
+                    //     return false;
+                    // if (forceful && Util.nvl(sett[grp + "_" + form + "_editable"], 'FALSE') != "TRUE")
+                    //     return false;
+
+                    // return true;
+
+                },
+                canDelete: function (grp, form, pForceful, recheckdata) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    return this.getParaSec(grp + "_" + form + "_deletable", forceful, recheckdata);
+                    // if (!forceful && Util.nvl(sett[grp + "_" + form + "_deletable"], 'TRUE') != "TRUE")
+                    //     return false;
+                    // if (forceful && Util.nvl(sett[grp + "_" + form + "_deletable"], 'FALSE') != "TRUE")
+                    //     return false;
+
+                    // return true;
+
+                },
+                isReadOnly: function (grp, form, pForceful, recheckdata) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    return this.getParaSec(grp + "_" + form + "_readonly", forceful, recheckdata);
+                    // if (!forceful && Util.nvl(sett[grp + "_" + form + "_readonly"], 'TRUE') != "TRUE")
+                    //     return false;
+                    // if (forceful && Util.nvl(sett[grp + "_" + form + "_readonly"], 'FALSE') != "TRUE")
+                    //     return true;
+                    // return false;
+                },
+
+            },
 
         };
 

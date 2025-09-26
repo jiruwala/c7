@@ -990,7 +990,10 @@ sap.ui.jsview('bin.Dashboard', {
                         "title": dtxM[i].TILE_TITLE_1,
                         "FORM_NAME": dtxM[i].EXEC_LINE,
                         "EXEC_TYPE": dtxM[i].EXEC_TYPE,
-                        "tileObj": Util.nvl(dtxM[i].CUSTOM_OBJ, "") != "" ? eval(dtxM[i].CUSTOM_OBJ) :
+                        "tileObj": Util.nvl(dtxM[i].CUSTOM_OBJ, "") != "" ?
+                            dtxM[i].CUSTOM_OBJ.startsWith("#") ? eval(Util.getSQLValue("select custom_obj from c7_secs_tiles " +
+                                " where tile_id=" + dtxM[i].CUSTOM_OBJ.substring(1)))
+                                : eval(dtxM[i].CUSTOM_OBJ) :
                             new sap.m.GenericTile({
                                 frameType: Util.nvl(dtxM[i].TILE_SIZE, "OneByHalf"),
                                 header: dtxM[i].TILE_TITLE_1,
