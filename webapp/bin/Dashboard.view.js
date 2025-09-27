@@ -984,7 +984,10 @@ sap.ui.jsview('bin.Dashboard', {
                         "title": dtxM[i].TILE_TITLE_1,
                         "FORM_NAME": dtxM[i].EXEC_LINE,
                         "EXEC_TYPE": dtxM[i].EXEC_TYPE,
-                        "tileObj": Util.nvl(dtxM[i].CUSTOM_OBJ, "") != "" ? eval(dtxM[i].CUSTOM_OBJ) :
+                        "tileObj": Util.nvl(dtxM[i].CUSTOM_OBJ, "") != "" ?
+                            dtxM[i].CUSTOM_OBJ.startsWith("#") ? eval(Util.getSQLValue("select custom_obj from c7_secs_tiles " +
+                                " where tile_id=" + dtxM[i].CUSTOM_OBJ.substring(1)))
+                                : eval(dtxM[i].CUSTOM_OBJ) :
                             new sap.m.GenericTile({
                                 frameType: Util.nvl(dtxM[i].TILE_SIZE, "OneByHalf"),
                                 header: dtxM[i].TILE_TITLE_1,
@@ -1143,12 +1146,22 @@ sap.ui.jsview('bin.Dashboard', {
                                 that.mv.getControl().collapseAll();
                             }
                         });
+                        var m5 = new sap.m.MenuItem({
+                            icon: "sap-icon://add",
+                            text: Util.getLangText("Add Menu Group"),
+                            press: function () {
+                                that.showMenuForm("", "");
+                            }
+                        });
+
                         mnu.addItem(m1);
                         mnu.addItem(m11);
                         if (!sap.ui.Device.system.phone)
                             mnu.addItem(m2);
                         mnu.addItem(m3);
                         mnu.addItem(m4);
+                        if (sett["PROFILENO"] == 0)
+                            mnu.addItem(m5);
                         mnu.openBy(this);
                     }
                 }),
@@ -1770,11 +1783,14 @@ sap.ui.jsview('bin.Dashboard', {
             getData();
         } else {
             setEditable(true);
-            txtParent.setValue(prnt);
-            txtParentName.setValue(Util.getSQLValue("select menu_title from c7_menus where menu_code=" + Util.quoted(prnt) + " and group_code=" + Util.quoted(that.current_profile)));
-            var newcode = Util.getSQLValue("select nvl(max(menu_code),0)+1 from c7_menus where group_code=" + Util.quoted(that.current_profile));
+            if (Util.nvl(prnt, "") != "") {
+                txtParent.setValue(prnt);
+                txtParentName.setValue(Util.getSQLValue("select menu_title from c7_menus where menu_code=" + Util.quoted(prnt) + " and group_code=" + Util.quoted(that.current_profile)));
+            }
+            var newcode = Util.getSQLValue("select nvl(max(menu_code),0)+1 from c7_menus where PARENT_MENUCODE " + (Util.nvl(prnt, "") == "" ? " is null " : "=" + Util.quoted(prnt)) +
+                " and group_code=" + Util.quoted(that.current_profile));
             if (newcode == "1" || newcode == 1)
-                txtCode.setValue(prnt + "000" + newCode);
+                txtCode.setValue(prnt + "000" + newcode);
             else
                 txtCode.setValue(newcode);
         }
