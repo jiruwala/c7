@@ -4899,6 +4899,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (Util.nvl(setvar, '').trim() == "")
                             setvar = Util.getSQLValue("select nvl(max(value),'') from cp_user_profiles where variable='" + varia + "' and (profileno=0)");
                     }
+                    setvar = Util.nvl(setvar, forceful ? 'TRUE' : 'FALSE');
                     if (!forceful && Util.nvl(setvar, 'TRUE') != "TRUE")
                         return false;
                     if (forceful && Util.nvl(setvar, 'FALSE') != "TRUE")
@@ -4906,8 +4907,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     return true;
                 },
                 canEdit: function (grp, form, pForceful, recheckdata) {
-                    var forceful = Util.nvl(pForceful, false);
-                    var sett = sap.ui.getCore().getModel("settings").getData(); 
+                    var forceful = Util.nvl(pForceful, true);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
                     return this.getParaSec(grp + "_" + form + "_editable", forceful, recheckdata);
                     // if (!forceful && Util.nvl(sett[grp + "_" + form + "_editable"], 'TRUE') != "TRUE")
                     //     return false;
@@ -4918,7 +4919,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
                 canDelete: function (grp, form, pForceful, recheckdata) {
-                    var forceful = Util.nvl(pForceful, false);
+                    var forceful = Util.nvl(pForceful, true);
                     var sett = sap.ui.getCore().getModel("settings").getData();
                     return this.getParaSec(grp + "_" + form + "_deletable", forceful, recheckdata);
                     // if (!forceful && Util.nvl(sett[grp + "_" + form + "_deletable"], 'TRUE') != "TRUE")
