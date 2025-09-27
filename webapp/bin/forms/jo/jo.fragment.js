@@ -241,6 +241,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             "STRA": sett["DEFAULT_STORE"],
                             "ORD_TYPE": 1,
                             "ORD_AMT": ":qry2.totamt",
+                            "USERNM": sett["LOGON_USER"],
+                            "CREATED_TIME": "sysdate",
+                            "MODIFIED_TIME": "sysdate",
                         },
                         update_default_values: {
                             "ORD_AMT": ":qry2.totamt",
@@ -408,6 +411,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     thatForm.showMaterials();
                     FormView.err("Can't approve , must have any expenses in material estimation !");
                 }
+                var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
+                if (podt.ORD_FLAG != 1)
+                    FormView.err("Either approved or closed !");
             };
             var update_rec = function () {
                 var sq = "update pord1 set ord_flag=2,APPROVED_BY=':approved_by'," +
@@ -2498,6 +2504,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         list: "@" + UtilGen.PurchaseOrderFunc.initAction.none + "/txtNone," +
                             UtilGen.PurchaseOrderFunc.initAction.approve + "/poApprove",
                         require: true,
+                        edit_allowed: false,
+                        insert_allowed: false
                     }, {
                     selectionChange: function (e) {
                         var oc = this.getSelectedKey();
