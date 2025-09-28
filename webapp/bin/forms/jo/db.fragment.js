@@ -354,7 +354,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             "decode(o1.ord_flag,1,'Not-Approved',2,'Approved',3,'Closed') status1, " +
             " (case when jo_active_from is not null and ord_flag=3 then 'Not-Active'  " +
             " when jo_active_from is not null and ord_flag!=3 then 'Active'  " +
-            " else 'Pending' end ) action_status , " +
+            " else 'Pending' end ) action_status ,usernm,approved_by, " +
             " to_char(o1.JO_ACTIVE_FROM,'dd/mm/rrrr HH24.MI') jo_active_from ," +
             " pur.invoice_no,o1.ord_ref,o1.ord_refnm," +
             "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * purqty, 2)) else 0 end)||'%' purp ," +
@@ -454,7 +454,37 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 "mSummary": "SUM"
             });
 
+            qv.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
+                var oModel = this.getControl().getModel();
+                var flg = Util.extractNumber(oModel.getProperty("ORD_FLAG", currentRowContext));
+                var dt = Util.extractNumber(oModel.getProperty("JO_ACTIVE_FROM", currentRowContext));
+                var st1 = oModel.getProperty("ACTION_STATUS", currentRowContext);
+                var doRender = function (clr, bkclr) {
+                    for (var i = startCell; i < endCell; i++) {
+                        if (clr != "") {
+                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", clr);
+                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("color", clr);
+                        }
+                        if (bkclr != "") {
+                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("background-color", bkclr);
+                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", bkclr);
+                        }
 
+                    }
+
+                }
+                if (flg == 2 && Util.nvl(st1, "") != "Pending")
+                    doRender("darkblue", "lightgreen");
+                if (flg == 2 && Util.nvl(st1, "") == "Pending")
+                    doRender("darkblue", "#d0f0c0");
+                                
+                if (flg == 3)
+                    doRender("", "lightgrey");
+                if (flg == 1)
+                    doRender("darkblue", "#ffffe0");
+
+
+            }
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].commandLinkClick = function (obj) {
                 var tbl = obj.getParent().getParent();
                 var mdl = tbl.getModel();

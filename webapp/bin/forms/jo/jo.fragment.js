@@ -241,7 +241,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             "STRA": sett["DEFAULT_STORE"],
                             "ORD_TYPE": 1,
                             "ORD_AMT": ":qry2.totamt",
-                            "USERNM": sett["LOGON_USER"],
+                            "USERNM": "'"+sett["LOGON_USER"]+"'",
                             "CREATED_TIME": "sysdate",
                             "MODIFIED_TIME": "sysdate",
                         },
