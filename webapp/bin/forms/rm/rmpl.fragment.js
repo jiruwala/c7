@@ -344,7 +344,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                 var balance = 0;
                 var cod = this.codes[ai];
                 if (cod.code == "prodqty") {
-                    totqty = Util.getSQLValue("select sum(tqty) from c_order1 where saleinv is not null and " +
+                    totqty = Util.getSQLValue("select sum(tqty) from c_order1 where ord_code=9 and saleinv is not null and " +
                         " ord_date>=" + Util.toOraDateString(fromdt) +
                         " and ord_date<=" + Util.toOraDateString(todt)
                     );
@@ -634,7 +634,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     var balance = 0;
                     var cod = this.codes[ai];
                     if (cod.code == "prodqty") {
-                        totqty = Util.getSQLValue("select round(nvl(sum(tqty),0)) from c_order1 where saleinv is not null and " +
+                        totqty = Util.getSQLValue("select round(nvl(sum(tqty),0)) from c_order1 where ord_code=9 and saleinv is not null and " +
                             " to_char(ord_date,'rrrr/mm')=" + Util.quoted(mnth)
                         );
                         cod["balance"] = totqty;

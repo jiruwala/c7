@@ -250,13 +250,22 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
             //     data: null
             // }, false).done(function (data) {
             // });
+            var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
+            var todt = thatForm.frm.getFieldValue("parameter.todate");
+
             var sq = "SELECT '' PARENTACC ,1 LEVELNO , 0 CHILDCOUNT, j.SLSMN,SLSMN_NAME," +
                 " sum(allqty/pack) pkqty,SUM(((PRICE+ADD_AMT_GROSS)/PACK)*(QTYOUT-QTYIN)) SAL_AMT," +
                 " NVL ( (col.amt), 0) COLL_AMT,0 avgsales FROM JOINED_PUR j, ( " +
-                " SELECT slsmn,nvl(sum(credit),0) amt from acc_transaction_up where vou_code=2 group by slsmn) col  " +
+                " SELECT c_ycust.salesp slsmn,nvl(sum(credit),0) amt from acc_transaction_up,c_ycust " +
+                " where vou_code=2 and c_ycust.code=acc_transaction_up.cust_code  " +
+                " and vou_date>=:parameter.fromdate " +
+                " and vou_date<=:parameter.todate" +
+                " group by c_ycust.salesp) col  " +
                 "" +
                 " WHERE j.INVOICE_CODE=21 " +
                 " and j.slsmn=col.slsmn(+) " +
+                " and j.invoice_date>=:parameter.fromdate and " +
+                " j.invoice_date<=:parameter.todate " +
                 " GROUP BY j.SLSMN,j.SLSMN_NAME,NVL ( (col.amt), 0) " +
                 " ORDER BY 1 ";
             sq = thatForm.frm.parseString(sq);
@@ -311,7 +320,7 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
                     ld.getColByName("PARENTACC").mHideCol = true;
                     ld.getColByName("LEVELNO").mHideCol = true;
                     ld.getColByName("CHILDCOUNT").mHideCol = true;
-                    
+
                     ld.getColByName("SLSMN").mTitle = Util.getLangText("txtNo");
                     ld.getColByName("SLSMN").mUIHelper.display_width = "60";
 

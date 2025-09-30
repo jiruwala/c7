@@ -324,12 +324,14 @@ sap.ui.jsfragment("bin.forms.rp.in.ss", {
             var todt = thatForm.frm.getFieldValue("parameter.todate");
             var rt = thatForm.frm.getFieldValue("parameter.reptype");
             var str = Util.nvl(thatForm.frm.getFieldValue("parameter.strno"), 0);
+            var rfr = Util.nvl(thatForm.frm.getFieldValue("parameter.prefer"), 0);
 
             // var inCol = incIn == "Y" ? ", (SELECT MAX(INVOICE_NO) FROM PUR1 WHERE INVOICE_CODE=21 AND JOINED_CORDER.SALEINV) INVOICE_NO  " : "";
             // var inColGrp = incIn == "Y" ? ", (SELECT MAX(INVOICE_NO) FROM PUR1 WHERE INVOICE_CODE=21 AND JOINED_CORDER.SALEINV) INVOICE_NO  " : "";
-            var sqe = "begin c7_stock_sum_rep(':user',:store,:fromdate,:todate);end;";
+            var sqe = "begin c7_stock_sum_rep(':user',':rfr',:fromdate,:todate,':store');end;";
             sqe = sqe.replaceAll(":store", str)
                 .replaceAll(":user", sett["LOGON_USER"])
+                .replaceAll(":rfr", rfr)
                 .replaceAll(":fromdate", Util.toOraDateString(fromdt))
                 .replaceAll(":todate", Util.toOraDateString(todt));
             var exDt = Util.execSQL(sqe);
