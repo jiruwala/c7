@@ -497,7 +497,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 " ord_date=:qry1.ord_date and ord_ship=':qry1.ord_ship'" +
                 " and ord_discamt=':qry1.ord_discamt' and ord_ref=':qry1.ord_ref' ");
             var totqt = Util.getSQLValue(sqt);
-            var tq = totqt + Util.extractNumber(Util.nvl(thatForm.frm.getFieldValue("qry1.tqty"), "0"));
+            var tq = totqt + Util.extractNumber(Util.nvl(thatForm.frm.getFieldValue("qry1.ord_pkqty"), "0"));
             thatForm.frm.setFieldValue("qry1.tot_today", tq + " m3", tq + " m3");
 
         },

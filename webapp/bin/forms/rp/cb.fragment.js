@@ -170,6 +170,58 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 require: false,
                                 dispInPara: true,
                             },
+                            grpby: {
+                                colname: "grpby",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"grpByTxt\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "none",
+                                },
+                                list: "@none/None,salesp/txtSalesPerson",
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            pstatus: {
+                                colname: "pstatus",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"clientStatus\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "ACTIVE",
+                                },
+                                list: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
                             abovecredit: {
                                 colname: "abovecredit",
                                 data_type: FormView.DataType.String,
@@ -192,7 +244,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 colname: "abovezero",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"Balance > 0 \",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                                title: '{\"text\":\"Balance # 0 \",\"width\":\"90%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 display_width: colSpan,
                                 display_align: "ALIGN_LEFT",
@@ -218,15 +270,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 disp_class: "reportTable2",
                                 dispRecords: -1,// { "S": 10, "M": 16, "L": 20, "XL": 22 },
                                 execOnShow: false,
-                                dml: "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ," +
-                                    " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
-                                    " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +
-                                    " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
-                                    " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
-                                    " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and iscust='Y' " +
-                                    " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
-                                    " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP,sl.name ,0," +
-                                    " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code",
+                                dml: "select '1' from dual ",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -234,8 +278,20 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["CODE", "NAME", "SLSNAME", "TEL", "ALLBALANCE", "UNPOST_BAL"],
+                                filterCols: ["CODE", "NAME", "SLSNAME", "SALESP", "TEL", "ALLBALANCE", "UNPOST_BAL"],
                                 canvasType: ReportView.CanvasType.VBOX,
+                                beforeLoadQry: function (sql) {
+                                    return "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ,c_ycust.salesp," +
+                                        " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
+                                        " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +
+                                        " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
+                                        " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
+                                        " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and iscust='Y' " +
+                                        " and (nvl(':parameter.pstatus','ALL')='ALL' or c_ycust.mov_type=':parameter.pstatus')  " +
+                                        " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
+                                        " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP,sl.name ,0," +
+                                        " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code";
+                                },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
                                     var cl = Util.extractNumber(oModel.getProperty("CRD_LIMIT2", currentRowContext));
@@ -251,6 +307,20 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
 
 
 
+                                },
+                                eventAfterQV: function (qryObj) {
+                                    // var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                    // if (iq != "none")
+                                        qryObj.obj.showToolbar.showGroupFilter = true;//!(iq == "1");
+
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SALESP")].mGrouped = iq == "salesp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SLSNAME")].mGrouped = iq == "salesp";
+
+                                    }
                                 },
                                 onPrintRenderAdd: function (ld, idx, col) {
                                     if (idx >= ld.rows.length) return "";
@@ -398,11 +468,27 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         colname: "slsname",
                                         data_type: FormView.DataType.String,
                                         class_name: FormView.ClassTypes.LABEL,
-                                        title: "Name",
+                                        title: "txtSalesPerson",
                                         title2: "",
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    salesp: {
+                                        colname: "salesp",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtNo",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "50",
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
                                         display_format: "",

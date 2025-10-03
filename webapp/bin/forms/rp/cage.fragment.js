@@ -213,6 +213,32 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 require: false,
                                 dispInPara: true,
                             },
+                            grpby: {
+                                colname: "grpby",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"grpByTxt\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "none",
+                                },
+                                list: "@none/None,salesp/txtSalesPerson",
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
                             pstatus: {
                                 colname: "pstatus",
                                 data_type: FormView.DataType.String,
@@ -275,6 +301,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
+
                         },
                         print_templates: [
                             {
@@ -301,6 +328,20 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 masterToolbarInMain: false,
                                 filterCols: ["CODE", "NAME", "BAL", "CRD_LIMIT", "B30", "B60", "B90", "B120", "B150"],
                                 canvasType: ReportView.CanvasType.VBOX,
+                                eventAfterQV: function (qryObj) {
+                                    // var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                    // if (iq != "none")
+                                    qryObj.obj.showToolbar.showGroupFilter = true;//!(iq == "1");
+
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SALESP")].mGrouped = iq == "salesp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SLSNAME")].mGrouped = iq == "salesp";
+
+                                    }
+                                },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
                                     var bal = Util.extractNumber(oModel.getProperty("BAL", currentRowContext));
@@ -381,8 +422,12 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                     // });
                                     thatForm.save_cage();
                                     var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-                                    var sq = "select *from C6_VAGE where " + (ez == "Y" ? "  bal!=0 and " : " ") +
-                                        " usernm=c6_session.get_user_session order by code ";
+                                    var sq = "select C6_VAGE.*,c_ycust.salesp,salesp.name slsname " +
+                                        " from C6_VAGE,c_ycust,salesp where " +
+                                        " salesp.no(+)=c_ycust.salesp and " +
+                                        " c_ycust.code=c6_vage.code and " +
+                                        (ez == "Y" ? "  bal!=0 and " : " ") +
+                                        " C6_VAGE.usernm=c6_session.get_user_session order by C6_VAGE.code ";
                                     return sq;
                                 },
                                 afterApplyCols: function (qryObj) {
@@ -390,6 +435,11 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         var so = thatForm.frm.getFieldValue("parameter.showOverDue");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("duedays")].mHideCol = (so != "Y");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("dueamt")].mHideCol = (so != "Y");
+                                        
+                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SALESP")].mGrouped = iq == "salesp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SLSNAME")].mGrouped = iq == "salesp";
+
                                     }
                                 },
                                 fields: {
@@ -595,8 +645,39 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         other_settings: {},
                                         summary: "SUM",
                                         commandLinkClick: cmdLink
-                                    }
-
+                                    },
+                                    slsname: {
+                                        colname: "slsname",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtSalesPerson",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    salesp: {
+                                        colname: "salesp",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtNo",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "50",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
                                 }
                             }
                         ]

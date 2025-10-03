@@ -267,7 +267,7 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
                 " and j.invoice_date>=:parameter.fromdate and " +
                 " j.invoice_date<=:parameter.todate " +
                 " GROUP BY j.SLSMN,j.SLSMN_NAME,NVL ( (col.amt), 0) " +
-                " ORDER BY 1 ";
+                " ORDER BY j.slsmn ";
             sq = thatForm.frm.parseString(sq);
             var pars = Util.nvl(qryObj.rep.parameters, []);
 
