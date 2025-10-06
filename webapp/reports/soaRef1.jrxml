@@ -65,7 +65,9 @@
            G.AGEING,
            G.ACPATH,
            G.NO_OF_RECS,
-           Y.NAME CUST_NAME
+           Y.NAME CUST_NAME,
+           nvl(g.brno,' ') brno,
+           nvl((select max(b_name) from cbranch where code=y.code and brno=g.brno),' ') brn_name
     FROM   c6_gl1 G ,C_YCUST Y
     WHERE Y.CODE=G.ACCNO
     AND G.USERNM= $P{SESSION_ID} 
@@ -175,6 +177,14 @@ ORDER BY   ACCNO]]>
 		<property name="com.jaspersoft.studio.field.name" value="CUST_NAME"/>
 		<property name="com.jaspersoft.studio.field.label" value="CUST_NAME"/>
 	</field>
+	<field name="BRNO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="BRNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="BRNO"/>
+	</field>
+	<field name="BRN_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="BRN_NAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="BRN_NAME"/>
+	</field>
 	<group name="accgroup" isReprintHeaderOnEachPage="true" keepTogether="true">
 		<groupExpression><![CDATA[$F{ACCNO}]]></groupExpression>
 		<groupHeader>
@@ -253,7 +263,7 @@ ORDER BY   ACCNO]]>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 					<reportElement style="strCompanyName" x="321" y="2" width="244" height="30" uuid="5e979797-8adf-45ea-a54b-01bff4d95eb6"/>
 					<textElement textAlignment="Right">
-						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{COMP_NAMEA}]]></textFieldExpression>
 				</textField>
@@ -265,12 +275,12 @@ ORDER BY   ACCNO]]>
 					<textFieldExpression><![CDATA[$F{SPECIFICATION}]]></textFieldExpression>
 				</textField>
 				<staticText>
-					<reportElement style="strTitle" x="2" y="70" width="570" height="25" uuid="c4c4c5b6-82e7-44b0-b11c-47cf00f78f40">
+					<reportElement style="strTitle" x="2" y="69" width="570" height="25" uuid="c4c4c5b6-82e7-44b0-b11c-47cf00f78f40">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>
 					<textElement textAlignment="Center">
-						<font fontName="DejaVu Sans" size="19"/>
+						<font fontName="Arial2" size="19"/>
 					</textElement>
 					<text><![CDATA[كشف حساب العميل]]></text>
 				</staticText>
@@ -292,7 +302,7 @@ ORDER BY   ACCNO]]>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 					<reportElement style="strCompanyName" x="14" y="2" width="246" height="30" uuid="3e9bbd29-b75f-4ee2-b828-f129a511b480"/>
 					<textElement>
-						<font fontName="DejaVu Sans" size="11" isBold="true"/>
+						<font fontName="Arial2" size="11" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{COMP_NAME}]]></textFieldExpression>
 				</textField>
@@ -329,12 +339,27 @@ ORDER BY   ACCNO]]>
 					</textElement>
 					<text><![CDATA[Tel. /]]></text>
 				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="80" y="149" width="310" height="24" uuid="08e8e4b9-3f90-471f-a0a9-f6fd988f70af">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{BRNO}+" - "+$F{BRN_NAME}]]></textFieldExpression>
+				</textField>
 			</band>
 		</groupHeader>
 		<groupFooter>
 			<band height="126">
 				<frame>
-					<reportElement positionType="Float" x="61" y="5" width="432" height="42" uuid="72c5327e-471e-4778-bec3-16af4a596abd">
+					<reportElement positionType="Float" x="2" y="1" width="548" height="50" uuid="72c5327e-471e-4778-bec3-16af4a596abd">
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -486,6 +511,32 @@ ORDER BY   ACCNO]]>
 							<font fontName="Arial" size="10" isBold="false"/>
 						</textElement>
 						<textFieldExpression><![CDATA[$F{B150}]]></textFieldExpression>
+						<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+					</textField>
+					<staticText>
+						<reportElement style="strDetails" x="422" y="7" width="120" height="18" forecolor="#FF3300" uuid="5f95dc3c-acbd-4ea7-abda-1aea7c39012e">
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						</reportElement>
+						<box leftPadding="2" rightPadding="2">
+							<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+						</box>
+						<textElement textAlignment="Center" verticalAlignment="Middle">
+							<font fontName="DejaVu Sans" size="12" isBold="true"/>
+						</textElement>
+						<text><![CDATA[الرصيد]]></text>
+					</staticText>
+					<textField isBlankWhenNull="true">
+						<reportElement style="numQtyRight" x="415" y="24" width="127" height="26" forecolor="#FF3300" uuid="76bbd572-38fc-4027-8a0e-0674016d3be5">
+							<property name="com.jaspersoft.studio.unit.y" value="px"/>
+							<property name="com.jaspersoft.studio.unit.x" value="px"/>
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						</reportElement>
+						<box leftPadding="2" rightPadding="2"/>
+						<textElement textAlignment="Center">
+							<font fontName="Arial" size="12" isBold="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$F{ACBAL}]]></textFieldExpression>
 						<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
 					</textField>
 				</frame>

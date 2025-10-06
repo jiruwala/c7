@@ -349,6 +349,7 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center">
@@ -365,6 +366,7 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center">
@@ -381,6 +383,7 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
@@ -397,6 +400,7 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
@@ -413,6 +417,7 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
@@ -428,6 +433,7 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
@@ -445,6 +451,7 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center">
@@ -460,6 +467,7 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
