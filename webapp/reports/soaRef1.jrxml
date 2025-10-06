@@ -363,6 +363,7 @@ ORDER BY   ACCNO]]>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<printWhenExpression><![CDATA[$F{BRNO}.equals(" ") ||  $F{BRNO}.equals("")]]></printWhenExpression>
 					</reportElement>
 					<box>
 						<pen lineColor="#808080"/>
