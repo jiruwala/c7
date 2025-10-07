@@ -1,0 +1,36 @@
+--october 7, 2025.. Utility SQLS 
+
+------------------------------------------------------------------------------------------------
+--find deleted purchase receipts from order1 but not deleted from invoice1
+select keyfld,invoice_no,invoice_date,(select sum(pkcost*allqty) from invoice2 where keyfld=invoice1.keyfld) cst
+ from invoice1 where invoice_code=13 and type=11 and keyfld not in (select RECIPT_KEYFLD from order1 where ord_code=11)
+ order by invoice_date;
+
+select count(*) from order1 where ord_code=11;
+
+select count(*) from invoice1 where invoice_code=13 and type=11;
+
+select count(*) from acvoucher1 where refercode=13 and refertype=11;
+
+
+------------------------------------------------------------------------------------------------
+
+--trigger for blocking c_order1 purchae receipts ord_code=11 to avoid tqty>0 but ord_pkqty=0
+-- after update ord_pkqty to avoid any user to enter direct in tqty field without ord_pkqty
+
+CREATE OR REPLACE TRIGGER username.TMP_TRIG11
+BEFORE INSERT OR UPDATE
+ON username.C_ORDER1
+REFERENCING NEW AS New OLD AS Old
+FOR EACH ROW
+BEGIN
+  -- your code here 
+  -- (Trigger template "Default" could not be loaded.) 
+  IF :NEW.ORD_CODE=11 AND :NEW.TQTY>0 AND :NEW.ORD_PKQTY=0 THEN
+  RAISE VALUE_ERROR;
+  END IF ;
+END;
+/
+------------------------------------------------------------------------------------------------
+
+
