@@ -164,8 +164,23 @@ sap.ui.jsfragment("bin.forms.in.items", {
                         }
                     });
 
+                    var btPacking = new sap.m.Button(thatForm.view.createId("pk" + thatForm.timeInLong), {
+                        text: Util.getLangText("itemsPacking"),
+                        press: function () {
+                            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                                that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
+                                Util.simpleConfirmDialog(Util.getLangText("msgSaveFormData"), function (oAction) {
+                                    that.frm.cmdButtons.cmdSave.firePress();
+                                    thatForm.showPackItems();
+                                });
+                            } else
+                                thatForm.showPackItems();
+                        }
+                    });
+
+
                     var hb = new sap.m.Toolbar({
-                        content: [btRawItems, txt, new sap.m.ToolbarSpacer(), txtMsg]
+                        content: [btRawItems, btPacking, txt, new sap.m.ToolbarSpacer(), txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
@@ -1006,6 +1021,192 @@ sap.ui.jsfragment("bin.forms.in.items", {
             if (cnts > 0)
                 FormView.err("Cant select parent item # " + parent + " ,use count>0  !");
         }
+    },
+    showPackItems: function () {
+        var that2 = thatForm = this;
+        var qv;
+        var dlg;
+        if (that2.frm.objs["qry1"].status != FormView.RecordStatus.VIEW)
+            FormView.err("Form must be in VIEW mode !");
+
+
+        var doSave = function () {
+            if (that2.frm.objs["qry1"].status != FormView.RecordStatus.VIEW)
+                FormView.err("Item Form must be in VIEW mode !");
+            validate();
+            var ld = qv.mLctb;
+            var sqT = "insert into c7_itemspack ( REFER, PRICENO, POS, PACKD, UNITD, PACK, SELL_PRICE, FLAG, PROFILENOS) " +
+                " values " +
+                "( ':REFER', 1,:POS, ':PACKD', ':UNITD', :PACK, :SELL_PRICE, 1, '' );";
+
+            var sqls = "";
+            var rfr = thatForm.frm.getFieldValue("qry1.reference");
+            for (var i = 0; i < ld.rows.length; i++) {
+                var pkd = Util.nvl(ld.getFieldValue(i, "PACKD"), "");
+                var ud = Util.nvl(ld.getFieldValue(i, "UNITD"), "");
+                var pos = Util.extractNumber(ld.getFieldValue(i, "POS"));
+                var pk = Util.extractNumber(ld.getFieldValue(i, "PACK"));
+                var pr = Util.extractNumber(ld.getFieldValue(i, "SELL_PRICE"));
+
+
+                var sq = sqT.replaceAll(":REFER", rfr)
+                    .replaceAll(":PACKD", pkd)
+                    .replaceAll(":POS", pos)
+                    .replaceAll(":UNITD", ud)
+                    .replaceAll(":PACK", pk)
+                    .replaceAll(":SELL_PRICE", pr)
+                sqls += sq;
+            }
+            sqls = "begin delete from c7_itemspack where priceno=1 and refer='" + rfr + "';" + sqls + "end;";
+            var dt = Util.execSQL(sqls);
+            if (dt.ret == "SUCCESS") {
+                FormView.msgSuccess(Util.getLangText("msgSaved"));
+                dlg.close();
+            }
+        }
+        var showDlg = function () {
+            var vb = new sap.m.Page({ showHeader: false, showSubHeader: false });
+            qv.getControl().setEditable(true);
+            qv.getControl().view = thatForm.view;
+            qv.getControl().addStyleClass("sapUiSizeCondensed sapUiSmallMarginTop");
+            qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+            qv.getControl().setFixedBottomRowCount(0);
+            qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
+            // qv.getControl().setVisibleRowCount(7);
+            qv.getControl().setRowHeight(25);
+            UtilGen.createDefaultToolbar1(qv, ["PACKD", "UNITD"], true);
+
+            qv.insertable = true;
+            qv.editable = true;
+            qv.deletable = true;
+            // vb.addItem(qv.showToolbar.toolbar);
+            qv.editable = false;
+            vb.addContent(qv.getControl());
+            dlg = new sap.m.Dialog({
+                title: "Packaging for Item # " + thatForm.frm.getFieldValue("qry1.reference")
+                    + " - " + thatForm.frm.getFieldValue("qry1.descr"),
+                contentWidth: UtilGen.dispWidthByDevice({ "S": 400, "M": 500, "L": 650, "XL": 800 }) + "px",
+                contentHeight: "350px",
+                subHeader: qv.showToolbar.toolbar,
+                content: [vb],
+                modal: true,
+                buttons: [
+                    new sap.m.ToggleButton({
+                        text: Util.getLangText("editRec"),
+                        icon: "sap-icon://edit",
+                        pressed: false,
+                        enabled: true,
+                        press: function () {
+                            qv.editable = this.getPressed();
+                            fetchData();
+                        }
+
+                    }),
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdDone"),
+                        icon: "sap-icon://accept",
+                        pressed: false,
+                        enabled: true,
+                        press: function () {
+                            doSave();
+                        }
+
+                    }),
+                    new sap.m.Button({
+                        text: Util.getLangText("cmdClose"),
+                        icon: "sap-icon://decline",
+                        press: function () {
+                            dlg.close();
+                        }
+                    })
+
+                ]
+            }).addStyleClass("sapUiSizeCompact");;
+            dlg.open();
+
+        };
+        var fetchData = function () {
+            var sqf = thatForm.frm.parseString("select  POS, PACKD, UNITD, PACK, SELL_PRICE " +//, PROFILENOS,PRICENO, REFER," +
+                " from c7_itemspack where refer=':qry1.reference' and priceno=1 order by pos"
+            );
+
+            var dt = Util.execSQL(sqf);
+            if (dt.ret == "SUCCESS") {
+                qv.setJsonStrMetaData("{" + dt.data + "}");
+
+                Util.setColProperties(qv, "POS", {
+                    "mColClass": "sap.m.Input",
+                    "mTitle": "txtNo",
+                    "display_width": 50,
+                });
+
+                Util.setColProperties(qv, "PACKD", {
+                    "mColClass": "sap.m.Input",
+                    "mTitle": "itemPackD",
+                    "display_width": 125,
+                });
+
+                Util.setColProperties(qv, "UNITD", {
+                    "mColClass": "sap.m.Input",
+                    "mTitle": "itemUnitD",
+                    "display_width": 100,
+                });
+
+                Util.setColProperties(qv, "PACK", {
+                    "mColClass": "sap.m.Input",
+                    "mTitle": "itemPack",
+                    "display_width": 100,
+                });
+                Util.setColProperties(qv, "SELL_PRICE", {
+                    "mColClass": "sap.m.Input",
+                    "mTitle": "txtPrice",
+                    "display_format": "MONEY_FORMAT",
+                    "display_width": 100,
+                });
+
+                qv.onAddRow = function (idx, ld) {
+                    ld.setFieldValue(idx, "SELL_PRICE", 0);
+                    ld.setFieldValue(idx, "PACK", 1);
+                    ld.setFieldValue(idx, "POS", idx + 1);
+
+                }
+                qv.mLctb.parse("{" + dt.data + "}", true);
+                qv.loadData();
+
+                setTimeout(() => {
+                    // if (isProdClosed() || getStepsNotDone() > 0) cmdSave.setEnabled(false); else cmdSave.setEnabled(true);
+                    if (qv.editable && qv.mLctb.rows.length == 0)
+                        qv.addRow();
+                });
+
+            }
+
+        };
+        var validate = function () {
+            var dupPkd = {};
+            qv.updateDataToTable();
+            var ld = qv.mLctb;
+            for (var i = 0; i < ld.rows.length; i++) {
+                var pkd = Util.nvl(ld.getFieldValue(i, "PACKD"), "");
+                var ud = Util.nvl(ld.getFieldValue(i, "UNITD"), "");
+                var pk = Util.extractNumber(ld.getFieldValue(i, "PACK"));
+                var pr = Util.extractNumber(ld.getFieldValue(i, "SELL_PRICE"));
+
+                if (Util.nvl(dupPkd[pkd], "") != "")
+                    FormView.err(pkd + "  is duplicated entries !");
+                else dupPkd[pkd] = "1";
+                if (pkd == "") FormView.err(pkd + " Pack description must have value !");
+                if (ud == "") FormView.err(pkd + " , Unit description must have value !");
+                if (pk <= 0) FormView.err(pkd + " , Invalid pack value  !");
+                if (pr < 0) FormView.err(pkd + " , Invalid Selling PRICE value  !");
+            }
+        }
+        var qv = new QueryView("packing" + thatForm.timeInLong);
+        showDlg();
+        fetchData();
+
+
+
     },
     showRawItems: function () {
         var that2 = this;
