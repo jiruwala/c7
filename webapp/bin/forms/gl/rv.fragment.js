@@ -88,7 +88,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "vouchers/rptVou_992",
+                        reportFile: "vouchers/rv",
                     }
                 ],
                 events: {

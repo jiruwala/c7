@@ -390,6 +390,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     var child = 0;
                                     var packd = ld.getFieldValue(i1, "ORD_PACKD");
                                     var unitd = ld.getFieldValue(i1, "ORD_UNITD");
+                                    var pack = ld.getFieldValue(i1, "ORD_PACK");
                                     var pcost = 0;
                                     var lsprice = 0;
                                     var cstamt = 0;
@@ -406,7 +407,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                         child = sqdt[0].CHILDCOUNTS;
                                         packd = Util.nvl(packd, sqdt[0].PACKD);
                                         unitd = Util.nvl(unitd, sqdt[0].UNITD);
-                                        pack = sqdt[0].PACK;
+                                        pack = Util.nvl(pack, sqdt[0].PACK);
                                         pcost = sqdt[0].UCOST * pack;
                                         lsprice = sqdt[0].LSPRICE;
                                         qih = sqdt[0].QIH;
@@ -756,13 +757,13 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                         var dt = Util.execSQLWithData("select packd,unitd,pack,lsprice,get_item_cost(items.reference," +
                             Util.toOraDateString(odt) + ") ucost from items where reference='" + rfr + "'",
                             "Item # " + rfr + " not a valid !");
-                        var sq = ("update pord2 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack ," +
-                            " ord_allqty=(ord_pkqty*:pack)+ord_unqty,ORDEREDQTY=(ord_pkqty*:pack)+ord_unqty ," +
+                        var sq = ("update pord2 set " +//"ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack ," +
+                            " ord_allqty=(ord_pkqty*ord_pack)+ord_unqty,ORDEREDQTY=(ord_pkqty*ord_pack)+ord_unqty ," +
                             " ord_lsprice=:lsprice , ord_pkcost=:unit_cost " +
                             " where keyfld=:kf and ord_pos=:pos ")
-                            .replaceAll(":pkd", dt[0].PACKD)
-                            .replaceAll(":unitd", dt[0].UNITD)
-                            .replaceAll(":pack", dt[0].PACK)
+                            // .replaceAll(":pkd", dt[0].PACKD)
+                            // .replaceAll(":unitd", dt[0].UNITD)
+                            // .replaceAll(":pack", dt[0].PACK)
                             .replaceAll(":unit_cost", dt[0].UCOST)
                             .replaceAll(":lsprice", lsprice)
                             .replaceAll(":kf", kf)

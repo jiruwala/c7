@@ -1203,7 +1203,10 @@ sap.ui.jsfragment("bin.forms.in.items", {
         }
         var qv = new QueryView("packing" + thatForm.timeInLong);
         showDlg();
-        fetchData();
+        setTimeout(() => {
+            fetchData();
+        }, 10);
+
 
 
 
