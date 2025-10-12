@@ -349,6 +349,7 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
 
                     ld.getColByName("COLL_AMT").mSummary = "SUM";
                     ld.getColByName("SAL_AMT").mSummary = "SUM";
+                    ld.getColByName("PKQTY").mSummary = "SUM";
 
                     var fntsize = Util.getLangDescrAR("12px", "16px");
                     paras["tableClass"] = "class=\"tbl1\"";

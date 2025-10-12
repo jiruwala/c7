@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="jv" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="pvc" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
 	<property name="ireport.zoom" value="1.5"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="32"/>
@@ -147,7 +147,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 		</band>
 	</title>
 	<pageHeader>
-		<band height="137" splitType="Stretch">
+		<band height="112" splitType="Stretch">
 			<staticText>
 				<reportElement style="labelHeader" x="292" y="0" width="64" height="20" uuid="6ef825b3-4624-48d4-8c9a-7689133b6acc"/>
 				<box leftPadding="2">
@@ -306,85 +306,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				<text><![CDATA[وذلـك  عـــن :]]></text>
 			</staticText>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strHeader" x="97" y="70" width="352" height="20" uuid="eafc5df6-6bc4-4041-a9b6-1fc62a51854d"/>
-				<box>
-					<topPen lineWidth="0.0" lineStyle="Solid"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid"/>
-					<bottomPen lineWidth="1.25" lineStyle="Dotted"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{CHEQUENO}]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement style="labelHeader" x="7" y="70" width="83" height="20" uuid="fcc6b06c-0808-4b3d-9e31-557ff821191a"/>
-				<box leftPadding="2" rightPadding="1">
-					<topPen lineWidth="0.0"/>
-					<leftPen lineWidth="0.0"/>
-					<bottomPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.0"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans"/>
-				</textElement>
-				<text><![CDATA[Cheque No]]></text>
-			</staticText>
-			<staticText>
-				<reportElement style="labelHeader" x="449" y="70" width="83" height="20" uuid="8cf536d8-926e-46fa-a28d-408f1f2720e7"/>
-				<box leftPadding="2" rightPadding="2">
-					<topPen lineWidth="0.0"/>
-					<leftPen lineWidth="0.0"/>
-					<bottomPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.0"/>
-				</box>
-				<textElement verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans"/>
-				</textElement>
-				<text><![CDATA[ رقم شيك :]]></text>
-			</staticText>
-			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strHeader" x="97" y="90" width="352" height="20" uuid="1a1f8ef4-c549-4fb3-aac5-f2438b9af4cf"/>
-				<box>
-					<topPen lineWidth="0.0" lineStyle="Solid"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid"/>
-					<bottomPen lineWidth="1.25" lineStyle="Dotted"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{BNKNAME}]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement style="labelHeader" x="7" y="90" width="83" height="20" uuid="77ce6b53-27a1-4013-9e5c-cb7a08616cc5"/>
-				<box leftPadding="2" rightPadding="1">
-					<topPen lineWidth="0.0"/>
-					<leftPen lineWidth="0.0"/>
-					<bottomPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.0"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans"/>
-				</textElement>
-				<text><![CDATA[Bank Name]]></text>
-			</staticText>
-			<staticText>
-				<reportElement style="labelHeader" x="449" y="90" width="83" height="20" uuid="9199b136-0190-440d-abc2-225532d3f977"/>
-				<box leftPadding="2" rightPadding="2">
-					<topPen lineWidth="0.0"/>
-					<leftPen lineWidth="0.0"/>
-					<bottomPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.0"/>
-				</box>
-				<textElement verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans"/>
-				</textElement>
-				<text><![CDATA[البنك :]]></text>
-			</staticText>
-			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strHeader" x="97" y="110" width="352" height="20" uuid="de4c5114-8a63-499d-a46e-63dc8c5e9714"/>
+				<reportElement style="strHeader" x="100" y="80" width="352" height="20" uuid="de4c5114-8a63-499d-a46e-63dc8c5e9714"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid"/>
@@ -397,7 +319,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="labelHeader" x="7" y="110" width="83" height="20" uuid="113fac02-b7ae-4e6e-8e13-55e643f5717a"/>
+				<reportElement style="labelHeader" x="10" y="80" width="83" height="20" uuid="113fac02-b7ae-4e6e-8e13-55e643f5717a"/>
 				<box leftPadding="2" rightPadding="1">
 					<topPen lineWidth="0.0"/>
 					<leftPen lineWidth="0.0"/>
@@ -410,7 +332,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				<text><![CDATA[Pay to]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="labelHeader" x="449" y="110" width="83" height="20" uuid="28f766cf-1f33-411f-9a93-07ec93b39645"/>
+				<reportElement style="labelHeader" x="452" y="80" width="83" height="20" uuid="28f766cf-1f33-411f-9a93-07ec93b39645"/>
 				<box leftPadding="2" rightPadding="2">
 					<topPen lineWidth="0.0"/>
 					<leftPen lineWidth="0.0"/>

@@ -147,7 +147,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 		</band>
 	</title>
 	<pageHeader>
-		<band height="137" splitType="Stretch">
+		<band height="146" splitType="Stretch">
 			<staticText>
 				<reportElement style="labelHeader" x="292" y="0" width="64" height="20" uuid="6ef825b3-4624-48d4-8c9a-7689133b6acc"/>
 				<box leftPadding="2">
@@ -397,7 +397,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="labelHeader" x="7" y="110" width="83" height="20" uuid="113fac02-b7ae-4e6e-8e13-55e643f5717a"/>
+				<reportElement style="labelHeader" x="6" y="111" width="84" height="35" uuid="113fac02-b7ae-4e6e-8e13-55e643f5717a"/>
 				<box leftPadding="2" rightPadding="1">
 					<topPen lineWidth="0.0"/>
 					<leftPen lineWidth="0.0"/>
@@ -407,7 +407,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				<textElement textAlignment="Right" verticalAlignment="Bottom">
 					<font fontName="DejaVu Sans"/>
 				</textElement>
-				<text><![CDATA[Pay to]]></text>
+				<text><![CDATA[Received From]]></text>
 			</staticText>
 			<staticText>
 				<reportElement style="labelHeader" x="449" y="110" width="83" height="20" uuid="28f766cf-1f33-411f-9a93-07ec93b39645"/>
@@ -420,7 +420,7 @@ AND ACVOUCHER1.KEYFLD=$P{pac}]]>
 				<textElement verticalAlignment="Bottom">
 					<font fontName="DejaVu Sans"/>
 				</textElement>
-				<text><![CDATA[:صرفنا الى]]></text>
+				<text><![CDATA[استلم من]]></text>
 			</staticText>
 		</band>
 	</pageHeader>

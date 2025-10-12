@@ -2435,6 +2435,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.showFilter = false;
                     qrj.showToolbar.showGroupFilter = false;
                     qrj.showToolbar.showPersonalization = false;
+                    qrj.showToolbar.showNewWnd = true;
                     qrj.createToolbar("", [],
                         // EVENT ON APPLY PERSONALIZATION
                         function (prsn, qv) {
@@ -2602,6 +2603,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }, "100%", "50%", undefined, false);
 
                     });
+                    var btNw = new sap.m.Button({
+                        icon: "sap-icon://full-screen", press: function () {
+                            qrj.createNewWnd();
+                        }
+                    });
                     qrj.showToolbar.toolbar.removeAllContent();
                     qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
 
@@ -2614,6 +2620,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                     qrj.showToolbar.toolbar.addContent(txt);
                     qrj.showToolbar.toolbar.addContent(btf);
+                    qrj.showToolbar.toolbar.addContent(btNw);
                     scrollObjs.push(qrj.showToolbar.toolbar);
                 },
                 attachLoadQry: function (frm, qry, kindof, refer) {

@@ -94,7 +94,7 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "vouchers/rptVou_992",
+                        reportFile: "vouchers/pvc",
                     }
                 ],
                 events: {
@@ -147,7 +147,7 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                     },
                     afterSaveForm: function (frm) {
                         // frm.loadData(undefined, FormView.RecordStatus.NEW);
-                        frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
+                        // frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
                         setTimeout(function () {
                             thatForm.fileUpload = undefined;
                         }, 400);
