@@ -2040,9 +2040,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 checkStockReserve(i, {
                     str: str, rfr: rfr, qty: qty, uqty: uqty, pk: pk
                 });
-                if (dup[rfr + "-" + str + "-" + (pr - ds)] != undefined)
+                if (dup[rfr + "-" + str + "-" + (pr - ds) + "-" + pk] != undefined)
                     errRow(i, "Save Denied : Duplicate item entry # store = " + str);
-                dup[rfr + "-" + str + "-" + (pr - ds)] = rfr;
+                dup[rfr + "-" + str + "-" + (pr - ds) + "-" + pk] = rfr;
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)
                     errRow(i, "Save Denied : Item is a group item ! ");

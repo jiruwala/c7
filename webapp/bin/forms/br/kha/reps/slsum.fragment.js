@@ -682,7 +682,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.slsum", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "1",
+                    default_value: "",
                     other_settings: { width: "35%" },
                     list: undefined,
                     edit_allowed: true,
