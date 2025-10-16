@@ -1273,7 +1273,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 var dlg = new sap.m.Dialog({
                     content: [vbox],
                     contentHeight: this.nvl(height, "500px"),
-                    contentWidth: this.nvl(width, "400px"),
+                    contentWidth: this.nvl(width, "600px"),
                     title: Util.nvl(titDialog, "")
                 });
                 if (pCss != undefined)
