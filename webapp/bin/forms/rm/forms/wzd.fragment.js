@@ -339,7 +339,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "              max(trunc(ord_date)) ord_date," +
                 "              min(stra) stra," +
                 "              min(strb) strb," +
-                "              location_code," +
                 "               ord_code " +
                 "       FROM   c_order1," +
                 "              items c_custitems," +
@@ -353,7 +352,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 "           AND (c_order1.ord_discamt = cbranch.brno" +
                 "                   AND c_order1.ord_ref = cbranch.code)" +
                 "              AND ( (c_custitems.REFERENCE = c_order1.ord_ship))" +
-                "   GROUP BY   location_code," +
+                "   GROUP BY   " +
                 "              c_order1.ord_ref," +
                 "              c_order1.ord_refnm," +
                 "              c_order1.ord_ship," +
@@ -373,10 +372,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
                 Util.setColProp(qv, "UNITD", "mHideCol", true);
                 Util.setColProp(qv, "PACKD", "mHideCol", true);
 
-                Util.setColProperties(qv, "LOCATION_CODE", {
-                    "mTitle": "locationTxt",
-                    "display_width": 70,
-                });
+                // Util.setColProperties(qv, "LOCATION_CODE", {
+                //     "mTitle": "locationTxt",
+                //     "display_width": 70,
+                // });
                 Util.setColProperties(qv, "ORD_REF", {
                     "mTitle": "txtCode",
                     "display_width": 80

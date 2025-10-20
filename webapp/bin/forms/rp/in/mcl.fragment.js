@@ -176,7 +176,7 @@ sap.ui.jsfragment("bin.forms.rp.in.mcl", {
                                         lsq += "decode((select max(invoice_code) from pur1 where keyfld=(select max(keyfld) from pur1 where c_cus_no=c_ycust.code)),11,'Purchase',21,'Sales') lastactivetype";
                                     }
 
-                                    var sq = "select CODE, c_ycust.NAME," + lsq + ",c_ycust.CRD_LIMIT, c_ycust.NAMEA, SPONSOR, AREA, TEL, ADDR, SALESP, salesp.name sales_name,c_ycust.TYPE, AC_NO, EMAIL from c_ycust , salesp where c_ycust.salesp=salesp.no(+)" +
+                                    var sq = "select CODE, c_ycust.NAME," + lsq + ",c_ycust.CRD_LIMIT, c_ycust.NAMEA, SPONSOR, AREA, c_ycust.TEL, ADDR, SALESP, salesp.name sales_name,c_ycust.TYPE, AC_NO, EMAIL from c_ycust , salesp where c_ycust.salesp=salesp.no(+)" +
                                         " order by path";
                                     sq = thatForm.frm.parseString(sq);
                                     return sq;
