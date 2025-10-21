@@ -345,7 +345,7 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
-                    list: "@E/Employee,D/Drivers,DI/Dispatch,S/Sales man,O/Operators",
+                    list: "@E/txtPumpAsist,D/Drivers,DI/txtPumpDriver,S/Sales man,O/Operators",
                     other_settings: {
                         editable: true,
                         width: "15%",

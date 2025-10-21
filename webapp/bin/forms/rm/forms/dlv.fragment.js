@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
-//copying from mp
+    //copying from mp
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -125,8 +125,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         name: "qry1",
                         dml: "select *from c_order1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv0", "lblLv00", "lblLv", "lblLv2", "lblLv3", "lblLv4", "lblLv5", "tot_today"],
-                        insert_exclude_fields: ['branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv", "lblLv0", "lblLv00", "lblLv2", "lblLv3", "lblLv4", "lblLv5", "tot_today"],
+                        update_exclude_fields: ['keyfld', 'branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv0", "lblLv00", "lblLv", "lblLv2", "lblLv3", "lblLv4", "lblLv5", "tot_today", "vehiclenm"],
+                        insert_exclude_fields: ['branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname', "lblLv", "lblLv0", "lblLv00", "lblLv2", "lblLv3", "lblLv4", "lblLv5", "tot_today", "vehiclenm"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "ORD_CODE": thatForm.vars.vou_code,
@@ -258,6 +258,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         var objno = thatForm.frm.objs["qry1.ord_no"].obj;
                         var objopno = thatForm.frm.objs["qry1.op_no"].obj;
                         var objtm = thatForm.frm.objs["qry1.tmplantleave"].obj;
+                        var objct = thatForm.frm.objs["qry1.cast_type"].obj;
 
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
 
@@ -266,6 +267,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         UtilGen.setControlValue(objSt, sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
                         UtilGen.setControlValue(objStb, sett["DEFAULT_PRODUCT_STORE"], sett["DEFAULT_PRODUCT_STORE"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
+                        UtilGen.setControlValue(objct, "dayShift", "dayShift", true);
+
+
 
                         var newno = Util.getSQLValue("select nvl(max(ord_no),0)+1 from c_order1 where ord_code=9 and location_code='" + objOn.getSelectedKey() + "'");
                         UtilGen.setControlValue(objno, newno, newno, true);
@@ -282,7 +286,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         // var dt = Date.now();
                         // qry.formview.setFieldValue("qry1.tmplantleave", tm, tm, true);
                         objOn.fireSelectionChange();
-
                     }
                 },
                 afterEditRow(qry, index, ld) {
@@ -386,7 +389,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         "ord_empno": ":qry1.ord_empno",
                         "remarks": "':qry1.remarks'",
                         "payterm": "':qry1.payterm'",
-                        "validatiy": "':qry1.validatiy'",
+                        // "validatiy": "':qry1.validatiy'",
                         "attn": "':qry1.branchname'",
                         "lcno": "':qry1.typofcem'",
                         "created_time": Util.nvl(crdt, "sysdate"),
@@ -505,6 +508,17 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
+            var getSetttingVehicle = function (ordref, ordrefnm) {
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    getBtns: undefined,
+                    code: Util.nvl(ordref),
+                    name: Util.nvl(ordrefnm),
+                    sqlChange: "select descr from C7_VEHICLES where no = ':CODE'",
+                    sqlList: "select no code,descr title from C7_VEHICLES where flag=1  order by code ",
+                    sqlListChange: "select no code,descr title from C7_VEHICLES where no=:CODE and flag=1",
+                });
+            };
             var getSettingSalesp = function (ordref, ordrefnm, typ) {
                 return FormView.getFactoryFields.getSettingsGeneral({
                     thatForm: thatForm,
@@ -525,7 +539,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         if (typ != "D") return;
                         var locval = thatForm.frm.objs[ordref].obj.getValue();
                         var s = Util.getSQLValue("select vehicleno from salesp where no='" + locval + "'");
-                        thatForm.frm.setFieldValue("qry1.typofcem", s);
+                        thatForm.frm.setFieldValue("qry1.typofcem", s, s, true, true);
                     }
                 });
             };
@@ -558,14 +572,16 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
             };
 
 
-            //keyfid,15-10|location_code,10-15               ord_date,15-15|ord_no,5-15
-            //ord_ref,15-12|ord_refnm,1-22                   ord_discamt,15-12|branchname,1-22
-            //issue_plant_no,15-12|dispatchname,1-22         ordered_key,15-12|empname,1-22
-            //ord_empno,15-12|drivername,1-22                salesp,15-12|salesname,1-22
-            //op_no,15-12|opname,1-22                        chem_refer,15-12|chemname,1-22
-            //ord_ship,15-12|itemname,1-22                   ord_pkqty,15-22|ord_packd,1-12
-            //validatiy,15-35 (mixture)                      payterm,15-35 (pump)
-            //remarks,15-35                                  stra,15-35
+            //1-keyfid,15-10|location_code,10-15               ord_date,15-15|ord_no,5-15
+            //2-ord_ref,15-12|ord_refnm,1-22                   ord_discamt,15-12|branchname,1-22
+            //3-ord_ship,15-12|itemname,1-22                   ord_pkqty,15-22|ord_packd,1-12
+            //4-ord_empno,15-23|drivername,1-22,               typofcem,15-12|vehiclenm,1-22     
+            //5-issue_plant_no,15-12|dispatchname,1-22         ordered_key,15-12|empname,1-22         pump driver, pump assist            
+            //6-salesp,15-12|salesname,1-22                    op_no,15-12|opname,1-22
+            //7-chem_refer,15-12|chemname,1-22                             
+            //8-remarks,15-35                                  stra,15-35
+            //9                                                strb,65-35
+
             return {
                 //1
                 keyfld: FormView.getFactoryFields.getKeyFld("", "15%", "10%"),
@@ -696,8 +712,43 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                     }, {}),
                 //4
+                ord_empno: FormView.getFactoryFields.getGeneralField(
+                    "ord_empno", "", "txtDriver", "15%", "violetText", "12%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, getSettingSalesp("qry1.ord_empno", "qry1.drivername", "D")),
+                drivername: FormView.getFactoryFields.getGeneralField(
+                    "drivername", "@", "", "1%", "", "22%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+
+                    }, {}),
+                typofcem: FormView.getFactoryFields.getGeneralField(
+                    "typofcem", "@", "truckNo", "15%", "", "12%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        keyboardFocus: true,
+
+                    }, getSetttingVehicle("qry1.typofcem", "qry1.vehiclenm")),
+                vehiclenm: FormView.getFactoryFields.getGeneralField(
+                    "vehiclenm", "@", "", "1%", "", "22%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+
+                    }, {}),
+                //5  
                 issue_plant_no: FormView.getFactoryFields.getGeneralField(
-                    "issue_plant_no", "", "Dispatch", "15%", "", "12%",
+                    "issue_plant_no", "", "txtPumpDriver", "15%", "", "12%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -712,7 +763,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         keyboardFocus: false,
                     }, {}),
                 ordered_key: FormView.getFactoryFields.getGeneralField(
-                    "ordered_key", "@", "txtEmp", "15%", "", "12%",
+                    "ordered_key", "@", "txtPumpAsist", "15%", "", "12%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -727,34 +778,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         keyboardFocus: false,
                     }, {}),
 
-                //5                
-                ord_empno: FormView.getFactoryFields.getGeneralField(
-                    "ord_empno", "", "txtDriver", "15%", "violetText", "8%",
-                    {
-                        require: true,
-                        edit_allowed: true,
-                        insert_allowed: true,
-                    }, getSettingSalesp("qry1.ord_empno", "qry1.drivername", "D")),
-                drivername: FormView.getFactoryFields.getGeneralField(
-                    "drivername", "@", "", "1%", "", "13%",
-                    {
-                        require: false,
-                        edit_allowed: false,
-                        insert_allowed: false,
-                        keyboardFocus: false,
-
-                    }, {}),
-                typofcem: FormView.getFactoryFields.getGeneralField(
-                    "typofcem", "@", "truckNo", "7%", "", "7%",
-                    {
-                        require: false,
-                        edit_allowed: true,
-                        insert_allowed: true,
-                        keyboardFocus: true,
-
-                    }, {}),
+                //6                
                 salesp: FormView.getFactoryFields.getGeneralField(
-                    "salesp", "@", "txtSalesPerson", "15%", "", "12%",
+                    "salesp", "", "txtSalesPerson", "15%", "", "12%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -769,9 +795,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         keyboardFocus: false,
 
                     }, {}),
-                //6
                 op_no: FormView.getFactoryFields.getGeneralField(
-                    "op_no", "", "txtOpNo", "15%", "", "12%",
+                    "op_no", "@", "txtOpNo", "15%", "", "12%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -786,8 +811,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         keyboardFocus: false,
 
                     }, {}),
+                //7
                 chem_refer: FormView.getFactoryFields.getGeneralField(
-                    "chem_refer", "@", "Chemical", "15%", "", "12%",
+                    "chem_refer", "", "Chemical", "15%", "", "12%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -803,14 +829,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                     }, {}),
                 //7
-                validatiy: FormView.getFactoryFields.getGeneralField(
-                    "validatiy", "", "Mixture", "15%", "violetText", "35%",
-                    {
-                        require: true,
-                        edit_allowed: true,
-                        insert_allowed: true,
-                        list: "select name code,name from relists where idlist='MIXERS' order by name",
-                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.validatiy", "MIXERS")), //mixture
+                // validatiy: FormView.getFactoryFields.getGeneralField(
+                //     "validatiy", "", "Mixture", "15%", "violetText", "35%",
+                //     {
+                //         require: true,
+                //         edit_allowed: true,
+                //         insert_allowed: true,
+                //         list: "select name code,name from relists where idlist='MIXERS' order by name",
+                //     }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.validatiy", "MIXERS")), //mixture
                 payterm: FormView.getFactoryFields.getGeneralField(
                     "payterm", "@", "Pump", "15%", "", "35%",
                     {
@@ -828,6 +854,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         edit_allowed: true,
                         insert_allowed: true,
                     }, {}),
+
                 stra: FormView.getFactoryFields.getComboField(
                     "stra", "@", "storeNo", "15%", "", "35%",
                     {
@@ -836,8 +863,19 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         insert_allowed: true,
                         list: "select no code,name  from store order by no",
                     }, {}),
+
+                cast_type: FormView.getFactoryFields.getComboField(
+                    "cast_type", "", "txtShift", "15%", "", "35%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        list: "select name code,name from relists where idlist='SHIFTS' order by name",
+                    }, {}),
+
+
                 strb: FormView.getFactoryFields.getComboField(
-                    "strb", "", "Product store", "65%", "", "35%",
+                    "strb", "@", "Product store", "15%", "", "35%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -1171,10 +1209,10 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     FormView.err("Save Denied : Sales Man is invalid !");
                 }
             }
-            var mx = thatForm.frm.getFieldValue("qry1.validatiy");
-            mx = Util.getSQLValue("select name code,name from relists where idlist='MIXERS' and name='" + mx + "'");
-            if (Util.nvl(mx, "") == "")
-                FormView.err("Err !, Mixtures : " + mx + " not found !");
+            // var mx = thatForm.frm.getFieldValue("qry1.validatiy");
+            // mx = Util.getSQLValue("select name code,name from relists where idlist='MIXERS' and name='" + mx + "'");
+            // if (Util.nvl(mx, "") == "")
+            //     FormView.err("Err !, Mixtures : " + mx + " not found !");
             mx = thatForm.frm.getFieldValue("qry1.payterm");
             if (Util.nvl(mx, "") != "") {
                 mx = Util.getSQLValue("select name code,name from relists where idlist='PUMPS' and name='" + mx + "'");
@@ -1347,13 +1385,13 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     title: Util.getLangText("txtDriver"),
                 },
                 { //mixer
-                    sql: "select name code from relists where idlist='MIXERS' order by name",
+                    sql: "select no code,descr title from C7_VEHICLES where flag=1 order by no",
                     return:
                     {
-                        code: "qry1.validatiy",
+                        code: "qry1.typofcem",
                     }
                     ,
-                    cols: ["CODE"],
+                    cols: ["NO"],
                     width: "300px",
                     height: "500px",
                     title: Util.getLangText("Mixers"),
