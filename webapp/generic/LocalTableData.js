@@ -146,6 +146,40 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
             var row = this.rows[rowno];
             return row.cells[cp].setValue(value);
         };
+        LocalTableData.prototype.clearnJsonDataParse = function (str) {
+            if (typeof str !== "string") return null;
+            // if (str == "") return "";
+            try {
+                // Try parsing directly first — if already valid JSON
+                return JSON.parse(str);
+            } catch (err) {
+                // Clean step-by-step
+                let cleaned = str
+                    // Remove invisible/control characters (including tabs)
+                    .replace(/[\u0000-\u001F\u007F]+/g, " ")  // remove ASCII control chars
+                    .replace(/\t/g, " ")                      // replace tabs with space
+                    .replace(/\r?\n|\r/g, " ")                // replace newlines with space
+
+                    // Remove comments (// or /* */)
+                    .replace(/\/\/.*$/gm, "")                 // remove line comments
+                    .replace(/\/\*[\s\S]*?\*\//g, "")         // remove block comments
+
+                    // Fix single quotes → double quotes (for strings)
+                    .replace(/'/g, '"')
+
+                    // Quote unquoted keys: {name: "John"} → {"name": "John"}
+                    .replace(/([{,]\s*)([A-Za-z0-9_]+)(\s*:)/g, '$1"$2"$3')
+
+                    // Remove trailing commas before } or ]
+                    .replace(/,\s*([}\]])/g, "$1")
+
+                    // Trim spaces and ensure proper brackets
+                    .trim();
+
+                // Final parse
+                return JSON.parse(cleaned);
+            }
+        };
         LocalTableData.prototype.getData = function (reFormat) {
             //var dta = JSON.parse(this.jsonString);
             var frmt = "";
@@ -153,9 +187,8 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
             if (reFormat) {
                 if (Util.nvl(this.cndFilter, "") != "")
                     this.showDataByCondition(this.cndFilter);
-
-                frmt = this.format().replaceAll("\n", "\\n");
-                dt = JSON.parse(frmt).data;
+                frmt = this.format();            
+                dt = this.clearnJsonDataParse(frmt).data;//JSON.parse(frmt).data;
             } else {
                 dt = this.dataJson.data;
             }

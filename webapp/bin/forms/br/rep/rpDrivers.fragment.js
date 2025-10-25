@@ -86,7 +86,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO"],
+                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO", "PAYTERM"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -115,10 +115,13 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                 beforeLoadQry: function (sql) {
                                     var oy = thatForm.frm.getFieldValue("RPDRIVER1@parameter.showTruck");
                                     var cold = {
-                                        "details": ",NVL(JOINED_CORDER.payterm,vehicleno) vehicleno, haddr ,JOINED_CORDER.location_name, JOINED_CORDER.BRANCH_NAME BRANCH_NAME ",
-                                        "detailsGrp": ",NVL(JOINED_CORDER.payterm,vehicleno), haddr,JOINED_CORDER.location_name , JOINED_CORDER.BRANCH_NAME",
+                                        "details": ", vehicleno, haddr ,JOINED_CORDER.location_name, JOINED_CORDER.BRANCH_NAME BRANCH_NAME ",
+                                        "detailsGrp": ",vehicleno, haddr,JOINED_CORDER.location_name , JOINED_CORDER.BRANCH_NAME",
                                         "summarysite": ", JOINED_CORDER.BRANCH_NAME ",
                                         "summarysiteGrp": ", JOINED_CORDER.BRANCH_NAME ",
+                                        "summaryPumps": ", JOINED_CORDER.payterm ",
+                                        "summaryPumpsGrp": ", JOINED_CORDER.payterm ",
+
                                     }
                                     var tr = Util.nvl(cold[oy], "");
                                     var tr1 = Util.nvl(cold[oy + "Grp"], "");
@@ -147,6 +150,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mGrouped = iq == "details";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_EMPNO")].mGrouped = iq == "details";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("VEHICLENO")].mHideCol = iq != "details";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("PAYTERM")].mHideCol = (iq != "details" && iq != "summaryPumps");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("HADDR")].mHideCol = iq != "details";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mHideCol = iq != "details";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BRANCH_NAME")].mHideCol = (iq != "details" && iq != "summarysite");
@@ -308,7 +312,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "1",
+                    default_value: "",
                     other_settings: { width: "35%" },
                     list: undefined,
                     edit_allowed: true,
@@ -340,7 +344,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     insert_allowed: true,
                     require: false,
                     dispInPara: true,
-                    list: "@summary/txtSummary,details/txtDriverWithTruckSite,summarysite/txtSummarySite",
+                    list: "@summary/txtSummary,details/txtDriverWithTruckSite,summarysite/txtSummarySite,summaryPumps/pumpTxt",
                 },
             };
             return para;
@@ -398,6 +402,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
                     title: "truckNo",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "150",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                payterm: {
+                    colname: "payterm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "pumpTxt",
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,

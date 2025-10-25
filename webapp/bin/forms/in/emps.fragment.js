@@ -106,8 +106,8 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                         name: "qry1",
                         dml: "select *from salesp where no=':pac'",
                         where_clause: " no=':no'",
-                        update_exclude_fields: ["no", "attachment"],
-                        insert_exclude_fields: ["attachment"],
+                        update_exclude_fields: ["no", "attachment", "vehiclename"],
+                        insert_exclude_fields: ["attachment", "vehiclename"],
                         insert_default_values: {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
@@ -358,22 +358,6 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                         },
                     },
                 },
-                vehicleno: {
-                    colname: "vehicleno",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"Vehicle no\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: "",
-                    other_settings: { editable: true, width: "15%" },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: false
-                },
                 mobile: {
                     colname: "mobile",
                     data_type: FormView.DataType.String,
@@ -390,6 +374,59 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                     insert_allowed: true,
                     require: false
                 },
+                vehicleno: {
+                    colname: "vehicleno",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"Vehicle no\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        editable: true, width: "15%",
+                        showValueHelp: true,
+                        change: function (e) {
+                            var vl = e.oSource.getValue();
+                            that.frm.setFieldValue("qry1.vehicleno", vl, vl, false);
+                            var vlnm = Util.nvl(Util.getSQLValue("select nvl(max(descr),'') from c7_vehicles where flag=1 and no =" + Util.quoted(vl)), "");
+                            if (vlnm == "") setTimeout(function () { that.frm.setFieldValue("qry1.vehicleno", "", "", false); e.oSource.focus(); })
+                            that.frm.setFieldValue("qry1.vehiclename", vlnm, vlnm, false);
+
+                        },
+                        valueHelpRequest: function (event) {
+                            var sq = "select no code,descr name from c7_vehicles where flag=1  order by no";
+                            Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                that.frm.setFieldValue("qry1.vehicleno", data.CODE, data.CODE, true);
+                                that.frm.setFieldValue("qry1.vehiclename", data.NAME, data.NAME, true);
+                                return true;
+                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                        },
+
+                    },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
+                },
+                vehiclename: {
+                    colname: "vehiclename",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: false, width: "35%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
+                },
+
             };
         },
         getCommands: function () {

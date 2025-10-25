@@ -253,7 +253,7 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
 
-            var sq = "SELECT '' PARENTACC ,1 LEVELNO , 0 CHILDCOUNT, j.SLSMN,SLSMN_NAME," +
+            var sq = "SELECT '' PARENTACC ,1 LEVELNO , 0 CHILDCOUNT, nvl(j.SLSMN,'-1') slsmn,nvl(SLSMN_NAME,'-') slsmn_name," +
                 " sum(allqty/pack) pkqty,SUM(((PRICE+ADD_AMT_GROSS)/PACK)*(QTYOUT-QTYIN)) SAL_AMT," +
                 " NVL ( (col.amt), 0) COLL_AMT,0 avgsales FROM JOINED_PUR j, ( " +
                 " SELECT c_ycust.salesp slsmn,nvl(sum(credit),0) amt from acc_transaction_up,c_ycust " +
@@ -266,8 +266,8 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
                 " and j.slsmn=col.slsmn(+) " +
                 " and j.invoice_date>=:parameter.fromdate and " +
                 " j.invoice_date<=:parameter.todate " +
-                " GROUP BY j.SLSMN,j.SLSMN_NAME,NVL ( (col.amt), 0) " +
-                " ORDER BY j.slsmn ";
+                " GROUP BY nvl(j.SLSMN,'-1'),nvl(j.SLSMN_NAME,'-'),NVL ( (col.amt), 0) " +
+                " ORDER BY nvl(j.SLSMN,'-1') ";
             sq = thatForm.frm.parseString(sq);
             var pars = Util.nvl(qryObj.rep.parameters, []);
 
@@ -350,6 +350,7 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
                     ld.getColByName("COLL_AMT").mSummary = "SUM";
                     ld.getColByName("SAL_AMT").mSummary = "SUM";
                     ld.getColByName("PKQTY").mSummary = "SUM";
+                    ld.getColByName("COLL_AMT").mSummary = "SUM";
 
                     var fntsize = Util.getLangDescrAR("12px", "16px");
                     paras["tableClass"] = "class=\"tbl1\"";
@@ -387,7 +388,11 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
                         // footerNode_fg["YTD_RATE"] = mapNode_fg["YTD_RATE"];                        
                     };
                     paras["fnOnFooter"] = function (footer) {
-
+                        var dfq1 = new DecimalFormat("#,##0");
+                        var pkqty = Util.extractNumber(footer["PKQTY"]);
+                        var sl = Util.extractNumber(footer["SAL_AMT"]);
+                        if (pkqty > 0 && sl > 0)
+                            footer["AVGSALES"] = dfq1.format((sl / pkqty));
                         footer["LEVELNO"] = -1;
                     };
                     paras["showFooter"] = true;

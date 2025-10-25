@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="chqgulf" pageWidth="538" pageHeight="255" columnWidth="538" columnSpacing="8" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="32"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="cm"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="cm"/>
+	<template><![CDATA["voucherStyle.jrtx"]]></template>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\yaali\\products\\channelPlus_others\\channel_reports\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANY_NAME" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_NAMEA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_SPECS" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_SPECSA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="pac" class="java.lang.String">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="VOU_TITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="VOU_TITLEA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DETAIL_REP" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["pvdetails.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TOTAL_IN_WORDS" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="CURRENCY_FORMAT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["#,##0.00;-#,##0.00"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select acvoucher1.* ,name,f_words(debamt) tot_words,
+ (SELECT NAMEa FROM ACGRPJVS WHERE VOU_CODE=acvoucher1.VOU_CODE AND VOU_TYPE=acvoucher1.TYPE) vt2,
+ (SELECT NAME FROM ACGRPJVS WHERE VOU_CODE=acvoucher1.VOU_CODE AND VOU_TYPE=acvoucher1.TYPE) vt1,
+(SELECT NVL(NAMEA,NAME) NAME FROM ACACCOUNT WHERE ACCNO=ACVOUCHER1.CODE) BNKNAME
+ from acvoucher1,acaccount where
+ acaccount.accno(+)=acvoucher1.code
+AND ACVOUCHER1.KEYFLD=$P{pac}]]>
+	</queryString>
+	<field name="KEYFLD" class="java.math.BigDecimal"/>
+	<field name="PERIODCODE" class="java.lang.String"/>
+	<field name="NO" class="java.math.BigDecimal"/>
+	<field name="VOU_CODE" class="java.math.BigDecimal"/>
+	<field name="TYPE" class="java.math.BigDecimal"/>
+	<field name="VOU_DATE" class="java.sql.Timestamp"/>
+	<field name="CODE" class="java.lang.String"/>
+	<field name="CODEAMT" class="java.lang.Double"/>
+	<field name="DESCR" class="java.lang.String"/>
+	<field name="DEBAMT" class="java.math.BigDecimal"/>
+	<field name="CRDAMT" class="java.math.BigDecimal"/>
+	<field name="DUEDATE" class="java.sql.Timestamp"/>
+	<field name="CREATDT" class="java.sql.Timestamp"/>
+	<field name="FLAG" class="java.math.BigDecimal"/>
+	<field name="USERNM" class="java.lang.String"/>
+	<field name="YEAR" class="java.lang.String"/>
+	<field name="RCVFROM" class="java.lang.String"/>
+	<field name="SLSMN" class="java.math.BigDecimal"/>
+	<field name="CODEACC" class="java.lang.String"/>
+	<field name="CHEQUENO" class="java.lang.String"/>
+	<field name="ISCHANGE" class="java.lang.String"/>
+	<field name="ISNEW" class="java.lang.String"/>
+	<field name="BOOKSERIALNO" class="java.lang.String"/>
+	<field name="INVOICE_CODE" class="java.math.BigDecimal"/>
+	<field name="INVOICE_TYPE" class="java.math.BigDecimal"/>
+	<field name="INVKEYFLD" class="java.lang.Double"/>
+	<field name="REFERNO" class="java.math.BigDecimal"/>
+	<field name="REFERCODE" class="java.math.BigDecimal"/>
+	<field name="REFERTYPE" class="java.math.BigDecimal"/>
+	<field name="PRINTCOUNT" class="java.math.BigDecimal"/>
+	<field name="COSTCENT" class="java.lang.String"/>
+	<field name="REFERKEYFLD" class="java.math.BigDecimal"/>
+	<field name="FCCODE" class="java.lang.String"/>
+	<field name="FCRATE" class="java.math.BigDecimal"/>
+	<field name="FCDEBAMT" class="java.math.BigDecimal"/>
+	<field name="FCCRDAMT" class="java.math.BigDecimal"/>
+	<field name="FCCODEAMT" class="java.math.BigDecimal"/>
+	<field name="FC_MAIN_1" class="java.lang.String"/>
+	<field name="FC_MAIN_RATE_1" class="java.lang.Double"/>
+	<field name="APPROVED_BY" class="java.lang.String"/>
+	<field name="APPROVED_DATE" class="java.sql.Timestamp"/>
+	<field name="POSTED_BY" class="java.lang.String"/>
+	<field name="POSTED_DATE" class="java.sql.Timestamp"/>
+	<field name="NAME" class="java.lang.String"/>
+	<field name="TOT_WORDS" class="java.lang.String"/>
+	<field name="VT2" class="java.lang.String"/>
+	<field name="VT1" class="java.lang.String"/>
+	<field name="BNKNAME" class="java.lang.String"/>
+	<pageHeader>
+		<band height="137" splitType="Stretch">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement style="strHeader" x="50" y="47" width="352" height="20" uuid="3e0a31fc-f442-4103-a4cb-295677e1ec91"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{RCVFROM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement style="strHeader" x="410" y="48" width="111" height="40" uuid="486f8114-3528-4ac8-9447-4a5783a0c067"/>
+				<box leftPadding="1" rightPadding="1">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DEBAMT}]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement style="strHeader" x="58" y="80" width="352" height="40" uuid="3bba4054-4135-4506-bd81-3f2a37a5f2c1"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TOT_WORDS}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+</jasperReport>

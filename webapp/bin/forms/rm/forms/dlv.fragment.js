@@ -267,7 +267,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         UtilGen.setControlValue(objSt, sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
                         UtilGen.setControlValue(objStb, sett["DEFAULT_PRODUCT_STORE"], sett["DEFAULT_PRODUCT_STORE"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
-                        UtilGen.setControlValue(objct, "dayShift", "dayShift", true);
+                        UtilGen.setControlValue(objct, "", "", true);
 
 
 

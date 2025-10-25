@@ -90,9 +90,23 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                 },
                 print_templates: [
                     {
-                        title: "Print",
+                        title: "Print Voucher",
                         reportFile: "vouchers/pv",
+                    },
+                    {
+                        title: "Cheque - Gulf",
+                        reportFile: "vouchers/chqgulf",
+                    },
+                    {
+                        title: "Cheque - KFH",
+                        reportFile: "vouchers/chqkfh",
+                    },
+                    {
+                        title: "Cheque - NBK",
+                        reportFile: "vouchers/chqnbk",
                     }
+
+
                 ],
                 events: {
                     afterLoadQry: function (qry) {

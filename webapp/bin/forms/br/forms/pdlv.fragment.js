@@ -147,7 +147,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         delete_before_update: "delete from c_order1 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
                         update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT'],
-                        insert_exclude_fields: ['DESCR', 'AMOUNT', ],
+                        insert_exclude_fields: ['DESCR', 'AMOUNT',],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -372,13 +372,11 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     }
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
-
-                },
-                afterDelSqlAdd: function () {
                     var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                     var delAdd = " c7_rm_gr(" + kf + ",'Y');";
                     return delAdd;
-
+                },
+                afterDelSqlAdd: function () {
                 },
                 afterDelRow: function (qry, ld, data) {
                     // var delAdd = "";

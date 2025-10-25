@@ -355,7 +355,7 @@ sap.ui.jsfragment("bin.forms.rp.in.ss", {
                 " GROUP BY field1,field9,field10,field2," +
                 " to_number(field6),to_number(field8),field7, " +
                 "field7||'__'||'PKQTY' " +
-                " order by field10,TO_NUMBER (field8)";
+                " order by TO_NUMBER (field8),field10";
             sq = thatForm.frm.parseString(sq);
             Util.doAjaxJson("bat7addQry?" + ps, {
                 sql: sq,
