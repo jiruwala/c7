@@ -22,6 +22,10 @@ iframe {
     background-color: #00ffff !important;
     transition: background-color 0.1s ease-in-out;
 }
+.highlight-row {
+    background-color: cyan !important; /* Light Yellow */
+    transition: background-color 0.3s ease-in-out;
+}
 .colorBlack {
     color: black !important;
 }

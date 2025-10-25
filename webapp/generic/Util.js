@@ -848,9 +848,11 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     this.busyDialog = undefined;
                 }
             },
-            getParsedJsonValue: function (vl, rawValue) {
+            getParsedJsonValue: function (pvl, rawValue) {
                 var rv = this.nvl(rawValue, false);
-
+                var vl = pvl;
+                if (vl != undefined && typeof pvl == "number" && vl.toString().includes('e'))
+                    vl = parseFloat(pvl.toFixed(5));
                 if (!rv)
                     return (typeof vl == "number" ? vl :
                         '"' + Util.nvl(vl, "").replace(/\\n/g, "\\n")
@@ -1023,6 +1025,21 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                             sap.m.MessageToast.show("Rows filtere " + binding.aIndices.length);
                         }, 100);
                     }
+                });
+                searchField.attachBrowserEvent("keydown", function (evt) {
+                    if (evt.key == "ArrowDown") {
+                        qv.getControl().focus();
+                    }
+
+                    if (evt.key == "Enter") {
+                        console.log("press enter");
+                        if (qv.getControl().getContextByIndex(0) != undefined && qv.getControl().getContextByIndex(1) == undefined) {
+                            setTimeout(() => {
+                                qv.getControl().setSelectionInterval(1, 0);
+                            });
+                        }
+                    }
+
                 });
                 searchField.attachBrowserEvent("keydown", function (evt) {
                     if (evt.key == "ArrowDown") {
