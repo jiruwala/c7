@@ -6,8 +6,8 @@
 	<property name="ireport.y" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="291"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="698"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ora"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="kh7"/>
 	<template><![CDATA["voucherStyle.jrtx"]]></template>
 	<style name="Row_lvl" mode="Transparent" markup="none" fontSize="10">
 		<box leftPadding="3" rightPadding="3">
@@ -48,7 +48,11 @@ FIELD20 COSTCENT,
 FIELD21 FCCODE,
 TO_NUMBER(DECODE(FIELD22,'null',0,FIELD22)) FC_AMT,
 TO_NUMBER(DECODE(FIELD23,'null',0,FIELD23)) FC_RATE,
-nvl(DECODE(FIELD27,'null','',FIELD27),DECODE(FIELD4,'null','',FIELD4))   branch_name
+nvl(DECODE(FIELD27,'null','',FIELD27),DECODE(FIELD4,'null','',FIELD4))   branch_name,
+nvl(
+	(select max(descr) from items where reference=(select max(ord_ship) 
+    from c_order1 where keyfld=TO_NUMBER(DECODE(FIELD17,'null',0,FIELD17)) and ord_pos=TO_NUMBER(DECODE(FIELD26,'null',0,FIELD26))   ))
+    , FIELD6) descrxx
 FROM TEMPORARY
 WHERE FIELD1='SOA001-0-1'
 AND USERNM=$P{CP_USER}
@@ -142,6 +146,10 @@ ORDER BY to_number(field2)]]>
 	<field name="BRANCH_NAME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="BRANCH_NAME"/>
 		<property name="com.jaspersoft.studio.field.label" value="BRANCH_NAME"/>
+	</field>
+	<field name="DESCRXX" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="DESCRXX"/>
+		<property name="com.jaspersoft.studio.field.label" value="DESCRXX"/>
 	</field>
 	<variable name="SUMDR" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{DEBIT}]]></variableExpression>
@@ -374,7 +382,7 @@ ORDER BY to_number(field2)]]>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{DESCRXX}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="120" y="0" width="60" height="15" uuid="98a4fe8f-d314-44b6-b7c1-6c52f70c53ce">
