@@ -101,14 +101,14 @@ sap.ui.jsfragment("bin.forms.rp.in.mi", {
         var sc = new sap.m.ScrollContainer();
 
         var js = {
-            title: Util.getLangText("miRepTit"),
+            title: Util.getLangText("miRepName1Items"),
             title2: "",
             show_para_pop: false,
             reports: [
                 {
                     code: "MI001",
                     name: Util.getLangText("miRepName1Items"),
-                    descr: Util.getLangText("miRepDescr1Items"),
+                    descr: Util.getLangText("miRepName1Items"),
                     paraColSpan: undefined,
                     hideAllPara: false,
                     paraLabels: undefined,
@@ -207,10 +207,6 @@ sap.ui.jsfragment("bin.forms.rp.in.mi", {
                             },
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -254,7 +250,8 @@ sap.ui.jsfragment("bin.forms.rp.in.mi", {
                                     var sq = "select items.reference,items.descr,descr2,items.packd,items.unitd||'x'||items.pack unitdd ,items.pack," +
                                         "items.price1,items.lsprice,items.remark,items.parentitem,items.childcounts,items.levelno,mfcode," +
                                         "cu.name mfname , 0 pack_cost,0 qtyx,0 costamt, " + ac + "," + bal + " from items, c_ycust cu " +
-                                        "where  cu.code(+)=mfcode and  items.descr2 like ((select nvl(max(DESCR2),'')||'%' from items where items.reference=':parameter.prefer' )) order by descr2";
+                                        " where  cu.code(+)=mfcode and items.descr2 like ':vars.formsecure_show_items'||'%' and " +
+                                        " items.descr2 like ((select nvl(max(DESCR2),'')||'%' from items where items.reference=':parameter.prefer' ))  order by descr2";
                                     sq = thatForm.frm.parseString(sq);
                                     return sq;
                                 },
@@ -753,289 +750,6 @@ sap.ui.jsfragment("bin.forms.rp.in.mi", {
                                     }
                                 }
                             },
-                        ]
-                    }
-                },
-                {
-                    code: "MI002",
-                    name: Util.getLangText("miRepName2Items"),
-                    descr: Util.getLangText("miRepDescr2Items"),
-                    paraColSpan: undefined,
-                    hideAllPara: false,
-                    paraLabels: undefined,
-                    showSQLWhereClause: true,
-                    showFilterCols: true,
-                    showDispCols: true,
-                    showCustomPara: function (vbPara, rep) {
-
-                    },
-                    onSubTitHTML: function () {
-                        var tbstr = Util.getLangText("miRepNameItems");
-                        var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
-                        return ht;
-                    },
-                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
-                    rep: {
-                        parameters: {
-                            prefer: {
-                                colname: "prefer",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"itemCode\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("MI001@parameter.prefer", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("SA001@parameter.prefname", vlnm, vlnm, false);
-
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        Util.showSearchList("select reference,descr from items where itprice4=0 order by path", "DESCR", "REFERENCE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("MI001@parameter.prefer", valx, valx, true);
-                                            thatForm.frm.setFieldValue("MI001@parameter.prefname", val, val, true);
-                                        });
-
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            prefname: {
-                                colname: "prefname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            levelno: {
-                                colname: "levelno",
-                                data_type: FormView.DataType.Number,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"levelNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "0",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            incmf: {
-                                colname: "incmf",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"inclMF\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
-
-                        },
-                        print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
-                        ],
-                        canvas: [],
-                        db: [
-                            {
-                                type: "query",
-                                name: "qry2",
-                                showType: FormView.QueryShowType.QUERYVIEW,
-                                disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
-                                execOnShow: false,
-                                dml: "select items.reference,items.descr,descra,items.price1,items.lsprice,items.remark,items.parentitem,items.childcounts,items.levelno,mfcode,cu.name mfname from items,c_ycust cu where  cu.code(+)=mfcode and  items.descr2 like ((select nvl(max(DESCR2),'')||'%' from items where items.reference=':parameter.prefer' )) order by descr2",
-                                parent: "PARENTITEM",
-                                levelCol: "LEVELNO",
-                                code: "REFERENCE",
-                                title: "DESCR",
-                                isMaster: false,
-                                showToolbar: true,
-                                masterToolbarInMain: false,
-                                filterCols: ["REFERENCE", "DESCR", "MFCODE", "MFNAME"],
-                                canvasType: ReportView.CanvasType.VBOX,
-                                afterApplyCols: function (qryObj) {
-                                    if (qryObj.name == "qry2") {
-                                        var iq = thatForm.frm.getFieldValue("parameter.incmf");
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("MFCODE")].mHideCol = (iq != "Y");
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("MFNAME")].mHideCol = (iq != "Y");
-                                    }
-                                },
-                                onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
-                                    // var oModel = this.getControl().getModel();
-                                    // var bal = parseFloat(oModel.getProperty("BALANCE", currentRowContext));
-                                    // if (bal >= 0)
-                                    //     qv.getControl().getRows()[dispRow].getCells()[3].$().css("color", "green");
-                                    // else
-                                    //     qv.getControl().getRows()[dispRow].getCells()[3].$().css("color", "red");
-
-
-                                },
-                                bat7CustomAddQry: function (qryObj, ps) {
-
-                                },
-                                fields: {
-                                    reference: {
-                                        colname: "reference",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemCode",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "140",
-                                        display_align: "ALIGN_BEGIN",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    descr: {
-                                        colname: "descr",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemDescr",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "220",
-                                        display_align: "ALIGN_BEGIN",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    descra: {
-                                        colname: "descra",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemDescra",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "220",
-                                        display_align: "ALIGN_BEGIN",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    price1: {
-                                        colname: "price1",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemPrice",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "120",
-                                        display_align: "ALIGN_END",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    lsprice: {
-                                        colname: "lsprice",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemLSPrice",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "100",
-                                        display_align: "ALIGN_END",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    mfcode: {
-                                        colname: "mfcode",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemMFNCode",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "80",
-                                        display_align: "ALIGN_BEGIN",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    mfname: {
-                                        colname: "mfname",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "itemMFNName",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "150",
-                                        display_align: "ALIGN_BEGIN",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-
-                                }
-                            }
                         ]
                     }
                 }

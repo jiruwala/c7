@@ -19,7 +19,46 @@ sap.ui.define("sap/ui/ce/generic/ReportUtils", [],
             },
             Parameters: {
                 colSpan: "XL2 L2 M2 S12",
-                getTodate: function () {
+                getExclZero: function () {
+                    return {
+                        colname: "exclzero",
+                        data_type: FormView.DataType.String,
+                        class_name: FormView.ClassTypes.CHECKBOX,
+                        title: '{\"text\":\"exclZero\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                        title2: "",
+                        display_width: this.colSpan,
+                        display_align: "ALIGN_LEFT",
+                        display_style: "",
+                        display_format: "",
+                        other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        require: false,
+                        dispInPara: true,
+                        trueValues: ["Y", "N"]
+                    };
+                },
+                getFromdate: function (dv) {
+                    return {
+                        colname: "fromdate",
+                        data_type: FormView.DataType.Date,
+                        class_name: FormView.ClassTypes.DATEFIELD,
+                        title: '{\"text\":\"To\",\"width\":\"15%\","textAlign":"End"}',
+                        title2: "",
+                        display_width: this.colSpan,
+                        display_align: "ALIGN_RIGHT",
+                        display_style: "",
+                        display_format: "",
+                        default_value: Util.nvl(dv, "$FIRSTDATEOFMONTH"),
+                        other_settings: { width: "35%" },
+                        list: undefined,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        require: true,
+                        dispInPara: true,
+                    };
+                },
+                getTodate: function (dv) {
                     return {
                         colname: "todate",
                         data_type: FormView.DataType.Date,
@@ -30,7 +69,7 @@ sap.ui.define("sap/ui/ce/generic/ReportUtils", [],
                         display_align: "ALIGN_RIGHT",
                         display_style: "",
                         display_format: "",
-                        default_value: "$TODAY",
+                        default_value: Util.nvl(dv, "$TODAY"),
                         other_settings: { width: "35%" },
                         list: undefined,
                         edit_allowed: true,
@@ -40,6 +79,7 @@ sap.ui.define("sap/ui/ce/generic/ReportUtils", [],
                     };
                 },
                 getPrefer: function (thatForm, preferObjStr, preferNameObjStr, ptxtWidth, pobjWidth) {
+                    var sett = sap.ui.getCore().getModel("settings").getData();
                     var txtWidth = Util.nvl(ptxtWidth, "15%");
                     var objWidth = Util.nvl(pobjWidth, "35%");
                     return {
@@ -64,10 +104,11 @@ sap.ui.define("sap/ui/ce/generic/ReportUtils", [],
 
                             },
                             valueHelpRequest: function (event) {
-                                Util.showSearchList("select reference,descr from items where itprice4=0 order by path", "DESCR", "REFERENCE", function (valx, val) {
-                                    thatForm.frm.setFieldValue(preferObjStr, valx, valx, true);
-                                    thatForm.frm.setFieldValue(preferNameObjStr, val, val, true);
-                                });
+                                var si = Util.nvl(sett["formsecure_show_items"], "");
+                                UtilGen.Search.do_quick_search(event, this,
+                                    "select reference code,descr title from items " +
+                                    " where itprice4=0 and descr2 like '" + si + "%' order by descr2",
+                                    "select reference code,descr title from items where reference=:CODE", preferNameObjStr);
 
                             },
                             width: objWidth
@@ -99,6 +140,26 @@ sap.ui.define("sap/ui/ce/generic/ReportUtils", [],
                         edit_allowed: false,
                         insert_allowed: false,
                         require: false,
+                        dispInPara: true,
+                    };
+                },
+                getStrNo: function (obj) {
+                    return {
+                        colname: "strno",
+                        data_type: FormView.DataType.Number,
+                        class_name: FormView.ClassTypes.TEXTFIELD,
+                        title: '{\"text\":\"storeNo\",\"width\":\"15%\","textAlign":"End"}',
+                        title2: "",
+                        display_width: this.colSpan,
+                        display_align: "ALIGN_RIGHT",
+                        display_style: "",
+                        display_format: "",
+                        default_value: "0",
+                        other_settings: { width: "35%" },
+                        list: undefined,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        require: true,
                         dispInPara: true,
                     };
                 },

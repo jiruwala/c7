@@ -157,6 +157,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                 rep.showXLSMenu = Util.nvl(rps[r].showXLSMenu, true);
                 rep.hideMainMenu = Util.nvl(rps[r].hideMainMenu, true);
                 rep.showQueryPage = Util.nvl(rps[r].showQueryPage, true);
+                rep.afterDispPara = Util.nvl(rps[r].rep.afterDispPara, undefined);
 
                 rep.parameters = [];
                 var pms = Util.nvl(rps[r].rep.parameters, []);
@@ -2015,6 +2016,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     var pf = Util.nvl(thatForm.oController.para_PARAFORM, "TRUE").toUpperCase() == "FALSE" ? false : true;
                     if (pf)
                         frag.joApp.showMaster();
+
                 }, 1000);
                 this.navApp.to(this.app);
             }
@@ -2820,6 +2822,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
             setTimeout(function () {
                 thatRV.showDispInMaster();
+
             });
             // this.pg.addContent(this.tbMain);
             //  this.pg.addHeaderContent(this.tbMain);
@@ -2831,8 +2834,13 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
 
             setTimeout(function () {
                 // thatRV.tbMain.$().css("background-color", "lightblue");
+
             }, 100);
 
+        };
+        ReportView.prototype.setVars = function () {
+            UtilGen.Security.setLocatonEditRV(this, undefined, undefined, true);
+            UtilGen.Security.setStoreEditRV(this, undefined, undefined, true);
         };
         ReportView.prototype.showPdfSetting = function () {
             var thatRV = this;
@@ -3063,6 +3071,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             return sst;
         };
         ReportView.prototype.getFieldValue = function (pvr) {
+            var sett = sap.ui.getCore().getModel("settings").getData();
             var vl = undefined;
             var repCode = this.reports[UtilGen.getControlValue(this.lstRep)].code;
             var vr = pvr;
@@ -3089,6 +3098,10 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             // var fldObj = this._findFieldObj(pvr);
             // if (fldObj != undefined)
             //     vl = UtilGen.getControlValue(fldObj);
+            if (vl == undefined && typeof pvr == "string" &&
+                Util.nvl(pvr, "").startsWith("vars."))
+                vl = Util.nvl(sett[pvr.split(".")[1]], "");
+
             return vl;
 
         };
@@ -3384,7 +3397,12 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
             }).addStyleClass("repPage");
             this.pgMaster.setSubHeader(ttb);
             this.vbPara.addItem(new sap.m.VBox({ height: "50px" }));
-
+            setTimeout(() => {
+                thatForm.setVars();
+                if (rep.afterDispPara != undefined)
+                    rep.afterDispPara(rep);
+    
+            }, 100);
         };
 
         ReportView.prototype.showDispInPara = function (showMoreObj, pRptNo, pshowModal) {

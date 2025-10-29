@@ -34,6 +34,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
         var fullSpan = "XL8 L8 M8 S12";
         var colSpan = "XL2 L2 M2 S12";
         var sumSpan = "XL2 L2 M2 S12";
+        var repCode = "ST001";
         var cmdLink = function (obj, rowno, colno, lctb, frm) {
             // var mdl = frm.objs["CAGE1@qry2"].obj.getControl().getModel();
             // var rr = frm.objs["CAGE1@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
@@ -97,98 +98,10 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
-                            prefer: {
-                                colname: "prefer",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"itemCode\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue("ST001@parameter.prefer", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue("ST001@parameter.prefname", vlnm, vlnm, false);
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        // Util.showSearchList("select reference,descr from items where itprice4=0 order by path", "DESCR", "REFERENCE", function (valx, val) {
-                                        //     thatForm.frm.setFieldValue("ST001@parameter.prefer", valx, valx, true);
-                                        //     thatForm.frm.setFieldValue("ST001@parameter.prefname", val, val, true);
-                                        // });
-
-                                        UtilGen.Search.do_quick_search(event, this,
-                                            "select reference code,descr title from items where itprice4=0 order by path",
-                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs["ST001@parameter.prefname"].obj);
-
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            prefname: {
-                                colname: "prefname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            fromdate: {
-                                colname: "fromdate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            todate: {
-                                colname: "todate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
+                            prefer: ReportUtils.Parameters.getPrefer(thatForm, repCode + "@parameter.prefer", repCode + "@parameter.prefname"),
+                            prefname: ReportUtils.Parameters.getPreferName(),
+                            fromdate: ReportUtils.Parameters.getFromdate("$FIRSTDATEOFMONTH"),
+                            todate: ReportUtils.Parameters.getTodate(),            
 
                         },
                         print_templates: [
@@ -332,7 +245,7 @@ sap.ui.jsfragment("bin.forms.rp.in.st", {
                                         display_width: colSpan,
                                         display_align: "ALIGN_CENTER",
                                         display_style: "",
-                                        display_format:  sett["FORMAT_QTY_1"],
+                                        display_format: sett["FORMAT_QTY_1"],
                                         default_value: "",
                                         onPrintField: function () {
                                             return this.obj.$().outerHTML();

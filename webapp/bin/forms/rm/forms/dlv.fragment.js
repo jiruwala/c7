@@ -158,11 +158,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
         this.frm.frag = this;
         this.frm.parseForm(js);
         this.frm.createView();
-
+        this.setVars();
         // this.mainPage.addContent(sc);
 
     },
-
+    setVars: function () {
+        // UtilGen.Security.setLocatonEdit(this, "qry1.location_code", true);
+        // UtilGen.Security.setStoreEdit(this, "qry1.stra", true);
+        UtilGen.Security.setStoreEdit(this, "qry1.strb", true);
+    },
     setFormEditable: function () {
 
     }
@@ -199,7 +203,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                             var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
                             thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
                         }
-
                     }
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
                         qry.obj.mLctb.getColByName("ORD_SHIP").beforeSearchEvent = function (sq, ctx, model) {

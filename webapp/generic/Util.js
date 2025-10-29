@@ -2034,7 +2034,31 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     itms[cb.getItems()[i].getKey()] = "1";
                 if (itms[sel] == undefined) return false;
                 return true;
+            },
+            getSetupVal: function (vars, noVal, fetchFromDb) {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var vl;
+                if (Util.nvl(fetchFromDb, false)) {
+                    var usr = sett["LOGON_USER"];
+                    var sq = "select nvl(max(value),'') from cp_user_profiles where profileno=':profileno' and variable='" + vars + "'";
+                    var sql = "";
+                    if (sett["PROFILENO"] == 0) {
+                        sql = sq.replaceAll(":profileno", '0');
+                        vl = Util.getSQLValue(sql);
+                    }
+                    else {
+                        sql = sq.replaceAll(":profileno", sett['PROFILENO']);
+                        vl = Util.getSQLValue(sql);
+                        if (Util.nvl(vl, "") == "") {
+                            sql = sq.replaceAll(":profileno", '0');
+                            vl = Util.getSQLValue(sql);
+                        }
+                    }
+
+                } else vl = sett[vars];
+                return Util.nvl(vl, noVal);
             }
+
 
         };
 

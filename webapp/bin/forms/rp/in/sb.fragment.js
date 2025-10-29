@@ -46,7 +46,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
             var cont = tbl.getContextByIndex(rr);
             var todate = sdf.format(frm.getFieldValue("parameter.todate"));
             var strno = frm.getFieldValue("parameter.strno");
-            var fromdate = frm.getFieldValue("parameter.fromdate" == undefined) ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate"));
+            var fromdate = frm.getFieldValue("parameter.fromdate" == undefined ? "01/01/" + todate.substr(6) : sdf.format(frm.getFieldValue("parameter.fromdate")));
 
             var it = (tbl.getRows()[rr].getCells()[0].getText()).replaceAll(" ", "%20");
 
@@ -87,110 +87,11 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
-                            fromdate: {
-                                colname: "fromdate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$FIRSTDATEOFYEAR",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            todate: {
-                                colname: "todate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            strno: {
-                                colname: "strno",
-                                data_type: FormView.DataType.Number,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"storeNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "0",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            prefer: {
-                                colname: "prefer",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"itemCode\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue(repCode + "@parameter.prefer", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue(repCode + "@parameter.prefname", vlnm, vlnm, false);
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        UtilGen.Search.do_quick_search(event, this,
-                                            "select reference code,descr title from items where itprice4=0 order by descr2",
-                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs[repCode + "@parameter.prefname"].obj);
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            prefname: {
-                                colname: "prefname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
+                            fromdate: ReportUtils.Parameters.getFromdate("$FIRSTDATEOFMONTH"),
+                            todate: ReportUtils.Parameters.getTodate(),
+                            strno: ReportUtils.Parameters.getStrNo(),
+                            prefer: ReportUtils.Parameters.getPrefer(thatForm, repCode + "@parameter.prefer", repCode + "@parameter.prefname"),
+                            prefname: ReportUtils.Parameters.getPreferName(),
                             showFirstPur: {
                                 colname: "showFirstPur",
                                 data_type: FormView.DataType.String,
@@ -227,10 +128,6 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                             },
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "storeb",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -274,6 +171,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         (showRsrvStock == "Y" ? ob3 : " (select null ord_refer,0 reserve_stock from dual) ob3 ") +
                                         " WHERE   ob1.refer(+)=ji.refer and ob2.refer(+)=ji.refer  and  ob3.ord_refer(+)=ji.refer " +
                                         " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
+                                        " and descr2 like ':vars.formsecure_show_items'||'%' " +
                                         " and descr2 like (select max(descr2) from items ix where ix.reference=':parameter.prefer')||'%' " +
                                         " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode ,first_pur_date ,reserve_stock/pack " +
                                         " ORDER BY  descr2 ";
@@ -529,98 +427,12 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
-                            todate: {
-                                colname: "todate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            strno: {
-                                colname: "strno",
-                                data_type: FormView.DataType.Number,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"storeNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "0",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            prefer: {
-                                colname: "prefer",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"itemCode\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue(repCode2 + "@parameter.prefer", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue(repCode2 + "@parameter.prefname", vlnm, vlnm, false);
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        UtilGen.Search.do_quick_search(event, this,
-                                            "select reference code,descr title from items where itprice4=0 order by descr2",
-                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs[repCode2 + "@parameter.prefname"].obj);
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            prefname: {
-                                colname: "prefname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
+                            todate: ReportUtils.Parameters.getTodate(),
+                            strno: ReportUtils.Parameters.getStrNo(),
+                            prefer: ReportUtils.Parameters.getPrefer(thatForm, repCode + "@parameter.prefer", repCode + "@parameter.prefname"),
+                            prefname: ReportUtils.Parameters.getPreferName(),
                         },
                         print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "storeb",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -638,6 +450,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                     " FROM   JOINED_INVOICE" +
                                     " WHERE  ITPRICE4=0 and INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
                                     " and descr2 like (select max(descr2) from items ix where ix.reference=':parameter.prefer')||'%' " +
+                                    " and descr2 like ':vars.formsecure_show_items'||'%' " +
                                     " GROUP BY   REFER, barcode, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR " +
                                     " ORDER BY  descr2 ",
                                 parent: "",
@@ -832,110 +645,12 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                     mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
                     rep: {
                         parameters: {
-                            fromdate: {
-                                colname: "fromdate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$FIRSTDATEOFYEAR",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            todate: {
-                                colname: "todate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '@{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            prefer: {
-                                colname: "prefer",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"itemCode\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    showValueHelp: true,
-                                    change: function (e) {
-                                        var vl = e.oSource.getValue();
-                                        thatForm.frm.setFieldValue(repCode3 + "@parameter.prefer", vl, vl, false);
-                                        var vlnm = Util.getSQLValue("select descr from items where reference =" + Util.quoted(vl));
-                                        thatForm.frm.setFieldValue(repCode3 + "@parameter.prefname", vlnm, vlnm, false);
-                                    },
-                                    valueHelpRequest: function (event) {
-                                        UtilGen.Search.do_quick_search(event, this,
-                                            "select reference code,descr title from items where itprice4=0 order by descr2",
-                                            "select reference code,descr title from items where reference=:CODE", thatForm.frm.objs[repCode3 + "@parameter.prefname"].obj);
-                                    },
-                                    width: "35%"
-                                },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            prefname: {
-                                colname: "prefname",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: { width: "49%", editable: false },
-                                list: undefined,
-                                edit_allowed: false,
-                                insert_allowed: false,
-                                require: false,
-                                dispInPara: true,
-                            },
-                            levelno: {
-                                colname: "levelno",
-                                data_type: FormView.DataType.Number,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"levelNo\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "0",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
+                            fromdate: ReportUtils.Parameters.getFromdate("$FIRSTDATEOFMONTH"),
+                            todate: ReportUtils.Parameters.getTodate(),
+                            strno: ReportUtils.Parameters.getStrNo(),
+                            prefer: ReportUtils.Parameters.getPrefer(thatForm, repCode + "@parameter.prefer", repCode + "@parameter.prefname"),
+                            prefname: ReportUtils.Parameters.getPreferName(),
+                            levelno: ReportUtils.Parameters.getLevelNo(),
                             showsqtycost: {
                                 colname: "showsqtycost",
                                 data_type: FormView.DataType.String,
@@ -961,30 +676,10 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 dispInPara: true,
                                 list: "@0/By Qty,1/Cost Value"
                             },
-                            exclzero: {
-                                colname: "exclzero",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.CHECKBOX,
-                                title: '{\"text\":\"exclZero\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_LEFT",
-                                display_style: "",
-                                display_format: "",
-                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: false,
-                                dispInPara: true,
-                                trueValues: ["Y", "N"]
-                            },
+                            exclzero: ReportUtils.Parameters.getExclZero(),
 
                         },
                         print_templates: [
-                            {
-                                title: "PDF",
-                                reportFile: "tb001",
-                            }
                         ],
                         canvas: [],
                         db: [
@@ -1020,6 +715,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 beforeLoadQry: function (sql) {
                                     var sq =
                                         "begin " +
+                                        "  cp_items.show_items:=':vars.formsecure_show_items'||'%';" +
                                         "  cp_items.plevelno:=:parameter.levelno;" +
                                         "  cp_items.pfromdt:=:parameter.fromdate;" +
                                         "  cp_items.ptodt:=:parameter.todate; " +

@@ -416,8 +416,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 this.objs[lsts[i].name] = lst;
 
             }
-
-
             console.log(this.form);
         };
         FormView.prototype._duplicate_para = function (name) {
@@ -956,6 +954,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
         };
 
         FormView.prototype.getFieldValue = function (vr) {
+            var sett = sap.ui.getCore().getModel("settings").getData();
             var vl = undefined;
             if (this.objs[vr] != undefined &&
                 (this.objs[vr].objType == FormView.ObjTypes.PARAMETER)) {
@@ -981,6 +980,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             vl = Util.extractNumber(vl);
                     }
                 }
+            if (vl == undefined && vr.startsWith("vars."))
+                vl = Util.nvl(sett[vr.split(".")[1]], "");
 
             return vl;
 
@@ -1841,7 +1842,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 if (!UtilGen.Security.canDelete("formsec_all", "", true) && thatForm.cmdButtons.cmdDel.getEnabled() == true)
                     thatForm.cmdButtons.cmdDel.setEnabled(false);
 
-
+                UtilGen.Security.setLocatonEdit(thatForm.frag, undefined, true);
+                UtilGen.Security.setStoreEdit(thatForm.frag, undefined, true);
+                UtilGen.Security.setStoreEdit(thatForm.frag, undefined, true);
+        
 
                 if (Util.nvl(thatForm.formName, "") == "") return;
 
