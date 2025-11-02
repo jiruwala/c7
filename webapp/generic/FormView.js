@@ -1842,10 +1842,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 if (!UtilGen.Security.canDelete("formsec_all", "", true) && thatForm.cmdButtons.cmdDel.getEnabled() == true)
                     thatForm.cmdButtons.cmdDel.setEnabled(false);
 
-                UtilGen.Security.setLocatonEdit(thatForm.frag, undefined, true);
-                UtilGen.Security.setStoreEdit(thatForm.frag, undefined, true);
-                UtilGen.Security.setStoreEdit(thatForm.frag, undefined, true);
-        
+                UtilGen.Security.setLocatonEdit(thatForm.frag, undefined, false, true);
+                UtilGen.Security.setStoreEdit(thatForm.frag, undefined, false, true);
+                UtilGen.Security.setStoreEdit(thatForm.frag, undefined, false, true);
+
 
                 if (Util.nvl(thatForm.formName, "") == "") return;
 

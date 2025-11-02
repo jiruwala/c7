@@ -4897,12 +4897,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         return true;
                     return false;
                 },
-                setLocatonEdit: function (form, ploc, throwEr, pDefaultLoc) {
+                setLocatonEdit: function (form, ploc, throwErr, pDefaultLoc) {
                     var loc = Util.nvl(ploc, "qry1.location_code");
                     var sett = sap.ui.getCore().getModel("settings").getData();
-                    this.can_edit_loc = Util.getSetupVal("formsecure_change_location", "TRUE", true) == "TRUE" ? true : false;
+                    var can_edit_loc = Util.getSetupVal("formsecure_change_location", "TRUE", true) == "TRUE" ? true : false;
 
-                    if (!form.can_edit_loc) try {
+                    if (!can_edit_loc) try {
                         form.frm.objs[loc].insert_allowed = false;
                         form.frm.objs[loc].edit_allowed = false;
                         form.frm.objs[loc].obj.setEditable(false);
@@ -4911,8 +4911,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 },
                 setStoreEdit: function (form, pstore, throwErr, pDefaultStr) {
                     var str = Util.nvl(pstore, "qry1.stra");
-                    form.can_edit_store = Util.getSetupVal("formsecure_change_store", "TRUE", true) == "TRUE" ? true : false;
-                    if (!form.can_edit_store) try {
+                    var can_edit_store = Util.getSetupVal("formsecure_change_store", "TRUE", true) == "TRUE" ? true : false;
+                    if (!can_edit_store) try {
                         form.frm.objs[str].insert_allowed = false;
                         form.frm.objs[str].insert_allowed = false;
                         form.frm.objs[str].obj.setEditable(false);
