@@ -233,7 +233,7 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                         showType: FormView.QueryShowType.QUERYVIEW,
                         applyCol: "C7.BRCUSTITEMS",
                         addRowOnEmpty: true,
-                        dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY, C.PACKD, C.UNITD, c.asm_ctg,C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
+                        dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY, C.PACKD, C.UNITD, c.asm_ctg,C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,c_price_var,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
                         // dml: "select *from c_custitems where startdate=" + Util.nvl(Util.toOraDateString(that2.qrDate), 'null') + " and keyfld=':keyfld' order by refer ",
                         dispRecords: { "S": 5, "M": 7, "L": 8, "XL": 14, "XXL": 25 },
                         edit_allowed: true,

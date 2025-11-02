@@ -1083,7 +1083,7 @@ public class utils {
 			return "";
 		String ret = "", met = "";
 		String tmp1 = "", cn = "";
-		SimpleDateFormat ssf = new SimpleDateFormat("MM/dd/yyyy hh.mm.ss");
+		SimpleDateFormat ssf = new SimpleDateFormat("MM/dd/yyyy hh.mm.ss a");
 		ResultSetMetaData rsm = rs.getMetaData();
 		for (int i = 0; i < rsm.getColumnCount(); i++) {
 			tmp1 = getJSONStr("colname", rsm.getColumnName(i + 1), false);
@@ -1112,6 +1112,7 @@ public class utils {
 								? ssf.format(rs.getTimestamp(cn))
 								: rs.getString(cn));
 //					rs.getString(cn));
+//				System.out.println(vl);
 				tmp1 += (tmp1.length() == 0 ? "" : ",") + getJSONStr(cn, vl, false);
 			}
 			ret += (ret.length() == 0 ? "" : ",") + "{" + tmp1 + "}";

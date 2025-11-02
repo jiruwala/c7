@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="salord" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="cf11b561-bf37-4668-b851-4df083d2736e">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="or"/>
+	<property name="com.jaspersoft.studio.unit." value="cm"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="cm"/>
+	<template><![CDATA["voucherStyle.jrtx"]]></template>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\yaali\\products\\channelPlus_others\\channel_reports\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPANY_NAME" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_NAMEA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_SPECS" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMPANY_SPECSA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="VOU_TITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="VOU_TITLEA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DETAIL_REP" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["orddetails.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TOTAL_IN_WORDS" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="CURRENCY_FORMAT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["#,##0.00;-#,##0.00"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="pfromno" class="java.lang.String">
+		<parameterDescription><![CDATA[FROM NO]]></parameterDescription>
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ptono" class="java.lang.String">
+		<parameterDescription><![CDATA[TO NO]]></parameterDescription>
+		<defaultValueExpression><![CDATA[99999]]></defaultValueExpression>
+	</parameter>
+	<parameter name="vouType" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT ALL ORDER1.ORD_NO, ORDER1.KEYFLD,ORDER1.TQTY, items.descr,
+ORDER1.ORD_CODE, ORDER1.ORD_REF, ORDER1.ORD_REFNM, ORDER1.ORD_DATE, 
+ORDER1.ORD_SHIP, ORDER1.ORD_SHPDT, ORDER1.ORD_AMT, ORDER1.ORD_DISCAMT, 
+ORDER1.ORD_FLAG, ORDER1.ORD_EMPNO, ORDER1.YEAR, ORDER1.REMARKS, ORDER1.PAYTERM, 
+ORDER1.VALIDATIY, ORDER1.ATTN, ORDER1.SALEINV,  CBRANCH.B_NAME,CBRANCH.BLOCK, 
+CBRANCH.STREET, CBRANCH.JEDDA, CBRANCH.AREA, CBRANCH.TEL,
+(SELECT POWER FROM ITEMS WHERE REFERENCE=ORDER1.ORD_SHIP) WGHT,
+(SELECT PARTNO FROM ITEMS WHERE REFERENCE=ORDER1.ORD_SHIP) TYPEOFCEM,
+CBRANCH.QASIMA,
+to_char(TMPLANTLEAVE,'HH12:MI AM') TMPLANTLEAVE,
+(select max(name) from salesp where no=order1.ord_empno) driv_name,
+(select max(descra) from items where reference='AD0100002' ) chem_name,
+nvl(typofcem,(select max(vehicleno) from salesp where no=order1.ord_empno)) truckno,
+(select nvl(sum(tqty),0) from c_order1 where ord_ref=order1.ord_ref 
+	and ord_discamt=order1.ord_discamt and ord_date=order1.ord_date 
+	and ord_ship=order1.ord_ship
+) today_total_qty,
+(select sum(allqty/pack) from masterasm where baseitem=order1.ord_ship and refer='301') water_qty,
+(select sum(allqty/pack) from masterasm where baseitem=order1.ord_ship and refer='401') chm_qty,
+(select max(descr) from c7_vehicles where no=typofcem ) veh_name
+FROM C_ORDER1 ORDER1, CBRANCH,items
+WHERE CBRANCH.CODE=ORDER1.ORD_REF AND ORD_DISCAMT=BRNO
+	and "ORDER1"."ORD_NO" >= $P{pfromno} 
+	 AND "ORDER1"."ORD_NO" <= $P{ptono} 
+	 AND "ORDER1"."ORD_CODE" = 9
+	 and items.reference=order1.ord_ship	 
+ORDER BY "ORDER1"."ORD_NO" DESC]]>
+	</queryString>
+	<field name="ORD_NO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_NO"/>
+	</field>
+	<field name="KEYFLD" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="KEYFLD"/>
+		<property name="com.jaspersoft.studio.field.label" value="KEYFLD"/>
+	</field>
+	<field name="TQTY" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="TQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="TQTY"/>
+	</field>
+	<field name="DESCR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="DESCR"/>
+		<property name="com.jaspersoft.studio.field.label" value="DESCR"/>
+	</field>
+	<field name="ORD_CODE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_CODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_CODE"/>
+	</field>
+	<field name="ORD_REF" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_REF"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_REF"/>
+	</field>
+	<field name="ORD_REFNM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_REFNM"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_REFNM"/>
+	</field>
+	<field name="ORD_DATE" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_DATE"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_DATE"/>
+	</field>
+	<field name="ORD_SHIP" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_SHIP"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_SHIP"/>
+	</field>
+	<field name="ORD_SHPDT" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_SHPDT"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_SHPDT"/>
+	</field>
+	<field name="ORD_AMT" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_AMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_AMT"/>
+	</field>
+	<field name="ORD_DISCAMT" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_DISCAMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_DISCAMT"/>
+	</field>
+	<field name="ORD_FLAG" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_FLAG"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_FLAG"/>
+	</field>
+	<field name="ORD_EMPNO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ORD_EMPNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="ORD_EMPNO"/>
+	</field>
+	<field name="YEAR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="YEAR"/>
+		<property name="com.jaspersoft.studio.field.label" value="YEAR"/>
+	</field>
+	<field name="REMARKS" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="REMARKS"/>
+		<property name="com.jaspersoft.studio.field.label" value="REMARKS"/>
+	</field>
+	<field name="PAYTERM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="PAYTERM"/>
+		<property name="com.jaspersoft.studio.field.label" value="PAYTERM"/>
+	</field>
+	<field name="VALIDATIY" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="VALIDATIY"/>
+		<property name="com.jaspersoft.studio.field.label" value="VALIDATIY"/>
+	</field>
+	<field name="ATTN" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ATTN"/>
+		<property name="com.jaspersoft.studio.field.label" value="ATTN"/>
+	</field>
+	<field name="SALEINV" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="SALEINV"/>
+		<property name="com.jaspersoft.studio.field.label" value="SALEINV"/>
+	</field>
+	<field name="B_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="B_NAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="B_NAME"/>
+	</field>
+	<field name="BLOCK" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="BLOCK"/>
+		<property name="com.jaspersoft.studio.field.label" value="BLOCK"/>
+	</field>
+	<field name="STREET" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="STREET"/>
+		<property name="com.jaspersoft.studio.field.label" value="STREET"/>
+	</field>
+	<field name="JEDDA" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="JEDDA"/>
+		<property name="com.jaspersoft.studio.field.label" value="JEDDA"/>
+	</field>
+	<field name="AREA" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="AREA"/>
+		<property name="com.jaspersoft.studio.field.label" value="AREA"/>
+	</field>
+	<field name="TEL" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="TEL"/>
+		<property name="com.jaspersoft.studio.field.label" value="TEL"/>
+	</field>
+	<field name="WGHT" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="WGHT"/>
+		<property name="com.jaspersoft.studio.field.label" value="WGHT"/>
+	</field>
+	<field name="TYPEOFCEM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="TYPEOFCEM"/>
+		<property name="com.jaspersoft.studio.field.label" value="TYPEOFCEM"/>
+	</field>
+	<field name="QASIMA" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="QASIMA"/>
+		<property name="com.jaspersoft.studio.field.label" value="QASIMA"/>
+	</field>
+	<field name="TMPLANTLEAVE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="TMPLANTLEAVE"/>
+		<property name="com.jaspersoft.studio.field.label" value="TMPLANTLEAVE"/>
+	</field>
+	<field name="DRIV_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="DRIV_NAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="DRIV_NAME"/>
+	</field>
+	<field name="CHEM_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="CHEM_NAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="CHEM_NAME"/>
+	</field>
+	<field name="TRUCKNO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="TRUCKNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="TRUCKNO"/>
+	</field>
+	<field name="TODAY_TOTAL_QTY" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="TODAY_TOTAL_QTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="TODAY_TOTAL_QTY"/>
+	</field>
+	<field name="WATER_QTY" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="WATER_QTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="WATER_QTY"/>
+	</field>
+	<field name="CHM_QTY" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="CHM_QTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="CHM_QTY"/>
+	</field>
+	<field name="VEH_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="VEH_NAME"/>
+		<property name="com.jaspersoft.studio.field.label" value="VEH_NAME"/>
+	</field>
+	<group name="vou" isStartNewPage="true" isResetPageNumber="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{KEYFLD}]]></groupExpression>
+		<groupHeader>
+			<band height="776">
+				<textField pattern="dd/MM/yyyy">
+					<reportElement style="strHeader" x="329" y="174" width="129" height="20" uuid="d219fe6c-5256-494a-adf1-3f02b3f7ef6c"/>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="14" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ORD_DATE}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="95" y="220" width="363" height="20" uuid="8a01396d-67cf-4232-bbaf-54b3502e1185"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ORD_REFNM}+" - "+$F{ORD_REF}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" pattern="#,##0.#;(#,##0.#-)" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="146" y="385" width="90" height="20" uuid="1507cd1b-0bb3-4190-8b9d-4a5ce2420537"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{WGHT}]]></textFieldExpression>
+				</textField>
+				<textField pattern="">
+					<reportElement style="strHeader" x="358" y="197" width="100" height="25" uuid="3173f813-242f-4b9e-bca8-073c8db08c04"/>
+					<box leftPadding="1" rightPadding="1">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="14" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ORD_NO}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="114" y="533" width="386" height="20" uuid="3bc884c5-d3fa-4e0e-a24c-688cf11d94e0"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{B_NAME}+"-"+$F{AREA}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="236" y="384" width="140" height="20" uuid="e31c8087-6ca8-4627-a83c-49c3a94f7472"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TODAY_TOTAL_QTY}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="364" y="384" width="120" height="20" uuid="7456e35c-0fac-4da1-b844-a3a099f46ba7"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TQTY}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="146" y="571" width="333" height="20" uuid="e686db34-bb98-4836-9ee1-ded37bb422df"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PAYTERM}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="140" y="612" width="350" height="20" uuid="063a7195-d025-477a-be44-466ad3279c1d"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{REMARKS}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="124" y="245" width="334" height="20" uuid="d9cc00e5-15ad-4e1f-baa8-0f2f1bfc09b4"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{DRIV_NAME}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="124" y="269" width="334" height="20" uuid="d4cb8db6-1c5e-4cfd-a744-2f88bbd5ae10"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TRUCKNO}+"-"+$F{VEH_NAME}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" pattern="HH:mm a" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="370" y="473" width="160" height="20" uuid="b1afe4cf-be2a-45a5-a339-edf65d7748aa"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TMPLANTLEAVE}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="130" y="291" width="328" height="20" uuid="287e1def-cf26-4013-b692-0268d421d411"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CHEM_NAME}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" pattern="#,##0.#;(#,##0.#-)" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="48" y="385" width="90" height="20" uuid="9a6712f4-ebae-4d2e-b070-d38734c0de2a"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TYPEOFCEM}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+					<reportElement style="strHeader" x="129" y="318" width="328" height="20" uuid="d182975f-758d-46f0-88bd-4c889baadfc1"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="16" splitType="Stretch"/>
+	</pageHeader>
+	<detail>
+		<band splitType="Immediate">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>

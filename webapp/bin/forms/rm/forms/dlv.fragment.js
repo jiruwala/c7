@@ -283,7 +283,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
 
-                        var tm = Util.getSQLValue("select sysdate from dual");
+                        var tm = Util.getSQLValue("select to_char(sysdate,'mm/dd/rrrr hh.mi am') from dual");
                         tm = new Date(tm.replaceAll(".", ":"));
                         objtm.setDateValue(tm);
                         // var dt = Date.now();
@@ -593,7 +593,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     "10%", "", "15%",
                     {
                         list: "select code,name  from locations order by code",
-                        require: true
+                        require: true,
+                        edit_allowed: false,
+                        insert_allowed: true,
                     }, {
                     selectionChange: function () {
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
