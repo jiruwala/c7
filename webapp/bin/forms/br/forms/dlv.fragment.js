@@ -714,7 +714,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                             var objV = thatForm.frm.objs["qry1.payterm"].obj;
                             var dtxM = Util.execSQLWithData("select mobile,vehicleno,HADDR from salesp where no=" + objEmp.getValue());
                             UtilGen.setControlValue(objTel, dtxM[0]["MOBILE"], dtxM[0]["MOBILE"], true);
-                            UtilGen.setControlValue(objV, dtxM[0]["payterm"], dtxM[0]["payterm"], true);
+                            UtilGen.setControlValue(objV, dtxM[0]["VEHICLENO"], dtxM[0]["VEHICLENO"], true);
 
                         },
                         valueHelpRequest: function (e) {
@@ -1004,6 +1004,10 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     name: 'list1',
                     title: "List of Orders",
                     list_type: "sql",
+                    list_para: {
+                        selectStr: "@100/Last 100,200/Last 200,1000/Last 1000,-1/All",
+                        defaultKey: "200",
+                    },
                     cols: [
                         {
                             colname: "ORD_NO",
@@ -1021,8 +1025,9 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
-                        " order by o1.ord_date desc,ord_no desc",
+                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,keyfld,location_code from order1 o1 where " +
+                        " ord_code =" + that2.vars.vou_code +
+                        " order by ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1)",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -1278,7 +1283,7 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
                     })
 
                 ]
-            }).addStyleClass("sapUiSizeCompact");;
+            }).addStyleClass("sapUiSizeCompact");
             dlg.open();
         },
         showBranch: function () {
