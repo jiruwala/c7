@@ -148,8 +148,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                         " SUM(((price_x))*(qty_x))/ SUM(qty_x) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts, " +
                                         " packd_x " +
                                         " FROM " +
-                                        " JOINED_CORDER,PUR1 INVOICE1 " +
+                                        " JOINED_CORDER,PUR1 INVOICE1 , C_YCUST Y " +
                                         " WHERE ( ORD_CODE=9 " +
+                                        " AND Y.CODE= JOINED_CORDER.ORD_REF " +
+                                        " AND (Y.SALESP=':parameter.slsmn' or ':parameter.slsmn' is null ) " +
                                         " AND SALEINV=INVOICE1.KEYFLD" +
                                         " AND SALEINV IS not  NULL" +
                                         " AND ORD_DATE>=:parameter.fromdate " +
@@ -363,6 +365,60 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                 },
                 rmixname: {
                     colname: "rmixname",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: { width: "49%", editable: false },
+                    list: undefined,
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false,
+                    dispInPara: true,
+                },
+                slsmn: {
+                    colname: "slsmn",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtSalesPerson\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        showValueHelp: true,
+                        change: function (e) {
+                            var vl = e.oSource.getValue();
+                            thatForm.frm.setFieldValue(repCode + "@parameter.slsmn", vl, vl, false);
+                            var vlnm = Util.getSQLValue("select name from salesp where no =" + Util.quoted(vl));
+                            thatForm.frm.setFieldValue(repCode + "@parameter.slsname", vlnm, vlnm, false);
+
+                        },
+                        valueHelpRequest: function (event) {
+                            var sq = "select no code,name from salesp  order by no";
+                            Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.slsmn", data.CODE, data.CODE, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.slsname", data.NAME, data.NAME, true);
+                                return true;
+                            }, "300px", "400px", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                        },
+                        width: "35%"
+                    },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
+                slsname: {
+                    colname: "slsname",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
                     title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',

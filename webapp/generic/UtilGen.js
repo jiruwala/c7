@@ -3258,6 +3258,27 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
 
+                getNewPORDNoFromQry: function (qry, vc) {
+                    var lc = qry.formview.objs["qry1.location_code"].obj.getSelectedKey();
+                    var ty = Util.extractNumber(qry.formview.objs["qry1.ord_type"].obj.getSelectedKey());
+                    return this.getNewPORDNo(lc, vc, ty);
+                },
+                getNewPORDNo: function (loc, vc, typ) {
+                    var sqln = ("select c7_pord_new_no(':loc'," +
+                        "':vou_code' , :vou_type ) from dual").replaceAll(":vou_code", vc)
+                        .replaceAll(":loc", loc)
+                        .replaceAll(":vou_type", Util.nvl(typ, -1));
+                    var vl = Util.extractNumber(Util.getSQLValue(sqln));
+                    return vl;
+                },
+                getNewPurNo: function (loc, vc, typ) {
+                    var sqln = ("select c7_pur_new_no(':loc'," +
+                        "':vou_code' , :vou_type ) from dual").replaceAll(":vou_code", vc)
+                        .replaceAll(":loc", loc)
+                        .replaceAll(":vou_type", Util.nvl(typ, -1));
+                    var vl = Util.extractNumber(Util.getSQLValue(sqln));
+                    return vl;
+                }
 
             },
             setFormTitle: function (frm, tit, mainPage) {
@@ -3287,7 +3308,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             getTableColNo: function (tbl, colName) {
                 var endCell = tbl.getColumns().length;
                 for (var i = 0; i < endCell; i++)
-                    if (i < tbl._getVisibleColumns().length && tbl._getVisibleColumns()[i].tableCol.mColName == colName)
+                    if (i < tbl._getVisibleColumns().length &&
+                        Util.nvl(tbl._getVisibleColumns()[i].tableCol.mColName, "").toUpperCase()
+                        == Util.nvl(colName, "").toUpperCase())
                         return i;
                 return -1;
             },

@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.in.emps", {
+sap.ui.jsfragment("bin.forms.rm.forms.veh", {
 
     createContent: function (oController) {
         var that = this;
@@ -72,7 +72,7 @@ sap.ui.jsfragment("bin.forms.in.emps", {
         this.frm;
         var js = {
             form: {
-                title: "Operation Staff",
+                title: "titOpVehicles",
                 toolbarBG: "#fff0f5",
                 formSetting: {
                     class: "",
@@ -104,17 +104,18 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from salesp where no=':pac'",
+                        dml: "select *from c7_vehicles where no=':pac'",
                         where_clause: " no=':no'",
-                        update_exclude_fields: ["no", "attachment", "vehiclename"],
-                        insert_exclude_fields: ["attachment", "vehiclename"],
+                        update_exclude_fields: ["no",],
+                        insert_exclude_fields: [],
                         insert_default_values: {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
                             // "TYPE": 3
+                            "FLAG": 1
                         },
                         update_default_values: {},
-                        table_name: "salesp",
+                        table_name: "c7_vehicles",
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: false,
@@ -222,7 +223,7 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                         that.frm.setFieldValue("pac", "", "", true);
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         that.view.byId("numtxt" + thatForm.timeInLong).setText("");
-                        var newKf = Util.getSQLValue("select nvl(max(no),0)+1 from salesp");
+                        var newKf = Util.getSQLValue("select nvl(max(no),0)+1 from c7_vehicles");
                         that.frm.setFieldValue("qry1.no", newKf, newKf, true);
                     }
                 },
@@ -234,27 +235,11 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                         var no = that.frm.getFieldValue("qry1.no");
                         var vldtt = Util.getSQLValue(
                             "select nvl(max(ord_no),-1) from c_order1 where (" +
-                            " issue_plant_no =" + no + " or " +
-                            " ordered_key=" + no + " or " +
-                            " ord_empno=" + no + " or " +
-                            " salesp=" + no + " ) "
+                            " typofcem ='" + no + "')"
                         );
                         if (Util.nvl(vldtt, -1) >= 0)
-                            FormView.err("Err ! , This staff exist in delivery # " + vldtt);
-                        vldtt = Util.getSQLValue(
-                            "select nvl(max(code||'-'||name),'') from c_ycust where salesp=" + no +
-                            "");
-                        if (Util.nvl(vldtt, '') != '')
-                            FormView.err("Found in customer " + vldtt);
-                        vldtt = Util.getSQLValue(
-                            "select nvl(max(keyfld),'') from pur1 where slsmn=" + no +
-                            "");
-                        if (Util.nvl(vldtt, '') != '')
-                            FormView.err("Found in Purchase / Sales KeyId # " + vldtt);
+                            FormView.err("Err ! , The vehicle exist in delivery # " + vldtt);
 
-                        if (Util.nvl(vldtt, 0) > 0) {
-                            FormView.err("Err ! , this cost center have transaction #" + vldtt);
-                        }
                     }
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
@@ -310,13 +295,13 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "35%" },
+                    other_settings: { editable: true, width: "15%" },
                     edit_allowed: false,
                     insert_allowed: true,
                     require: true
                 },
-                name: {
-                    colname: "name",
+                descr: {
+                    colname: "descr",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
                     title: '{\"text\":\"txtName\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
@@ -331,8 +316,8 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                     insert_allowed: true,
                     require: true
                 },
-                namea: {
-                    colname: "namea",
+                descra: {
+                    colname: "descra",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
                     title: '{\"text\":\"titleTxt2\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
@@ -347,55 +332,27 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                     insert_allowed: true,
                     require: false
                 },
-                type: {
-                    colname: "type",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
-                    title: '{\"text\":\"puShipType\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: "",
-                    other_settings: { editable: true, width: "35%" },
-                    edit_allowed: true,
-                    insert_allowed: true,
-                    require: true,
-                    list: "@E/txtPumpAsist,D/Drivers,DI/txtPumpDriver,S/Sales man,O/Operators",
-                    other_settings: {
-                        editable: true,
-                        width: "15%",
-                        items: {
-                            path: "/",
-                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                            templateShareable: true
-                        },
-                        selectionChange: function (e) {
-                        },
-                    },
-                },
-                mobile: {
-                    colname: "mobile",
+                owner_name: {
+                    colname: "owner_name",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"Tel\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '{\"text\":\"Owner\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "35%" },
+                    other_settings: { editable: true, width: "85%" },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false
                 },
-                vehicleno: {
-                    colname: "vehicleno",
+                plateno: {
+                    colname: "plateno",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"Vehicle no\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '{\"text\":\"Plate no\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -403,46 +360,13 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                     display_style: "",
                     display_format: "",
                     other_settings: {
-                        editable: true, width: "35%",
-                        showValueHelp: true,
-                        change: function (e) {
-                            var vl = e.oSource.getValue();
-                            that.frm.setFieldValue("qry1.vehicleno", vl, vl, false);
-                            var vlnm = Util.nvl(Util.getSQLValue("select nvl(max(descr),'') from c7_vehicles where flag=1 and no =" + Util.quoted(vl)), "");
-                            if (vlnm == "") setTimeout(function () { that.frm.setFieldValue("qry1.vehicleno", "", "", false); e.oSource.focus(); })
-                            that.frm.setFieldValue("qry1.vehiclename", vlnm, vlnm, false);
-
-                        },
-                        valueHelpRequest: function (event) {
-                            var sq = "select no code,descr name from c7_vehicles where flag=1  order by no";
-                            Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
-                                that.frm.setFieldValue("qry1.vehicleno", data.CODE, data.CODE, true);
-                                that.frm.setFieldValue("qry1.vehiclename", data.NAME, data.NAME, true);
-                                return true;
-                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
-                        },
+                        editable: true, width: "15%",
 
                     },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: false
-                },
-                vehiclename: {
-                    colname: "vehiclename",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
-                    title2: "",
-                    canvas: "default_canvas",
-                    display_width: codSpan,
-                    display_align: "ALIGN_CENTER",
-                    display_style: "",
-                    display_format: "",
-                    other_settings: { editable: false, width: "50%" },
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: false
-                },
+                }
 
             };
         },
@@ -518,15 +442,11 @@ sap.ui.jsfragment("bin.forms.in.emps", {
                             return_field: "pac",
                         },
                         {
-                            colname: "NAME",
+                            colname: "DESCR",
                         },
-                        {
-                            colname: "TYPE",
-                        },
-
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select no, name,decode(type,'D','Driver','S','Sales man',type) type " +
-                        " from salesp order by no",
+                    sql: "select no, descr " +
+                        " from c7_vehicles order by no",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;

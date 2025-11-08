@@ -242,7 +242,7 @@ sap.ui.define("sap/ui/ce/generic/ReportView", ["./QueryView"],
                     qr.onRowRender = Util.nvl(qrys[i].onRowRender, undefined);
                     qr.onPrintRenderAdd = Util.nvl(qrys[i].onPrintRenderAdd, undefined);
                     qr.dispRecords = UtilGen.dispTblRecsByDevice(qr.dispRecords);
-                    qr.dispRecordsDeductHeightP = Util.nvl(qrys[i].dispRecordsDeductHeightP, undefined);
+                    qr.dispRecordsDeductHeightP = Util.nvl(qrys[i].dispRecordsDeductHeightP, { "S": 70, "M": 60, "L": 55, "XL": 48 });
                     qr.dispRecordsRowHeight = Util.nvl(qrys[i].dispRecordsRowHeight, undefined);
                     qr.fields = {};
                     qr.canvas = Util.nvl(qrys[i].canvas, "default_canvas");

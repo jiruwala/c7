@@ -6,7 +6,7 @@
 	<property name="ireport.y" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="291"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="698"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ora"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="kh7"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<template><![CDATA["voucherStyle.jrtx"]]></template>
 	<style name="Row_lvl" mode="Transparent" markup="none" fontSize="10">
@@ -28,7 +28,7 @@
 		<![CDATA[select
 FIELD3 ACCNO,
 FIELD4 ACNAME,
-to_date(FIELD5,'mm/dd/rrrr HH.MI.SS') vou_date,
+to_date(FIELD5,'mm/dd/rrrr HH.MI.SS AM') vou_date,
 --CAST(TO_TIMESTAMP(FIELD5,'RRRR-MM-DD HH24.MI.SS.FF') AS DATE) VOU_DATE,
 FIELD6 DESCR,
 TO_NUMBER(DECODE(FIELD7,'null',0,FIELD7)) VOU_NO,
@@ -424,7 +424,7 @@ ORDER BY to_number(field2)]]>
 				<textFieldExpression><![CDATA[($F{CREDIT}==0?null:$F{CREDIT})]]></textFieldExpression>
 				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
 			</textField>
-			<textField textAdjust="StretchHeight" pattern="dd/MM/yyy" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" pattern="d/M/yyyy" isBlankWhenNull="true">
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="420" y="0" width="60" height="15" uuid="f2ab9fdd-9578-4e10-b6b5-f03b9ed0046d">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>

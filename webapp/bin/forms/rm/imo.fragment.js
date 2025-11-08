@@ -278,6 +278,7 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
                 " i.packd, 1 levelno,'' parentacc ,0 CHILDCOUNT " +
                 " FROM C_ORDER1 O,ITEMS I " +
                 " WHERE I.REFERENCE=O.ORD_SHIP " +
+                " and o.ord_code=9 " +
                 " GROUP BY ORD_SHIP,TO_CHAR(ORD_DATE,'RRRR/MM'),I.DESCR,TO_CHAR(ORD_DATE,'RRRR_MM')||'__QTY',i.packd " +
                 " ORDER BY TO_CHAR(ORD_DATE,'RRRR/MM'),ord_ship";
             Util.doAjaxJson("bat7addQry?" + ps, {
@@ -352,7 +353,6 @@ sap.ui.jsfragment("bin.forms.rm.imo", {
 
                     if (rt != "QTY")
                         ld.cols[ld.getColPos("PACKD")].mHideCol = true;
-
                     ld.parse("{" + dt.data + "}", true);
                     ld.do_cross_tab();
                     ld.sortCol(ld.getColPos("DESCR"), true);

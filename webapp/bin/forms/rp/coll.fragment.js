@@ -245,6 +245,60 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 require: false,
                                 dispInPara: true,
                             },
+                            slsmn: {
+                                colname: "slsmn",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"txtSalesPerson\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.slsmn", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select name from salesp where no =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.slsname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        var sq = "select no code,name from salesp  order by no";
+                                        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.slsmn", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.slsname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, "300px", "400px", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            slsname: {
+                                colname: "slsname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
                             grpby: {
                                 colname: "grpby",
                                 data_type: FormView.DataType.String,
@@ -271,6 +325,24 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            inclMaster: {
+                                colname: "inclMaster",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"chkSalesPersonMaster\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "5%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
 
                         },
                         print_templates: [
@@ -295,12 +367,18 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 filterCols: ["ACCNO", "DESCR2", "CUST_CODE", "VOU_DATE", "CHEQUENO", "RCVFROM", "CREDOT", "NO", "SLSMN", "SALESNAME"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 beforeLoadQry: function (sql) {
-                                    var sq = "select a.*,decode(a.type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type, sls.name salesname , " +
-                                        " (select max(descr2) from acvoucher2 where keyfld=a.keyfld and credit>0 ) acc_name " +
-                                        " from ACC_TRANSACTION_up a,salesp sls " +
+                                    var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                    var im = thatForm.frm.getFieldValue("parameter.inclMaster");
+                                    var sq = "select a.keyfld, a.credit, a.vou_date , a.duedate, a.chequeno, a.no, a.cust_code,a.accno ,a.descr2,  " +
+                                        " a.descr , a.rcvfrom, " + (im == "Y" ? "y.salesp slsmn  " : " a.slsmn  ") +
+                                        " ,decode(a.type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type," + "sls.name salesname  " +
+                                        // " (select max(descr2) from acvoucher2 where keyfld=a.keyfld and credit>0 ) acc_name " +
+                                        " from ACC_TRANSACTION_up a,salesp sls " + (im == "Y" ? ",c_ycust y " : "") +
                                         " where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and " +
                                         " (a.accno=':parameter.accno' or ':parameter.accno' is null) and " +
-                                        " ( sls.no(+)=a.slsmn ) " +
+                                        (im == "Y" ? "(y.salesp =':parameter.slsmn' or ':parameter.slsmn' is null)" :
+                                            "(a.slsmn =':parameter.slsmn' or ':parameter.slsmn' is null)") + " and " +
+                                        (im == "Y" ? " ( sls.no(+)=y.salesp and y.code=a.cust_code ) " : " ( sls.no(+)=a.slsmn ) ") +
                                         " and  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by a.keyfld";
                                     return thatForm.frm.parseString(sq);
 
@@ -504,22 +582,22 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
 
                                     },
 
-                                    acc_name: {
-                                        colname: "acc_name",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "A/C From",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "200",
-                                        display_align: "ALIGN_BEGIN",
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
+                                    // acc_name: {
+                                    //     colname: "acc_name",
+                                    //     data_type: FormView.DataType.String,
+                                    //     class_name: FormView.ClassTypes.LABEL,
+                                    //     title: "A/C From",
+                                    //     title2: "",
+                                    //     parentTitle: "",
+                                    //     parentSpan: 1,
+                                    //     display_width: "200",
+                                    //     display_align: "ALIGN_BEGIN",
+                                    //     display_style: "",
+                                    //     display_format: "",
+                                    //     default_value: "",
+                                    //     other_settings: {},
 
-                                    },
+                                    // },
                                     rcvfrom: {
                                         colname: "rcvfrom",
                                         data_type: FormView.DataType.String,
@@ -537,7 +615,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                     },
                                     slsmn: {
                                         colname: "slsmn",
-                                        data_type: FormView.DataType.Number,
+                                        data_type: FormView.DataType.String,
                                         class_name: FormView.ClassTypes.LABEL,
                                         title: "txtSalesPerson",
                                         title2: "",
@@ -559,7 +637,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "150",
-                                        display_align: "ALIGN_BEGIN",
+                                        display_align: "ALIGN_CENTER",
                                         display_style: "",
                                         display_format: "",
                                         default_value: "",

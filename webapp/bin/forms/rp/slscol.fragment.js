@@ -232,7 +232,62 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
                     insert_allowed: true,
                     require: true,
                     dispInPara: true,
-                }
+                },
+                fromsales: {
+                    colname: "fromsales",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"From No\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "0",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
+                tosales: {
+                    colname: "tosales",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"To No\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "99999",
+                    other_settings: { width: "35%" },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
+
+                inclUnpost: {
+                    colname: "inclUnpost",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"paraInclUnpost\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "Y",
+                    other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
             };
             return para;
         },
@@ -252,22 +307,46 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
             // });
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
+            var iu = thatForm.frm.getFieldValue("parameter.inclUnpost");
+            // sql to add un sold delivereis sales persons from c_ycust
+            var sqNotInv = " select  '' PARENTACC," +
+                " 1 LEVELNO," +
+                "0 CHILDCOUNT,   y.salesp slsmn,sp.name ," +
+                " nvl(sum(tqty),0) pkqty,nvl(sum(sale_price*tqty),0) sal_amt,0 coll_amt,0 avsales from c_ycust y, c_order1 o ,salesp sp " +
+                " where o.ord_code=9 and o.saleinv is null and o.ord_ref=y.code and sp.no=y.salesp " +
+                " and o.ord_date>=:parameter.fromdate " +
+                " and o.ord_date<=:parameter.todate " +
+                " and y.salesp not in (select distinct x.salesp from pur1 px,c_ycust x " +
+                " where x.code=px.c_cus_no and px.invoice_code=21 and invoice_date>=:parameter.fromdate  " +
+                " and invoice_date<=:parameter.todate )" +
+                " group by y.salesp,sp.name ";
 
             var sq = "SELECT '' PARENTACC ,1 LEVELNO , 0 CHILDCOUNT, nvl(j.SLSMN,'-1') slsmn,nvl(SLSMN_NAME,'-') slsmn_name," +
-                " sum(allqty/pack) pkqty,SUM(((PRICE+ADD_AMT_GROSS)/PACK)*(QTYOUT-QTYIN)) SAL_AMT," +
+                " sum(allqty/pack) " + (iu == "Y" ? "+ nvl((dlvqty),0) " : "") + " pkqty , " +
+                " SUM(((PRICE+ADD_AMT_GROSS)/PACK)*(QTYOUT-QTYIN)) " +
+                (iu == "Y" ? "+ nvl((dlvamt),0) " : "") +
+                " SAL_AMT," +
                 " NVL ( (col.amt), 0) COLL_AMT,0 avgsales FROM JOINED_PUR j, ( " +
                 " SELECT c_ycust.salesp slsmn,nvl(sum(credit),0) amt from acc_transaction_up,c_ycust " +
                 " where vou_code=2 and c_ycust.code=acc_transaction_up.cust_code  " +
                 " and vou_date>=:parameter.fromdate " +
                 " and vou_date<=:parameter.todate" +
-                " group by c_ycust.salesp) col  " +
-                "" +
+                " and salesp>=:parameter.fromsales and salesp<=:parameter.tosales " +
+                " group by c_ycust.salesp) col , " +
+                (iu == "Y" ? " (select y.salesp dlvslsmn ,sum(tqty) dlvqty,sum(sale_price*tqty) dlvamt " +
+                    " from c_order1 o,c_ycust y where saleinv is null and o.ord_code=9 and y.code=o.ord_ref " +
+                    " and o.ord_date>=:parameter.fromdate and o.ord_date<=:parameter.todate " +
+                    " and y.salesp>=:parameter.fromsales and y.salesp<=:parameter.tosales " +
+                    " group by y.salesp) " : " (select -1 dlvslsmn ,0 dlvqty,0 dlvamt from dual )") + " dlvqr " +
                 " WHERE j.INVOICE_CODE=21 " +
                 " and j.slsmn=col.slsmn(+) " +
+                " and j.slsmn=dlvqr.dlvslsmn(+) " +
                 " and j.invoice_date>=:parameter.fromdate and " +
                 " j.invoice_date<=:parameter.todate " +
-                " GROUP BY nvl(j.SLSMN,'-1'),nvl(j.SLSMN_NAME,'-'),NVL ( (col.amt), 0) " +
-                " ORDER BY nvl(j.SLSMN,'-1') ";
+                " and j.slsmn>=:parameter.fromsales and j.slsmn<=:parameter.tosales " +
+                " GROUP BY nvl(j.SLSMN,'-1'),nvl(j.SLSMN_NAME,'-'),NVL ( (col.amt), 0) ,nvl(dlvamt,0),nvl(dlvqty,0) " +
+                (iu == "Y" ? " union all " + sqNotInv : "") +
+                " ORDER BY 4 ";
             sq = thatForm.frm.parseString(sq);
             var pars = Util.nvl(qryObj.rep.parameters, []);
 
@@ -358,19 +437,29 @@ sap.ui.jsfragment("bin.forms.rp.slscol", {
                     paras["styleTableHeader"] = "style='background-color:lightblue;font-family: Arial'";
                     paras["fnOnCellAddClass"] = function (oData, rowno, col) {
                         var st = "";
-                        // if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
-                        //     st = "linkLabel";
+                        if (((col == "COLL_AMT" || col == "NAME") && oData[rowno]["COLL_AMT"] != null) ||
+                            (col == "SAL_AMT" || col == "SAL_AMT") && oData[rowno]["SAL_AMT"] != null)
+                            st = "linkLabel";
 
                         return st;
                     }
+
                     paras["fnOnCellClick"] = function (oData, rowno, col) {
                         var st = "";
-                        // if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null) {
-                        //     var sdf = new simpleDateFormat("MM/dd/yyyy");
-                        //     var fromdt = sdf.format(thatForm.frm.objs["PL001@parameter.fromdate"].obj.getDateValue());
-                        //     var todt = sdf.format(thatForm.frm.objs["PL001@parameter.todate"].obj.getDateValue());
-                        //     st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + " fromdate=@" + fromdt + " todate=@" + todt + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
-                        // }
+                        if ((col == "COLL_AMT" || col == "COLL_AMT") && oData[rowno]["COLL_AMT"] != null) {
+                            var sdf = new simpleDateFormat("MM/dd/yyyy");
+                            var fromdt = sdf.format(thatForm.frm.objs["SLSMN1@parameter.fromdate"].obj.getDateValue());
+                            var todt = sdf.format(thatForm.frm.objs["SLSMN1@parameter.todate"].obj.getDateValue());
+                            st = "UtilGen.execCmd('bin.forms.rp.coll formType=dialog formSize=100%,100% repno=0 para_PARAFORM=false para_EXEC_REP=true slsmn=" + oData[rowno]["SLSMN"] + " fromdate=@" + fromdt + " todate=@" + todt + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        }
+
+                        if ((col == "SAL_AMT" || col == "SAL_AMT") && oData[rowno]["SAL_AMT"] != null) {
+                            var sdf = new simpleDateFormat("MM/dd/yyyy");
+                            var fromdt = sdf.format(thatForm.frm.objs["SLSMN1@parameter.fromdate"].obj.getDateValue());
+                            var todt = sdf.format(thatForm.frm.objs["SLSMN1@parameter.todate"].obj.getDateValue());
+
+                            st = "UtilGen.execCmd('bin.forms.br.rep.rpBfrInvs formType=dialog formSize=100%,100% repno=0 para_PARAFORM=false para_EXEC_REP=true slsmn=" + oData[rowno]["SLSMN"] + " fromdate=@" + fromdt + " todate=@" + todt + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        }
                         return st;
                     }
 

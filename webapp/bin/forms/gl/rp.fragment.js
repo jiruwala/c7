@@ -231,7 +231,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             }
                             var sls = that.frm.getFieldValue("qry1.salesp");
                             if (Util.nvl(sls, "") != "") {
-                                var s = Util.getSQLValue("select name from acaccount where accno=" + Util.quoted(sls));
+                                var s = Util.getSQLValue("select name from salesp where no=" + Util.quoted(sls));
                                 UtilGen.setControlValue(that.frm.objs["qry1.salesp"].obj, sls, sls, false);
                                 UtilGen.setControlValue(that.frm.objs["qry1.salesname"].obj, s, s, false);
                             }
@@ -326,7 +326,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) {
                                 var v1 = Util.getSQLValue("select parentcustomer from c_ycust where code=" + Util.quoted(cod));
                                 if (v1 != par) {
-                                    n = Util.getSQLValue("select nvl(count(*),0) from c_ycust where code=" + Util.quoted(cod));
+                                    n = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer=" + Util.quoted(cod));
                                     if (n > 0)
                                         FormView.err("Err ! ,due to change of Parent customer,  this customer have childerens  !");
                                 }

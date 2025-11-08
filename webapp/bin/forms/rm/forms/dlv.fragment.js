@@ -191,12 +191,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         //'branchname', 'chemname', 'opname', 'salesname', 'drivername', 'empname', 'dispatchname', 'itemname'
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         var cust = thatForm.frm.getFieldValue("qry1.ord_ref");
-                        UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.ord_empno"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
-                        UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.ordered_key"].obj, undefined, that.frm.objs["qry1.empname"].obj);
-                        UtilGen.Search.getLOVSearchField("select b_name from cbranch where code='" + cust + "' and brno = :CODE ", qry.formview.objs["qry1.ord_discamt"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
-                        UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.op_no"].obj, undefined, that.frm.objs["qry1.opname"].obj);
-                        UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.salesp"].obj, undefined, that.frm.objs["qry1.salesname"].obj);
+                        UtilGen.Search.getLOVSearchField("select name from salesp where no = ':CODE' ", qry.formview.objs["qry1.ord_empno"].obj, undefined, that.frm.objs["qry1.drivername"].obj);
+                        UtilGen.Search.getLOVSearchField("select name from salesp where no = ':CODE' ", qry.formview.objs["qry1.ordered_key"].obj, undefined, that.frm.objs["qry1.empname"].obj);
+                        UtilGen.Search.getLOVSearchField("select name from salesp where no = ':CODE' ", qry.formview.objs["qry1.issue_plant_no"].obj, undefined, that.frm.objs["qry1.dispatchname"].obj);
+                        UtilGen.Search.getLOVSearchField("select b_name from cbranch where code='" + cust + "' and brno = ':CODE' ", qry.formview.objs["qry1.ord_discamt"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
+                        UtilGen.Search.getLOVSearchField("select name from salesp where no = ':CODE' ", qry.formview.objs["qry1.op_no"].obj, undefined, that.frm.objs["qry1.opname"].obj);
+                        UtilGen.Search.getLOVSearchField("select name from salesp where no = ':CODE' ", qry.formview.objs["qry1.salesp"].obj, undefined, that.frm.objs["qry1.salesname"].obj);
                         UtilGen.Search.getLOVSearchField("select descr from items where reference = ':CODE' ", qry.formview.objs["qry1.ord_ship"].obj, undefined, that.frm.objs["qry1.itemname"].obj);
+                        UtilGen.Search.getLOVSearchField("select descr from c7_vehicles where no = ':CODE' ", qry.formview.objs["qry1.typofcem"].obj, undefined, that.frm.objs["qry1.vehiclenm"].obj);
+
                         thatForm.helperFunc.setTotToday();
                         var saleinv = Util.getSQLValue("select saleinv from order1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
                         if (Util.nvl(saleinv, '') != '') {
@@ -517,7 +520,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     getBtns: undefined,
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
-                    sqlChange: "select descr from C7_VEHICLES where no = ':CODE'",
+                    sqlChange: "select descr from C7_VEHICLES where no = ':CODE' and flag=1",
                     sqlList: "select no code,descr title from C7_VEHICLES where flag=1  order by code ",
                     sqlListChange: "select no code,descr title from C7_VEHICLES where no=:CODE and flag=1",
                 });
@@ -535,9 +538,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     },
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
-                    sqlChange: "select name from salesp where no = ':CODE'",
-                    sqlList: "select no code,name title from salesp where type='" + typ + "'  order by no ",
-                    sqlListChange: "select no code,name title from salesp where no=:CODE",
+                    sqlChange: "select name from salesp where no = ':CODE' and flag=1",
+                    sqlList: "select no code,name title from salesp where type='" + typ + "' and flag=1 order by no ",
+                    sqlListChange: "select no code,name title from salesp where no=:CODE and flag=1",
                     fnAfteUpdate: function () {
                         if (typ != "D") return;
                         var locval = thatForm.frm.objs[ordref].obj.getValue();
@@ -1006,6 +1009,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         {
                             colname: "ORD_SHIP",
                             mTitle: Util.getLangText("itemCode"),
+                            hide: true
+                        },
+                        {
+                            colname: "ITEM_NAME",
+                            mTitle: Util.getLangText("itemDescr"),
                         },
                         {
                             colname: "TQTY",
@@ -1021,7 +1029,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
                     sql: "select *from (select o1.ord_no,o1.ord_date,o1.ord_ref,o1.ord_refnm," +
                         " o1.ord_discamt, c.b_name," +
-                        " o1.ord_ship, o1.tqty||' '||o1.ord_packd tqty, o1.keyfld,o1.location_code from c_order1 o1,cbranch c where " +
+                        " o1.ord_ship, it.descr item_name,o1.tqty||' '||o1.ord_packd tqty, o1.keyfld,o1.location_code from c_order1 o1,cbranch c,items it where " +
+                        " it.reference=o1.ord_ship and " +
                         " o1.location_code=':qry1.location_code' and " +
                         " o1.ord_ref=c.code and " +
                         " c.brno=o1.ord_discamt and " +

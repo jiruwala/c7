@@ -813,6 +813,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         }).addStyleClass();
         this.txtInfoAmount = new sap.m.Input({ textAlign: endAlign, width: "25%", editable: false }).addStyleClass("yellow");
         this.txtInfoDescr = new sap.m.Input({ width: "80%" });
+        this.chkPreview = new sap.m.CheckBox({
+            selected: true,
+        });
 
 
         this.txtInfoInvDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
@@ -849,6 +852,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             Util.getLabelTxt("", "1%", "@"), this.txtInfoDiscRemarks,
             Util.getLabelTxt("txtNetAmt", "20%", "", "redText"), this.txtInfoAmount,
             Util.getLabelTxt("descrTxt", "20%"), this.txtInfoDescr,
+            Util.getLabelTxt("txtChkPreviewInv", "80%"), this.chkPreview,
             Util.getLabelTxt("", "25%"), new sap.m.VBox({ height: "25px" }),
         ]
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, formCss, "sapUiSizeCompact", "");
@@ -1318,12 +1322,12 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             FormView.err("Error , check  server log !");
         } else {
             var kfld = Util.getSQLValue("select nvl(max(keyfld),-1) from pur1 where invoice_code=21");
-            that.printInv(kfld);
+            if (that.chkPreview.getSelected())
+                that.printInv(kfld);
             that.joApp.to(that.detailPageRef, "slide");
             that.load_detailPageRef();
             sap.m.MessageToast.show("Sales generated successfully !");
         }
-
     },
     printInv: function (kfld) {
         var that = this;
@@ -1336,7 +1340,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             Util.printServerReport("br/brsale", "_para_pfromno=" +
                 invn + "&_para_ptono=" + invn + "&_para_plocation=" + loc);
         }
-
     },
     validateSave: function () {
 

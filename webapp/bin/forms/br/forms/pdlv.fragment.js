@@ -891,6 +891,11 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     name: 'list1',
                     title: "List of Orders",
                     list_type: "sql",
+                    list_para: {
+                        selectStr: "@100/Last 100,200/Last 200,1000/Last 1000,-1/All",
+                        defaultKey: "200",
+                    },
+
                     cols: [
                         {
                             colname: "ORD_NO",
@@ -908,8 +913,11 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
-                        " order by o1.ord_date desc,ord_no desc",
+                    sql: "select *from (select ord_no,ord_date,ord_ref,ord_refnm,keyfld,location_code from order1 o1 where " +
+                        " location_code=':qry1.location_code' and " +
+                        " ord_code =" + that2.vars.vou_code +
+                        " and stra=':qry1.stra' " +
+                        " order by ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1)",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
