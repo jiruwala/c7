@@ -99,7 +99,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
         this.txtLocations.setSelectedItem(Util.findComboItem(this.txtLocations, sett["DEFAULT_LOCATION"]));
 
         this.txtFromDate = new sap.m.DatePicker({ width: "50%" });
-        this.txtToDate = new sap.m.DatePicker({ width: "50%" });
+        this.txtToDate = new sap.m.DatePicker({ width: "50%", maxDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_to) });
 
         this.txtRef = new sap.m.Input({
             width: "30%", showValueHelp: true,
@@ -335,7 +335,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
                 var rowStart = tbl.getFirstVisibleRow();
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "KEYFLD")].getText());
 
-                UtilGen.execCmd("bin.forms.br.forms.dlv formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                UtilGen.execCmd("bin.forms.br.forms.dlv formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=90%,90%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
                     that.load_detailPage();
                 });
             };
@@ -437,7 +437,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
         });
         var endAlign = sap.ui.core.TextAlign.End;
         this.txtInfoInvNo = new sap.m.Input({ width: "35%" });
-        this.txtInfoInvDate = new sap.m.DatePicker({ width: "25%" });
+        this.txtInfoInvDate = new sap.m.DatePicker({ width: "25%", maxDate: new Date(sap.ui.getCore().getModel("fiscalData").getData().fiscal_to), });
         this.txtInfoRef = new sap.m.Input({ width: "25%", editable: false });
         this.txtInfoRefName = new sap.m.Input({ width: "54%", editable: false });
         this.txtInfoBranch = new sap.m.Input({ width: "25%", editable: false });
@@ -454,6 +454,7 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
         this.txtInfoInvDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtInfoInvDate.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
         this.txtInfoInvDate.setDateValue(UtilGen.parseDefaultValue("$TODAY"));
+
 
         this.txtInfoAdd.attachChange(function () {
             that.calcInfoAmt(false);
@@ -494,7 +495,9 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
                 new sap.m.Button({
                     text: "Back",
                     press: function () {
+
                         that.joApp.toDetail(that.mainPage, "slide");
+                        that.txtInfoAdd.setValue(0);
                         // that.loadData();
                     }
                 }),
@@ -714,7 +717,8 @@ sap.ui.jsfragment("bin.forms.br.forms.wzd", {
             sq = sq.replaceAll(":txtKflds", kfldStr);
             var sum = Util.getSQLValue(sq);
             that.txtInfoGross.setValue(df.format(sum));
-            if (rfreshAdd) {
+            var oldadd = Util.extractNumber(that.txtInfoAdd.getValue());
+            if (oldadd == 0 && rfreshAdd) {
                 var sq = "select nvl(sum(op_no*tqty),0) from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
                 sq = sq.replaceAll(":txtKflds", kfldStr);
                 var sumadd = Util.getSQLValue(sq);

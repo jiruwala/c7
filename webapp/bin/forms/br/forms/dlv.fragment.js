@@ -1813,8 +1813,8 @@ sap.ui.jsfragment("bin.forms.br.forms.dlv", {
         if (Util.nvl(frag.oController.keyfld, "") != "") {
             frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
-            frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
-            UtilGen.Vouchers.formLoadData(this);
+            // frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+            // UtilGen.Vouchers.formLoadData(this);
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }
