@@ -117,22 +117,24 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
                                         " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT," +
                                         " SUM(((price_x))*(qty_x))/ SUM(qty_x)  PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts , " +
-                                        " packd_x " +
+                                        " packd_x , " +
+                                        " y.salesp slsmn , sp.name slsname " +
                                         " FROM " +
-                                        " JOINED_CORDER,PUR1 INVOICE1 , c_ycust y " +
+                                        " JOINED_CORDER,PUR1 INVOICE1 , c_ycust y, salesp sp " +
                                         " WHERE ( ORD_CODE=9 " +
                                         " AND Y.CODE= JOINED_CORDER.ORD_REF " +
                                         " AND (Y.SALESP=':parameter.slsmn' or ':parameter.slsmn' is null ) " +
                                         " AND SALEINV=INVOICE1.KEYFLD (+) " +
                                         " AND ORD_DATE>=:parameter.fromdate " +
                                         " AND ORD_DATE<=:parameter.todate  " +
+                                        " and y.salesp=sp.no(+) " +
                                         "  )" +
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
                                         " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
                                         " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
                                         " GROUP BY " +
-                                        " ORD_REF, ORD_REFNM," +
+                                        " ORD_REF, ORD_REFNM, sp.name , y.salesp ," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
                                         " price_x,item_descr, BRANCH_NAME , saleinv ,packd_x " +
                                         " ORDER BY ord_date ";
@@ -143,6 +145,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                                         var iq = thatForm.frm.getFieldValue("parameter.grpby");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_REFNM")].mGrouped = iq == "customers";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ITEM_DESCR")].mGrouped = iq == "items";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_DATE")].mGrouped = iq == "day";
                                     }
                                 },
                                 fields: thatForm.helperFunc.getFields("RPBINV1")
@@ -442,7 +445,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                         },
                         selectedKey: "none",
                     },
-                    list: "@none/None,customers/Customers,items/Items",
+                    list: "@none/None,customers/Customers,items/Items,day/txtCountDate",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -632,6 +635,38 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     default_value: "",
                     other_settings: {},
 
+                },
+                slsname: {
+                    colname: "slsname",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtSalesPerson",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "150",
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                    commandLinkClick: cmdLink
+                },
+                slsmn: {
+                    colname: "slsmn",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtNo",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "50",
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                    commandLinkClick: cmdLink
                 },
             }
             return flds;
