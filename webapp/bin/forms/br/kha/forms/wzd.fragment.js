@@ -909,17 +909,22 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
         var price_calc = "get_item_price2 (o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date) ";
         var price_x = "sale_price ";
         var qtyx = "ord_pkqty ";
+        var pkdx = "x.packd";
+        var pkx = "x.pack";
 
         if (typ == "AUTO") {
             price_calc = "price_calc ";
             price_x = "o.price_x ";
             qtyx = "qty_x";
+            pkdx = "x.packd_x";
+            pkx = "x.pack_x";
         }
 
         if (typ == "TON") {
             var price_calc = "get_item_price2_TON (o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date) ";
             var price_x = "o.price_2 ";
             qtyx = "qty_2 ";
+            pkx = "1";
         }
 
 
@@ -1019,7 +1024,11 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.wzd", {
             " end if;" +
             " " +
             " end;";
-        sq = sq.replaceAll("qty_x", qtyx);
+        sq = sq.replaceAll("qty_x", qtyx)
+            .replaceAll("x.packd_x", pkdx)
+            .replaceAll("x.pack_x", pkx)
+            ;
+
         var kfldStr = "";
         var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
         var slicesof = that.qv.getControl().getBinding("rows").aIndices;
