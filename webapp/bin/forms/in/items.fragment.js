@@ -1018,6 +1018,56 @@ sap.ui.jsfragment("bin.forms.in.items", {
     },
     showRawItems: function () {
         var that2 = this;
+
+        // function for copying formula from other items.
+        var generateCpy = function () {
+            var view = that2.view;
+            var copyFn = function (dta) {
+
+                var qrj = that2.qc;
+
+                if (that2.frm.objs["qry1"].status != FormView.RecordStatus.NEW && that2.frm.objs["qry1"].status != FormView.RecordStatus.EDIT)
+                    FormView.err("Not in new / edit mode !");
+
+                var sq = "select m.* ,i.descr,round(GET_ITEM_COST(I.REFERENCE),5) PKCOST from masterasm m,items i where i.reference=m.refer and  m.baseitem='" + dta.REFERENCE + "' AND m.CTG='DEFAULT' order by refer";
+                var dtx = Util.execSQLWithData(sq);
+                var r = 0;
+                for (var i in dtx) {
+                    var r = qrj.mLctb.rows.length - 1;
+                    if (qrj.mLctb.rows.length <= 0 ||
+                        qrj.mLctb.rows.length > 0 && Util.nvl(qrj.mLctb.getFieldValue(qrj.mLctb.rows.length - 1, "REFER"), "") != "")
+                        r = qrj.mLctb.addRow();
+                    qrj.mLctb.setFieldValue(r, "REFER", dtx[i].REFER);
+                    qrj.mLctb.setFieldValue(r, "PACKD", dtx[i].PACKD);
+                    qrj.mLctb.setFieldValue(r, "UNITD", dtx[i].UNITD);
+                    qrj.mLctb.setFieldValue(r, "PKQTY", dtx[i].PKQTY);
+                    qrj.mLctb.setFieldValue(r, "PKCOST", dtx[i].PKCOST);
+                    qrj.mLctb.setFieldValue(r, "QTY", dtx[i].QTY);
+                    qrj.mLctb.setFieldValue(r, "PACK", dtx[i].PACK);
+                    qrj.mLctb.setFieldValue(r, "DESCR", dtx[i].DESCR);
+
+                }
+                qrj.updateDataToControl();
+                eventCalc(qrj, undefined, 0, true);
+            }
+
+            Util.destroyID(view.createId("btCpyItems" + that2.timeInLong));
+            var btcpy = new sap.m.Button(view.createId("btCpyItems" + that2.timeInLong), {
+                customData: [{ key: "DEFAULT" }],
+                icon: "sap-icon://copy",
+                press: function () {
+                    var sq = "select reference,items.descr,items.descra,count(masterasm.refer) no_of_recs from items,masterasm where baseitem=reference group by items.reference,items.descr,items.descra order by items.reference ";
+                    UtilGen.Search.do_quick_search_simple(sq,
+                        ["REFERENCE", "DESCR", "DESCRA"], function (data) {
+                            setTimeout(() => {
+                                copyFn(data);
+                            }, 100);
+                        }, { pWidth: "80%" }, undefined, false, "Select Item to copy formula...");
+
+                }
+            });
+            return btcpy;
+        }
         var generateCtgs = function () {
             var view = that2.view;
             Util.destroyID(view.createId("btCtg" + that2.timeInLong));
@@ -1091,6 +1141,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
             this.qc.getControl().setFixedBottomRowCount(0);
             this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
             UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], false);
+            this.qc.showToolbar.toolbar.addContent(generateCpy());
             this.qc.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
             this.qc.insertable = true;
             this.qc.deletable = true;

@@ -4691,6 +4691,67 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 }
             },
             DashboardWidget: {
+                getSlides: function (kf, pHeight, pnlClass, pnlClassTit, fnOnMenuClick) {
+                    var gj;
+                    var gjPnl;
+                    var timlong = UtilGen.DBView.timeInLong;
+                    var that = this;
+                    // var dt = UtilGen.DBView.today_date.getDateValue();
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+                    var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
+                    var tl = [];
+                    // var strAr = "";
+                    // if (Array.isArray(kf))
+                    //     kf.forEach(function (el) { strAr != strAr.length > 0 ? "," : "" + kf[el] });
+                    // else strAr = kf;
+
+                    var sq = "select *from c7_db_slides where keyfld=" + kf;
+                    try {
+                        var dtx = Util.execSQLWithData(sq, 'no data found !');
+                        var sqx = dtx[0].SQL_VAL;
+                        sqx = sqx.replaceAll(":todate", Util.toOraDateString(UtilGen.DBView.today_date.getDateValue()));
+                        if (sqx.startsWith("select ")) {
+                            var dt = Util.execSQLWithData(sqx);
+                            for (var di in dt) {
+                                var tle = new sap.m.GenericTile({
+                                    header: Util.getLangText(dtx[0].TITLE1),
+                                    subheader: Util.nvl(dt[di].CODE, "") + " /  " + dt[di].TITLE,
+                                    tileContent: [
+                                        new sap.m.TileContent({
+                                            content: new sap.m.HBox({
+                                                alignItems: "Center",
+                                                justifyContent: "Center",
+                                                items: [
+                                                    new sap.m.Text({
+                                                        text: df.format(Util.extractNumber(dt[di].VALUE))
+                                                    }).addStyleClass("guageValNumber"),
+                                                    new sap.m.Text({
+                                                        text: ".  " + Util.nvl(dt[di].POST_VAL, ''),
+                                                        class: "sapUiTinyMarginBegin"
+                                                    }).addStyleClass("guageValNumber"),
+                                                ]
+                                            })
+                                        })
+                                    ]
+                                }).addStyleClass("");
+                                tl.push(tle);
+                            }
+                        } else {
+                            tl = eval(sqx);
+                        }
+                        var gj3 = new sap.m.SlideTile({
+                            class: "",
+                            tiles: tl,
+                            transitionTime: tl.length > 1 ? 2300 : 0,
+                        }).addStyleClass("guagePanel");
+                        return gj3;
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                    return undefined;
+                },
                 inputGuageTarget: function (kf, title, msg) {
                     var targetval = Util.getSQLValue("select max_val from c6_db_gauges where keyfld=" + kf);
                     if (Util.nvl(targetval, '') == "") targetval = 0;

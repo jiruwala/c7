@@ -926,13 +926,14 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                 var odt = Util.toOraDateString(thatForm.frm.getFieldValue('qry1.invoice_date'));
                 var pdt = Util.toOraDateString(ld.getFieldValue(rn, "PRD_DATE2"));
                 var edt = Util.toOraDateString(ld.getFieldValue(rn, "EXP_DATE2"));
-
+                var allqty = dta.allqty;
                 var pkd = ld.getFieldValue(rn, "PACKD");
-                var sq = "select C7_GET_STORE_ITEM_ALLQTY(':rfr',:pdt,:str,'N',:prdt,:expdt,'','',':exckf') from dual ";
+                var sq = "select c7_can_user_issue_item(':user',:str,':rfr',:allqty,:pdt,:prdt,:expdt,':exckf') from dual ";
                 sq = sq.replaceAll(":user", sett["LOGON_USER"])
                     .replaceAll(":rfr", dta.rfr)
                     .replaceAll(":str", dta.str)
                     .replaceAll(":pdt", odt)
+                    .replaceAll(":allqty", allqty)
                     .replaceAll(":prdt", pdt)
                     .replaceAll(":expdt", edt)
                     .replaceAll(":exckf", '"' + kf + '"');
