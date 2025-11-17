@@ -358,7 +358,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                         },
                         selectedKey: "QTY",
                     },
-                    list: "@QTY/Quantity,AMOUNT/Amount",
+                    list: "@QTY/Quantity M3,QTY2/Quantity Ton,AMOUNT/Amount",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -393,8 +393,12 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
             var todt = thatForm.frm.getFieldValue("parameter.todate");
             var rt = thatForm.frm.getFieldValue("parameter.reptype");
             var incIn = thatForm.frm.getFieldValue("parameter.incInvoiceNo");
-            var rtypecol = rt == "QTY" ? "ORD_PKQTY" : "(qty_x*price_x)";
-            var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
+
+            var rtypecol = rt.startsWith("QTY") ? rt == "QTY2" ? "QTY_2" : "ORD_PKQTY" : "(qty_x*price_x)";
+            var repcolname = rt == "QTY" || rt == "QTY2" ? "QTY" : "AMOUNT";
+
+            // rtypecol = rt != "QTY" && rt == "QTY2" ? "QTY_2" : "(qty_x*price_x)";
+
             var sq = "select location_code,location_name,ord_ref,ord_discamt,BRANCH_NAME branch,sum(:RTYPECOL) :REPCOLNAME , " +
                 " ord_ref||'-'||trim(ord_refnm) CUST,BRANCH_NAME||'__:REPCOLNAME' BRANCH_BAL " +
                 " from joined_corder where " +
@@ -472,7 +476,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     var ld = new LocalTableData();
                     var rt = thatForm.frm.getFieldValue("parameter.reptype");
                     var incIn = thatForm.frm.getFieldValue("parameter.incInvoiceNo");
-                    var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
+                    var repcolname = rt == "QTY" || rt == "QTY2" ? "QTY" : "AMOUNT";
                     ld.parseCol("{" + dt.data + "}");
                     ld.cols[ld.getColPos("LOCATION_CODE")].mUIHelper.display_width = "50";
                     ld.cols[ld.getColPos("LOCATION_NAME")].mUIHelper.display_width = "100";
