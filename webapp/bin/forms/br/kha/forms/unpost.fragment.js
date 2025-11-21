@@ -42,6 +42,24 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.unpost", {
         setTimeout(function () {
             var bts = [
                 new sap.m.Button({
+                    text: Util.getLangText("Deliveries"),
+                    icon: "sap-icon://document",
+                    press: function () {
+                        var fisc = sap.ui.getCore().getModel("fiscalData").getData();
+                        var fromdt = new Date(fisc.fiscal_from);
+                        var sdf = new simpleDateFormat("dd/MM/yyyy");
+                        var inv = that.invoice_no.getValue();
+                        UtilGen.execCmd("bin.forms.br.kha.reps.rpDlvsTon" +
+                            " formTitle=DELIVERY formType=dialog" +
+                            " formSize=100%,100% para_PARAFORM=false para_EXEC_REP=true" +
+                            " fromdate=@" + sdf.format(fromdt) +
+                            " grpby=itemBranch" +
+                            " pinvoice_no=" + inv, UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+
+                            });
+                    }
+                }),
+                new sap.m.Button({
                     text: Util.getLangText("delRec").toUpperCase(),
                     press: function () {
                         that.deleteInv();

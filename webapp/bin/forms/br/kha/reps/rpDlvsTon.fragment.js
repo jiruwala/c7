@@ -126,7 +126,8 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                                         " INVOICE1.invoice_no ," +
                                         " packd_x ," +
                                         " joined_corder.location_code, " +
-                                        " joined_corder.location_name " +
+                                        " joined_corder.location_name, " +
+                                        " ITEM_DESCR||' - '||joined_corder.branch_name itembranch " +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=9 " +
@@ -148,6 +149,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                                         " ORD_POS," +
                                         " DRIVER_NAME ,TEL,TRUCKNO," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
+                                        " ITEM_DESCR||' - '||joined_corder.branch_name, " +
                                         " PRICE_X,item_descr, BRANCH_NAME , saleinv ,PACKD_X ,INVOICE1.invoice_no " +
                                         ordby;
                                     return thatForm.frm.parseString(sq);
@@ -155,9 +157,12 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
                                         var iq = thatForm.frm.getFieldValue("parameter.grpby");
+
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_REFNM")].mGrouped = iq == "customers";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ITEM_DESCR")].mGrouped = iq == "items";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mGrouped = iq == "drivers";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ITEMBRANCH")].mGrouped = iq == "itemBranch";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ITEMBRANCH")].mHideCol = !(iq == "itemBranch");
                                     }
                                 },
                                 fields: thatForm.helperFunc.getFields("RPDLV2")
@@ -479,7 +484,7 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                         },
                         selectedKey: "none",
                     },
-                    list: "@none/None,customers/Customers,items/Items,drivers/Drivers",
+                    list: "@none/None,customers/Customers,items/Items,drivers/Drivers,itemBranch/Items with Branch",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -673,6 +678,23 @@ sap.ui.jsfragment("bin.forms.br.kha.reps.rpDlvsTon", {
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
                     title: "itemDescr",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "200",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                itembranch: {
+                    colname: "itembranch",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "itemBranch",
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,

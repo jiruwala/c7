@@ -86,7 +86,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO"],
+                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO","TONQTY"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -123,7 +123,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                     var tr = Util.nvl(cold[oy], "");
                                     var tr1 = Util.nvl(cold[oy + "Grp"], "");
 
-                                    var sq = "SELECT " +
+                                    var sq = "SELECT sum(qty_2) tonqty," +
                                         " SUM(ORD_PKQTY) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT , " +
                                         " count(*) counts,ord_empno,driver_name " + tr +
                                         " FROM " +
@@ -484,6 +484,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     data_type: FormView.DataType.Number,
                     class_name: FormView.ClassTypes.LABEL,
                     title: "m3Qty",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "200",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "QTY_FORMAT",
+                    default_value: "",
+                    summary: "SUM",
+                    other_settings: {},
+                },
+                tonqty: {
+                    colname: "tonqty",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "tonQty",
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
