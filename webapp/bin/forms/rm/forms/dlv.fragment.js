@@ -872,14 +872,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         list: "select no code,name  from store order by no",
                     }, {}),
 
-                cast_type: FormView.getFactoryFields.getComboField(
+                cast_type: FormView.getFactoryFields.getGeneralField(
                     "cast_type", "", "txtShift", "15%", "", "35%",
                     {
-                        require: false,
+                        require: true,
                         edit_allowed: true,
                         insert_allowed: true,
                         list: "select name code,name from relists where idlist='SHIFTS' order by name",
-                    }, {}),
+                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.cast_type", "SHIFTS")), // pump,
 
 
                 strb: FormView.getFactoryFields.getComboField(
