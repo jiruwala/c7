@@ -768,8 +768,8 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
             }, false).done(function (data) {
             });
             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-            var fld = Util.getLangDescrAR("field2", "nvl(field25,field2)");
-            sq = "select field1 accno, " + fld + " name,field19 parentacc,field17 path," +
+            var fld =Util.getLangDescrAR("nvl(acaccount.namea,field2) name ", "field2 name");
+            sq = "select field1 accno, " + fld + ",field19 parentacc,field17 path," +
                 " to_number(field5) bdeb,to_number(field6) bcrd," +
                 " to_number(field7) tdeb, to_number(field8) tcrd, " +
                 " to_number(field13) cdeb, to_number(field14) ccrd, " +
@@ -1032,9 +1032,9 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
             }, false).done(function (data) {
             });
             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-            var fld = Util.getLangDescrAR("field2", "nvl(field25,field2)");
+            var fld = Util.getLangDescrAR("nvl(acaccount.namea,field2) name ", "field2 name");
             sq = "SELECT ACCNO,NAME,PARENTACC,LEVELNO,MNTH||'__BALANCE' MNTH_BAL, TDEB-TCRD BALANCE,childcount FROM " +
-                " (select REPLACE(FIELD30,'/','_') MNTH,field1 accno," + fld + " name,field19 parentacc,field17 path, " +
+                " (select REPLACE(FIELD30,'/','_') MNTH,field1 accno," + fld + ",field19 parentacc,field17 path, " +
                 "to_number(field5) bdeb,to_number(field6) bcrd, " +
                 "to_number(field7) tdeb, to_number(field8) tcrd," +
                 "to_number(field13) cdeb, to_number(field14) ccrd," +

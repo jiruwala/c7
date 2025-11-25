@@ -357,7 +357,7 @@ sap.ui.jsfragment("bin.forms.rm.rmpl", {
                     var cst = thatForm.frm.getFieldValue("parameter.costby");
                     if (cst == "acc") {
                         cod["balance"] = getBalance(cod.code);
-                        cod["descr"] = "Total Cost of goods";
+                        cod["descr"] = Util.getLangDescrAR("إجمالي تكلفة البضائع", "Total Cost of goods");
                     }
                     else
                         cod["balance"] = Util.getSQLValue(sq);
