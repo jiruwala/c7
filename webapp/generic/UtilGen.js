@@ -2109,7 +2109,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
 
-                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg) {
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg, jsCmds) {
                     var points = Util.nvl(pPoints, {});
                     var sq = pSq;
                     var multiSelect = Util.nvl(pMultiSelect, false);
@@ -2117,7 +2117,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(data);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns, undefined, titleDlg);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, jsCmds, pPoints, btns, undefined, titleDlg);
 
 
 

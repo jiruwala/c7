@@ -377,7 +377,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
             // var rtypecol = rt == "QTY" ? "ORD_PKQTY" : "(qty_x*price_x)";
             var rtypecol = rt.startsWith("QTY") ? rt == "QTY2" ? "QTY_2" : "ORD_PKQTY" : "(qty_x*price_x)";
             // var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
-            var repcolname = rt == "QTY" || rt == "QTY2" ? "QTY" : "AMOUNT";
+            // var repcolname = rt == "QTY" || rt == "QTY2" ? "QTY" : "AMOUNT";
+            var repcolname = rt.startsWith("QTY") ? "QTY" : "AMOUNT";
             var sq = "select location_code,location_name,ord_date,ord_ship item,sum(:RTYPECOL) :REPCOLNAME , " +
                 " TO_CHAR(ord_date,'DD/MM/RRRR') DAT,ord_ship||'__:REPCOLNAME' ITEM_BAL " +
                 " from joined_corder where " +
@@ -439,7 +440,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                     var ld = new LocalTableData();
                     var rt = thatForm.frm.getFieldValue("parameter.reptype");
                     // var repcolname = rt == "QTY" ? "QTY" : "AMOUNT";
-                    var repcolname = rt == "QTY" || rt == "QTY2" ? "QTY" : "AMOUNT";
+                    // var repcolname = rt == "QTY" || rt == "QTY2" ? "QTY" : "AMOUNT";
+                    var repcolname = rt.startsWith("QTY") ? "QTY" : "AMOUNT";
                     ld.parseCol("{" + dt.data + "}");
                     ld.cols[ld.getColPos("LOCATION_CODE")].mUIHelper.display_width = "50";
                     ld.cols[ld.getColPos("LOCATION_NAME")].mUIHelper.display_width = "100";
@@ -513,7 +515,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                     ld2.cols[ld2.getColPos("DAT")].count_unique_label = "txtCountDate";
                     ld2.cols[ld2.getColPos("LOCATION_CODE")].mGrouped = true;
                     ld2.cols[ld2.getColPos("LOCATION_NAME")].mGrouped = true;
-                    ld2.cols[ld2.getColPos("tot__" + repcolname)].mTitle = Util.getLangText(rt == "QTY" ? "totalQty" : "amountTxt");
+                    ld2.cols[ld2.getColPos("tot__" + repcolname)].mTitle = Util.getLangText(rt.startsWith("QTY") ? "totalQty" : "amountTxt");
                     ld2.cols[ld2.getColPos("tot__" + repcolname)].valOnZero = "";
                     thatForm.frm.objs["IDS01@qry2"].filterCols = fltcols;
                     qr.showToolbar.filterCols = fltcols;

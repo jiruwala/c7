@@ -89,6 +89,8 @@ public class UserRoute {
 	private String sessionId = "";
 
 	@Autowired
+	private GlobalState globalstate;
+	@Autowired
 	private ServletContext servletContext;
 
 	@Autowired
@@ -107,7 +109,7 @@ public class UserRoute {
 
 	private String saveQryPlsql = "";
 
-	private Timer saveQryTimer = new Timer(true);
+//	private Timer saveQryTimer = new Timer(true);
 
 	public UserRoute() {
 
@@ -1378,8 +1380,8 @@ public class UserRoute {
 		}
 
 //		if (this.saveQryTimer!=null) {
-		this.saveQryTimer.cancel();
-		this.saveQryTimer.purge();
+//		this.saveQryTimer.cancel();
+//		this.saveQryTimer.purge();
 
 //		}
 
@@ -1417,8 +1419,8 @@ public class UserRoute {
 			}
 		};
 
-		this.saveQryTimer = new Timer(true);
-		this.saveQryTimer.schedule(tt, 1 * 1000);
+//		this.saveQryTimer = new Timer(true);
+//		this.saveQryTimer.schedule(tt, 1 * 1000);
 		System.gc();
 	}
 
@@ -1434,6 +1436,27 @@ public class UserRoute {
 		}
 		ret = subreps;
 		return ret;
+	}
+
+	@RequestMapping("/weightbridge")
+	public String weightbridge(@RequestParam Map<String, String> params) {
+//		System.out.println(sessionId + " , weightbridge = " + params.get("value"));
+
+		String weight = params.get("value");
+		String code = utils.nvl(params.get("code"), "1");
+		globalstate.setWeightValue(weight, code);
+		return "SUCCESS";
+	}
+
+	@RequestMapping("/lastweightbridge")
+	public ResponseEntity<BatchSqlJson> lastweightbridge(@RequestParam Map<String, String> params) {
+		String cd=utils.nvl(params.get("code"),"1");
+		String w = globalstate.getWeightValue(cd);
+		globalstate.setWeightValue("",cd);
+		BatchSqlJson sql = new BatchSqlJson();
+		sql.setData(w);
+		sql.setRet("SUCCESS");
+		return new ResponseEntity<BatchSqlJson>(sql, HttpStatus.OK);
 	}
 
 }

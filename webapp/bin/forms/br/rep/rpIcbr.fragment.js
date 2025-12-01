@@ -395,7 +395,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
             var incIn = thatForm.frm.getFieldValue("parameter.incInvoiceNo");
 
             var rtypecol = rt.startsWith("QTY") ? rt == "QTY2" ? "QTY_2" : "ORD_PKQTY" : "(qty_x*price_x)";
-            var repcolname = rt == "QTY" || rt == "QTY2" ? "QTY" : "AMOUNT";
+            var repcolname = rt.startsWith("QTY") ? "QTY" : "AMOUNT";
 
             // rtypecol = rt != "QTY" && rt == "QTY2" ? "QTY_2" : "(qty_x*price_x)";
 
@@ -476,7 +476,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
                     var ld = new LocalTableData();
                     var rt = thatForm.frm.getFieldValue("parameter.reptype");
                     var incIn = thatForm.frm.getFieldValue("parameter.incInvoiceNo");
-                    var repcolname = rt == "QTY" || rt == "QTY2" ? "QTY" : "AMOUNT";
+                    var repcolname = rt.startsWith("QTY") ? "QTY" : "AMOUNT";
                     ld.parseCol("{" + dt.data + "}");
                     ld.cols[ld.getColPos("LOCATION_CODE")].mUIHelper.display_width = "50";
                     ld.cols[ld.getColPos("LOCATION_NAME")].mUIHelper.display_width = "100";
@@ -564,7 +564,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIcbr", {
 
                     ld2.cols[ld2.getColPos("LOCATION_CODE")].mGrouped = true;
                     ld2.cols[ld2.getColPos("LOCATION_NAME")].mGrouped = true;
-                    ld2.cols[ld2.getColPos("tot__" + repcolname)].mTitle = Util.getLangText(rt == "QTY" ? "totalQty" : "amountTxt");
+                    ld2.cols[ld2.getColPos("tot__" + repcolname)].mTitle = Util.getLangText(rt.startsWith("QTY") ? "totalQty" : "amountTxt");
                     ld2.cols[ld2.getColPos("tot__" + repcolname)].valOnZero = "";
                     thatForm.frm.objs["ICSBR01@qry2"].filterCols = fltcols;
                     qr.showToolbar.filterCols = fltcols;
