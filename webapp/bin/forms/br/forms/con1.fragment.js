@@ -142,12 +142,14 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                             that2.qrDates = [];
                             var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                             var objNo = thatForm.frm.objs["qry1.no"].obj;
+                            var objPd = thatForm.frm.objs["qry1.price_default"].obj;
                             var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c_contract");
                             var newNo = Util.getSQLValue("select nvl(max(no),0)+1 from c_contract");
                             var dt = thatForm.view.today_date.getDateValue();
 
                             UtilGen.setControlValue(objKf, newKf, newKf, true);
                             UtilGen.setControlValue(objNo, newNo, newNo, true);
+                            UtilGen.setControlValue(objPd, 0, 0, true);
                             var dtx = new Date('01/01/2001');
                             qry.formview.setFieldValue("qry1.contract_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                             qry.formview.setFieldValue("qry1.default_date", df.format(dtx), df.format(dtx), true);
@@ -176,8 +178,8 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
 
                     },
                     afterDelRow: function (qry, ld, data) {
-                        if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
-                            qry.obj.addRow();
+                        // if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
+                        //     qry.obj.addRow();
 
                     },
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
@@ -233,7 +235,7 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                         showType: FormView.QueryShowType.QUERYVIEW,
                         applyCol: "C7.BRCUSTITEMS",
                         addRowOnEmpty: true,
-                        dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY, C.PACKD, C.UNITD, c.asm_ctg,C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,price_var,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
+                        dml: "select C.KEYFLD, C.STARTDATE, C.REFER, C.PRICE,C.PRICE_BUY, C.PACKD, C.UNITD, c.asm_ctg,C.PACK, C.ENDDATE, C.FLAG, C.UPDATE_TIME, C.DISC_AMT, C.PRE_PRICE, C.PRE_DISC_AMT,c.price_var,i.descr from c_custitems c,items i where i.reference=c.refer and c.startdate=to_date(nvl(':qry1.default_date','01/01/2000'),repair.getsetupvalue_2('DATE_FORMAT')) and c.keyfld=':keyfld' order by c.refer ",
                         // dml: "select *from c_custitems where startdate=" + Util.nvl(Util.toOraDateString(that2.qrDate), 'null') + " and keyfld=':keyfld' order by refer ",
                         dispRecords: { "S": 5, "M": 7, "L": 8, "XL": 14, "XXL": 25 },
                         edit_allowed: true,
@@ -482,8 +484,8 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
             }
             return;
         }
-        else 
-        this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
+        else
+            this.frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
     },
     helperFunc: {
         init: function (thatForm) {
@@ -701,6 +703,23 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                     insert_allowed: false,
                     require: false
                 },
+                price_default: {
+                    colname: "price_default",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"Default Rate\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { editable: true, width: "35%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
+                },
+
             };
         },
         showDates: function (firePress) {
@@ -808,8 +827,9 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "REFER");
-                var pr = ld.getFieldValue(i, "PRICE");
-                var prb = ld.getFieldValue(i, "PRICE_BUY");
+                var pr = Util.extractNumber(ld.getFieldValue(i, "PRICE"));
+                var prb = Util.extractNumber(ld.getFieldValue(i, "PRICE_BUY"));
+                var prv = Util.extractNumber(ld.getFieldValue(i, "PRICE_VAR"));
                 if (dup[rfr] != undefined)
                     FormView.err("Save Denied : Duplicate item entry # " + rfr);
                 dup[rfr] = rfr;
@@ -821,8 +841,8 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                     FormView.err("Save Denied: Item " + rfr + " is invalid entry !");
                 if (pr < 0 || prb < 0)
                     FormView.err("Save Denied: PRICE invalid value !");
-                if (pr == 0 && prb == 0)
-                    FormView.err("Save Denied: PRICE or PRICE buy must have vaue !");
+                if (pr == 0 && prb == 0 && prv == 0)
+                    FormView.err("Save Denied: PRICE or PRICE BUY or PRICE OTHERS must have vaue !");
 
             }
         },
