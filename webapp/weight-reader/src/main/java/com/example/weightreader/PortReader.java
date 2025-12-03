@@ -44,7 +44,9 @@ public class PortReader {
             return -1;
 
         // Keep digits, optional minus, optional decimal
-        String cleaned = input.replaceAll("[^0-9.-]", "");
+        // String cleaned = input.replaceAll("[^0-9.-]", "");
+        String cleaned =input.replaceAll("[^0-9+\\-.]", "");
+        // cleaned = cleaned.replaceAll("(\\+|\\-)(\\s+)", "$1");
 
         // Edge cases
         if (cleaned.isEmpty() || cleaned.equals("-") || cleaned.equals(".")) {
@@ -90,12 +92,12 @@ public class PortReader {
                     if (available > 0) {
                         int read = port.readBytes(buffer, available);
                         String data = new String(buffer, 0, read);
-                        System.out.println("Received: " + data);
+                        System.out.println("Received: \"" + data + "\"");
                         lastKg = extractNumber(data);
                         if (lastKg > 0)
                             sendWeightToServer(lastKg);
                     }
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -106,13 +108,13 @@ public class PortReader {
         } else {
             DecimalFormat df = new DecimalFormat("#.00");
             while (true) {
-                lastKg = Math.random() * (10000 - 5000 + 1) + 5000;
-                lastKg = Double.parseDouble(df.format(lastKg));
+                lastKg = (Math.random() * (10000 - 5000 + 1) + 5000);
+                lastKg = extractNumber("+      " + lastKg);
                 System.out.println("Random generated : " + lastKg + " KG");
                 if (lastKg > 0)
                     sendWeightToServer(lastKg);
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(1000);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -127,7 +129,7 @@ public class PortReader {
             java.net.URL serverUrl = new java.net.URL(url);
             java.net.HttpURLConnection con = (java.net.HttpURLConnection) serverUrl.openConnection();
             con.setRequestMethod("GET");
-                        
+
             int responseCode = con.getResponseCode();
             System.out.print("Server responded: " + responseCode + " from weightcode=" + weightcode + "  , ");
 
