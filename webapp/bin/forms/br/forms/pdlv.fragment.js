@@ -57,7 +57,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
 
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT,"+
+        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT," +
             "SALE_PRICE+EXP_RATE NET_PRICE,( (SALE_PRICE+EXP_RATE)*O1.ORD_PKQTY ) NET_AMT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + thatForm.vars.vou_code + " ORDER BY O1.ORD_POS ";
 
@@ -120,8 +120,8 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         name: "qry1",
                         dml: "select *from order1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname',"svcsuppname"],
-                        insert_exclude_fields: ['branchname', 'txt_empname'],
+                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', "svcsuppname"],
+                        insert_exclude_fields: ['branchname', 'txt_empname', "svcsuppname"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "ORD_CODE": that.vars.vou_code,
@@ -141,14 +141,14 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         applyCol: "C7.BRPDLV1",
                         addRowOnEmpty: true,
                         dml: dmlSq,
-                        dispRecords: { "S": 5, "M": 7, "L": 10, "XL": 13, "XXL": 18 },
+                        dispRecords: { "S": 3, "M": 5, "L": 6, "XL": 8, "XXL": 13 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
                         delete_before_update: "delete from c_order1 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT'],
-                        insert_exclude_fields: ['DESCR', 'AMOUNT',],
+                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'NET_AMT', 'NET_PRICE'],
+                        insert_exclude_fields: ['DESCR', 'AMOUNT', 'NET_PRICE', 'NET_AMT'],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -203,13 +203,23 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
 
                             var ld = qv.mLctb;
                             var sumAmt = 0;
+                            var sumExp = 0;
+                            var sumNet = 0;
 
                             for (var i = 0; i < ld.rows.length; i++)
                                 sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
 
+                            for (var i = 0; i < ld.rows.length; i++) {
+                                var pr = Util.extractNumber(ld.getFieldValue(i, "EXP_RATE"));
+                                var qt = Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
+                                sumExp += (pr * qt);
+                            }
+                            sumNet = sumAmt + sumExp;
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
+                            thatForm.frm.setFieldValue('netamt', df.format(sumNet));
+                            thatForm.frm.setFieldValue('totexp', df.format(sumExp));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumAmt));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumNet));
 
                         },
                         summary: thatForm.helperFunc.getSummary(),
@@ -427,6 +437,54 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
             var sett = sap.ui.getCore().getModel("settings").getData();
 
             return {
+                totamt: {
+                    colname: "totamt",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"Total\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                totexp: {
+                    colname: "totexp",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"totTransport\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                netamt: {
+                    colname: "netamt",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"txtNetAmt\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "background-color:yellow;",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
                 createdBy: {
                     colname: "createdBy",
                     data_type: FormView.DataType.String,
@@ -458,22 +516,6 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     edit_allowed: false,
                     insert_allowed: true,
                     require: false
-                },
-                totamt: {
-                    colname: "totamt",
-                    data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"Total DR\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
-                    title2: "Total ",
-                    canvas: "default_canvas",
-                    display_width: sumSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "background-color:yellow;",
-                    display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: { width: "30%" },
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: true
                 },
             }
         },
@@ -776,7 +818,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                             var btns = [new sap.m.Button({
                                 text: Util.getLangText('newCustomer'), press: function () {
                                     UtilGen.execCmd("gl.rp formType=dialog formSize=850px,450px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
-                                    
+
                                     });
                                 }
                             })];
@@ -1060,10 +1102,10 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
             var thatForm = this.thatForm;
             var dt = thatForm.frm.getFieldValue("qry1.ord_date");
             var sqcnt = ("select get_item_price2_var(:refer,':ref_code',:loc,:ord_date) from dual ")
-                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ord_ref"))
-                .replaceAll(":loc", thatForm.frm.getFieldValue("qry1.ord_discamt"))
+                .replaceAll(":ref_code", thatForm.frm.getFieldValue("qry1.ord_txt_iid"))
+                .replaceAll(":loc", "1")
                 .replaceAll(":refer", refer)
-                .replaceAll(":ord_date", Util.toOraDateString(dt));                                
+                .replaceAll(":ord_date", Util.toOraDateString(dt));
             var cnt = Util.getSQLValue(sqcnt);
             return cnt;
         },
