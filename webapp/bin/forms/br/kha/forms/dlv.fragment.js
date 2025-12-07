@@ -16,9 +16,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         };
 
         // this.pgDetail = new sap.m.Page({showHeader: false});
-        that.rcv_data_timer = setInterval(function () {
-            that._rcvData();
-        }, 1000);
+        // that.rcv_data_timer = setInterval(function () {
+        //     that._rcvData();
+        // }, 1000);
 
         this.bk = new sap.m.Button({
             icon: "sap-icon://nav-back",
@@ -1161,7 +1161,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     other_settings: {
                         editable: true, width: "14%", text: Util.getLangText("txtFirstWeight"),
                         press: function () {
-                            thatForm.setWeightValue(1);
+                            // thatForm.setWeightValue(1);
+                            thatForm.addFirstWeight();
                         }
                     },
                     edit_allowed: false,
@@ -2440,6 +2441,69 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         }
 
 
+    },
+    addFirstWeight: function () {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        // var txtWeight = new sap.m.Input({ editable: false }).addStyleClass("qtyWeightTxt1");
+        var vb = new sap.m.VBox();
+        var fe = [];
+        var mp = {};
+        var addFe = function (ar) {
+            mp[ar[1].colname] = ar[1];
+            fe = [...fe, ...ar.slice(0)];
+        };
+
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "txtWeight", "", "Weight Bridge", "15%", "", "35%",
+            {
+                data_type: FormView.DataType.Number,
+                class_name: FormView.ClassTypes.TEXTFIELD,
+                display_style: "qtyWeightTxt1",
+            }));
+        mp["txtWeight"].setEditable(false);
+        var rcvData = function () {
+            if (that.ERROR_ON_RCV_DATA == true || that.joApp.isDestroyed()) {
+                clearInterval(that.rcv_data_timer);
+            }
+
+            // if (!(that.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+            //     that.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+            //     //clearInterval(that.rcv_data_timer);
+            //     return;
+            // }
+            var cod = Util.nvl(that.frm.getFieldValue("qry1.weightcode"), "1");
+            Util.doAjaxJson("lastweightbridge?code=" + cod, {
+            }, false).done(function (data) {
+                if (data.ret == "SUCCESS") {
+                    var d = Util.extractNumber(Util.nvl(data.data, "0"));
+                    if (d <= 0) d = 0;
+                    var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
+                    // that.frm.setFieldValue("qry1.weightbridge", df.format(d), df.format(d));
+                    mp["txtWeight"].setValue(df.format(d));
+                }
+            });
+        };
+        var dlg = new sap.m.Dialog({
+            title: "Weight Bridge Data",
+            content: vb,
+            contentWidth: "80%",
+            contentHeight: "400px",
+
+        });
+        var wdt = dlg.$().width() - 100;
+        if (wdt > 800) wdt = 800;
+        if (wdt < 200) wdt = 400;
+        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, { width: wdt + "px" }, "sapUiSizeCompact", "");
+        vb.addItem(cnt);
+        dlg.open();
+        that.rcv_data_timer = setInterval(function () {
+            rcvData();
+        }, 1500);
+
+        dlg.attachAfterClose(function () {
+            clearInterval(that.rcv_data_timer);
+        });
     },
     showTrucksIn: function () {
         var that = this;
