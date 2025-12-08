@@ -15,10 +15,10 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             type: 1
         };
 
-        // this.pgDetail = new sap.m.Page({showHeader: false});
-        // that.rcv_data_timer = setInterval(function () {
-        //     that._rcvData();
-        // }, 1000);
+        // this.pgDetail = new sap.m.Page({ showHeader: false });
+        that.rcv_data_timer = setInterval(function () {
+            that._rcvData();
+        }, 1000);
 
         this.bk = new sap.m.Button({
             icon: "sap-icon://nav-back",
@@ -356,7 +356,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                         qry.formview.setFieldValue("qry1.firstweight", 0, 0, true);
                         qry.formview.setFieldValue("qry1.secondweight", 0, 0, true);
                         qry.formview.setFieldValue("qry1.netweight", 0, 0, true);
-                        qry.formview.setFieldValue("qry1.weightcode", '1', '1', true);
+                        var wc = thatForm.lastwc != undefined ? thatForm.lastwc : '1';
+                        qry.formview.setFieldValue("qry1.weightcode", wc, wc, true);
+                        qry.formview.setFieldValue("qry1.wbs_keyfld", "", "", true);
 
 
                         objOn.fireSelectionChange();
@@ -367,7 +369,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     // if (qry.name == "qry2")
                     //     ld.setFieldValue(idx, "MP", "N");
                     setTimeout(function () {
-                        thatForm.frm.objs["qry1.weightcode"].$().find("input").attr("readonly", true);
+                        thatForm.frm.objs["qry1.weightcode"].obj.$().find("input").attr("readonly", true);
                     }, 200);
                 },
                 afterEditRow(qry, index, ld) {
@@ -431,6 +433,11 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     if (geniasm == 'TRUE') {
                         sq1 = "c7_generate_iasm_from_dlv(" + kf + ");";
                     }
+                    var sw = Util.extractNumber(thatForm.frm.getFieldValue("qry1.secondweight"));
+                    var wbs = Util.nvl(thatForm.frm.getFieldValue("qry1.wbs_keyfld"), "");
+
+                    if (wbs != "" && sw > 0)
+                        sq1 += "update c7_wbs set secondweight='" + sw + "', ord_keyfld='" + kf + "' where keyfld=" + wbs + ";";
                     return sq + sq1 + "update_dlv_add_amt(" + kf + ");";
                 },
                 addSqlBeforeUpdate: function (qry, rn) {
@@ -771,8 +778,12 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             var objTel = thatForm.frm.objs["qry1.ord_ship"].obj;
                             var objV = thatForm.frm.objs["qry1.payterm"].obj;
                             var dtxM = Util.execSQLWithData("select mobile,vehicleno,HADDR from salesp where no=" + objEmp.getValue());
-                            UtilGen.setControlValue(objTel, dtxM[0]["MOBILE"], dtxM[0]["MOBILE"], true);
-                            UtilGen.setControlValue(objV, dtxM[0]["payterm"], dtxM[0]["payterm"], true);
+
+                            if (Util.nvl(objTel.getValue(), "") == "")
+                                UtilGen.setControlValue(objTel, dtxM[0]["MOBILE"], dtxM[0]["MOBILE"], true);
+                            if (Util.nvl(objV.getValue(), "") == "")
+                                UtilGen.setControlValue(objV, dtxM[0]["payterm"], dtxM[0]["payterm"], true);
+
                             if (ordtyp == 2) {
                                 UtilGen.setControlValue(objBr, "1", "1", true);
                                 UtilGen.setControlValue(objrfnm, "", "", true);
@@ -1016,6 +1027,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     other_settings: { editable: true, width: "30%" },
                     edit_allowed: false,
                     insert_allowed: false,
+                    keyboardFocus: false,
                     require: false
                 },
                 cmdSOA: {
@@ -1040,6 +1052,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     },
                     edit_allowed: false,
                     insert_allowed: false,
+                    keyboardFocus: false,
                     require: false
                 },
                 cmdSOA: {
@@ -1064,6 +1077,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     },
                     edit_allowed: false,
                     insert_allowed: false,
+                    keyboardFocus: false,
                     require: false
                 },
                 ord_addamt: {
@@ -1080,6 +1094,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     other_settings: { editable: true, width: "30%" },
                     edit_allowed: true,
                     insert_allowed: true,
+                    keyboardFocus: false,
                     require: false
                 },
                 weightcode: {
@@ -1106,12 +1121,14 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             var cnt = this;
                             setTimeout(function () {
                                 cnt.$().find("input").attr("readonly", true);
+                                thatForm.lastwc = cnt.getValue();
                             }, 250);
                         },
                     },
 
                     edit_allowed: true,
                     insert_allowed: true,
+                    keyboardFocus: false,
                     require: false,
                     list: "@1/NEW,2/OLD"
                 },
@@ -1129,6 +1146,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     other_settings: { editable: true, width: "0px", height: "25px", text: "" },
                     edit_allowed: true,
                     insert_allowed: true,
+                    keyboardFocus: false,
                     require: false
                 },
                 weightbridge: {
@@ -1144,6 +1162,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_format: sett["FORMAT_QTY_1"],
                     other_settings: { editable: true, width: "30%" },
                     edit_allowed: false,
+                    keyboardFocus: false,
                     insert_allowed: false,
                     require: false
                 },
@@ -1167,6 +1186,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     },
                     edit_allowed: false,
                     insert_allowed: false,
+                    keyboardFocus: false,
                     require: false
                 },
                 cmdSecondW: {
@@ -1180,6 +1200,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "greenTextBtn",
                     display_format: sett["FORMAT_MONEY_1"],
+                    keyboardFocus: false,
                     other_settings: {
                         editable: true, width: "14%", text: Util.getLangText("txtSecondWeight"),
                         press: function () {
@@ -1201,6 +1222,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "redTextBtn",
                     display_format: sett["FORMAT_MONEY_1"],
+                    keyboardFocus: false,
                     other_settings: {
                         editable: true, width: "14%", text: Util.getLangText("truckIn"),
                         press: function () {
@@ -1211,28 +1233,23 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     insert_allowed: false,
                     require: false
                 },
-                cmdClearW: {
-                    colname: "cmdClearW",
+                wbs_keyfld: {
+                    colname: "wbs_keyfld",
                     data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.BUTTON,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
                     title: '@{\"text\":\" \",\"width\":\"0px\","textAlign":"End","styleClass":"redText"}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
                     display_style: "",
-                    display_format: sett["FORMAT_MONEY_1"],
+                    display_format: "",
                     other_settings: {
-                        editable: true, width: "14%", text: Util.getLangText("resetTxt"),
-                        press: function () {
-                            Util.simpleConfirmDialog("DO YOU WANT TO RESET ?", function (oAction) {
-                                thatForm.setWeightValue(0);
-                                thatForm.setWeightFields();
-                            }, undefined, undefined, "CANCEL");
-                        }
+                        editable: false, width: "14%",
                     },
                     edit_allowed: false,
                     insert_allowed: false,
+                    keyboardFocus: false,
                     require: false
                 },
                 firstweight: {
@@ -1249,6 +1266,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     other_settings: { editable: true, width: "16%" },
                     edit_allowed: false,
                     insert_allowed: false,
+                    keyboardFocus: false,
                     require: false
                 },
                 secondweight: {
@@ -1265,6 +1283,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     other_settings: { editable: true, width: "16%" },
                     edit_allowed: false,
                     insert_allowed: false,
+                    keyboardFocus: false,
                     require: false
                 },
                 netweight: {
@@ -1281,6 +1300,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     other_settings: { editable: true, width: "16%" },
                     edit_allowed: false,
                     insert_allowed: false,
+                    keyboardFocus: false,
                     require: false
                 },
 
@@ -2378,10 +2398,11 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
 
         if (!(that.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
             that.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
-            //clearInterval(that.rcv_data_timer);
+            // clearInterval(that.rcv_data_timer);
             return;
         }
         var cod = Util.nvl(that.frm.getFieldValue("qry1.weightcode"), "1");
+
         Util.doAjaxJson("lastweightbridge?code=" + cod, {
         }, false).done(function (data) {
             if (data.ret == "SUCCESS") {
@@ -2389,6 +2410,12 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 if (d <= 0) d = 0;
                 var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
                 that.frm.setFieldValue("qry1.weightbridge", df.format(d), df.format(d));
+                if (that.idWeight != undefined &&
+                    that.view.byId(that.idWeight) != undefined &&
+                    that.view.byId(that.idWeight) instanceof sap.m.Input) {
+                    that.view.byId(that.idWeight).setValue(df.format(d));
+                }
+
             }
         });
     },
@@ -2398,7 +2425,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
         if (!(that.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
             that.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
-            //clearInterval(that.rcv_data_timer);
+            // clearInterval(that.rcv_data_timer);
             FormView.err("Cant update on view mode ");
             return;
         }
@@ -2453,66 +2480,248 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             mp[ar[1].colname] = ar[1];
             fe = [...fe, ...ar.slice(0)];
         };
+        var saverec = function () {
+            if (Util.extractNumber(mp["txtWeight"].getValue()) <= 0)
+                FormView.err("Can't save 0 weight !");
+            var cols = {
+                "keyfld": "(select nvl(max(keyfld),0)+1 from c7_wbs ) ",
+                "rec_date": "SYSDATE",
+                "rec_time": "SYSDATE",
+                "truckno": Util.quoted(mp["txtTruckNo"].getValue()),
+                "firstweight": Util.extractNumber(mp["txtWeight"].getValue()),
+                "secondweight": "0",
+                "ord_keyfld": "null",
+                "ord_ref": Util.quoted(mp["txtCust"].getValue()),
+                "ord_refnm": Util.quoted(mp["txtCustName"].getValue()),
+            };
+            var sqlIns = UtilGen.getInsertRowStringByObj("c7_wbs", cols);
+            var dt = Util.execSQL(sqlIns);
+            if (dt.ret == "SUCCESS") {
+                FormView.msgSuccess(Util.getLangText("msgSaved"));
+                dlg.close();
+            }
+        };
+        var deleteRec = function () {
+            var sq = "select truckno,ord_ref,ord_refnm,firstweight||' KG' firstweight,REC_DATE,keyfld from c7_wbs where " +
+                " ( (firstweight>0 and secondweight=0) or (firstweight=0 and secondweight>0) ) order by keyfld ";
+            UtilGen.Search.do_quick_search_simple(sq,
+                ["ORD_REF", "ORD_REFNM", "FIRSWEIGHT", "TRUCKNO"], function (data) {
+                    // that.frm.setFieldValue("pac", data.KEYFLD);
+                    // that.frm.loadData(undefined, "edit");
+                    Util.simpleConfirmDialog("Do You want to delete , TRUCK # " + data.TRUCKNO + " ? ", function (oAction) {
+                        var dt = Util.execSQL("delete from c7_wbs where keyfld=" + data.KEYFLD);
+                        if (dt.ret == "SUCCESS")
+                            FormView.msgCustom(Util.getLangText("msgDeleted"), "maroon");
+                    }, undefined, undefined, "OK");
+
+                    return true;
+
+                }, { pWidth: "80%" }, undefined, false, Util.getLangText("truckIn"), [
+                {
+                    ORD_NO: {
+                        colname: "ORD_NO",
+                        display_width: 80,
+                        mTitle: Util.getLangText("txtNo"),
+                    }
+                },
+                {
+                    REC_DATE: {
+                        colname: "REC_DATE",
+                        display_format: "SHORT_DATE_FORMAT",
+                        mTitle: Util.getLangText("ordDate"),
+                        display_width: 100
+                    }
+                },
+                {
+                    ORD_REF: {
+                        colname: "ORD_REF",
+                        mTitle: Util.getLangText("refCode"),
+                        display_width: 100,
+                    }
+                },
+                {
+                    ORD_REFNM: {
+                        colname: "ORD_REFNM",
+                        mTitle: Util.getLangText("refName"),
+                        display_width: 250
+
+                    }
+                },
+                {
+                    TRUCKNO: {
+                        colname: "TRUCKNO",
+                        mTitle: Util.getLangText("txtVehicleNo"),
+                        display_width: 100
+
+                    }
+                },
+                {
+                    FIRSTWEIGHT: {
+                        colname: "FIRSTWEIGHT",
+                        mTitle: Util.getLangText("txtFirstWeight"),
+                        display_width: 100
+
+                    }
+                },
+                {
+                    KEYFLD: {
+                        colname: 'KEYFLD',
+                        hide: true
+                    }
+                },
+            ]);
+
+        }
+        var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
+        var d = Util.extractNumber(that.frm.getFieldValue("qry1.weightbridge"));
+
+        fe.push(Util.getLabelTxt(Util.getLangText("txtWeightTit"), "100%", "#", "boldText sapUiSmallMarginTop sapUiSmallMarginBottom", "Center"));
 
         addFe(FormView.getFactoryControls.getGeneralControls(
-            "txtWeight", "", "Weight Bridge", "15%", "", "35%",
+            "txtWeightCode", "", "FIRST WEIGHT", "30%", "", "50%",
+            {
+                data_type: FormView.DataType.String,
+                class_name: FormView.ClassTypes.COMBOBOX,
+                list: "@1/NEW,2/OLD",
+                other_settings: {
+                    editable: true,
+                    width: "20%",
+                    selectedKey: "1",
+                    items: {
+                        path: "/",
+                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                        templateShareable: true
+                    },
+                    selectionChange: function (e) {
+                        var cnt = this;
+
+                        that.frm.setFieldValue("qry1.weightcode", cnt.getSelectedKey(), cnt.getSelectedKey(), true);
+                        setTimeout(function () {
+                            cnt.$().find("input").attr("readonly", true);
+                            that.lastwc = cnt.getValue();
+                        }, 250);
+                    },
+                }
+            }));
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "txtWeight", "", "Weight ", "30%", "", "50%",
             {
                 data_type: FormView.DataType.Number,
                 class_name: FormView.ClassTypes.TEXTFIELD,
                 display_style: "qtyWeightTxt1",
             }));
-        mp["txtWeight"].setEditable(false);
-        var rcvData = function () {
-            if (that.ERROR_ON_RCV_DATA == true || that.joApp.isDestroyed()) {
-                clearInterval(that.rcv_data_timer);
-            }
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "txtCust", "", "txtCust", "30%", "", "20%",
+            {
+                data_type: FormView.DataType.String,
+                class_name: FormView.ClassTypes.TEXTFIELD,
+                display_style: "",
+                other_settings: {
+                    editable: true, width: "20%",
+                    showValueHelp: true,
+                    change: function (e) {
+                        var objr = mp["txtCust"];
+                        var objrfnm = mp["txtCustName"];
+                        UtilGen.setControlValue(objrfnm, "", "", true);
+                        var sq = "select name from c_ycust where  code = ':CODE'";
+                        UtilGen.Search.getLOVSearchField(sq, objr, undefined, objrfnm);
+                    },
+                    valueHelpRequest: function (e) {
+                        var btns = [];
 
-            // if (!(that.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
-            //     that.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
-            //     //clearInterval(that.rcv_data_timer);
-            //     return;
-            // }
-            var cod = Util.nvl(that.frm.getFieldValue("qry1.weightcode"), "1");
-            Util.doAjaxJson("lastweightbridge?code=" + cod, {
-            }, false).done(function (data) {
-                if (data.ret == "SUCCESS") {
-                    var d = Util.extractNumber(Util.nvl(data.data, "0"));
-                    if (d <= 0) d = 0;
-                    var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
-                    // that.frm.setFieldValue("qry1.weightbridge", df.format(d), df.format(d));
-                    mp["txtWeight"].setValue(df.format(d));
+                        UtilGen.Search.do_quick_search(e, this,
+                            "select code,name title from c_ycust where iscust='Y'  order by path ",
+                            "select code,name title from c_ycust where code=:CODE", mp["txtCustName"], undefined, undefined, btns);
+                    }
                 }
-            });
-        };
+            }));
+
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "txtCustName", "@", "", "0px", "", "30%",
+            {
+                data_type: FormView.DataType.String,
+                class_name: FormView.ClassTypes.TEXTFIELD,
+                display_style: "",
+                other_settings: {
+                    editable: false,
+                    width: "30%"
+                }
+            }));
+        addFe(FormView.getFactoryControls.getGeneralControls(
+            "txtTruckNo", "", "truckNo", "30%", "boldText", "50%",
+            {
+                data_type: FormView.DataType.Number,
+                class_name: FormView.ClassTypes.TEXTFIELD,
+                display_style: "",
+            }));
+
+        mp["txtWeight"].setEditable(false);
+        mp["txtWeight"].setValue(df.format(d));
+
+        that.idWeight = mp["txtWeight"].getId();
+
         var dlg = new sap.m.Dialog({
             title: "Weight Bridge Data",
-            content: vb,
-            contentWidth: "80%",
-            contentHeight: "400px",
-
+            contentWidth: "500px",
+            contentHeight: "300px",
+            buttons: [
+                new sap.m.Button({
+                    text: Util.getLangText("saveRec"),
+                    icon: "sap-icon://accept",
+                    press: function () {
+                        saverec();
+                    }
+                }),
+                new sap.m.Button({
+                    text: Util.getLangText("Close"),
+                    icon: "sap-icon://decline",
+                    press: function () {
+                        dlg.close();
+                    }
+                }),
+                new sap.m.Button({
+                    text: Util.getLangText("delRec"),
+                    icon: "sap-icon://delete",
+                    press: function () {
+                        deleteRec();
+                    }
+                })
+            ]
         });
         var wdt = dlg.$().width() - 100;
-        if (wdt > 800) wdt = 800;
-        if (wdt < 200) wdt = 400;
-        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, { width: wdt + "px" }, "sapUiSizeCompact", "");
-        vb.addItem(cnt);
+        // if (wdt > 800) wdt = 800;
+        // if (wdt < 200) wdt = 400;
+        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, { width: "500px" }, "sapUiSizeCompact", "");
+        dlg.addContent(cnt);
         dlg.open();
-        that.rcv_data_timer = setInterval(function () {
-            rcvData();
-        }, 1500);
 
-        dlg.attachAfterClose(function () {
-            clearInterval(that.rcv_data_timer);
-        });
+        setTimeout(function name(params) {
+            mp["txtWeightCode"].$().find("input").attr("readonly", true);
+            mp["txtWeightCode"].setSelectedKey(that.frm.getFieldValue("qry1.weightcode"));
+        }, 50);
     },
     showTrucksIn: function () {
         var that = this;
-        var sq = "select ord_no,ord_date,payterm,ord_ref,ord_refnm,firstweight||' KG' firstweight,keyfld from order1 where ord_code=9" +
-            " and saleinv is null and ( (firstweight>0 and secondweight=0) or (firstweight=0 and secondweight>0) ) order by ord_no ";
+        if (!that.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
+            FormView.err("Err !, must be in NEW record mode !");
+        var sq = "select truckno,ord_ref,ord_refnm,firstweight||' KG' firstweight,REC_DATE,keyfld from c7_wbs where " +
+            " ( (firstweight>0 and secondweight=0) or (firstweight=0 and secondweight>0) ) order by keyfld ";
         UtilGen.Search.do_quick_search_simple(sq,
-            ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM", "FIRSWEIGHT", "PAYTERM"], function (data) {
-                that.frm.setFieldValue("pac", data.KEYFLD);
-                that.frm.loadData(undefined, "edit");
+            ["ORD_REF", "ORD_REFNM", "FIRSWEIGHT", "TRUCKNO"], function (data) {
+                // that.frm.setFieldValue("pac", data.KEYFLD);
+                // that.frm.loadData(undefined, "edit");
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
+                that.frm.objs["qry1.cmdFirstW"].obj.setEnabled(false);
+                that.frm.setFieldValue("qry1.firstweight", df.format(data.FIRSTWEIGHT), df.format(data.FIRSTWEIGHT));
+                that.frm.setFieldValue("qry1.secondweight", df.format(0), df.format(0));
+                if (Util.nvl(data.ORD_REF, "") != "") {
+                    that.frm.setFieldValue("qry1.ord_ref", data.ORD_REF, data.ORD_REF, true);
+                    that.frm.setFieldValue("qry1.ord_discamt", 1, 1, true);
+                }
+                that.frm.setFieldValue("qry1.payterm", data.TRUCKNO, data.TRUCKNO, true);
+                that.frm.setFieldValue("qry1.wbs_keyfld", data.KEYFLD, data.KEYFLD, true);
+
                 return true;
 
             }, { pWidth: "80%" }, undefined, false, Util.getLangText("truckIn"), [
@@ -2524,8 +2733,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                 }
             },
             {
-                ORD_DATE: {
-                    colname: "ORD_DATE",
+                REC_DATE: {
+                    colname: "REC_DATE",
                     display_format: "SHORT_DATE_FORMAT",
                     mTitle: Util.getLangText("ordDate"),
                     display_width: 100
@@ -2548,7 +2757,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             },
             {
                 PAYTERM: {
-                    colname: "PAYTERM",
+                    colname: "TRUCKNO",
                     mTitle: Util.getLangText("txtVehicleNo"),
                     display_width: 100
 
@@ -2556,7 +2765,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             },
             {
                 FIRSTWEIGHT: {
-                    colname: "PAYTERM",
+                    colname: "FIRSTWEIGHT",
                     mTitle: Util.getLangText("txtFirstWeight"),
                     display_width: 100
 
@@ -2565,7 +2774,6 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             {
                 KEYFLD: {
                     colname: 'KEYFLD',
-
                     hide: true
                 }
             },
