@@ -64,7 +64,9 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
+        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK," +
+            "case when qty_2<=0 then O1.SALE_PRICE*O1.ORD_PKQTY else o1.qty_2*o1.price_2 end AMOUNT " +
+            "from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + that.vars.vou_code + " ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
@@ -126,8 +128,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                         name: "qry1",
                         dml: "select *from order1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA', 'cmdFirstW', 'cmdSecondW', 'weightbridge', 'titlew', 'cmdClearW', "cmdListEnt"],
-                        insert_exclude_fields: ['branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA', 'cmdFirstW', 'cmdSecondW', 'weightbridge', 'titlew', 'cmdClearW', "cmdListEnt"],
+                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA', 'cmdFirstW', 'cmdSecondW', 'weightbridge', 'titlew', 'cmdClearW', "cmdListEnt", "txt_cl"],
+                        insert_exclude_fields: ['branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA', 'cmdFirstW', 'cmdSecondW', 'weightbridge', 'titlew', 'cmdClearW', "cmdListEnt", "txt_cl"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "ORD_CODE": thatForm.vars.vou_code,
@@ -219,13 +221,27 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             var ld = qv.mLctb;
                             var sumAmt = 0;
 
-                            for (var i = 0; i < ld.rows.length; i++)
-                                sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
+                            for (var i = 0; i < ld.rows.length; i++) {
+                                if (reAmt) {
+                                    var pr = Util.extractNumber(ld.getFieldValue(i, "SALE_PRICE"));
+                                    var tq = Util.extractNumber(ld.getFieldValue(i, "QTY_2"));
+                                    var qt = Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
+                                    var pq = Util.extractNumber(ld.getFieldValue(i, "PRICE_2"));
+                                    var amt = pr * qt;
+                                    var amt2 = pq * tq;
+                                    ld.setFieldValue(i, "AMOUNT", tq > 0 ? amt2 : amt);
+                                    sumAmt += (tq > 0 ? amt2 : amt);
+                                } else
+                                    sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
+                            }
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
                                 thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumAmt));
+                            // if (reAmt)
+                            //     qv.updateDataToControl();
 
+                            thatForm.helperFunc.checkCLColor();
                         },
                         summary: thatForm.helperFunc.getSummary()
 
@@ -876,13 +892,14 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                         editable: true, width: "12%",
                         showValueHelp: true,
                         change: function (e) {
-
+                            var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                             var objBr = thatForm.frm.objs["qry1.ord_discamt"].obj;
                             var objBrNm = thatForm.frm.objs["qry1.branchname"].obj;
                             var objrfnm = thatForm.frm.objs["qry1.ord_refnm"].obj;
                             var ordtyp = thatForm.frm.objs["qry1.ord_type"].obj.getValue();
                             UtilGen.setControlValue(objBr, "", "", true);
                             UtilGen.setControlValue(objBrNm, "", "", true);
+
 
                             if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '') {
                                 thatForm.frm.objs["qry1.ord_ref"].obj.setValue("");
@@ -893,16 +910,24 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                             UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);
                             var objCd = thatForm.frm.objs["qry1.ord_ref"].obj;
                             var objBal = thatForm.frm.objs["qry1.txt_balance"].obj;
+                            var objCl = thatForm.frm.objs["qry1.txt_cl"].obj;
+                            // UtilGen.setControlValue(objrfnm, "", "", true);
+                            UtilGen.setControlValue(objCl, 0, 0, true);
+                            UtilGen.setControlValue(objBal, 0, 0, true);
 
-                            var dtxM = Util.execSQLWithData("select nvl(sum(debit-credit),0) bal from acvoucher2 where cust_code=" + Util.quoted(objCd.getValue()));
-                            var dt2 = Util.getSQLValue("select sum(sale_price*tqty) from c_order1 where saleinv is null and  ord_ref=" + Util.quoted(objCd.getValue()));
-                            var bl = dtxM[0]["BAL"] + dt2;
+                            // if (Util.nvl(objCd.getValue(), "") == "") return;
+                            // var dtxM = Util.execSQLWithData("select nvl(sum(debit-credit),0) bal from acvoucher2 where cust_code=" + Util.quoted(objCd.getValue()));
+                            // var dt2 = Util.getSQLValue("select sum(sale_price*tqty) from c_order1 where saleinv is null and  ord_ref=" + Util.quoted(objCd.getValue()));
+                            // var bl = dtxM[0]["BAL"] + dt2;
+                            var cl = Util.getSQLValue("select nvl(crd_limit2,0) from c_ycust where code='" + objCd.getValue() + "'");
+                            var bl = Util.getSQLValue("select c7_get_cb('" + objCd.getValue() + "' , 'Y','Y','" + kf + "') from dual");
+                            UtilGen.setControlValue(objCl, cl, cl, true);
                             UtilGen.setControlValue(objBal, bl, bl, true);
+                            thatForm.helperFunc.checkCLColor();
                             if (ordtyp == 2) {
                                 UtilGen.setControlValue(objBr, "1", "1", true);
                                 UtilGen.setControlValue(objrfnm, "", "", true);
                             }
-
                         },
                         valueHelpRequest: function (e) {
                             if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '')
@@ -1024,7 +1049,24 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: { editable: true, width: "30%" },
+                    other_settings: { editable: true, width: "12%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    keyboardFocus: false,
+                    require: false
+                },
+                txt_cl: {
+                    colname: "txt_cl",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"creditLimit\",\"width\":\"13%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { editable: true, width: "12%" },
                     edit_allowed: false,
                     insert_allowed: false,
                     keyboardFocus: false,
@@ -2197,9 +2239,52 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             }
             fnExe(0);
         },
+        checkCLColor: function (eventcalc) {
+            var thatForm = this.thatForm;
+            if (Util.nvl(eventcalc, false))
+                thatForm.frm.objs["qry2"].obj.eventCalc(thatForm.frm.objs["qry2"].obj, undefined, undefined, true);
+            var cl = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txt_cl"));
+            var bl = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txt_balance"));
+            var totamt = Util.extractNumber(thatForm.frm.getFieldValue("totamt"));
+            var objCl = thatForm.frm.objs["qry1.txt_cl"].obj;
+            objCl.removeStyleClass("greenInp");
+            objCl.removeStyleClass("redInp");
+            if (cl == 0) return;
+            if (bl + totamt > cl)
+                objCl.addStyleClass("redInp");
+            else objCl.addStyleClass("greenInp");
+        },
+        checkCL: function (pErr) {
+            var err = Util.nvl(pErr, true);
+            var thatForm = this.thatForm;
+            thatForm.frm.objs["qry2"].obj.eventCalc(thatForm.frm.objs["qry2"].obj, undefined, undefined, true);
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+            var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+            var cust = thatForm.frm.getFieldValue("qry1.ord_ref");
+            if (Util.nvl(sett["DLV_CUST_ABOVE_CREDIT_BLOCK"], "TRUE") != "TRUE")
+                return false;
+            var cl = Util.getSQLValue("select nvl(crd_limit2,0) from c_ycust where code='" + cust + "'");
+            thatForm.frm.setFieldValue("qry1.txt_cl", cl, cl, true);
+            if (cl == 0) return true;
+            var totamt = Util.extractNumber(thatForm.frm.getFieldValue("totamt"));
+            if (totamt <= 0) FormView.err("Cant save AMOUNT = 0  !");
+            var bal = Util.getSQLValue("select c7_get_cb('" + cust + "' , 'Y','Y','" + kf + "') from dual");
+            bal = bal + totamt;
+            if (bal > cl) {
+                var msg = Util.getLangText("creditLimit") + " # " + df.format(cl) + " , " +
+                    Util.getLangText("needCreditLimit") + " = " + df.format(bal);
+                FormView.msgCustom(msg, "white", "red", "20px");
+                if (err) throw msg;
+            }
+
+            return true;
+        },
         beforeSaveValidateQry: function (qry) {
             var thatForm = this.thatForm;
             var flg = "";
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
                 flg = " flag=1 and ";
                 var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
@@ -2251,6 +2336,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             var dup = {};
             var ld = thatForm.frm.objs["qry2"].obj.mLctb;
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
+            if (ld.rows.length > 1) FormView.err("Remove 2nd record !");
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
                 var qty = ld.getFieldValue(i, "ORD_PKQTY");
@@ -2270,6 +2356,18 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
                     FormView.err("Save Denied: QTY invalid value !");
             }
 
+            var wgt1 = Util.extractNumber(thatForm.frm.getFieldValue("qry1.firstweight"));
+            var wgt2 = Util.extractNumber(thatForm.frm.getFieldValue("qry1.secondweight"));
+            if (wgt1 > 0 && wgt2 > 0) {
+                nt = Math.abs(wgt2 - wgt1);
+                var vvl = nt > 0 ? df.format((nt / 1000)) : 0;
+                ld.setFieldValue(0, "QTY_2", vvl);
+                thatForm.frm.objs["qry2"].obj.updateDataToControl();
+
+                thatForm.frm.objs["qry2"].obj.eventCalc(thatForm.frm.objs["qry2"].obj, undefined, undefined, true);
+            }
+
+            this.checkCL();
         }
         ,
         fetchItem: function () {
@@ -2355,7 +2453,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         var chkAboveCl = function () {
             if (Util.nvl(sett["DLV_CUST_ABOVE_CREDIT_NOTIFY"], "false") != "TRUE")
                 return false;
-            cl = Util.getSQLValue("select nvl(crd_limit,0) from c_ycust where code='" + cust + "'");
+            cl = Util.getSQLValue("select nvl(crd_limit2,0) from c_ycust where code='" + cust + "'");
             if (cl == 0) return false;
             var totamt = frm.getFieldValue("totamt");
             var bal = Util.getSQLValue("select c7_get_cb('" + vono + "' , 'Y','Y') from dual");
@@ -2455,7 +2553,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
             var vvl = nt > 0 ? df.format((nt / 1000)) : 0;
             if (cnx instanceof sap.m.Text) {
                 cnx.setText(vvl);
-                var cnx2 = qv.getControl().getRows()[0].getCells()[UtilGen.getTableColNo(tbl, "ORD_PKQTY")];
+                var cnx2 = qv.getControl().getRows()[0].getCells()[UtilGen.getTableColNo(tbl, "QTY_2")];
                 cnx2.focus();
                 cnx2.fireChange({ value: cnx2.getValue() });
             }
@@ -2694,7 +2792,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, { width: "500px" }, "sapUiSizeCompact", "");
         dlg.addContent(cnt);
         dlg.open();
-
+        Util.navEnter(fe);
         setTimeout(function name(params) {
             mp["txtWeightCode"].$().find("input").attr("readonly", true);
             mp["txtWeightCode"].setSelectedKey(that.frm.getFieldValue("qry1.weightcode"));

@@ -734,6 +734,17 @@ th {
 .sapMInputBaseInner:focus {
     background-color: cyan;
 }
+.redInp .sapMInputBaseInner {
+    background-color: red;
+    
+    color: white;
+}
+
+.greenInp .sapMInputBaseInner {
+    background-color:lightgreen;
+    
+    color:black
+}
 
 .errBack .sapMInputBaseInner {
     border-color: red;

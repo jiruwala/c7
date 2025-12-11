@@ -203,7 +203,8 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 dml: "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ," +
                                     " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
                                     " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +
-                                    " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
+                                    " (select case when nvl(sum(qty_2),0)>0 then NVL (SUM ( (price_2 + NVL (op_no, 0)) * qty_2), 0) " +
+                                    " else NVL (SUM ( (price_2 + NVL (op_no, 0)) * qty_2), 0) end from c_order1 " +
                                     " where ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
                                     " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code " +
                                     " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
@@ -253,7 +254,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         var up = ld.getFieldValue(i, "UNPOST_BAL");
                                         var cl = ld.getFieldValue(i, "CRD_LIMIT2");
                                         ld.setFieldValue(i, "ALLBALANCE", (bl + up));
-                                        if (cl != 0 && (bl + up) > cl)
+                                        if (cl != 0)//&& (bl + up) > cl)
                                             ld.setFieldValue(i, "OVERCREDIT", (bl + up) - cl);
 
                                     }
@@ -262,7 +263,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         for (var i = ld.rows.length - 1; i >= 0; i--) {
                                             var bl = ld.getFieldValue(i, "ALLBALANCE");
                                             var cl = ld.getFieldValue(i, "CRD_LIMIT2");
-                                            if (cl == 0 || bl < cl)
+                                            if (cl == 0 )//|| bl < cl)
                                                 ld.deleteRow(i);
                                         }
 
@@ -352,6 +353,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     },
                                     overcredit: {
@@ -368,6 +370,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     },
                                     slsname: {
