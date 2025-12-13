@@ -69,7 +69,7 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
         var js = {
             form: {
                 title: Util.getLangText("Fixed Assets Items"),
-                toolbarBG: "orange",
+                toolbarBG: "lightblue",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
@@ -108,17 +108,15 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from order1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
-                        where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA'],
-                        insert_exclude_fields: ['branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA'],
+                        dml: "select *from faitems where code=:pac",
+                        where_clause: " code=':keyfld' ",
+                        update_exclude_fields: ['code', "totadd", "totded", "netvalue", "acname", "expname", "depname", "costname", "totdep"],
+                        insert_exclude_fields: ["totadd", "totded", "netvalue", "acname", "expname", "depname", "costname", "totdep"],
                         insert_default_values: {
-                            "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
-                            "ORD_CODE": thatForm.vars.vou_code,
                         },
                         update_default_values: {
                         },
-                        table_name: "ORDER1",
+                        table_name: "faitems",
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: false,
@@ -164,28 +162,27 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                     if (qry.name == "qry1") {
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
-                        UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.ord_empno"].obj, undefined, that.frm.objs["qry1.txt_empname"].obj);
-                        var saleinv = Util.getSQLValue("select saleinv from order1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
-                        if (Util.nvl(saleinv, '') != '') {
-                            var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
-                            thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
+                        var cod = thatForm.frm.getFieldValue("qry1.code");
+                        var fnEditObjs = function (ed) {
+                            qry.formview.objs["qry1.priordep"].obj.setEditable(ed);
+                            qry.formview.objs["qry1.purprice"].obj.setEditable(ed);
+                            qry.formview.objs["qry1.lastdepdate"].obj.setEditable(ed);
+                            qry.formview.objs["qry1.purdate"].obj.setEditable(ed);
+                            qry.formview.objs["qry1.deprate"].obj.setEditable(ed);
                         }
 
-                    }
-                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
-                        qry.obj.mLctb.getColByName("ORD_SHIP").beforeSearchEvent = function (sq, ctx, model) {
-                            qry.obj.mLctb.getColByName("ORD_SHIP").btnsx = [new sap.m.Button({
-                                text: 'Add Item in Contract',
-                                press: function () {
-                                    thatForm.helperFunc.addInContract();
-                                }
-                            }
-                            )];
-                            if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '')
-                                FormView.err(Util.getLangText("msgBRMustEnterOrdType"));
-                            return thatForm.frm.parseString(sq);
-                        };
+                        var sq = "select :name from acaccount where accno = :CODE ".replaceAll(":name", Util.getLangDescrAR("name", "mvl(namea,name) name "));
+                        UtilGen.Search.getLOVSearchField(sq, qry.formview.objs["qry1.accno"].obj, undefined, that.frm.objs["qry1.acname"].obj);
+                        UtilGen.Search.getLOVSearchField(sq, qry.formview.objs["qry1.depaccno"].obj, undefined, that.frm.objs["qry1.depname"].obj);
+                        UtilGen.Search.getLOVSearchField(sq, qry.formview.objs["qry1.expaccno"].obj, undefined, that.frm.objs["qry1.expname"].obj);
+                        UtilGen.Search.getLOVSearchField("select title from accostcent1 where code = :CODE", qry.formview.objs["qry1.costcent"].obj, undefined, that.frm.objs["qry1.costname"].obj);
 
+                        var cnt = Util.getSQLValue("select nvl(count(*),0) from fadep where code=" + cod);
+                        fnEditObjs(true);
+                        if (cnt > 0)
+                            fnEditObjs(false);
+                        thatForm.helperFunc.calcVal();
+                    }
 
 
                 },
@@ -204,6 +201,16 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
+                        var dt = thatForm.view.today_date.getDateValue();
+                        qry.formview.setFieldValue("qry1.pur_inv_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
+                        qry.formview.setFieldValue("qry1.purdate", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
+
+                        thatForm.frm.setFieldValue("qry1.purprice", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.deprate", 1, 1, true);
+                        thatForm.frm.setFieldValue("qry1.priordep", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.priordepamt", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.totalvalue", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.netbookvalue", 1, 1, true);
 
                     }
                 },
@@ -255,6 +262,28 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
             },
 
         },
+        calcVal: function (fetchRec) {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+            var code = thatForm.frm.getFieldValue("qry1.code");
+            if (Util.nvl(fetchRec, true)) {
+                var tadd = Util.getSQLValue("SELECT NVL(SUM(TRANSACTIONAMNT),0) FROM FATRANSACTION WHERE ITEMNO='" + cod + "' AND TRANSACTIONTYPE=1");
+                var tded = Util.getSQLValue("SELECT NVL(SUM(TRANSACTIONAMNT),0) FROM FATRANSACTION WHERE ITEMNO='" + cod + "' AND TRANSACTIONTYPE=2");
+                var tdep = Util.getSQLValue("SELECT NVL(SUM(depamt),0) FROM fadep WHERE code='" + cod + "' AND TRANSACTIONTYPE=2");
+                thatForm.frm.setFieldValue("qry1.totadd", tadd, tadd, true);
+                thatForm.frm.setFieldValue("qry1.totded", tded, tded, true);
+                thatForm.frm.setFieldValue("qry1.totdep", tdep, tdep, true);
+            }
+
+            var pp = Util.extractNumber(thatForm.frm.getFieldValue("qry1.purprice"));
+            var tadd = Util.extractNumber(thatForm.frm.getFieldValue("qry1.totadd"));
+            var tded = Util.extractNumber(thatForm.frm.getFieldValue("qry1.totded"));
+            var tdep = Util.extractNumber(thatForm.frm.getFieldValue("qry1.priordep"));
+            var tot = (pp + tadd) - (tded + tdep);
+            thatForm.frm.setFieldValue("qry1.netvalue", df.format(tot), df.format(tot));
+
+        },
         getFields1: function () {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
@@ -269,36 +298,45 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                     sqlListChange: "select accno code,name||'-'||namea title from acaccount where actype=0 and childcount=0  and accno=:CODE ",
                 });
             };
-            //TODO fields and completion of this FAITEMS
 
             //keyfid,15-10|code,10-15               catno,15-12|cname,0-23
             //descr,15,35                           pur_inv_date,15,35
             //accno,15-12,acname-0,23               depaccno,15-12,depname-0,23
             //expaccno,15-12,expname-0,23           costcent,15-12,costname-0,23
-            //purdate,30,20                         purprice,20,30
-            //deprate,30,20                         pricedep,20,30
-            //priordepamt,30,20                     totalvalue,0,30
-            //lastdepdate,30,20                     netbookvalue,20,30
-
+            //purdate,30,20                         purprice,20,20
+            //deprate,30,20                         netbookvalue,20,30 
+            //lastdepdate,30,20                     priordep,20,20
+            // Title : Valuation
+            //                                      totadd,70,20
+            //                                      totded,70,20
+            //                                      netvalue,70,20
             return {
-                keyfld: FormView.getFactoryFields.getKeyFld("", "15%", "10%"),
                 code: FormView.getFactoryFields.getGeneralField(
-                    "code", "@", "txtCode", "10%", "violetText", "15%",
+                    "code", "", "txtCode", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: false,
                         insert_allowed: true,
                     }, {}),
+                descr: FormView.getFactoryFields.getGeneralField(
+                    "descr", "@", "", "0px", "", "23%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    placeHolder: "Enter Description of assets"
+                }),
                 catno: FormView.getFactoryFields.getGeneralField(
                     "catno", "@", "txtGroup", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true
                     }, FormView.getFactoryFields.getSettingsGeneral({
                         thatForm: thatForm,
-                        code: Util.nvl("catno"),
-                        name: Util.nvl("catname"),
+                        code: Util.nvl("qry1.catno"),
+                        name: Util.nvl("qry1.catname"),
                         sqlChange: "select catname name from facat where  catno = ':CODE'",
                         sqlList: "select catno code,catname title from facat order by catno ",
                         sqlListChange: "select catno code,catname title from facat where catno=:CODE",
@@ -310,77 +348,73 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
-                    }, {}),
-                descr: FormView.getFactoryFields.getGeneralField(
-                    "descr", "", "txtDescr", "15%", "", "35%",
-                    {
-                        require: false,
-                        edit_allowed: true,
-                        insert_allowed: true,
+                        keyboardFocus: false,
                     }, {}),
                 pur_inv_date: FormView.getFactoryFields.getDateField(
-                    "pur_inv_date", "@", "Purchase Date", "15%", "", "35%",
+                    "pur_inv_date", "@", "shortTxtPurDate", "15%", "", "35%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
                     }, {}),
                 accno: FormView.getFactoryFields.getGeneralField(
-                    "accno", "", "txtFAAccNo", "15%", "violetText", "12%",
+                    "accno", "", "shortTxtFAAccNo", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: false,
                         insert_allowed: true
-                    }, getacSet("accno", "acname")),
+                    }, getacSet("qry1.accno", "qry1.acname")),
                 acname: FormView.getFactoryFields.getGeneralField(
                     "acname", "@", "", "0px", "", "23%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
+                        keyboardFocus: false,
                     }, {}),
                 depaccno: FormView.getFactoryFields.getGeneralField(
-                    "depaccno", "@", "txtDepAccNo", "15%", "violetText", "12%",
+                    "depaccno", "@", "shortTxtDepAccNo", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: false,
                         insert_allowed: true
-                    }, getacSet("depaccno", "depacname")),
+                    }, getacSet("qry1.depaccno", "qry1.depacname")),
                 depacname: FormView.getFactoryFields.getGeneralField(
                     "depacname", "@", "", "0px", "", "23%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
+                        keyboardFocus: false,
                     }, {}),
                 expaccno: FormView.getFactoryFields.getGeneralField(
-                    "expaccno", "", "txtExpAccNo", "15%", "violetText", "12%",
+                    "expaccno", "", "txtExpenseAc", "15%", "violetText", "12%",
                     {
                         require: true,
                         edit_allowed: false,
-                        insert_allowed: true
-                    }, getacSet("expaccno", "expacname")),
+                        insert_allowed: true,
+                    }, getacSet("qry1.expaccno", "qry1.expacname")),
                 expacname: FormView.getFactoryFields.getGeneralField(
                     "expacname", "@", "", "0px", "", "23%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
+                        keyboardFocus: false,
                     }, {}),
                 costcent: FormView.getFactoryFields.getGeneralField(
-                    "costcent", "@", "txtExpAccNo", "15%", "violetText", "12%",
+                    "costcent", "@", "costCent", "15%", "", "12%",
                     {
                         require: true,
                         edit_allowed: false,
                         insert_allowed: true
                     }, FormView.getFactoryFields.getSettingsGeneral({
                         thatForm: thatForm,
-                        code: Util.nvl("costcent"),
-                        name: Util.nvl("ccname"),
-                        sqlChange: "select title name from accostcent1 where  catno = ':CODE'",
-                        sqlList: "select code,title from accostcent1 order by catno ",
+                        code: Util.nvl("qry1.costcent"),
+                        name: Util.nvl("qry1.ccname"),
+                        sqlChange: "select title name from accostcent1 where  code = ':CODE'",
+                        sqlList: "select code,title from accostcent1 order by code ",
                         sqlListChange: "select code,title from accostcent1 where code=:CODE",
-
                     })),
                 ccname: FormView.getFactoryFields.getGeneralField(
                     "ccname", "@", "", "0px", "", "23%",
@@ -388,6 +422,84 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
+                        keyboardFocus: false,
+                    }, {}),
+                pur_date: FormView.getFactoryFields.getDateField(
+                    "pur_date", "", "txtFABeginDate", "30%", "", "20%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, {}),
+                purprice: FormView.getFactoryFields.getMoneyField(
+                    "purprice", "@", "shortTxtFAPurPrice", "20%", "", "20%",
+                    {
+
+                    }, {}),
+                deprate: FormView.getFactoryFields.getNumberField(
+                    "deprate", "", "shortTxtDepRate", "30%", "", "20%",
+                    {
+                    }, {
+                    change: function (e) {
+                        var vl = Util.extractNumber(this.getValue());
+                        var cnt = this;
+                        if (vl < 1 || vl > 100) {
+                            cnt.setValue(1);
+                            setTimeout(() => { cnt.focus(); cnt.selectText(0, 999); }, 500);
+                            FormView.err("Invalid rate !");
+                        };
+                    }
+                }),
+                netbookvalue: FormView.getFactoryFields.getMoneyField(
+                    "netbookvalue", "@", "netBookValue", "20%", "", "20%",
+                    {
+
+                    }, {}),
+                lastdepdate: FormView.getFactoryFields.getDateField(
+                    "lastdepdate", "", "lastDepDate", "30%", "", "20%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, {}),
+
+                priordep: FormView.getFactoryFields.getMoneyField(
+                    "priordep", "@", "shortTxtPriorDep", "20%", "", "20%",
+                    {
+                        insert_allowed: true,
+                        edit_allowed: false
+
+                    }, {}),
+                titVal: FormView.getFactoryFields.getGeneralField(
+                    "titVal", "", "titFAValuation", "100%", "qrGroup", "0px",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                    }, {}, "Center"),
+                totadd: FormView.getFactoryFields.getMoneyField(
+                    "totadd", "", "totAdd", "13%", "", "12%",
+                    {
+                        insert_allowed: false,
+                        edit_allowed: false
+                    }, {}),
+                totded: FormView.getFactoryFields.getMoneyField(
+                    "totded", "@", "totDed", "12%", "", "12%",
+                    {
+                        insert_allowed: false,
+                        edit_allowed: false
+                    }, {}),
+                totdep: FormView.getFactoryFields.getMoneyField(
+                    "totdep", "@", "shortTotDep", "12%", "", "12%",
+                    {
+                        insert_allowed: true,
+                        edit_allowed: false
+
+                    }, {}),
+                totalvalue: FormView.getFactoryFields.getMoneyField(
+                    "totalvalue", "@", "totalValue", "12%", "", "12%",
+                    {
+                        insert_allowed: false,
+                        edit_allowed: false,
+                        display_style: "totInput",
                     }, {}),
 
             };
@@ -397,27 +509,20 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
             return [
                 {
                     name: 'list1',
-                    title: "List of Orders",
+                    title: "List of FA ITEMS",
                     list_type: "sql",
                     cols: [
                         {
-                            colname: "ORD_NO",
+                            colname: "DESCR",
                         },
                         {
-                            colname: "ORD_REF",
-                        },
-                        {
-                            colname: "ORD_REFNM"
-                        },
-                        {
-                            colname: 'KEYFLD',
+                            colname: 'CODE',
                             return_field: "pac",
                         },
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
-                        " order by o1.ord_date desc,ord_no desc",
+                    sql: "select code,descr from faitems where order by code",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -524,39 +629,27 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
         beforeSaveValidateQry: function (qry) {
             var thatForm = this.thatForm;
             var flg = "";
+            var errObj = function (msg, obj) {
+                var o = thatForm.frm.objs[obj].obj;
+                UtilGen.errorObj(o, 3500);
+                if (o instanceof sap.m.InputBase)
+                    o.focus();
+                FormView.err(msg);
+
+            };
+            var validateAcc = function (fldAcc) {
+                var cod = thatForm.frm.getFieldValue(fldAcc);
+                var sqcnt = Util.getSQLValue("select nvl(count(*),0) from acaccount where " + flg + " accno='" + cod + "'");
+                if (sqcnt == 0) errObj("Save Denied : ACCOUNT is invalid !", fldAcc);
+                sqcnt = Util.getSQLValue("select nvl(count(*),0) from acaccount where parentacc='" + cod + "'");
+                if (sqcnt > 0) errObj("Save Denied : Parent ACCOUNT not allowed !", fldAcc);
+            }
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
 
             }
-            var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
-            var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
-            if (sqcnt == 0) FormView.err("Save Denied : Customer is invalid !");
-            sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
-            if (sqcnt > 0) FormView.err("Save Denied : Parent customer not allowed !");
-
-
-            // items
-            var dup = {};
-            var ld = thatForm.frm.objs["qry2"].obj.mLctb;
-            thatForm.frm.objs["qry2"].obj.updateDataToTable();
-            for (var i = 0; i < ld.rows.length; i++) {
-                // var rfr = ld.getFieldValue(i, "ORD_SHIP");
-                // var qty = ld.getFieldValue(i, "TQTY");
-                // var pr = ld.getFieldValue(i, "SALE_PRICE");
-                // if (dup[rfr] != undefined)
-                //     FormView.err("Save Denied : Duplicate item entry # " + rfr);
-                // dup[rfr] = rfr;
-                // var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
-                // if (cnt > 0)
-                //     FormView.err("Save Denied : Item " + rfr + " is a group item !");
-                // var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where " + flg + " reference='" + rfr + "'");
-                // if (cnt == 0)
-                //     FormView.err("Save Denied: Item " + rfr + " is invalid entry !");
-                // if (pr < 0)
-                //     FormView.err("Save Denied: PRICE invalid value !");
-                // if (qty <= 0)
-                //     FormView.err("Save Denied: QTY invalid value !");
-            }
-
+            validateAcc("qry1.accno");
+            validateAcc("qry1.depaccno");
+            validateAcc("qry1.expaccno");
         }
     }
     ,
