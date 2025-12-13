@@ -14,6 +14,9 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
             vou_code: 11,
             type: 1
         };
+        that.rcv_data_timer = setInterval(function () {
+            that._rcvData();
+        }, 1000);
 
         // this.pgDetail = new sap.m.Page({showHeader: false});
 
@@ -57,9 +60,9 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
 
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
+        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + thatForm.vars.vou_code + " ORDER BY O1.ORD_POS ";
-            
+
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.frm;
@@ -119,8 +122,8 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         name: "qry1",
                         dml: "select *from order1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname'],
-                        insert_exclude_fields: ['branchname', 'txt_empname'],
+                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', 'cmdFirstW', 'cmdSecondW', 'weightbridge', 'titlew', 'cmdClearW', "cmdListEnt", "txt_cl"],
+                        insert_exclude_fields: ['branchname', 'txt_empname', 'cmdFirstW', 'cmdSecondW', 'weightbridge', 'titlew', 'cmdClearW', "cmdListEnt", "txt_cl"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "ORD_CODE": that.vars.vou_code,
@@ -140,14 +143,14 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         applyCol: "C7.BRPDLV1",
                         addRowOnEmpty: true,
                         dml: dmlSq,
-                        dispRecords: { "S": 5, "M": 7, "L": 10, "XL": 13, "XXL": 18 },
+                        dispRecords: { "S": 2, "M": 3, "L": 3, "XL": 4, "XXL": 6 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
                         delete_before_update: "delete from c_order1 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'PACKD', 'PACK'],
-                        insert_exclude_fields: ['DESCR', 'AMOUNT', 'PACKD', 'PACK'],
+                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT'],
+                        insert_exclude_fields: ['DESCR', 'AMOUNT',],
                         insert_default_values: {
                             "PERIODCODE": sett["CURRENT_PERIOD"],
                             "LOCATION_CODE": ":qry1.location_code",
@@ -313,9 +316,26 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 },
                 afterSaveForm: function (frm, nxtStatus) {
                     // frm.loadData(undefined, FormView.RecordStatus.NEW);
+                    frm.setQueryStatus(undefined, Util.nvl(nxtStatus, FormView.RecordStatus.NEW));
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
                     thatForm.helperFunc.beforeSaveValidateQry(qry);
+                    if (qry.name == "qry2") {
+                        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                        var ld = qry.obj.mLctb;
+                        var rfr = ld.getFieldValue(rowno, "ORD_SHIP");
+                        var pos = ld.getFieldValue(rowno, "ORD_POS");
+                        var rfnm = ld.getFieldValue(rowno, "ORD_REFNM");
+                        var dt = Util.execSQLWithData("select packd,unitd,pack from items where reference='" + rfr + "'", "Item # " + rfr + " not a valid !");
+                        var sq = "update c_order1 set ord_packd=':pkd',ord_unitd=':unitd' ,ord_pack=:pack , packdx=':pkd', ord_refnm=':rfnm', tqty=(ord_pkqty*:pack)+ord_unqty where keyfld=:kf and ord_pos=:pos "
+                            .replaceAll(":pkd", dt[0].PACKD)
+                            .replaceAll(":unitd", dt[0].UNITD)
+                            .replaceAll(":pack", dt[0].PACK)
+                            .replaceAll(":kf", kf)
+                            .replaceAll(":pos", pos)
+                            .replaceAll(":rfnm", rfnm);
+                        return sqlRow + ";" + sq;
+                    }
                     return "";
                 },
                 afterNewRow: function (qry, idx, ld) {
@@ -331,6 +351,13 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
 
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         qry.formview.setFieldValue("qry1.stra", sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
+
+                        qry.formview.setFieldValue("qry1.firstweight", 0, 0, true);
+                        qry.formview.setFieldValue("qry1.secondweight", 0, 0, true);
+                        qry.formview.setFieldValue("qry1.netweight", 0, 0, true);
+                        var wc = thatForm.lastwc != undefined ? thatForm.lastwc : '1';
+                        qry.formview.setFieldValue("qry1.weightcode", wc, wc, true);
+                        
 
 
                         objOn.fireSelectionChange();
@@ -358,6 +385,12 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 beforeDelRow: function (qry, idx, ld, data) {
 
                 },
+                afterDelSqlAdd: function () {
+                    var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+                    var delAdd = " c7_rm_gr(" + kf + ",'Y');";
+                    return delAdd;
+
+                },
                 afterDelRow: function (qry, ld, data) {
                     // var delAdd = "";
                     // if (qry.name == "qry1")
@@ -372,6 +405,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                                 FormView.err("This Delivery is posted to invoice !");
                             }
                         }
+
                     }
 
                     if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
@@ -390,7 +424,12 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
 
                     }
 
-                }
+                },
+                beforeExeSql: function (frm, sq) {
+                    var gkf = thatForm.frm.getFieldValue("qry1.keyfld");
+                    var sq1 = " c7_rm_gr(" + gkf + ");";
+                    return sq + sq1;
+                },
             };
         },
         getSummary: function () {
@@ -705,7 +744,86 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "35%" },
+                    other_settings: { editable: true, width: "12%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                payterm: {
+                    colname: "payterm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"truckNo\",\"width\":\"10%\","textAlign":"End","styleClass":"darkBlueText boldText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        editable: true, width: "13%",
+                    },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                ord_ref: {
+                    colname: "ord_ref",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtSupplier\",\"width\":\"15%\","textAlign":"End","styleClass":"darkBlueText boldText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        editable: true, width: "15%",
+                        showValueHelp: true,
+                        change: function (e) {
+
+                            var objBr = thatForm.frm.objs["qry1.ord_discamt"].obj;
+                            var objBrNm = thatForm.frm.objs["qry1.branchname"].obj;
+                            UtilGen.setControlValue(objBr, "", "", true);
+                            UtilGen.setControlValue(objBrNm, "", "", true);
+
+                            var sq = "select name from c_ycust where code = ':CODE'";
+                            UtilGen.Search.getLOVSearchField(sq, thatForm.frm.objs["qry1.ord_ref"].obj, undefined, thatForm.frm.objs["qry1.ord_refnm"].obj);
+                            UtilGen.setControlValue(objBr, "1", "1", true);
+                            thatForm.frm.objs["qry1.ord_discamt"].obj.fireChange();
+                        },
+                        valueHelpRequest: function (e) {
+
+                            var btns = [new sap.m.Button({
+                                text: Util.getLangText('newCustomer'), press: function () {
+                                    UtilGen.execCmd("gl.rp formType=dialog formSize=850px,450px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+
+                                    });
+                                }
+                            })];
+                            UtilGen.Search.do_quick_search(e, this,
+                                "select code,name title from c_ycust where issupp='Y'  order by path ",
+                                "select code,name title from c_ycust where code=:CODE", thatForm.frm.objs["qry1.ord_refnm"].obj, undefined, undefined, btns);
+                        }
+
+                    },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                ord_refnm: {
+                    colname: "ord_refnm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "20%" },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true
@@ -714,7 +832,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     colname: "ord_discamt",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '{\"text\":\"txtBranch\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"txtBranch\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
@@ -751,33 +869,203 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     colname: "branchname",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End","styleClass":""}',
+                    title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "19%" },
+                    other_settings: { editable: true, width: "20%" },
                     edit_allowed: false,
                     insert_allowed: false,
                     require: false
                 },
-                payterm: {
-                    colname: "payterm",
+                weightcode: {
+                    colname: "weightcode",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"truckNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
                     title2: "",
                     canvas: "default_canvas",
                     display_width: codSpan,
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "35%" },
+                    default_value: sett["DEFAULT_STORE"],
+                    other_settings: {
+                        editable: true, width: "20%",
+                        selectedKey: "1",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectionChange: function (e) {
+                            var cnt = this;
+                            setTimeout(function () {
+                                cnt.$().find("input").attr("readonly", true);
+                                thatForm.lastwc = cnt.getValue();
+                            }, 250);
+                        },
+                    },
+
                     edit_allowed: true,
                     insert_allowed: true,
-                    require: true
+                    keyboardFocus: false,
+                    require: false,
+                    list: "@1/NEW,2/OLD"
+                },
+                titlew: {
+                    colname: "titlew",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: '@{\"text\":\"txtWeightTit\",\"width\":\"80%\","textAlign":"Center","styleClass":"titleFont"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { editable: true, width: "0px", height: "25px", text: "" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    keyboardFocus: false,
+                    require: false
+                },
+                weightbridge: {
+                    colname: "weightbridge",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"Weight Bridge\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "qtyWeightTxt1",
+                    display_format: sett["FORMAT_QTY_1"],
+                    other_settings: { editable: true, width: "30%" },
+                    edit_allowed: false,
+                    keyboardFocus: false,
+                    insert_allowed: false,
+                    require: false
+                },
+                cmdFirstW: {
+                    colname: "cmdFirstW",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.BUTTON,
+                    title: '@{\"text\":\" \",\"width\":\"1%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "greenTextBtn",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: {
+                        editable: true, width: "14%", text: Util.getLangText("txtFirstWeight"),
+                        press: function () {
+                            thatForm.setWeightValue(1);
+                        }
+                    },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    keyboardFocus: false,
+                    require: false
+                },
+                cmdSecondW: {
+                    colname: "cmdSecondW",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.BUTTON,
+                    title: '@{\"text\":\" \",\"width\":\"1%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "greenTextBtn",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    keyboardFocus: false,
+                    other_settings: {
+                        editable: true, width: "14%", text: Util.getLangText("txtSecondWeight"),
+                        press: function () {
+                            thatForm.setWeightValue(2);
+                        }
+                    },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
+                },
+                cmdListEnt: {
+                    colname: "cmdListEnt",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.BUTTON,
+                    title: '@{\"text\":\" \",\"width\":\"0px\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "redTextBtn",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    keyboardFocus: false,
+                    other_settings: {
+                        editable: true, width: "14%", text: Util.getLangText("truckIn"),
+                        press: function () {
+                            thatForm.showTrucksIn();
+                        }
+                    },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
+                },
+                firstweight: {
+                    colname: "firstweight",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtFirstWeight\",\"width\":\"16%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "qtyWeightTxt",
+                    display_format: sett["FORMAT_QTY_1"],
+                    other_settings: { editable: true, width: "16%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    keyboardFocus: false,
+                    require: false
+                },
+                secondweight: {
+                    colname: "secondweight",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"txtSecondWeight\",\"width\":\"16%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "qtyWeightTxt",
+                    display_format: sett["FORMAT_QTY_1"],
+                    other_settings: { editable: true, width: "16%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    keyboardFocus: false,
+                    require: false
+                },
+                netweight: {
+                    colname: "netweight",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"Net Weight\",\"width\":\"16%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "qtyWeightTxt",
+                    display_format: sett["FORMAT_QTY_1"],
+                    other_settings: { editable: true, width: "16%" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    keyboardFocus: false,
+                    require: false
                 },
             };
         },
@@ -1235,6 +1523,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
                 if (txtStartDate.getValue() != "" && txtItem.getValue() != "" && parseFloat(txtNewPrice.getValue()) > 0) ed = true;
                 if (lastDate != undefined && sdf.format(lastDate) == sdf.format(txtStartDate.getDateValue())) ed = false;
+
                 btAp.setEnabled(ed);
             }
             var txtStartDate = new sap.m.DatePicker({
@@ -1480,6 +1769,9 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
         beforeSaveValidateQry: function (qry) {
             var thatForm = this.thatForm;
             var flg = "";
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
+
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
                 flg = " flag=1 and ";
                 var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
@@ -1531,9 +1823,11 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
             var dup = {};
             var ld = thatForm.frm.objs["qry2"].obj.mLctb;
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
+            if (ld.rows.length > 1) FormView.err("Remove 2nd record !");
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
-                var qty = ld.getFieldValue(i, "TQTY");
+                var qty = ld.getFieldValue(i, "ORD_PKQTY");
+                var uqty = ld.getFieldValue(i, "ORD_UNQTY");
                 var pr = ld.getFieldValue(i, "SALE_PRICE");
                 if (dup[rfr] != undefined)
                     FormView.err("Save Denied : Duplicate item entry # " + rfr);
@@ -1546,8 +1840,19 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     FormView.err("Save Denied: Item " + rfr + " is invalid entry !");
                 if (pr < 0)
                     FormView.err("Save Denied: PRICE invalid value !");
-                if (qty <= 0)
+                if (qty <= 0 && uqty <= 0)
                     FormView.err("Save Denied: QTY invalid value !");
+            }
+
+            var wgt1 = Util.extractNumber(thatForm.frm.getFieldValue("qry1.firstweight"));
+            var wgt2 = Util.extractNumber(thatForm.frm.getFieldValue("qry1.secondweight"));
+            if (wgt1 > 0 && wgt2 > 0) {
+                nt = Math.abs(wgt2 - wgt1);
+                var vvl = nt > 0 ? df.format((nt / 1000)) : 0;
+                ld.setFieldValue(0, "ORD_UNQTY", vvl);
+                thatForm.frm.objs["qry2"].obj.updateDataToControl();
+
+                thatForm.frm.objs["qry2"].obj.eventCalc(thatForm.frm.objs["qry2"].obj, undefined, undefined, true);
             }
 
         }
@@ -1571,6 +1876,167 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
         return true;
     }
     ,
+    setWeightFields: function () {
+        var that = this;
+        that.hadFW = false;
+        that.hadSW = false;
+        that.frm.objs["qry1.cmdFirstW"].obj.setEnabled(true);
+        that.frm.objs["qry1.cmdSecondW"].obj.setEnabled(true);
+        if (that.frm.objs["qry1"].status == FormView.RecordStatus.NEW)
+            return
+
+        var wgt1 = Util.extractNumber(that.frm.getFieldValue("qry1.firstweight"));
+        var wgt2 = Util.extractNumber(that.frm.getFieldValue("qry1.secondweight"));
+        if (wgt1 > 0) { that.hadFW = true; that.frm.objs["qry1.cmdFirstW"].obj.setEnabled(false); }
+        if (wgt2 > 0) { that.hadSW = true; that.frm.objs["qry1.cmdSecondW"].obj.setEnabled(false); }
+
+    },
+    setWeightValue: function (n) {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
+        if (!(that.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+            that.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+            // clearInterval(that.rcv_data_timer);
+            FormView.err("Cant update on view mode ");
+            return;
+        }
+        var wgtb = Util.extractNumber(that.frm.getFieldValue("qry1.weightbridge"));
+        var nt = 0;
+
+        if (n == 0) {
+            that.frm.setFieldValue("qry1.firstweight", df.format(0), df.format(0));
+            that.frm.setFieldValue("qry1.secondweight", df.format(0), df.format(0));
+        }
+        if (n == 1) that.frm.setFieldValue("qry1.firstweight", df.format(wgt1), df.format(wgtb));
+        if (n == 2) that.frm.setFieldValue("qry1.secondweight", df.format(wgt2), df.format(wgtb));
+
+        var wgt1 = Util.extractNumber(that.frm.getFieldValue("qry1.firstweight"));
+        var wgt2 = Util.extractNumber(that.frm.getFieldValue("qry1.secondweight"));
+        if (wgt1 > 0 && wgt2 > 0)
+            nt = Math.abs(wgt2 - wgt1);
+        that.frm.setFieldValue("qry1.netweight", df.format(nt), df.format(nt));
+        that.frm.objs["qry2"].obj.updateDataToTable();
+
+        var qv = that.frm.objs["qry2"].obj;
+        var tbl = qv.getControl();
+
+        if (qv.mLctb.rows.length > 0) {
+            var cnx = qv.getControl().getRows()[0].getCells()[UtilGen.getTableColNo(tbl, "ORD_UNQTY")];
+            // cnx.focus();
+            var vvl = nt > 0 ? df.format((nt / 1000)) : 0;
+            if (cnx instanceof sap.m.Text) {
+                cnx.setText(vvl);
+                var cnx2 = qv.getControl().getRows()[0].getCells()[UtilGen.getTableColNo(tbl, "ORD_UNQTY")];
+                cnx2.focus();
+                cnx2.fireChange({ value: cnx2.getValue() });
+            }
+            else {
+                cnx.focus();
+                cnx.setValue(vvl);
+                cnx.fireChange({ value: vvl });
+            }
+
+        }
+
+
+    },
+    showTrucksIn: function () {
+        var that = this;
+        var sq = "select ord_no,ord_date,payterm,ord_ref,ord_refnm,firstweight||' KG' firstweight,keyfld from order1 where ord_code=11" +
+            " and saleinv is null and ( (firstweight>0 and secondweight=0) or (firstweight=0 and secondweight>0) ) order by ord_no ";
+        UtilGen.Search.do_quick_search_simple(sq,
+            ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM", "FIRSWEIGHT", "PAYTERM"], function (data) {
+                that.frm.setFieldValue("pac", data.KEYFLD);
+                that.frm.loadData(undefined, "edit");
+                return true;
+
+            }, { pWidth: "80%" }, undefined, false, Util.getLangText("truckIn"), [
+            {
+                ORD_NO: {
+                    colname: "ORD_NO",
+                    display_width: 80,
+                    mTitle: Util.getLangText("txtNo"),
+                }
+            },
+            {
+                ORD_DATE: {
+                    colname: "ORD_DATE",
+                    display_format: "SHORT_DATE_FORMAT",
+                    mTitle: Util.getLangText("ordDate"),
+                    display_width: 100
+                }
+            },
+            {
+                ORD_REF: {
+                    colname: "ORD_REF",
+                    mTitle: Util.getLangText("refCode"),
+                    display_width: 100,
+                }
+            },
+            {
+                ORD_REFNM: {
+                    colname: "ORD_REFNM",
+                    mTitle: Util.getLangText("refName"),
+                    display_width: 250
+
+                }
+            },
+            {
+                PAYTERM: {
+                    colname: "PAYTERM",
+                    mTitle: Util.getLangText("txtVehicleNo"),
+                    display_width: 100
+
+                }
+            },
+            {
+                FIRSTWEIGHT: {
+                    colname: "PAYTERM",
+                    mTitle: Util.getLangText("txtFirstWeight"),
+                    display_width: 100
+
+                }
+            },
+            {
+                KEYFLD: {
+                    colname: 'KEYFLD',
+
+                    hide: true
+                }
+            },
+        ]);
+    },
+    _rcvData: function () {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        if (that.ERROR_ON_RCV_DATA == true || that.joApp.isDestroyed()) {
+            clearInterval(that.rcv_data_timer);
+        }
+
+        if (!(that.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+            that.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+            // clearInterval(that.rcv_data_timer);
+            return;
+        }
+        var cod = Util.nvl(that.frm.getFieldValue("qry1.weightcode"), "1");
+
+        Util.doAjaxJson("lastweightbridge?code=" + cod, {
+        }, false).done(function (data) {
+            if (data.ret == "SUCCESS") {
+                var d = Util.extractNumber(Util.nvl(data.data, "0"));
+                if (d <= 0) d = 0;
+                var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
+                that.frm.setFieldValue("qry1.weightbridge", df.format(d), df.format(d));
+                if (that.idWeight != undefined &&
+                    that.view.byId(that.idWeight) != undefined &&
+                    that.view.byId(that.idWeight) instanceof sap.m.Input) {
+                    that.view.byId(that.idWeight).setValue(df.format(d));
+                }
+
+            }
+        });
+    },
     save_data: function () {
     }
     ,
