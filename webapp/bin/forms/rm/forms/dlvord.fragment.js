@@ -104,8 +104,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         name: "qry1",
                         dml: "select *from c_nextordx where  keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv"],
-                        insert_exclude_fields: ['branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv"],
+                        update_exclude_fields: ['keyfld', 'branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv", "txtprice", "txtamt", "txtbal", "txtcl", "txtod"],
+                        insert_exclude_fields: ['branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv", "txtprice", "txtamt", "txtbal", "txtcl", "txtod"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "CREATDT": "sysdate"
@@ -144,6 +144,40 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
 
     createViewHeader: function () {
     },
+    clearAmts: function () {
+        var thatForm = this;
+        thatForm.frm.setFieldValue("qry1.txtamt", 0, 0, true);
+        thatForm.frm.setFieldValue("qry1.txtcl", 0, 0, true);
+        thatForm.frm.setFieldValue("qry1.txtbal", 0, 0, true);
+        thatForm.frm.setFieldValue("qry1.txtod", 0, 0, true);
+
+    },
+    fetchAmts: function (fetchPrice) {
+        var thatForm = this;
+        thatForm.clearAmts();
+
+        if (Util.nvl(fetchPrice, true)) {
+            var sq = thatForm.frm.parseString("select get_item_price2(':qry1.ord_item',':qry1.ord_ref',':qry1.ord_branch',:qry1.ord_date) from dual");
+            var pr = Util.getSQLValue(sq);
+            thatForm.frm.setFieldValue("qry1.txtprice", pr, pr, true);
+        }
+        if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+            return true;
+
+        var pr = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtprice"));
+        var qt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.oqty"));
+        var amt = pr * qt;
+        var sq2 = thatForm.frm.parseString("select c7_get_cb(':qry1.ord_ref','Y','Y') from dual");
+        var bl = Util.extractNumber(Util.getSQLValue(sq2)) + amt;
+        var cl = Util.getSQLValue("select crd_limit from c_ycust where code='" + thatForm.frm.getFieldValue("qry1.ord_ref") + "'");
+        thatForm.frm.setFieldValue("qry1.txtamt", amt, amt, true);
+        thatForm.frm.setFieldValue("qry1.txtcl", cl, cl, true);
+        thatForm.frm.setFieldValue("qry1.txtbal", bl, bl, true);
+        thatForm.frm.setFieldValue("qry1.txtod", 0, 0, true);
+        if (cl != 0)
+            thatForm.frm.setFieldValue("qry1.txtod", (bl - cl), (bl - cl), true);
+
+    },
     helperFunc: {
         init: function (frm) {
             this.thatForm = frm;
@@ -162,6 +196,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         UtilGen.Search.getLOVSearchField(strInvs, qry.formview.objs["qry1.ord_branch"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
                         UtilGen.Search.getLOVSearchField("select descr from items where reference = ':CODE'", qry.formview.objs["qry1.ord_item"].obj, undefined, that.frm.objs["qry1.itemname"].obj);
                         thatForm.frm.setFieldValue("qry1.ord_packd", "M3", "M3", true);
+                        thatForm.fetchAmts(true);
                     }
 
 
@@ -195,6 +230,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
 
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         objOn.fireSelectionChange();
+                        thatForm.clearAmts();
 
                     }
                 },
@@ -368,6 +404,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         var locval = thatForm.frm.objs[code].obj.getValue();
                         var s = Util.getSQLValue("select packd from items where reference='" + locval + "'");
                         thatForm.frm.setFieldValue("qry1.ord_packd", s);
+                        thatForm.fetchAmts();
 
                     }
                 });
@@ -493,6 +530,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     }, {
                     change: function () {
                         // thatForm.helperFunc.setTotToday();
+                        var pr = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtprice"));
+                        var qt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.oqty"));
+                        var amt = pr * qt;
+                        thatForm.frm.setFieldValue("qry1.txtamt", amt, amt, true);
+
                     }
                 }),
                 ord_packd: FormView.getFactoryFields.getGeneralField(
@@ -504,10 +546,80 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         keyboardFocus: false,
 
                     }, {}),
+                pump: FormView.getFactoryFields.getGeneralField(
+                    "pump", "", "Pump", "15%", "", "35%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        list: "select name code,name from relists where idlist='PUMPS' order by name",
+                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.pump", "PUMPS")), // pump
+              
+                    ord_descr: FormView.getFactoryFields.getGeneralField(
+                    "ord_descr", "@", "txtRemark", "15%", "", "35%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {}),
                 lblLv: FormView.getFactoryFields.getTextField("lblLv", "", "", "100%", "", {}, {}),
                 lblLv0: FormView.getFactoryFields.getTextField("lblLv0", "", "txtBalancesCreditLimit", "100%", "qrGroup", {}, {}),
-                lblLv1: FormView.getFactoryFields.getTextField("lblLv", "", "", "100%", "", {}, {}),
-                lblLv01: FormView.getFactoryFields.getTextField("lblLv0", "", "txtBalancesCreditLimit", "100%", "qrGroup", {}, {}),
+                lblLv1: FormView.getFactoryFields.getTextField("lblLv1", "", "", "100%", "", {}, {}),
+                lblLv01: FormView.getFactoryFields.getTextField("lblLv01", "", "txtPrice", "20%", "boldText", {}, {}),
+                lblLv02: FormView.getFactoryFields.getTextField("lblLv02", "@", "amountTxt", "20%", "boldText", {}, {}),
+                lblLv03: FormView.getFactoryFields.getTextField("lblLv03", "@", "balanceTxt", "20%", "boldText", {}, {}),
+                lblLv04: FormView.getFactoryFields.getTextField("lblLv04", "@", "txtCreditLimit", "20%", "boldText", {}, {}),
+                lblLv05: FormView.getFactoryFields.getTextField("lblLv05", "@", "overDue", "20%", "boldText", {}, {}),
+                txtprice: FormView.getFactoryFields.getMoneyField(
+                    "txtprice", "", "", "0px", "", "20%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+                        display_style: "totInput",
+                    }, {}),
+                txtamt: FormView.getFactoryFields.getMoneyField(
+                    "txtamt", "@", "", "0px", "", "20%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+                        display_style: "totInput",
+
+                    }, {}),
+                txtbal: FormView.getFactoryFields.getMoneyField(
+                    "txtbal", "@", "", "0px", "", "20%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+                        display_style: "totInput",
+                    }, {}),
+                //credit limit
+                txtcl: FormView.getFactoryFields.getMoneyField(
+                    "txtcl", "@", "", "0px", "", "20%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+                        display_style: "totInput",
+                    }, {}),
+                //over due
+                txtod: FormView.getFactoryFields.getMoneyField(
+                    "txtod", "@", "", "0px", "", "20%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+                        display_style: "totInput",
+
+                    }, {}),
+
             };
         },
         getCommands: function () {
