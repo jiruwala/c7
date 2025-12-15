@@ -832,7 +832,17 @@ th {
     color: darkviolet !important;
 }
 
+.redInp .sapMInputBaseInner {
+    background-color: red;
+    
+    color: white;
+}
 
+.greenInp .sapMInputBaseInner {
+    background-color:lightgreen;
+    
+    color:black
+}
 .boldText {
     font-weight: bold;
     text-align: center;

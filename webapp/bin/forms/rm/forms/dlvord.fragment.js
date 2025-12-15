@@ -68,8 +68,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
         this.frm;
         var js = {
             form: {
-                title: Util.getLangText("dlvNoteBR"),
-                toolbarBG: "lightgreen",
+                title: Util.getLangText("titSalesOrder"),
+                toolbarBG: "orange",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
@@ -104,8 +104,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         name: "qry1",
                         dml: "select *from c_nextordx where  keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv", "txtprice", "txtamt", "txtbal", "txtcl", "txtod"],
-                        insert_exclude_fields: ['branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv", "txtprice", "txtamt", "txtbal", "txtcl", "txtod"],
+                        update_exclude_fields: ['keyfld', 'branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv", "txtprice", "txtamt", "txtbal", "txtcl", "txtod", "lblLv1", "lblLv01", "lblLv02", "lblLv03", "lblLv04", "lblLv05"],
+                        insert_exclude_fields: ['branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv", "txtprice", "txtamt", "txtbal", "txtcl", "txtod", "lblLv1", "lblLv01", "lblLv02", "lblLv03", "lblLv04", "lblLv05"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "CREATDT": "sysdate"
@@ -150,7 +150,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
         thatForm.frm.setFieldValue("qry1.txtcl", 0, 0, true);
         thatForm.frm.setFieldValue("qry1.txtbal", 0, 0, true);
         thatForm.frm.setFieldValue("qry1.txtod", 0, 0, true);
-
+        thatForm.checkCLColor();
     },
     fetchAmts: function (fetchPrice) {
         var thatForm = this;
@@ -176,6 +176,58 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
         thatForm.frm.setFieldValue("qry1.txtod", 0, 0, true);
         if (cl != 0)
             thatForm.frm.setFieldValue("qry1.txtod", (bl - cl), (bl - cl), true);
+        thatForm.checkCLColor();
+    },
+    checkCLColor: function () {
+        var thatForm = this;
+        var objCl = thatForm.frm.objs["qry1.txtod"].obj;
+        var cl = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtcl"));
+        var bl = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtbal"));
+        objCl.removeStyleClass("greenInp");
+        objCl.removeStyleClass("redInp");
+        if (cl == 0) { objCl.addStyleClass("greenInp"); return; };
+        if (bl > cl)
+            objCl.addStyleClass("redInp");
+        else objCl.addStyleClass("greenInp");
+    },
+    checkCL: function (pErr, pFetchaount) {
+        var err = Util.nvl(pErr, true);
+        var fa = Util.nvl(pFetchaount, true);
+
+        var thatForm = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+        var cust = thatForm.frm.getFieldValue("qry1.ord_ref");
+        if (Util.nvl(sett["DLV_CUST_ABOVE_CREDIT_BLOCK"], "TRUE") != "TRUE")
+            return false;
+        if (fa)
+            thatForm.fetchAmts();
+        var cl = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtcl"));
+        var totamt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtamt"));
+        var bal = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtbal"));
+
+        if (cl == 0) return true;
+
+        // var totamt = Util.extractNumber(thatForm.frm.getFieldValue("amt"));
+
+        if (totamt <= 0) FormView.err("Cant save AMOUNT = 0  !");
+        if (bal > cl) {
+            var msg = Util.getLangText("txtCreditLimit") + " # " + df.format(cl) + " , " +
+                Util.getLangText("needCreditLimit") + " = " + df.format(bal);
+            FormView.msgCustom(msg, "white", "red", "20px");
+            if (err) throw msg;
+            return false;
+        }
+
+        return true;
+    },
+    checkExisted: function () {
+        var thatForm = this;
+        var sq = thatForm.frm.parseString("select nvl(max(ord_no),0) from c_nextordx where ord_ref=':qry1.ord_ref' and" +
+            " ord_date=:qry1.ord_date and ord_branch=':ord_branch' and ord_item=':qry1.ord_item'");
+        var dt = Util.getSQLValue(sq);
+        if (dt != 0) FormView.err("This customer , branch and item existed ! Order # " + dt);
 
     },
     helperFunc: {
@@ -456,13 +508,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     "ord_ref", "", "txtCust", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true
                     }, FormView.getFactoryFields.getSettingsOrdRef2({
                         thatForm: thatForm,
                         fnAfteUpdate: function () {
                             // var locval = thatForm.frm.objs["qry1.ord_ref"].obj.getValue();
                             thatForm.frm.setFieldValue("qry1.ord_branch", "", "", true);
+                            thatForm.checkCLColor();
                             // thatForm.frm.setFieldValue("qry1.salesp", "", "", true);
                             // if (locval != "") {
                             //     var s = Util.getSQLValue("select salesp from c_ycust where code='" + locval + "'");
@@ -474,14 +527,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     "ord_refnm", "@", "", "1%", "", "22%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true,
                     }, {}),
                 ord_branch: FormView.getFactoryFields.getGeneralField(
                     "ord_branch", "@", "txtBranch", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true,
 
                     }, FormView.getFactoryFields.getSettingsBr({
@@ -492,6 +545,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         },
                         fnBeforeChange: function () {
                             thatForm.frm.setFieldValue("qry1.ord_item", "", "", true);
+                            thatForm.checkCLColor();
                         }
                     })),
                 branchname: FormView.getFactoryFields.getGeneralField(
@@ -509,7 +563,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     "ord_item", "", "itemTxt", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true,
                     }, getSettingContItems()),
                 itemname: FormView.getFactoryFields.getGeneralField(
@@ -525,16 +579,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     "oqty", "@", "itemPackQty", "15%", "violetText", "22%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true,
                     }, {
                     change: function () {
-                        // thatForm.helperFunc.setTotToday();
-                        var pr = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtprice"));
-                        var qt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.oqty"));
-                        var amt = pr * qt;
-                        thatForm.frm.setFieldValue("qry1.txtamt", amt, amt, true);
-
+                        thatForm.fetchAmts();
                     }
                 }),
                 ord_packd: FormView.getFactoryFields.getGeneralField(
@@ -554,8 +603,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         insert_allowed: true,
                         list: "select name code,name from relists where idlist='PUMPS' order by name",
                     }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.pump", "PUMPS")), // pump
-              
-                    ord_descr: FormView.getFactoryFields.getGeneralField(
+
+                ord_descr: FormView.getFactoryFields.getGeneralField(
                     "ord_descr", "@", "txtRemark", "15%", "", "35%",
                     {
                         require: false,
@@ -616,7 +665,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         edit_allowed: false,
                         insert_allowed: false,
                         keyboardFocus: false,
-                        display_style: "totInput",
+                        display_style: "greenInp",
 
                     }, {}),
 
@@ -805,7 +854,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                 setTimeout(() => { thatForm.frm.objs["qry1.ord_branch"].focus(); }, 150);
                 FormView.err("Save Denied : Branch  is invalid !");
             }
-
+            thatForm.checkCL();
+            thatForm.checkExisted();
         }
     }
     ,

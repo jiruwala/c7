@@ -174,7 +174,34 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
 
     createViewHeader: function () {
     },
+    checkCL: function (pErr) {
+        var err = Util.nvl(pErr, true);
+        var thatForm = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+        var cust = thatForm.frm.getFieldValue("qry1.ord_ref");
+        if (Util.nvl(sett["DLV_CUST_ABOVE_CREDIT_BLOCK"], "TRUE") != "TRUE")
+            return false;
+        var cl = Util.getSQLValue("select nvl(crd_limit,0) from c_ycust where code='" + cust + "'");
 
+        if (cl == 0) return true;
+        var sq = thatForm.frm.parseString("select get_item_price2(':qry1.ord_ship',':qry1.ord_ref',':qry1.ord_discamt',:qry1.ord_date) from dual");
+        var pr = Util.getSQLValue(sq);
+        var qt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.ord_pkqty"));
+        var totamt = qt * pr;
+        if (totamt <= 0) FormView.err("Cant save AMOUNT = 0  !");
+        var bal = Util.getSQLValue("select c7_get_cb('" + cust + "' , 'Y','Y') from dual");
+        bal = bal + totamt;
+        if (bal > cl) {
+            var msg = Util.getLangText("txtCreditLimit") + " # " + df.format(cl) + " , " +
+                Util.getLangText("needCreditLimit") + " = " + df.format(bal);
+            FormView.msgCustom(msg, "white", "red", "20px");
+            if (err) throw msg;
+        }
+
+        return true;
+    },
     helperFunc: {
         init: function (frm) {
             this.thatForm = frm;
@@ -251,7 +278,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                             });
 
                         }
-
+                        thatForm.checkCL();
                     } else thatForm.helperFunc.beforeSaveValidateQry(qry);
                     return "";
                 },
@@ -862,7 +889,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         edit_allowed: true,
                         insert_allowed: true,
                     }, {}),
-
                 stra: FormView.getFactoryFields.getComboField(
                     "stra", "@", "storeNo", "15%", "", "35%",
                     {
@@ -1233,7 +1259,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                 if (Util.nvl(mx, "") == "")
                     FormView.err("Err !, Pump : " + mx + " not found !");
             }
-
+            thatForm.checkCL();
 
         },
         fetchItem: function () {

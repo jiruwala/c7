@@ -70,8 +70,8 @@ sap.ui.jsview("bin.forms.rm.mo", {
     loginToDB: function () {
         var that = this;
         var url = new URL(window.location.href);
-        var fn = Util.nvl(url.searchParams.get("filename"), "EUR.ini");
-        var pth = "login?user=ADMIN&password=123&file=" + fn + "&language=EN";
+        var fn = Util.nvl(url.searchParams.get("filename"), "C76AS.ini");
+        var pth = "login?user=DEV&password=786&file=" + fn + "&language=EN";
         var dt = null;
         this.oController.doAjaxGet(pth, "", false).done(function (data) {
             dt = JSON.parse(data);
