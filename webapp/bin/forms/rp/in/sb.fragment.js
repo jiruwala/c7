@@ -187,14 +187,14 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 disp_class: "reportTable2",
                                 dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 25 },
                                 execOnShow: false,
-                                dml: "SELECT   JI.REFER, nvl(descr,descra) DESCRA, ITPACKD, max(ob1.BAL) qtybf ," +
-                                    "NVL (SUM (ROUND ( (qtyin ), 3) / PACK), 0) qtyin ," +
-                                    "NVL (SUM (ROUND ( (qtyout ), 3) / PACK), 0) qtyout ," +
-                                    "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) qtyx, MAX(0) PACK_COST," +
+                                dml: "SELECT   JI.REFER, nvl(descr,descra) DESCRA, itunitd ITPACKD, max(ob1.BAL) qtybf ," +
+                                    "NVL (SUM (ROUND ( (qtyin ), 3)), 0) qtyin ," +
+                                    "NVL (SUM (ROUND ( (qtyout ), 3)), 0) qtyout ," +
+                                    "NVL (SUM (ROUND ( (qtyin - qtyout), 3) ), 0)+nvl(max(ob1.bal),0) qtyx, MAX(0) PACK_COST," +
                                     "PKAVER, NVL (SUM ( (pkcost / itpack) * (qtyin - qtyout)), 0) costamt, descr2," +
                                     "PARENTITEM , PARENTITEMDESCR , barcode " +
                                     " FROM   JOINED_INVOICE JI , " +
-                                    " (select refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3) / invoice2.PACK), 0) bal " +
+                                    " (select refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3)), 0) bal " +
                                     " from invoice2 where  dat<:parameter.fromdate AND (invoice2.STRA = :parameter.strno or :parameter.strno=0 ) group by refer ) ob1  " +
                                     " WHERE   ob1.refer(+)=ji.refer " +
                                     " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +

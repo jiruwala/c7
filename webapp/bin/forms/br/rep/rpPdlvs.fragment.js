@@ -120,7 +120,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS " +
                                         " FROM " +
-                                        " JOINED_CORDER,PUR1 INVOICE1 " +
+                                        " JOINED_CORDER11 joined_corder,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=11 " +
                                         " AND SALEINV=INVOICE1.KEYFLD (+) " +
                                         " and (invoice1.invoice_no=':parameter.pinvoice_no' or ':parameter.pinvoice_no' is null)  " +
@@ -452,7 +452,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     grouped: false,
                     display_style: "",
                     display_format: "",
-                    default_value: "",
+                    default_value: "",                    
                     other_settings: {},
 
                 },
@@ -468,8 +468,9 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
-                    display_format: "",
+                    display_format: "QTY_FORMAT",
                     default_value: "",
+                    summary: "SUM",
                     other_settings: {},
                 },
                 item_descr: {
