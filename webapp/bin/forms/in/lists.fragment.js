@@ -142,6 +142,13 @@ sap.ui.jsfragment("bin.forms.in.lists", {
                 that.joApp.backFunction();
             }
         });
+        var btAdd = new sap.m.Button({
+            icon: "sap-icon://add",
+            text: Util.getLangText("newRec"),
+            press: function () {
+                that.addNew();
+            }
+        });
 
         var fe = [
             Util.getLabelTxt("Lists", "100%", "", "titleFontWithoutPad2 boldText", "Center"),
@@ -161,7 +168,7 @@ sap.ui.jsfragment("bin.forms.in.lists", {
             ]
         }, "sapUiSizeCompact", "");
         var tb = new sap.m.Toolbar({
-            content: [btClose, that.btSave, this.btEdit]
+            content: [btClose, that.btSave, this.btEdit, btAdd]
         })
         this.mainPage.setShowSubHeader(true);
         this.mainPage.setSubHeader(tb);
@@ -173,6 +180,22 @@ sap.ui.jsfragment("bin.forms.in.lists", {
             });
         });
 
+    },
+    addNew: function () {
+        var that = this;
+        if (!that.btEdit.getPressed()) FormView.err("Form is not in Edit mode !");
+        UtilGen.inputDialog("Enter New List Type", "", "", function (str) {
+            if (Util.nvl(str, "").trim().length <= 0) { FormView.msgCustom("Err !, Must enter valid value !"); return false; }
+            that.cbListName.addItem(new sap.ui.core.ListItem({
+                text: str,
+                key: str
+            }));
+            that.cbListName.setSelectedKey(str);
+            that.cbListName.fireSelectionChange();
+            return true;
+        }, function () {
+            FormView.err("Must enter List value !");
+        }, undefined, undefined, {});
     },
     saveData: function () {
         var thatForm = this;

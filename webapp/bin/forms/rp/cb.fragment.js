@@ -50,7 +50,9 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                 customData: { key: ac },
                 press: function () {
                     var accno = this.getCustomData()[0].getKey();
-                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpostDlv=Y inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                    var pac = thatForm.frm.getFieldValue("CB001@parameter.accno");
+                    var pac = (pac != "") ? " paccno=" + pac : "";
+                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpostDlv=Y inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno + pac, UtilGen.DBView, obj, UtilGen.DBView.newPage);
                 }
             }));
             mnu.addItem(new sap.m.MenuItem({
@@ -122,7 +124,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 colname: "cust_code",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"A/c No\",\"width\":\"15%\","textAlign":"End"}',
+                                title: '{\"text\":\"txtCust\",\"width\":\"15%\","textAlign":"End"}',
                                 title2: "",
                                 display_width: colSpan,
                                 display_align: "ALIGN_RIGHT",
@@ -139,10 +141,14 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
 
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select code,name from c_ycust where iscust='Y' order by path", "NAME", "CODE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("CB001@parameter.cust_code", valx, valx, true);
-                                            thatForm.frm.setFieldValue("CB001@parameter.custname", val, val, true);
-                                        });
+                                        var repCode = "CB001";
+                                        var sq = "select code,name,namea from c_ycust where childcount>0 and iscust='Y' order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.cust_code", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.custname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
                                     },
                                     width: "35%"
                                 },
@@ -154,6 +160,72 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                             },
                             custname: {
                                 colname: "custname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            accno: {
+                                colname: "accno",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+                                        var repCode = "CB001";
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.accno", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select name from acaccount where actype=0 and accno =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.acname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        var repCode = "CB001";
+                                        var sq = thatForm.frm.parseString("SELECT   a.accno, a.name, a.namea" +
+                                            " FROM   acaccount a, (SELECT   DISTINCT accno" +
+                                            "                       FROM   acvoucher2,C_YCUST CC" +
+                                            "                      WHERE   CUST_CODE=CC.CODE AND PATH LIKE (SELECT NVL(" +
+                                            "  MAX(PATH),'')||'%' " +
+                                            "  FROM C_YCUST " +
+                                            "  WHERE CODE=':parameter.cust_code') ) vx " +
+                                            "  WHERE   vx.accno = a.accno" +
+                                            "     ORDER BY   a.PATH");
+                                        // var sq = "select accno,name,namea from acaccount where  actype=0 order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.accno", data.ACCNO, data.ACCNO, true);
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.acname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            acname: {
+                                colname: "acname",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
                                 title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
@@ -282,18 +354,22 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 filterCols: ["CODE", "NAME", "SLSNAME", "SALESP", "TEL", "ALLBALANCE", "UNPOST_BAL"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 beforeLoadQry: function (sql) {
-
-                                    return "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ,c_ycust.salesp," +
+                                    var iq = thatForm.frm.getFieldValue("parameter.cust_code");
+                                    var replc = "iscust='Y'";
+                                    if (iq != "") replc = '1=1';
+                                    return ("SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ,c_ycust.salesp," +
                                         " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
                                         " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +
                                         " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
                                         " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
-                                        " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and iscust='Y' " +
+                                        " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and :iscust " +
                                         " and (nvl(':parameter.pstatus','ALL')='ALL' or c_ycust.mov_type=':parameter.pstatus')  " +
                                         " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
+                                        " and (':parameter.accno' is null or v.accno=':parameter.accno' ) " +
                                         " and vou_date<=:parameter.todate  GROUP BY   code, c_ycust.name,C_YCUST.SALESP,sl.name ,0," +
-                                        " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code";
-                                        
+                                        " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL, C_YCUST.ADDR,C_YCUST.EMAIL order by c_ycust.code")
+                                        .replaceAll(":iscust", replc);
+
                                     /*
                                     return "SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ,c_ycust.salesp," +
                                         " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +

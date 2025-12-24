@@ -350,13 +350,6 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         insert_allowed: false,
                         keyboardFocus: false,
                     }, {}),
-                pur_inv_date: FormView.getFactoryFields.getDateField(
-                    "pur_inv_date", "@", "shortTxtPurDate", "15%", "", "35%",
-                    {
-                        require: true,
-                        edit_allowed: true,
-                        insert_allowed: true
-                    }, {}),
                 accno: FormView.getFactoryFields.getGeneralField(
                     "accno", "", "shortTxtFAAccNo", "15%", "violetText", "12%",
                     {
@@ -424,18 +417,26 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         insert_allowed: false,
                         keyboardFocus: false,
                     }, {}),
+                pur_inv_date: FormView.getFactoryFields.getDateField(
+                    "pur_inv_date", "", "shortTxtPurDate", "15%", "", "17%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, {}),
                 pur_date: FormView.getFactoryFields.getDateField(
-                    "pur_date", "", "txtFABeginDate", "30%", "", "20%",
+                    "pur_date", "@", "txtFABeginDate", "17%", "", "17%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
                     }, {}),
                 purprice: FormView.getFactoryFields.getMoneyField(
-                    "purprice", "@", "shortTxtFAPurPrice", "20%", "", "20%",
+                    "purprice", "@", "shortTxtFAPurPrice", "17%", "", "17%",
                     {
 
                     }, {}),
+                _lblLv: FormView.getFactoryFields.getTextField("_lblLv", "", "", "100%", "", {}, {}),
                 deprate: FormView.getFactoryFields.getNumberField(
                     "deprate", "", "shortTxtDepRate", "30%", "", "20%",
                     {
@@ -456,20 +457,21 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
 
                     }, {}),
                 lastdepdate: FormView.getFactoryFields.getDateField(
-                    "lastdepdate", "", "lastDepDate", "30%", "", "20%",
+                    "bf_depdate", "", "lastDepDate", "30%", "", "20%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
                     }, {}),
-
                 priordep: FormView.getFactoryFields.getMoneyField(
-                    "priordep", "@", "shortTxtPriorDep", "20%", "", "20%",
+                    "bf_depamt", "@", "shortTxtPriorDep", "20%", "", "20%",
                     {
                         insert_allowed: true,
                         edit_allowed: false
 
                     }, {}),
+                _lblLv1: FormView.getFactoryFields.getTextField("_lblLv1", "", "", "100%", "", {}, {}),
+                _lblLv2: FormView.getFactoryFields.getTextField("_lblLv2", "", "", "100%", "", {}, {}),
                 titVal: FormView.getFactoryFields.getGeneralField(
                     "titVal", "", "titFAValuation", "100%", "qrGroup", "0px",
                     {

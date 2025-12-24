@@ -108,9 +108,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         insert_exclude_fields: ['branchname', 'itemname', 'ord_packd', "lblLv0", "lblLv", "txtprice", "txtamt", "txtbal", "txtcl", "txtod", "lblLv1", "lblLv01", "lblLv02", "lblLv03", "lblLv04", "lblLv05"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
-                            "CREATDT": "sysdate"
+                            "CREATDT": "sysdate",
+                            "SALE_PRICE": ":qry1.txtprice"
                         },
                         update_default_values: {
+                            "SALE_PRICE": ":qry1.txtprice"
                         },
                         table_name: "C_NEXTORDX",
                         edit_allowed: true,
@@ -161,15 +163,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
             var pr = Util.getSQLValue(sq);
             thatForm.frm.setFieldValue("qry1.txtprice", pr, pr, true);
         }
-        if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
-            return true;
+        // if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+        //     return true;
 
         var pr = Util.extractNumber(thatForm.frm.getFieldValue("qry1.txtprice"));
         var qt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.oqty"));
         var amt = pr * qt;
         var sq2 = thatForm.frm.parseString("select c7_get_cb(':qry1.ord_ref','Y','Y') from dual");
         var bl = Util.extractNumber(Util.getSQLValue(sq2)) + amt;
-        var cl = Util.getSQLValue("select crd_limit from c_ycust where code='" + thatForm.frm.getFieldValue("qry1.ord_ref") + "'");
+        var cl = Util.getSQLValue("select crd_limit2 from c_ycust where code='" + thatForm.frm.getFieldValue("qry1.ord_ref") + "'");
         thatForm.frm.setFieldValue("qry1.txtamt", amt, amt, true);
         thatForm.frm.setFieldValue("qry1.txtcl", cl, cl, true);
         thatForm.frm.setFieldValue("qry1.txtbal", bl, bl, true);
@@ -225,7 +227,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
     checkExisted: function () {
         var thatForm = this;
         var sq = thatForm.frm.parseString("select nvl(max(ord_no),0) from c_nextordx where ord_ref=':qry1.ord_ref' and" +
-            " ord_date=:qry1.ord_date and ord_branch=':ord_branch' and ord_item=':qry1.ord_item'");
+            " ord_date=:qry1.ord_date and ord_branch=':ord_branch' and ord_item=':qry1.ord_item' AND KEYFLD!=':qry1.keyfld' ");
         var dt = Util.getSQLValue(sq);
         if (dt != 0) FormView.err("This customer , branch and item existed ! Order # " + dt);
 
@@ -247,8 +249,9 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         var strInvs = "select b_name title from cbranch where code=':cust_code' and brno = ':CODE' ".replaceAll(":cust_code", UtilGen.getControlValue(qry.formview.objs["qry1.ord_ref"].obj));
                         UtilGen.Search.getLOVSearchField(strInvs, qry.formview.objs["qry1.ord_branch"].obj, undefined, that.frm.objs["qry1.branchname"].obj);
                         UtilGen.Search.getLOVSearchField("select descr from items where reference = ':CODE'", qry.formview.objs["qry1.ord_item"].obj, undefined, that.frm.objs["qry1.itemname"].obj);
+                        UtilGen.Search.getLOVSearchField("select name from salesp where no = ':CODE' ", qry.formview.objs["qry1.slsmn"].obj, undefined, that.frm.objs["qry1._slsname"].obj);
                         thatForm.frm.setFieldValue("qry1.ord_packd", "M3", "M3", true);
-                        thatForm.fetchAmts(true);
+                        thatForm.fetchAmts();
                     }
 
 
@@ -273,12 +276,18 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         var objNo = thatForm.frm.objs["qry1.ord_no"].obj;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c_nextordx");
                         var newno = Util.getSQLValue("select nvl(max(ord_no),0)+1 from c_nextordx");
+                        var objtm = thatForm.frm.objs["qry1.ord_time"].obj;
                         var dt = thatForm.view.today_date.getDateValue();
 
 
                         UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
                         UtilGen.setControlValue(objNo, newno, newno, true);
+
+                        var tm = Util.getSQLValue("select to_char(sysdate,'mm/dd/rrrr hh.mi am') from dual");
+                        tm = new Date(tm.replaceAll(".", ":"));
+                        objtm.setDateValue(tm);
+
 
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         objOn.fireSelectionChange();
@@ -461,6 +470,26 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     }
                 });
             };
+            var getSettingSalesp = function (ordref, ordrefnm, typ) {
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    getBtns: function () {
+                        return [new sap.m.Button({
+                            text: Util.getLangText('newRecord'),
+                            press: function () {
+                                thatForm.helperFunc.showEmpsWnd(this, typ);
+                            }
+                        })];
+                    },
+                    code: Util.nvl(ordref),
+                    name: Util.nvl(ordrefnm),
+                    sqlChange: "select name from salesp where no = ':CODE' and flag=1",
+                    sqlList: "select no code,name title from salesp where type='" + typ + "' and flag=1 order by no ",
+                    sqlListChange: "select no code,name title from salesp where no=:CODE and flag=1",
+                    fnAfteUpdate: function () {
+                    }
+                });
+            };
             //1-keyfid,15-10|location_code,10-15               ord_date,15-15|ord_no,5-15
             //2-ord_ref,15-12|ord_refnm,1-22                   ord_item,15-12|branchname,1-22
             //3-ord_item,15-12|itemname,1-22                   ord_pkqty,15-22|ord_packd,1-12
@@ -468,6 +497,18 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
             return {
                 //1
                 keyfld: FormView.getFactoryFields.getKeyFld("", "15%", "10%"),
+                ord_no: FormView.getFactoryFields.getGeneralField(
+                    "ord_no", "", "txtNo", "15%", "redText boldText", "10%",
+                    {
+                        require: true,
+                        edit_allowed: false,
+                        insert_allowed: true,
+                        display_style: "redText boldText"
+                    }, {
+                    change: function () {
+                        // thatForm.helperFunc.fetchItem(false);
+                    }
+                }),
                 location_code: FormView.getFactoryFields.getComboField(
                     "location_code", "@", "locationTxt",
                     "10%", "", "15%",
@@ -485,23 +526,23 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     }
                 }),
                 ord_date: FormView.getFactoryFields.getDateField(
-                    "ord_date", "@", "ordDate", "15%", "", "18%",
+                    "ord_date", "@", "ordDate", "15%", "", "20%",
                     {
                         require: true,
                         edit_allowed: false,
                         insert_allowed: true
                     }, {}),
-                ord_no: FormView.getFactoryFields.getGeneralField(
-                    "ord_no", "@", "txtNo", "7%", "redText boldText", "10%",
+                ord_time: FormView.getFactoryFields.getGeneralField(
+                    "ord_time", "@", "", "0px%", "", "15%",
                     {
-                        require: true,
-                        edit_allowed: false,
+                        data_type: FormView.DataType.Date,
+                        class_name: FormView.ClassTypes.TIMEFIELD,
+                        require: false,
+                        edit_allowed: true,
                         insert_allowed: true,
-                        display_style: "redText boldText"
                     }, {
-                    change: function () {
-                        // thatForm.helperFunc.fetchItem(false);
-                    }
+                    displayFormat: "hh:mm a",
+                    valueFormat: "hh:mm a"
                 }),
                 //2
                 ord_ref: FormView.getFactoryFields.getGeneralField(
@@ -524,7 +565,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         },
                     })),
                 ord_refnm: FormView.getFactoryFields.getGeneralField(
-                    "ord_refnm", "@", "", "1%", "", "22%",
+                    "ord_refnm", "@", "", "0px", "", "23%",
                     {
                         require: true,
                         edit_allowed: false,
@@ -549,7 +590,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         }
                     })),
                 branchname: FormView.getFactoryFields.getGeneralField(
-                    "branchname", "@", "", "1%", "", "22%",
+                    "branchname", "@", "", "0px", "", "23%",
                     {
                         require: false,
                         edit_allowed: false,
@@ -567,7 +608,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         insert_allowed: true,
                     }, getSettingContItems()),
                 itemname: FormView.getFactoryFields.getGeneralField(
-                    "itemname", "@", "", "1%", "", "22%",
+                    "itemname", "@", "", "0px", "", "23%",
                     {
                         require: false,
                         edit_allowed: false,
@@ -587,7 +628,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     }
                 }),
                 ord_packd: FormView.getFactoryFields.getGeneralField(
-                    "ord_packd", "@", "", "1%", "", "12%",
+                    "ord_packd", "@", "", "0px", "", "13%",
                     {
                         require: false,
                         edit_allowed: false,
@@ -595,17 +636,49 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                         keyboardFocus: false,
 
                     }, {}),
-                pump: FormView.getFactoryFields.getGeneralField(
-                    "pump", "", "Pump", "15%", "", "35%",
+                slsmn: FormView.getFactoryFields.getGeneralField(
+                    "slsmn", "", "txtSalesPerson", "15%", "", "12%",
                     {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
-                        list: "select name code,name from relists where idlist='PUMPS' order by name",
-                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.pump", "PUMPS")), // pump
+                    }, getSettingSalesp("qry1.slsmn", "qry1._slsname", "S")),
+                _slsname: FormView.getFactoryFields.getGeneralField(
+                    "_slsname", "@", "", "0px", "", "23%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+
+                    }, {}),
+                tel: FormView.getFactoryFields.getGeneralField(
+                    "Tel", "@", "txtTel", "15%", "", "35%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }),
+
+                pump: FormView.getFactoryFields.getGeneralField(
+                    "pump", "", "txtEquipment", "15%", "", "35%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        // list: "select name code,name from relists where idlist='PUMPS' order by name",
+                    }, /*FormView.getFactoryFields.getListSettings(thatForm, "qry1.pump", "PUMPS")*/), // pump
+                cast_type: FormView.getFactoryFields.getGeneralField(
+                    "cast_type", "@", "castType", "15%", "", "35%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        list: "select name code,name from relists where idlist='CAST_TYPE' order by name",
+                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.cast_type", "CAST_TYPE")), // pump
 
                 ord_descr: FormView.getFactoryFields.getGeneralField(
-                    "ord_descr", "@", "txtRemark", "15%", "", "35%",
+                    "ord_descr", "", "txtRemark", "15%", "", "85%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -854,7 +927,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                 setTimeout(() => { thatForm.frm.objs["qry1.ord_branch"].focus(); }, 150);
                 FormView.err("Save Denied : Branch  is invalid !");
             }
-            thatForm.checkCL();
+            thatForm.checkCL(false);
             thatForm.checkExisted();
         }
     }
@@ -866,6 +939,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
             frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
             frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+            UtilGen.Vouchers.formLoadData(this);
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }

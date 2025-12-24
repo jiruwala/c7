@@ -568,9 +568,9 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     if (Util.nvl(ld.getFieldValue(i, "ORD_SHIP"), "").trim() != "")
                         itmCount++;
 
-                if (itmCount > 0) {
-                    setControls(false);
-                }
+                // if (itmCount > 0) {
+                //     setControls(false);
+                // }
             }
         },
         getFields1: function () {

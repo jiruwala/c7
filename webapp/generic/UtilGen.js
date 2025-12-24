@@ -2395,6 +2395,98 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         frag.frm.loadData(undefined, frag.oController.status);
 
                 },
+                importClip: function (qrj) {
+                    if (qrj.getControl().view.objs["qry1"].status != FormView.RecordStatus.NEW && qrj.getControl().view.objs["qry1"].status != FormView.RecordStatus.EDIT) {
+                        sap.m.MessageToast.show("Not in new / edit mode !");
+                        return;
+                    }
+                    var getColByTitle = function (cn) {
+                        var col = undefined;
+                        var cols = qrj.mLctb.cols;
+                        if (Util.nvl(col, "") == "") {
+                            for (var i = 0; i < cols.length; i++)
+                                if (cols[i].mTitle.toUpperCase() == cn.toUpperCase()) {
+                                    col = cols[i].mHideCol ? undefined : cols[i];
+                                    break;
+                                }
+                        }
+
+                        if (Util.nvl(col, undefined) == undefined)
+                            col = qrj.mLctb.getColByName(cn);
+                        return col;
+                    };
+                    var doImp = function (sText) {
+                        qrj.updateDataToControl();
+                        
+
+                        const aRows = sText.trim().split(/\r?\n/);
+                        const aHeaders = aRows[0].split("\t");
+                        const aData = [];
+                        var sett = sap.ui.getCore().getModel("settings").getData();
+                        var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+
+                        for (let i = 1; i < aRows.length; i++) {
+                            const aCols = aRows[i].split("\t");
+                            let oRow = {};
+
+                            aHeaders.forEach(function (h, idx) {
+                                oRow[h.trim()] = (aCols[idx] || "").trim();
+                            });
+
+                            aData.push(oRow);
+                        }
+                        console.log(aData);
+                        qrj.updateDataToTable();
+                        var ld = qrj.mLctb;
+                        var rn = ld.rows.length - 1;
+
+                        for (var o in aData) {
+                            var keys = Object.keys(aData[o]);
+                            if (rn < 0 || ld.getFieldValue(rn, "ACCNO") != "")
+                                rn = ld.addRow();
+                            for (var k in keys) {
+                                var col = Util.nvl(getColByTitle(keys[k].toUpperCase()), undefined);
+                                col = col == "" ? "" : col.mColName;
+                                if (col != "" &&
+                                    (!ld.getColByName(col).mHideCol)
+                                ) {
+                                    var vl = aData[o][keys[k]];
+                                    if (ld.getColByName(col).getMUIHelper().data_type === "date")
+                                        vl = sdf.format(vl);
+                                    if (ld.getColByName(col).getMUIHelper().data_type === "number") {
+                                        vl = Util.extractNumber(vl);
+                                    }
+
+                                    ld.setFieldValue(rn, col, vl);
+                                    if (col == "ACCNO") {
+                                        var nm = Util.getSQLValue("select name from acaccount where childcount=0 and actype=0 and accno='" + vl + "'");
+                                        ld.setFieldValue(rn, "ACNAME", nm);
+                                    }
+                                    if (col == "CUST_CODE") {
+                                        var nm = Util.getSQLValue("select name from c_ycust where childcount=0 and code='" + vl + "'");
+                                        ld.setFieldValue(rn, "ACNAME", nm);
+                                    }
+
+                                }
+                            }
+                        };
+                        qrj.updateDataToControl();
+                        sap.m.MessageToast.show("Excel imported");
+                        // this.getView().setModel(
+                        //     new sap.ui.model.json.JSONModel({ items: aData }),
+                        //     "excel"
+                        // );
+                    };
+                    UtilGen.inputDialogText("Paste excel ", "", "", function (str) {
+                        if (Util.nvl(str, "").trim().length <= 0) { FormView.msgCustom("Err !, Must enter valid value !"); return false; }
+                        doImp(str);
+                        return true;
+                    }, function () {
+                        FormView.err("Must enter List value !");
+                    }, undefined, undefined, {});
+
+
+                },
                 copyDataFromVou: function (data, qrj, vars) {
                     if (data == null || data == undefined || data.length <= 0)
                         return false;
@@ -2581,6 +2673,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         icon: "sap-icon://copy",
                         tooltip: "Copy line items from another voucher..",
                     });
+                    var btCpyClip = new sap.m.Button({
+                        icon: "sap-icon://excel-attachment",
+                        tooltip: "Paste table from excel",
+                        press: function () {
+                            that.importClip(qrj);
+                        }
+                    });
+
                     btCpyFromVou.attachBrowserEvent("mousedown", function () {
                         var sq = "SELECT V.VOU_CODE,V.TYPE,nvl(AG.NAMEa,ag.name) name,COUNT(*) VOUCHERS_CNT FROM ACVOUCHER1 V,ACGRPJVS AG " +
                             " WHERE V.VOU_CODE=AG.VOU_CODE AND V.TYPE=AG.VOU_TYPE " +
@@ -2606,10 +2706,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }, "100%", "50%", undefined, false);
 
                     });
+
                     var btNw = new sap.m.Button({
                         icon: "sap-icon://full-screen", press: function () {
                             qrj.createNewWnd();
                         }
+                    });
+                    btCpyFromVou.attachBrowserEvent("mousedown", function () {
+
                     });
                     qrj.showToolbar.toolbar.removeAllContent();
                     qrj.showToolbar.toolbar.addStyleClass("toolBarBackgroundColor1");
@@ -2620,6 +2724,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     qrj.showToolbar.toolbar.addContent(btPos);
                     qrj.showToolbar.toolbar.addContent(btSOA);
                     qrj.showToolbar.toolbar.addContent(btCpyFromVou);
+                    qrj.showToolbar.toolbar.addContent(btCpyClip);
                     qrj.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
                     qrj.showToolbar.toolbar.addContent(txt);
                     qrj.showToolbar.toolbar.addContent(btf);
@@ -4030,7 +4135,64 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     inp.selectText(0, 999);
                 }, 100);
             },
+            inputDialogText: function (title, msg, val, fnOk, fnCancel, width, height, pSet) {
+                var setInp = { ...{ width: "350px", rows: 3, value: Util.nvl(val, "") }, ...Util.nvl(pSet, {}) };
+                var inp = new sap.m.TextArea(setInp);
+                var vb = new sap.m.VBox({
+                    // alignItems: sap.m.FlexAlignItems.Center,
+                    items: [new sap.m.Title({ text: Util.getLangText(msg) }), inp]
+                }).addStyleClass("sapUiSmallMargin");
+                inp.attachBrowserEvent("keydown", function (e) {
+                    if (e.key == 'Enter')
+                        btDone.firePress();
+                });
+                var btDone = new sap.m.Button({
+                    text: Util.getLangText("cmdDone"),
+                    icon: "sap-icon://accept",
+                    press: function () {
+                        if (fnOk != undefined)
+                            if (Util.nvl(fnOk(inp.getValue()), true)) {
+                                dlg.closeFromOk = true;
+                                dlg.close();
+                            }
+                            else {
+                                setTimeout(() => { inp.focus(); inp.selectText(0, 999); }, 500);
+                                FormView.err(Util.getLangText("msgDeniedInputDlg"));
+                            }
+                    }
+                });
+                var btCancel = new sap.m.Button({
+                    text: Util.getLangText("cmdClose"),
+                    icon: "sap-icon://decline",
+                    press: function () {
+                        dlg.close();
+                        if (fnCancel != undefined)
+                            fnCancel();
+                    }
+                });
 
+                var dlg = new sap.m.Dialog({
+                    title: Util.getLangText(title),
+                    contentWidth: Util.nvl(width, "400px"),
+                    contentHeight: Util.nvl(height, "200px"),
+                    content: vb,
+                    buttons: [btDone,
+                        btCancel
+                    ]
+                });
+                dlg.attachAfterClose(function () {
+                    if (Util.nvl(dlg.closeFromOk, false))
+                        return;
+
+                    if (fnCancel != undefined)
+                        fnCancel();
+                });
+                dlg.open();
+                setTimeout(function () {
+                    inp.focus();
+                    inp.selectText(0, 999);
+                }, 100);
+            },
             // grpname: , tablename: , rec_stat: , descr: , pvar1: , pvar2: pvar3: , pvar4: , pvar5: , notify_type:
             getInsertLogStr: function (setx, condStr) {
                 var sett = sap.ui.getCore().getModel("settings").getData();

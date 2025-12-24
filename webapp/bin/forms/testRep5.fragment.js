@@ -254,10 +254,16 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA001@parameter.paccno", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select accno,name from acaccount order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SOA001@parameter.paccno", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.paccno"));
-                                        });
+                                        // Util.showSearchList("select accno,name from acaccount order by path", "NAME", "ACCNO", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("SOA001@parameter.paccno", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.paccno"));
+                                        // });
+                                        var sq = "select accno,name,namea from acaccount where actype=0 order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA001@parameter.paccno", data.ACCNO, data.ACCNO, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
                                     },
                                     change: function (event) {
                                         var vl = event.oSource.getValue();
@@ -294,11 +300,16 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA001@parameter.pcc", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select code,title name from accostcent1 order by path", "NAME", "CODE", function (valx, val) {
-                                            // UtilGen.setControlValue(obj, val, valx, true);
-                                            thatForm.frm.setFieldValue("SOA001@parameter.pcc", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.pcc"));
-                                        });
+                                        // Util.showSearchList("select code,title name from accostcent1 order by path", "NAME", "CODE", function (valx, val) {
+                                        //     // UtilGen.setControlValue(obj, val, valx, true);
+                                        //     thatForm.frm.setFieldValue("SOA001@parameter.pcc", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.pcc"));
+                                        // });
+                                        var sq = "select code,title name from accostcent1 order by path";
+                                        Util.show_list(sq, ["CODE", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA001@parameter.pcc", data.CODE, data.CODE, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
                                     },
                                     change: function (event) {
@@ -336,10 +347,18 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA001@parameter.pref", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select code,name from c_ycust order by path", "NAME", "CODE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SOA001@parameter.pref", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.pref"));
-                                        });
+                                        // Util.showSearchList("select code,name from c_ycust order by path", "NAME", "CODE", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("SOA001@parameter.pref", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.pref"));
+                                        // });
+                                        var sq = "select code,name,namea from c_ycust where childcount=0 and (mov_type='^^list_key' or    '^^list_key'='ALL') order by path";
+                                        Util.show_list(sq, ["CODE", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA001@parameter.pref", data.CODE, data.CODE, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, {
+                                            selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                            defaultKey: "ACTIVE",
+                                        }, "Customers");
 
                                     },
                                     change: function (event) {
@@ -1032,10 +1051,17 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA002@parameter.fromacc", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select accno,name from acaccount where childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SOA002@parameter.fromacc", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA002@parameter.fromacc"));
-                                        });
+                                        var sq = "select accno,name,namea from acaccount where  childcount=0 and actype=0 order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA002@parameter.fromacc", data.ACCNO, data.ACCNO, true);
+                                            // thatForm.frm.setFieldValue(repCode + "@parameter.acname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+                                        // Util.showSearchList("select accno,name from acaccount where childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("SOA002@parameter.fromacc", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA002@parameter.fromacc"));
+                                        // });
                                     },
                                     change: function (event) {
                                         var vl = event.oSource.getValue();
@@ -1073,10 +1099,16 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA002@parameter.toacc", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select accno,name from acaccount where childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SOA002@parameter.toacc", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA002@parameter.toacc"));
-                                        });
+                                        // Util.showSearchList("select accno,name from acaccount where childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("SOA002@parameter.toacc", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA002@parameter.toacc"));
+                                        // });
+                                        var sq = "select accno,name,namea from acaccount where  childcount=0 and actype=0 order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA002@parameter.toacc", data.ACCNO, data.ACCNO, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
                                     },
                                     change: function (event) {
                                         var vl = event.oSource.getValue();
