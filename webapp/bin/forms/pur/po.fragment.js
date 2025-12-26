@@ -230,11 +230,13 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                             "modified_time": "sysdate",
                             "created_time": "sysdate",
                             "usernm": Util.quoted(sett["LOGON_USER"]),
+                            "ORD_REFERENCE": "':qry1.ord_rfr'",
+                            "ORD_DISCAMT": ":qry2.disc_amt",
                             "ORD_AMT": ":qry2.totamt",
-                            "ORD_REFERENCE": "':qry1.ord_rfr'"
                         },
                         update_default_values: {
                             "modified_time": "sysdate",
+                            "ORD_DISCAMT": ":qry2.disc_amt",
                             "ORD_AMT": ":qry2.totamt",
                         },
                         table_name: "pord1",
@@ -275,7 +277,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         table_name: "pord2",
                         before_add_table: function (scrollObjs, qrj) {
                             qrj.showToolbar.showNewWnd = true;
-                            UtilGen.createDefaultToolbar1(qrj, ["ORD_SHIP", "DESCR"], true);
+                            UtilGen.createDefaultToolbar1(qrj, ["ORD_REFER", "DESCR"], true);
                             var colsetitems = UtilGen.addItemsInfoCmd({
                                 thatForm: thatForm,
                                 qrj: qrj,
@@ -307,16 +309,24 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                                             var rs = {
                                                 "POS": "ORD_POS",
                                                 "REFER": "ORD_REFER",
+                                                "DESCR": "DESCR",
                                                 "PACKD": "ORD_PACKD",
                                                 "UNITD": "ORD_UNITD",
                                                 "PACK": "ORD_PACK",
                                                 "PKQTY": "ORD_PKQTY",
                                                 "UNQTY": "ORD_UNQTY",
-                                                "PRICE": "ORD_PIRCE",
+                                                "PRICE": "ORD_PRICE",
                                                 "DISCAMT": "ORD_DISCAMT",
                                                 "STRA": "STRA",
                                             }
                                             UtilGen.PurchaseOrderFunc.copyDetails(thatForm, '"ITEMS"', '"PORD1"', rs);
+                                            setTimeout(() => {
+                                                var qrobj = thatForm.frm.objs["qry2"].obj;
+                                                if (qrobj.eventCalc != undefined)
+                                                    qrobj.eventCalc(qrobj, undefined, -1, true);
+
+                                            }, 100);
+
                                         }
                                     }))
                                 }
@@ -354,12 +364,38 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                             var ld = qv.mLctb;
                             var sumAmt = 0;
 
-                            for (var i = 0; i < ld.rows.length; i++)
+                            for (var i = 0; i < ld.rows.length; i++) {
+                                if (reAmt) {
+                                    var pqt = Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
+                                    var qt = Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY"));
+                                    var pack = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"));
+                                    var price = Util.extractNumber(ld.getFieldValue(i, "ORD_PRICE"));
+                                    var ds = Util.extractNumber(ld.getFieldValue(i, "ORD_DISCAMT"));
+                                    var amt = ((price - ds) / pack) * ((pqt * pack) + qt);
+                                    ld.setFieldValue(i, "AMOUNT", amt);
+                                }
                                 sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
+                            }
 
+                            var discp = 0
+                            var disc = Util.nvl(thatForm.frm.getFieldValue("disc_amt"), 0);
+                            if (sumAmt > 0 && disc > 0)
+                                discp = (100 / sumAmt) * disc;
+                            thatForm.frm.setFieldValue('disc_p', discp.toFixed(5));
+                            var netamt = sumAmt - disc;
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
+                            thatForm.frm.setFieldValue('net_amt', df.format(netamt));
+
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(netamt));
+
+                            if (reAmt)
+                                qv.updateDataToControl();
+
+
+                            // thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
+                            // if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
+                            //     thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
 
                         },
                         summary: thatForm.helperFunc.getSummary()
@@ -573,6 +609,12 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
                         thatForm.view.byId("rcvdTxt" + thatForm.timeInLong).setText("Recieved : " + rcvdp + " % ");
 
+                        qry.formview.setFieldValue("qry2.disc_amt", 0, 0, true);
+                        qry.formview.setFieldValue("qry2.disc_p", 0, 0, true);
+                        var discamt = Util.getSQLValue("select ord_discamt from pord1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        if (Util.nvl(discamt, 0) > 0) {
+                            qry.formview.setFieldValue("qry2.disc_amt", discamt, discamt, true);
+                        }
 
                     }
                     if (qry.name == "qry2") {
@@ -642,6 +684,10 @@ sap.ui.jsfragment("bin.forms.pur.po", {
 
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         qry.formview.setFieldValue("qry1.ord_shpdt", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
+
+                        qry.formview.setFieldValue("qry2.disc_amt", 0, 0, true);
+                        qry.formview.setFieldValue("qry2.disc_p", 0, 0, true);
+
                         objOn.fireSelectionChange();
                         setTimeout(() => {
 
@@ -813,18 +859,93 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 totamt: {
                     colname: "totamt",
                     data_type: FormView.DataType.Number,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    class_name: FormView.ClassTypes.LABEL,
                     title: '@{\"text\":\"Total\",\"width\":\"15%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_END",
+                    display_style: "yellowText",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%", editable: false, textAlign: "End" },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: true
+                },
+                disc_amt: {
+                    colname: "disc_amt",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"txtDisc\",\"width\":\"105%\","textAlign":"End","styleClass":"redText"}',
                     title2: "Total ",
                     canvas: "default_canvas",
                     display_width: sumSpan,
                     display_align: "ALIGN_RIGHT",
                     display_style: "background-color:yellow;",
                     display_format: sett["FORMAT_MONEY_1"],
-                    other_settings: { width: "30%" },
+                    other_settings: {
+                        width: "15%",
+                        editable: true,
+                        change: function (e) {
+                            var qrobj = thatForm.frm.objs["qry2"].obj;
+                            if (qrobj.eventCalc != undefined)
+                                qrobj.eventCalc(qrobj, undefined, -1, false);
+                        }
+                    },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                disc_p: {
+                    colname: "disc_p",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\" %\",\"width\":\"3%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_BEGIN",
+                    display_style: "background-color:yellow;",
+                    display_format: "",
+                    other_settings: {
+                        width: "12%",
+                        editable: true,
+                        change: function (e) {
+                            var sett = sap.ui.getCore().getModel("settings").getData();
+                            var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+                            var qrobj = thatForm.frm.objs["qry2"].obj;
+                            var discp = Util.extractNumber(this.getValue());//thatForm.frm.getFieldValue("disc_p");
+
+                            var totamt = Util.extractNumber(thatForm.frm.getFieldValue("totamt"));
+                            var discamt = 0;
+                            thatForm.frm.setFieldValue("disc_amt", df.format(discamt), df.format(discamt));
+                            if (discp > 0 && totamt) {
+                                var discamt = (totamt / 100) * discp;
+                                thatForm.frm.setFieldValue("disc_amt", df.format(discamt), df.format(discamt));
+                            }
+                            if (qrobj.eventCalc != undefined)
+                                qrobj.eventCalc(qrobj, undefined, -1, false);
+                        }
+                    },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true
+                },
+                net_amt: {
+                    colname: "net_amt",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: '{\"text\":\"txtNetAmt\",\"width\":\"105%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "Total ",
+                    canvas: "default_canvas",
+                    display_width: sumSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "yellowText",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: { width: "30%", editable: false, textAlign: "End" },
                     edit_allowed: false,
                     insert_allowed: false,
-                    require: true
+                    require: false
                 },
             };
         },
@@ -1677,8 +1798,8 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                 var pk = ld.getFieldValue(i, "ORD_PACK");
                 var qty = ld.getFieldValue(i, "ORD_UNQTY");
                 var pr = ld.getFieldValue(i, "SALE_PRICE");
-                if (dup[rfr] != undefined)
-                    FormView.err("Save Denied : Duplicate item entry # " + rfr);
+                // if (dup[rfr] != undefined)
+                //     FormView.err("Save Denied : Duplicate item entry # " + rfr);
                 dup[rfr] = rfr;
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)

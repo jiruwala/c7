@@ -1233,7 +1233,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 var oModel = table.getModel();
                                 var rowStart = table.getFirstVisibleRow(); //starting Row index
                                 var currentRowoIndexContext = table.getContextByIndex(rowStart + table.indexOfRow(row));
-                                var newValue = evtx.getSource().getValue();//evtx.getParameter("value");
+                                var newValue = Util.nvl(evtx.getSource().getValue(), evtx.getParameter("value"));
 
                                 var tm = -1;
                                 var clx = -1;
@@ -2146,7 +2146,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
 
-                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg) {
+                do_quick_search_simple: function (pSq, cols, eventAfterSelect, pPoints, btns, pMultiSelect, titleDlg, jsCmds, pListPara) {
                     var points = Util.nvl(pPoints, {});
                     var sq = pSq;
                     var multiSelect = Util.nvl(pMultiSelect, false);
@@ -2154,7 +2154,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (eventAfterSelect != undefined)
                             eventAfterSelect(data);
                         return true;
-                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, undefined, pPoints, btns, undefined, titleDlg);
+                    }, points.pWidth, points.pHeight, undefined, multiSelect, undefined, undefined, undefined, jsCmds, pPoints, btns, pListPara, titleDlg);
 
 
 
@@ -2417,7 +2417,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     };
                     var doImp = function (sText) {
                         qrj.updateDataToControl();
-                        
+
 
                         const aRows = sText.trim().split(/\r?\n/);
                         const aHeaders = aRows[0].split("\t");
@@ -4688,12 +4688,24 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 copyDetails: function (frag, kinds, tables, recordSet) {
                     var thatForm = frag;
                     var copyItems = function () {
-                        var selItems = function (cod, tbl) {
-                            var sq = "SELECT ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ord_amt,KEYFLD FROM PORD1 " +
-                                " WHERE ORD_CODE=" + cod + " and ord_flag=2 ORDER BY KEYFLD desc ";
+                        var selItems = function (cod, tbl, loc) {
+                            var locstr = (loc != "" ? " and location_code='" + loc + "'" : "");
+                            var sq = "SELECT LOCATION_CODE,ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ord_amt,KEYFLD FROM PORD1 " +
+                                " WHERE ORD_CODE=" + cod + locstr + "  ORDER BY KEYFLD desc ";
                             if (tbl == "PUR1")
-                                sq = "SELECT INVOICE_NO ORD_NO,INVOICE_DATE ORD_DATE,C_CUS_NO ORD_REF,INV_REFNM ORD_REFNM,INV_AMT ord_amt,KEYFLD FROM PUR1 " +
-                                    " WHERE INVOICE_CODE=" + cod + " and flag=2 ORDER BY KEYFLD desc ";
+                                sq = "SELECT LOCATION_CODE, INVOICE_NO ORD_NO,INVOICE_DATE ORD_DATE,C_CUS_NO ORD_REF,INV_REFNM ORD_REFNM,INV_AMT ord_amt,KEYFLD FROM PUR1 " +
+                                    " WHERE INVOICE_CODE=" + cod + locstr + "  ORDER BY KEYFLD desc ";
+                            if (tbl == "INVOICE1")
+                                sq = "SELECT LOCATION_CODE,INVOICE_NO ORD_NO,INVOICE_DATE ORD_DATE,C_CUS_NO ORD_REF,INV_REFNM ORD_REFNM,INV_AMT ord_amt,KEYFLD FROM INVOICE1 " +
+                                    " WHERE INVOICE_CODE=" + cod + locstr + "  ORDER BY KEYFLD desc ";
+                            if (tbl == "ORDER1")
+                                sq = "SELECT LOCATION_CODE,ORD_NO,ORD_DATE,ORD_REF,ORD_REFNM,ord_amt,KEYFLD FROM ORDER1 " +
+                                    " WHERE ORD_CODE=" + cod + locstr + "  ORDER BY KEYFLD desc ";
+                            var listpara = {
+                                selectStr: "@100/Last 100,200/Last 200,1000/Last 1000,-1/All",
+                                defaultKey: "200",
+                            }
+                            sq = "select *from (" + sq + ")  where (rownum <=^^list_key or ^^list_key=-1)";
                             UtilGen.Search.do_quick_search_simple(sq,
                                 ["ORD_NO", "ORD_DATE", "ORD_REF", "ORD_REFNM", "ORD_AMT"], function (data) {
                                     copyVouItems(data, cod, tbl);
@@ -4704,6 +4716,13 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                         colname: "ORD_NO",
                                         display_width: 80,
                                         mTitle: Util.getLangText("titPurOrd"),
+                                    }
+                                },
+                                {
+                                    LOCATION_CODE: {
+                                        colname: "ORD_NO",
+                                        display_width: 80,
+                                        mTitle: Util.getLangText("locationTxt"),
                                     }
                                 },
                                 {
@@ -4745,7 +4764,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                         mSummary: "SUM"
                                     }
                                 }
-                            ]);
+                            ], listpara);
                         }
 
                         var sq = "select TRANS_DESCR DESCR,trans_code,trans_table" +
@@ -4756,8 +4775,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             ["TRAMS_DESCR"], function (data) {
                                 var cod = data.TRANS_CODE;
                                 var tbl = data.TRANS_TABLE;
+                                var loc = Util.nvl(thatForm.frm.getFieldValue("qry1.location_code"), "");
+
                                 setTimeout(() => {
-                                    selItems(cod, tbl);
+                                    selItems(cod, tbl, loc);
                                 });
                             }, { pWidth: "400px" }, undefined, undefined, "select kind ... ", [
                             {
@@ -4785,16 +4806,24 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             sap.m.MessageToast.show("Not in new / edit mode !");
                             return;
                         }
-                        var sqRec = "select P.ORD_POS,P.ORD_REFER,P.ORD_PKQTY," +
-                            "P.ORD_UNQTY,P.ORD_PRICE,P.ORD_DISCAMT,P.STRA,P.ORD_PACKD,P.ORD_UNITD,P.ORD_PACK , I.DESCR,I.DESCRA " +
+                        var sqRec = "select P.ORD_POS,P.ORD_REFER,p.ord_allqty/p.ord_pack ORD_PKQTY," +
+                            "0 ORD_UNQTY,P.ORD_PRICE,P.ORD_DISCAMT,P.STRA,P.ORD_PACKD,P.ORD_UNITD,P.ORD_PACK , I.DESCR,I.DESCRA " +
                             "  from pord2 P,ITEMS I where P.keyfld=:KEYFLD AND P.ORD_REFER=I.REFERENCE order by ord_pos";
                         if (tbl == "PUR1")
-                            sqRec = "select P.ITEMPOS ORD_POS,P.REFER ORD_REFER,P.PKQTY ORD_PKQTY," +
-                                "P.QTY ORD_UNQTY,P.PRICE ORD_PRICE,P.DISC_AMT ORD_DISCAMT,P.STRA,P.PACKD ORD_PACKD,P.UNITD ORD_UNITD,P.PACK ORD_PACK , I.DESCR,I.DESCRA " +
+                            sqRec = "select P.ITEMPOS ORD_POS,P.REFER ORD_REFER,P.PKQTY/p.pack ORD_PKQTY," +
+                                "0 ORD_UNQTY,P.PRICE ORD_PRICE,P.DISC_AMT ORD_DISCAMT,P.STRA,P.PACKD ORD_PACKD,P.UNITD ORD_UNITD,P.PACK ORD_PACK , I.DESCR,I.DESCRA " +
                                 "  from PUR2 P,ITEMS I where P.keyfld=:KEYFLD AND P.REFER=I.REFERENCE order by ord_pos";
+                        if (tbl == "INVOICE1")
+                            sqRec = "select P.ITEMPOS ORD_POS,P.REFER ORD_REFER,P.PKQTY/p.pack ORD_PKQTY," +
+                                "0 ORD_UNQTY,P.PRICE ORD_PRICE,P.DISC_AMT ORD_DISCAMT,P.STRA,P.PACKD ORD_PACKD,P.UNITD ORD_UNITD,P.PACK ORD_PACK , I.DESCR,I.DESCRA " +
+                                "  from INVOICE2 P,ITEMS I where P.keyfld=:KEYFLD AND P.REFER=I.REFERENCE order by ord_pos";
+                        if (tbl == "ORDER1")
+                            sqRec = "select P.ORD_POS,P.ORD_SHIP ORD_REFER,p.tqty/p.ord_pack ORD_PKQTY," +
+                                "0 ORD_UNQTY,P.SALE_PRICE ORD_PRICE,0 ORD_DISCAMT,P.STRA,P.ORD_PACKD,P.ORD_UNITD,P.ORD_PACK , I.DESCR,I.DESCRA " +
+                                "  from c_order1 P,ITEMS I where P.keyfld=:KEYFLD AND P.ORD_SHIP=I.REFERENCE order by ord_pos ";
                         var copyRec = function (dtx) {
                             var rs = recordSet;
-                            if (tbl == "PORD1" || tbl == "PUR1") {
+                            if (tbl == "PORD1" || tbl == "PUR1" || tbl == "ORDER1") {
                                 var r = qrj.mLctb.rows.length - 1;
                                 if (Util.nvl(qrj.mLctb.getFieldValue(qrj.mLctb.rows.length - 1, rs["REFER"]), "") != "")
                                     r = qrj.mLctb.addRow();

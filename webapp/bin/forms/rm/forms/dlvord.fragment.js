@@ -549,7 +549,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     "ord_ref", "", "txtCust", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true
                     }, FormView.getFactoryFields.getSettingsOrdRef2({
                         thatForm: thatForm,
@@ -568,14 +568,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     "ord_refnm", "@", "", "0px", "", "23%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true,
                     }, {}),
                 ord_branch: FormView.getFactoryFields.getGeneralField(
                     "ord_branch", "@", "txtBranch", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true,
 
                     }, FormView.getFactoryFields.getSettingsBr({
@@ -604,7 +604,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     "ord_item", "", "itemTxt", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true,
                     }, getSettingContItems()),
                 itemname: FormView.getFactoryFields.getGeneralField(
@@ -620,7 +620,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     "oqty", "@", "itemPackQty", "15%", "violetText", "22%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true,
                     }, {
                     change: function () {

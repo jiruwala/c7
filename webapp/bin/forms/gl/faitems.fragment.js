@@ -113,6 +113,7 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         update_exclude_fields: ['code', "totadd", "totded", "netvalue", "acname", "expname", "depname", "costname", "totdep"],
                         insert_exclude_fields: ["totadd", "totded", "netvalue", "acname", "expname", "depname", "costname", "totdep"],
                         insert_default_values: {
+                            "keyfld": "(select nvl(max(keyfld),0)+1 from faitems)",
                         },
                         update_default_values: {
                         },
@@ -250,9 +251,9 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
 
                 },
                 beforeExeSql: function (frm, sq) {
-                    // var kf = frm.getFieldValue("qry1.keyfld");
-                    // return sq + "update_dlv_add_amt(" + kf + ");";
-                    return sq;
+                    var kf = frm.getFieldValue("qry1.code");
+                    return sq + "c7_faitembf(" + kf + ");";
+                    // return sq;
                 }
             };
         },
@@ -456,20 +457,35 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                     {
 
                     }, {}),
-                lastdepdate: FormView.getFactoryFields.getDateField(
+                bf_depdate: FormView.getFactoryFields.getDateField(
                     "bf_depdate", "", "lastDepDate", "30%", "", "20%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
                     }, {}),
-                priordep: FormView.getFactoryFields.getMoneyField(
+                bf_depamt: FormView.getFactoryFields.getMoneyField(
                     "bf_depamt", "@", "shortTxtPriorDep", "20%", "", "20%",
                     {
                         insert_allowed: true,
                         edit_allowed: false
 
                     }, {}),
+                bf_addamt: FormView.getFactoryFields.getMoneyField(
+                    "bf_addamt", "@", "shortTxtPriorDep", "20%", "", "20%",
+                    {
+                        insert_allowed: true,
+                        edit_allowed: false
+
+                    }, {}),
+                bf_dedamt: FormView.getFactoryFields.getMoneyField(
+                    "bf_dedamt", "@", "shortTxtPriorDep", "20%", "", "20%",
+                    {
+                        insert_allowed: true,
+                        edit_allowed: false
+
+                    }, {}),
+
                 _lblLv1: FormView.getFactoryFields.getTextField("_lblLv1", "", "", "100%", "", {}, {}),
                 _lblLv2: FormView.getFactoryFields.getTextField("_lblLv2", "", "", "100%", "", {}, {}),
                 titVal: FormView.getFactoryFields.getGeneralField(
@@ -512,6 +528,10 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                 {
                     name: 'list1',
                     title: "List of FA ITEMS",
+                    list_para: {
+                        selectStr: "select catno code,catname name from facat union all select '-1' CODE,'ALL' NAME FROM DUAL  order by 1 ",
+                        defaultKey: "-1",
+                    },
                     list_type: "sql",
                     cols: [
                         {
@@ -524,7 +544,7 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select code,descr from faitems where order by code",
+                    sql: "select code,descr from faitems where (catno='^^list_key' or '^^list_key'='-1') order by code",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;

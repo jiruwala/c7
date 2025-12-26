@@ -57,7 +57,8 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
 
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT," +
+        var dmlSq = "select o1.ord_ship,o1.ord_pos,o1.ord_packd,o1.ord_pack,o1.ord_pkqty,o1.sale_price, o1.EXP_RATE,  " +
+            "nvl(o1.descr,IT.DESCR) DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.ORD_PKQTY AMOUNT," +
             "SALE_PRICE+EXP_RATE NET_PRICE,( (SALE_PRICE+EXP_RATE)*O1.ORD_PKQTY ) NET_AMT from C_ORDER1 o1 ,ITEMS IT where " +
             " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + thatForm.vars.vou_code + " ORDER BY O1.ORD_POS ";
 
@@ -125,6 +126,8 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "ORD_CODE": that.vars.vou_code,
+                            "USERNM": Util.quoted(sett["LOGON_USER"]),
+                            "CREATED_TIME": "sysdate",
                         },
                         update_default_values: {
                         },
@@ -147,31 +150,86 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         delete_allowed: true,
                         delete_before_update: "delete from c_order1 where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'NET_AMT', 'NET_PRICE'],
-                        insert_exclude_fields: ['DESCR', 'AMOUNT', 'NET_PRICE', 'NET_AMT'],
+                        update_exclude_fields: ['KEYFLD', 'AMOUNT', 'NET_AMT', 'NET_PRICE'],
+                        insert_exclude_fields: ['AMOUNT', 'NET_PRICE', 'NET_AMT'],
                         insert_default_values: {
-                            "PERIODCODE": sett["CURRENT_PERIOD"],
+                            "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "LOCATION_CODE": ":qry1.location_code",
                             "ORD_NO": ":qry1.ord_no",
                             "ORD_CODE": thatForm.vars.vou_code,
-                            "ORD_REF": ":qry1.ord_ref",
-                            "ORD_REFNM": ":qry1.ord_refnm",
+                            "ORD_REFNM": Util.quoted(":qry1.ord_refnm"),
+                            "ORD_REF": Util.quoted(":qry1.ord_ref"),
                             "ORD_DISCAMT": ":qry1.ord_discamt",
                             "ORD_DATE": ":qry1.ord_date",
                             "ORD_EMPNO": ":qry1.ord_empno",
                             "KEYFLD": ":qry1.keyfld",
                             "STRA": ":qry1.stra",
+                            "USERNM": Util.quoted(sett["LOGON_USER"]),
+                            "CREATDT": "sysdate",
                         },
                         update_default_values: {
                         },
                         table_name: "c_order1",
                         before_add_table: function (scrollObjs, qrj) {
+                            qrj.showToolbar.showNewWnd = true;
                             UtilGen.createDefaultToolbar1(qrj, ["ORD_SHIP", "DESCR"], true);
+                            var colsetitems = UtilGen.addItemsInfoCmd({
+                                thatForm: thatForm,
+                                qrj: qrj,
+                                itemField: "ORD_SHIP",
+                                itemDescrField: "DESCR",
+                                storeFeld: "STRA",
+                                qryDate: "qry1.ord_date",
+                                fnCallBack: function (rowno, data, str) {
+                                    if (str == "showQtyAllStore") {
+                                        var ld = thatForm.frm.objs["qry2"].obj.mLctb;
+                                        var tbl = thatForm.frm.objs["qry2"].obj.getControl();
+                                        if ((thatForm.frm.objs["qry1"].status == FormView.RecordStatus.EDIT) ||
+                                            thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW
+                                        ) {
+                                            // ld.setFieldValue(rowno, "STRA", data.NO);
+                                            thatForm.frm.objs["qry2"].obj.updateDataToControl();
+                                        }
+                                    }
+                                }
+                            });
+                            var colset = UtilGen.addDetailSetupCmd({
+                                applyCol: thatForm.frm.objs["qry2"].applyCol,
+                                fnAddMenus: function (mnus) {
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon: "sap-icon://copy",
+                                        text: Util.getLangText("menuCopyItemDetailsFrom"),
+                                        press: function () {
+                                            // thatForm.helperFunc.copyItems();
+                                            var rs = {
+                                                "POS": "ORD_POS",
+                                                "REFER": "ORD_SHIP",
+                                                "DESCR": "DESCR",
+                                                "PACKD": "ORD_PACKD",
+                                                "UNITD": "ORD_UNITD",
+                                                "PACK": "ORD_PACK",
+                                                "PKQTY": "ORD_PKQTY",
+                                                "PRICE": "SALE_PRICE",
+                                            }
+                                            UtilGen.PurchaseOrderFunc.copyDetails(thatForm, '"ITEMS"', '"PORD1" "ORDER1"', rs);
+                                            setTimeout(() => {
+                                                var qrobj = thatForm.frm.objs["qry2"].obj;
+                                                if (qrobj.eventCalc != undefined)
+                                                    qrobj.eventCalc(qrobj, undefined, -1, true);
+
+                                            }, 100);
+
+                                        }
+                                    }))
+                                }
+                            });
+                            qrj.showToolbar.toolbar.addContent(colsetitems);
+                            qrj.showToolbar.toolbar.addContent(colset);
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
                                 var totalRows = qrj.getControl().getModel().getData().length;
                                 var visRows = qrj.getControl().getVisibleRowCount();
-                                var cl = UtilGen.getTableColNo(qrj.getControl(), "ORD_SHIP");
+                                var cl = UtilGen.getTableColNo(qrj.getControl(), "ORD_REFER");
                                 var vl = qrj.getControl().getRows()[rowno].getCells()[cl].getValue();
                                 if (vl == "") {
                                     qrj.deleteRow(firstVis + rowno);
@@ -206,8 +264,16 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                             var sumExp = 0;
                             var sumNet = 0;
 
-                            for (var i = 0; i < ld.rows.length; i++)
+                            for (var i = 0; i < ld.rows.length; i++) {
+                                if (reAmt) {
+                                    var pqt = Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
+                                    var pack = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"));
+                                    var price = Util.extractNumber(ld.getFieldValue(i, "SALE_PRICE"));
+                                    var amt = price * pqt;
+                                    ld.setFieldValue(i, "AMOUNT", amt);
+                                }
                                 sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
+                            }
 
                             for (var i = 0; i < ld.rows.length; i++) {
                                 var pr = Util.extractNumber(ld.getFieldValue(i, "EXP_RATE"));
@@ -218,6 +284,11 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
                             thatForm.frm.setFieldValue('netamt', df.format(sumNet));
                             thatForm.frm.setFieldValue('totexp', df.format(sumExp));
+
+                            if (reAmt)
+                                qv.updateDataToControl();
+
+
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
                                 thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumNet));
 
@@ -553,7 +624,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     return;
                 var setControls = function (ed) {
                     thatForm.frm.objs["qry1.ord_ref"].obj.setEditable(ed);
-                    thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(ed);                    
+                    thatForm.frm.objs["qry1.ord_refnm"].obj.setEditable(ed);
                     thatForm.frm.objs["qry1.ord_discamt"].obj.setEditable(ed);
 
                     thatForm.frm.objs["qry1.ord_txt_iid"].obj.setEditable(ed);
@@ -1792,8 +1863,8 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
                 var qty = ld.getFieldValue(i, "ORD_PKQTY");
                 var pr = ld.getFieldValue(i, "SALE_PRICE");
-                if (dup[rfr] != undefined)
-                    FormView.err("Save Denied : Duplicate item entry # " + rfr);
+                // if (dup[rfr] != undefined)
+                //     FormView.err("Save Denied : Duplicate item entry # " + rfr);
                 dup[rfr] = rfr;
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)
