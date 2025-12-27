@@ -808,15 +808,15 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
             var qry = thatForm.frm.objs["qry1"];
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW)
                 return true;
-            var kf = thatForm.frm.getFieldValue("qry1.keyfld");
-            var ret = Util.nvl(
-                Util.getSQLValue("select saleinv from c_order1 where keyfld=" + kf), "") == "";
+            // var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+            // var ret = Util.nvl(
+            //     Util.getSQLValue("select saleinv from c_order1 where keyfld=" + kf), "") == "";
 
-            if (!ret && Util.nvl(raiseErr, true)) {
-                var invno = Util.getSQLValue("select invoice_no from pur1 where keyfld=" + salinv)
-                FormView.err("Err !, Invoice existed for this delivery !");
-            }
-            return ret;
+            // if (!ret && Util.nvl(raiseErr, true)) {
+            //     var invno = Util.getSQLValue("select invoice_no from pur1 where keyfld=" + salinv)
+            //     FormView.err("Err !, Invoice existed for this delivery !");
+            // }
+            return true;
         },
         getList: function () {
             var that2 = this.thatForm;

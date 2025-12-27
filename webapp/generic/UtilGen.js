@@ -2754,11 +2754,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var change = Util.nvl(pChange, true);
                     var vb = new sap.m.VBox();
                     // var tx = new sap.m.Input({ placeholder: "Descr" });
-                    var pv = new sap.m.PDFViewer({
-                        displayType: sap.m.PDFViewerDisplayType.Embedded,
-                        showDownloadButton: false,
-                        height: "500px",
-                        width: "100%",
+                    // var pv = new sap.m.PDFViewer({
+                    //     displayType: sap.m.PDFViewerDisplayType.Embedded,
+                    //     showDownloadButton: true,
+                    //     height: "500px",
+                    //     width: "100%",
+                    // });
+                    var pv = new sap.ui.core.HTML({
+                        content: "<div id='pdfFrame' style='width:100%; height:500px;'></div>"
                     });
                     var onLoad = function (e) {
                         var pdfData = new Uint8Array(e.target.result);
@@ -2771,8 +2774,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         link.download = "rpt" + new Date() + ".pdf";
                         // Util.printPdf(link.href);
                         jQuery.sap.addUrlWhitelist("blob");
-                        pv.setSource(link.href);
-
+                        // pv.setSource(link.href);
+                        // pv.open();
+                        document.getElementById("pdfFrame").innerHTML =
+                            "<iframe src='" + link.href + "' " +
+                            "width='100%' height='100%' " +
+                            "style='border:none'></iframe>";
                     };
 
                     if (that2.fileUpload != undefined) {
@@ -2812,12 +2819,17 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         content: vb,
                         title: "Select PDF file to attach voucher",
                         contentWidth: "100%",
+                        contentHeight: "600px",
                         buttons: [
                             new sap.m.Button({
                                 text: "Delete",
                                 press: function () {
                                     if (!change) { sap.m.MessageToast.show("Cant delete !"); return; }
-                                    pv.setSource(undefined);
+                                    // pv.setSource(undefined);
+                                    document.getElementById("pdfFrame").innerHTML =
+                                    "<iframe src='' " +
+                                    "width='100%' height='100%' " +
+                                    "style='border:none'></iframe>";        
                                     that2.fileUpload = undefined;
                                 }
                             }),
