@@ -344,20 +344,20 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
                         var dt = thatForm.view.today_date.getDateValue();
+                        var loc = thatForm.defLoc != undefined ? thatForm.defLoc : sett["DEFAULT_LOCATION"];
+                        var str = thatForm.defStr != undefined ? thatForm.defStr : sett["DEFAULT_STORE"];
 
-
-                        UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
+                        UtilGen.setControlValue(objOn, loc, loc, true);
                         UtilGen.setControlValue(objKf, newKf, newKf, true);
 
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
-                        qry.formview.setFieldValue("qry1.stra", sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], true);
+                        qry.formview.setFieldValue("qry1.stra", str, str, true);
 
                         qry.formview.setFieldValue("qry1.firstweight", 0, 0, true);
                         qry.formview.setFieldValue("qry1.secondweight", 0, 0, true);
                         qry.formview.setFieldValue("qry1.netweight", 0, 0, true);
                         var wc = thatForm.lastwc != undefined ? thatForm.lastwc : '1';
-                        qry.formview.setFieldValue("qry1.weightcode", wc, wc, true);
-                        
+                        qry.formview.setFieldValue("qry1.weightcode", wc, wc, true);                       
 
 
                         objOn.fireSelectionChange();
@@ -579,11 +579,13 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                             vl = UtilGen.getControlValue(this);
                             var objOrd = thatForm.frm.objs["qry1.ord_no"].obj;
                             UtilGen.setControlValue(objOrd, "", "", true);
+                            thatForm.defLoc = this.getSelectedKey();
                             if (vl != "") {
                                 var nwOn = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 " +
                                     " where ord_code=" + thatForm.vars.vou_code + " and location_code=" + Util.quoted(vl));
                                 UtilGen.setControlValue(objOrd, nwOn, nwOn);
                             }
+
                         },
                     },
 
@@ -613,6 +615,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                             templateShareable: true
                         },
                         selectionChange: function (e) {
+                            thatForm.defStr = this.getSelectedKey();
                         },
                     },
 
