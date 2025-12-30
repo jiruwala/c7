@@ -241,7 +241,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             "STRA": sett["DEFAULT_STORE"],
                             "ORD_TYPE": 1,
                             "ORD_AMT": ":qry2.totamt",
-                            "USERNM": "'"+sett["LOGON_USER"]+"'",
+                            "USERNM": "'" + sett["LOGON_USER"] + "'",
                             "CREATED_TIME": "sysdate",
                             "MODIFIED_TIME": "sysdate",
                         },
@@ -639,6 +639,12 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 });
 
             var txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: commands[para].showRecs ? false : true });
+            var btAttach = new sap.m.Button({
+                text: "Show Attachment",
+                press: function () {
+                    UtilGen.Vouchers.attachShowUpload(thatForm,false);
+                }
+            })
 
             var vb = new sap.m.VBox();
             var doSave = function () {
@@ -679,6 +685,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     .replaceAll(":remarks", txtRemarks.getValue());
                 var dt = Util.execSQL(sq);
                 if (dt.ret == "SUCCESS") {
+                    var tx = txtAttach.getValue();
+                    Util.doXhrUpdateVouAttach("uploadAttachPdfVou", true, thatForm.fileUpload, thatForm.frm.getFieldValue("qry1.keyfld"), tx, "JO_" + para);
                     FormView.msgSuccess("This step is updated  !");
                     thatForm.startActive();
                 }
@@ -697,6 +705,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 Util.getLabelTxt("", "0px", "@"), txtEmpName,
                 Util.getLabelTxt("Attachment", "30%", ""), txtAttach,
                 Util.getLabelTxt("Remarks", "30%", ""), txtRemarks,
+                Util.getLabelTxt("", "30%", ""), btAttach,
             ];
             var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
                 width: { "S": 280, "M": 380, "L": 480, "XL": 480 },
@@ -769,6 +778,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 txtEmpNo.setValue(dt[0].JO_STEP_EMP);
                 txtEmpName.setValue(dt[0].JO_STEP_EMPNAME);
             }
+            UtilGen.Vouchers.attachLoadQry(thatForm, txtAttach, "JO_" + para, thatForm.frm.getFieldValue("qry1.keyfld"));
 
         }
         var fncallback = function () {
@@ -2080,6 +2090,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             var sett = sap.ui.getCore().getModel("settings").getData();
             return {
                 afterLoadQry: function (qry) {
+                    thatForm.fileUpload = undefined;
                     thatForm.fetchCustItems = false;
                     thatForm.fetchCustExp = false;
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
@@ -2136,6 +2147,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     return "";
                 },
                 afterNewRow: function (qry, idx, ld) {
+                    thatForm.fileUpload = undefined;
                     if (qry.name == "qry1") {
                         thatForm.dlvqty = 0;
                         thatForm.fetchCustItems = false;
