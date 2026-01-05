@@ -112,7 +112,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.veh", {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
                             // "TYPE": 3
-                            "FLAG": 1
+                            // "FLAG": 1
                         },
                         update_default_values: {},
                         table_name: "c7_vehicles",
