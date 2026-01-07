@@ -285,6 +285,12 @@ sap.ui.jsview('bin.Dashboard', {
     },
     listFiscals: function () {
         var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        if (!(sett["PROFILENO"] == 0 ||
+            Util.nvl(sett["ALLOW_FISCAL_CHANGE"], "FALSE") == "TRUE")
+        )
+            FormView.err("Either not allowed year change or user is not admin")
+
         var cf = sap.ui.getCore().getModel("fiscalData").getData().fiscal_code;
         var sq = "select code,title from c7_fiscals order by code"
         var obs = [];
