@@ -360,7 +360,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                     return ("SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ,c_ycust.salesp," +
                                         " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
                                         " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +
-                                        " (select nvl(sum((sale_price+nvl(op_no,0))*ord_pkqty),0) from c_order1 " +
+                                        " (select nvl(sum((sale_price)*ord_pkqty),0) from c_order1 " +
                                         " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
                                         " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and :iscust " +
                                         " and (nvl(':parameter.pstatus','ALL')='ALL' or c_ycust.mov_type=':parameter.pstatus')  " +
