@@ -50,7 +50,8 @@
            G.FC_MAIN,
            G.FC_MAIN_RATE,
            G.JVPOS,
-           nvl(G.BRANCH_NAME,g.NAME) branch_name
+           G.BRANCH_NAME,
+           g.tqty
     FROM   C6_GL2 G
     where usernm= $P{SESSION_ID}  and accno= $P{PACCNO} 
 ORDER BY   POS ASC]]>
@@ -155,11 +156,18 @@ ORDER BY   POS ASC]]>
 		<property name="com.jaspersoft.studio.field.name" value="BRANCH_NAME"/>
 		<property name="com.jaspersoft.studio.field.label" value="BRANCH_NAME"/>
 	</field>
+	<field name="TQTY" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="TQTY"/>
+		<property name="com.jaspersoft.studio.field.label" value="TQTY"/>
+	</field>
 	<variable name="SUMDR" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{DEBIT}]]></variableExpression>
 	</variable>
 	<variable name="SUMCR" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{CREDIT}]]></variableExpression>
+	</variable>
+	<variable name="SUMQT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{TQTY}]]></variableExpression>
 	</variable>
 	<background>
 		<band splitType="Stretch"/>
@@ -179,7 +187,7 @@ ORDER BY   POS ASC]]>
 					<rightPen lineWidth="1.0"/>
 				</box>
 				<staticText>
-					<reportElement stretchType="ContainerHeight" mode="Opaque" x="180" y="0" width="120" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="ea1f100d-e482-4bd5-9e00-986d0fcb44a3">
+					<reportElement stretchType="ContainerHeight" mode="Opaque" x="220" y="0" width="111" height="37" backcolor="rgba(45, 127, 237, 0.0)" uuid="ea1f100d-e482-4bd5-9e00-986d0fcb44a3">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -318,7 +326,7 @@ ORDER BY   POS ASC]]>
 تاريخ المعاملة]]></text>
 				</staticText>
 				<staticText>
-					<reportElement stretchType="ContainerHeight" mode="Opaque" x="300" y="0" width="120" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="19dc05d6-311c-4c35-80aa-ad081ebb5468">
+					<reportElement stretchType="ContainerHeight" mode="Opaque" x="330" y="0" width="90" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="19dc05d6-311c-4c35-80aa-ad081ebb5468">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -335,11 +343,31 @@ ORDER BY   POS ASC]]>
 					</textElement>
 					<text><![CDATA[Site]]></text>
 				</staticText>
+				<staticText>
+					<reportElement stretchType="ContainerHeight" mode="Opaque" x="180" y="0" width="41" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="993185e9-9a76-4dab-8aa8-bfb6c40b88fa">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box>
+						<pen lineWidth="0.25"/>
+						<topPen lineWidth="0.25"/>
+						<leftPen lineWidth="0.25"/>
+						<bottomPen lineWidth="0.25"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Qty
+كمية]]></text>
+				</staticText>
 			</frame>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="15" splitType="Stretch">
+		<band height="18" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="530" y="0" width="40" height="15" uuid="ebcb1df9-5fb1-457e-9a36-eda6c000829c">
@@ -373,7 +401,7 @@ ORDER BY   POS ASC]]>
 				<textFieldExpression><![CDATA[$F{VOU_NO}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="180" y="0" width="120" height="15" uuid="1e91b0fc-32f6-4bd7-9aae-735c994cf733">
+				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="219" y="0" width="111" height="15" uuid="1e91b0fc-32f6-4bd7-9aae-735c994cf733">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -453,7 +481,7 @@ ORDER BY   POS ASC]]>
 				<textFieldExpression><![CDATA[$F{VOU_DATE}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight" pattern="dd/MM/yyy" isBlankWhenNull="true">
-				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="300" y="0" width="120" height="15" uuid="e9dc5236-51aa-4be8-ab73-5f1d172a04dd">
+				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="330" y="0" width="90" height="15" uuid="e9dc5236-51aa-4be8-ab73-5f1d172a04dd">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -466,6 +494,22 @@ ORDER BY   POS ASC]]>
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{BRANCH_NAME}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="ScaleFont" pattern="#,##0;(#,##0-)" isBlankWhenNull="true">
+				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="180" y="0" width="41" height="15" uuid="fecf3ab3-66d6-4ccc-9c59-7d50f5c0c999">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{TQTY}==0?null:$F{TQTY})]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
@@ -486,7 +530,7 @@ ORDER BY   POS ASC]]>
 		</band>
 	</pageFooter>
 	<summary>
-		<band height="16" splitType="Stretch">
+		<band height="20" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<textField pattern="#,##0.000;-#,##0.000" isBlankWhenNull="true">
 				<reportElement mode="Opaque" x="0" y="0" width="60" height="15" backcolor="#FFFF00" uuid="b96ca05a-d05c-4c9e-abe2-86383fdded35">
