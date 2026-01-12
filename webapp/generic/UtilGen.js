@@ -2827,9 +2827,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     if (!change) { sap.m.MessageToast.show("Cant delete !"); return; }
                                     // pv.setSource(undefined);
                                     document.getElementById("pdfFrame").innerHTML =
-                                    "<iframe src='' " +
-                                    "width='100%' height='100%' " +
-                                    "style='border:none'></iframe>";        
+                                        "<iframe src='' " +
+                                        "width='100%' height='100%' " +
+                                        "style='border:none'></iframe>";
                                     that2.fileUpload = undefined;
                                 }
                             }),
@@ -5073,11 +5073,18 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             setTimeout(function () {
                                 lx.$().css("color", "green")
                             }, 500);
-
                         lbls.push(lx);
 
 
                     }
+                    if (Util.nvl(gg.SUMMARY_VAL, "") != "") {
+                        var l = Util.nvl(Util.getLangText(gg.SUMMARY_LABEL), "Total") + ": ";
+                        var dt = UtilGen.DBView.today_date.getDateValue();
+                        var vl = Util.getSQLValue(gg.SUMMARY_VAL.replaceAll(":TODATE", Util.toOraDateString(dt)).replaceAll(":todate", Util.toOraDateString(dt)));
+                        if (Util.extractNumber(vl) != 0)
+                            lbls.push(new sap.m.Label({ text: l + df.format(vl) }));
+                    }
+
                     Util.destroyID(name, that);
                     Util.destroyID(name + "_flex", that);
                     Util.destroyID(name + "_parent", that);
