@@ -392,7 +392,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             "production": thatForm.commands.cmdProduction,
             "deliveries": thatForm.commands.cmdDlv,
             "sales": thatForm.commands.cmdSales,
-            "closeJO": thatForm.commands.cmdProduction,
+            "closeJO": thatForm.commands.cmdClose,
         };
         var sett = sap.ui.getCore().getModel("settings").getData();
         if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.NEW ||
@@ -503,8 +503,12 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 var usr = sett["LOGON_USER"];
                 var sq = "update pord1 set ord_flag=3, closed_by=':user' ,  " +
                     " closed_date=:regtime , closed_empno=':empno' ," +
-                    "closed_remarks=':remarks' where keyfld=" + kf;
-
+                    "closed_remarks=':remarks', " +
+                    "JO_DESIGN_USER =nvl(JO_DESIGN_USER,':user'), " +
+                    "JO_DYE_USER =nvl(JO_DYE_USER,':user'), " +
+                    "JO_STOCK_USER =nvl(JO_STOCK_USER,':user'), " +
+                    "JO_PROD_USER =nvl(JO_PROD_USER,':user') " +
+                    " where keyfld=" + kf;
                 var tme = Util.nvl(txtStepTime.getDateValue(), null) != null ? Util.toOraDateTimeString(txtStepTime.getDateValue()) : "null";
                 sq = sq.replaceAll(":user", usr)
                     .replaceAll(":regtime", tme)
@@ -642,7 +646,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             var btAttach = new sap.m.Button({
                 text: "Show Attachment",
                 press: function () {
-                    UtilGen.Vouchers.attachShowUpload(thatForm,false);
+                    UtilGen.Vouchers.attachShowUpload(thatForm, false);
                 }
             })
 
@@ -1231,8 +1235,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         var thatForm = this;
         var para = "production";
         var isProdClosed = function () {
-            // var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
-            // if (Util.nvl(upd, '') != '') return true;
+            var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
+            if (Util.nvl(upd, '') != '') return true;
             return false;
 
         }
@@ -1310,7 +1314,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 "step_remarks " +
 
                 " from PORD_JO_STEPS s,salesp sls,pord_jo_steps_info si where s.step_code=si.code " +
-                " and s.step_emp(+)=sls.no " +
+                " and s.step_emp=sls.no(+) " +
                 " and s.pord_keyfld=':qry1.keyfld' order by s.step_pos");
 
             var dt = Util.execSQL(sqf);
@@ -1347,7 +1351,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 qv.loadData();
 
                 setTimeout(() => {
-                    // if (isProdClosed() || getStepsNotDone() > 0) cmdSave.setEnabled(false); else cmdSave.setEnabled(true);
+                    if (isProdClosed() || getStepsNotDone() > 0) cmdSave.setEnabled(false); else cmdSave.setEnabled(true);
 
                 });
 
@@ -1504,7 +1508,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 Util.getLabelTxt("", "0px", "@", "redText"), txtStepName,
                 Util.getLabelTxt("txtEmp", "30%", ""), txtEmpNo,
                 Util.getLabelTxt("", "0px", "@"), txtEmpName,
-                Util.getLabelTxt("Estimated hours", "30%", ""), txtEstHours,
+                Util.getLabelTxt("Estimated Minutes", "30%", ""), txtEstHours,
                 Util.getLabelTxt("Item", "30%", ""), txtItemDescr,
                 Util.getLabelTxt("Qty", "30%", ""), txtQty,
                 Util.getLabelTxt("Pos", "10%", "@"), txtItemPos,

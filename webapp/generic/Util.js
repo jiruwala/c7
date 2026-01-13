@@ -110,10 +110,10 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             doXhrUpdateVouAttach: function (path,
                 async, file, kf, descr, kindof) {
                 var formData = new FormData();
-                var MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+                var MAX_SIZE = 20 * 1024 * 1024; // 2 MB
                 if (file != undefined) {   
                     if (file.size > MAX_SIZE) {
-                        FormView.err("File size should not exceed 2 MB.");
+                        FormView.err("File size should not exceed 20 MB.");
                         return; // block upload
                     }                             
                     formData.append("data", file);
