@@ -71,7 +71,7 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                 title: Util.getLangText("Fixed Assets Items"),
                 toolbarBG: "lightblue",
                 titleStyle: "titleFontWithoutPad2 violetText",
-                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
+                formSetting: FormView.getDefaultHeadCSS("jvForm",undefined,350),
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
@@ -105,8 +105,8 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         name: "qry1",
                         dml: "select *from faitems where code=':pac'",
                         where_clause: " code=':code' ",
-                        update_exclude_fields: ['code', "totadd", "totded", "netvalue", "acname", "expacname", "depacname", "costname", "totdep", "totalvalue", "ccname", "catname"],
-                        insert_exclude_fields: ["totadd", "totded", "netvalue", "acname", "expacname", "depacname", "costname", "totdep", "totalvalue", "ccname", "catname"],
+                        update_exclude_fields: ['code', "totadd", "totded", "netvalue", "acname", "expacname", "depacname", "costname", "totdep", "totalvalue", "totposted_dep", "totunposted_dep", "ccname", "catname"],
+                        insert_exclude_fields: ["totadd", "totded", "netvalue", "acname", "expacname", "depacname", "costname", "totdep", "totalvalue", "totposted_dep", "totunposted_dep", "ccname", "catname"],
                         insert_default_values: {
                             "keyfld": "(select nvl(max(keyfld),0)+1 from faitems)",
                         },
@@ -157,9 +157,10 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                 afterLoadQry: function (qry) {
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("code"));
                     if (qry.name == "qry1") {
+                        var dt = thatForm.view.today_date.getDateValue();
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
 
-                        var sq = "select :name from acaccount where accno = ':CODE' ".replaceAll(":name", Util.getLangDescrAR("name", "mvl(namea,name) name "));
+                        var sq = "select :name from acaccount where accno = ':CODE' ".replaceAll(":name", Util.getLangDescrAR("nvl(namea,name) name", "name"));
                         UtilGen.Search.getLOVSearchField(sq, qry.formview.objs["qry1.accno"].obj, undefined, that.frm.objs["qry1.acname"].obj);
                         UtilGen.Search.getLOVSearchField(sq, qry.formview.objs["qry1.depaccno"].obj, undefined, that.frm.objs["qry1.depacname"].obj);
                         UtilGen.Search.getLOVSearchField(sq, qry.formview.objs["qry1.expaccno"].obj, undefined, that.frm.objs["qry1.expacname"].obj);
@@ -167,7 +168,11 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         UtilGen.Search.getLOVSearchField("select title from accostcent1 where code = ':CODE'", qry.formview.objs["qry1.costcent"].obj, undefined, that.frm.objs["qry1.ccname"].obj);
                         UtilGen.Search.getLOVSearchField("select catname from facat where catno = ':CODE'", qry.formview.objs["qry1.catno"].obj, undefined, that.frm.objs["qry1.catname"].obj);
 
-                        thatForm.helperFunc.calcVal();
+                        // thatForm.helperFunc.calcVal();
+
+                        thatForm.frm.objs["qry1._today"].obj.setEditable(true);
+                        thatForm.frm.setFieldValue("qry1._today", dt, dt, true);
+
                     }
 
 
@@ -192,12 +197,19 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         qry.formview.setFieldValue("qry1.pur_inv_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         qry.formview.setFieldValue("qry1.purdate", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
 
+                        qry.formview.setFieldValue("qry1._today", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
+
                         thatForm.frm.setFieldValue("qry1.purprice", 0, 0, true);
                         thatForm.frm.setFieldValue("qry1.deprate", 1, 1, true);
                         thatForm.frm.setFieldValue("qry1.bf_depamt", 0, 0, true);
-                        thatForm.frm.setFieldValue("qry1.bf_depadd", 0, 0, true);
-                        thatForm.frm.setFieldValue("qry1.bf_depded", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.bf_add", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.bf_ded", 0, 0, true);
                         thatForm.frm.setFieldValue("qry1.totalvalue", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.totposted_dep", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.totunposted_dep", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.totdep", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.totadd", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.totded", 0, 0, true);
                         thatForm.frm.setFieldValue("qry1.netbookvalue", 1, 1, true);
 
                     }
@@ -253,21 +265,45 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
             var sett = sap.ui.getCore().getModel("settings").getData();
             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
             var code = thatForm.frm.getFieldValue("qry1.code");
-            if (Util.nvl(fetchRec, true)) {
-                // var tadd = Util.getSQLValue("SELECT NVL(SUM(TRANSACTIONAMNT),0) FROM FATRANSACTION WHERE ITEMNO='" + cod + "' AND TRANSACTIONTYPE=1");
-                // var tded = Util.getSQLValue("SELECT NVL(SUM(TRANSACTIONAMNT),0) FROM FATRANSACTION WHERE ITEMNO='" + cod + "' AND TRANSACTIONTYPE=2");
-                // var tdep = Util.getSQLValue("SELECT NVL(SUM(depamt),0) FROM fadep WHERE code='" + cod + "' AND TRANSACTIONTYPE=2");
-                // thatForm.frm.setFieldValue("qry1.totadd", tadd, tadd, true);
-                // thatForm.frm.setFieldValue("qry1.totded", tded, tded, true);
-                // thatForm.frm.setFieldValue("qry1.totdep", tdep, tdep, true);
-            }
+            var html = thatForm.frm.objs["qry1._htmlBox"].obj;
+            var tdt = thatForm.frm.getFieldValue("qry1._today");//thatForm.view.today_date.getDateValue();
+            html.setContent("");
+            var getData = function () {
+                if (Util.nvl(fetchRec, true)) {
+                    var sql = "select c7_fa_accu_dep_tot(':code',trunc(:tdt),':retType') tot_dep from dual".replaceAll(":code", code);
+                    var tadd = Util.extractNumber(Util.getSQLValue(
+                        sql.replaceAll(":tdt", Util.toOraDateString(tdt))
+                            .replaceAll(":retType", "add")
+                    ));
+                    var tdep = Util.extractNumber(Util.getSQLValue(
+                        sql.replaceAll(":tdt", Util.toOraDateString(tdt))
+                            .replaceAll(":retType", "dep")
+                    ));
+                    var tded = Util.extractNumber(Util.getSQLValue(
+                        sql.replaceAll(":tdt", Util.toOraDateString(tdt))
+                            .replaceAll(":retType", "ded")
+                    ));
+                    var tval = Util.extractNumber(Util.getSQLValue(
+                        sql.replaceAll(":tdt", Util.toOraDateString(tdt))
+                            .replaceAll(":retType", "val")
+                    ));
+                    var tdepPosted = Util.extractNumber(Util.getSQLValue(
+                        sql.replaceAll(":tdt", Util.toOraDateString(tdt))
+                            .replaceAll(":retType", "posted_dep")
+                    ));
 
-            // var pp = Util.extractNumber(thatForm.frm.getFieldValue("qry1.purprice"));
-            // var tadd = Util.extractNumber(thatForm.frm.getFieldValue("qry1.totadd"));
-            // var tded = Util.extractNumber(thatForm.frm.getFieldValue("qry1.totded"));
-            // var tot = (pp + tadd) - (tded + tdep);
-            // thatForm.frm.setFieldValue("qry1.netvalue", df.format(tot), df.format(tot));
+                    thatForm.frm.setFieldValue("qry1.totadd", df.format(tadd));
+                    thatForm.frm.setFieldValue("qry1.totded", df.format(tded));
+                    thatForm.frm.setFieldValue("qry1.totdep", df.format(tdep));
+                    thatForm.frm.setFieldValue("qry1.totposted_dep", df.format(tdepPosted));
+                    thatForm.frm.setFieldValue("qry1.totunposted_dep", df.format(tdep - tdepPosted));
+                    thatForm.frm.setFieldValue("qry1.totalvalue", df.format(tval));
 
+                }
+            };
+            setTimeout(() => {
+                getData();
+            }, 100);
         },
         getFields1: function () {
             var codSpan = "XL3 L3 M3 S12";
@@ -454,15 +490,15 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         edit_allowed: true
 
                     }, {}),
-                bf_depadd: FormView.getFactoryFields.getMoneyField(
-                    "bf_depadd", "", "shortTxtBfDepAdd", "30%", "", "20%",
+                bf_add: FormView.getFactoryFields.getMoneyField(
+                    "bf_add", "", "shortTxtBfDepAdd", "30%", "", "20%",
                     {
                         insert_allowed: true,
                         edit_allowed: true
 
                     }, {}),
-                bf_depded: FormView.getFactoryFields.getMoneyField(
-                    "bf_depded", "@", "shortTxtBfDepDed", "20%", "", "20%",
+                bf_ded: FormView.getFactoryFields.getMoneyField(
+                    "bf_ded", "@", "shortTxtBfDepDed", "20%", "", "20%",
                     {
                         insert_allowed: true,
                         edit_allowed: true
@@ -475,6 +511,26 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                     {
                         class_name: FormView.ClassTypes.LABEL,
                     }, {}, "Center"),
+                _today: FormView.getFactoryFields.getDateField(
+                    "_today", "", "Calc Day ", "15%", "", "25%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, {
+                    change: function () {
+                        thatForm.helperFunc.calcVal();
+                    }
+                }),
+                _calcdays: FormView.getFactoryFields.getGeneralField(
+                    "_calcdays", "", "", "10%", "", "25%",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false
+                    }, {
+                }),
                 totadd: FormView.getFactoryFields.getMoneyField(
                     "totadd", "", "totAdd", "13%", "", "12%",
                     {
@@ -501,7 +557,26 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                         edit_allowed: false,
                         display_style: "totInput",
                     }, {}),
-
+                totposted_dep: FormView.getFactoryFields.getMoneyField(
+                    "totposted_dep", "", "shortPostedDep", "61%", "", "12%",
+                    {
+                        insert_allowed: false,
+                        edit_allowed: false,
+                        display_style: "totInput",
+                    }, {}),
+                totunposted_dep: FormView.getFactoryFields.getMoneyField(
+                    "totunposted_dep", "", "shortUnPostedDep", "61%", "", "12%",
+                    {
+                        insert_allowed: false,
+                        edit_allowed: false,
+                        display_style: "totInput",
+                    }, {}),
+                _htmlBox: FormView.getFactoryFields.getGeneralField(
+                    "_htmlBox", "", "", "0px", "", "100%",
+                    {
+                        class_name: "sap.ui.core.HTML",
+                        display_style: "",
+                    }, { height: "400px" }),
             };
         },
         getList: function () {
@@ -581,16 +656,23 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                             var mnus = [];
                             var bts = [];
                             if (
-                                (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
-                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW ||
-                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
-                                // mnus.push(new sap.m.MenuItem({
-                                //     icon: "sap-icon://letter",
-                                //     text: Util.getLangText("generateInvoice"),
-                                //     press: function () {
-                                //         that2.helperFunc.generateInvoice(this);
-                                //     }
-                                // }));
+                                that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW ||
+                                that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW
+                            ) {
+                                mnus.push(new sap.m.MenuItem({
+                                    icon: "sap-icon://letter",
+                                    text: Util.getLangText("Open JV"),
+                                    press: function () {
+                                        that2.helperFunc.openDepJv();
+                                    }
+                                }));
+                                mnus.push(new sap.m.MenuItem({
+                                    icon: "sap-icon://letter",
+                                    text: Util.getLangText("Delete Dep JV"),
+                                    press: function () {
+                                        that2.helperFunc.delJv();
+                                    }
+                                }));
                             }
                             if (bts.length > 0) {
                                 mnus.push(new sap.m.MenuItem({
@@ -647,16 +729,129 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
             validateAcc("qry1.accno");
             validateAcc("qry1.depaccno");
             validateAcc("qry1.expaccno");
+        },
+        delJv: function () {
+            var thatForm = this.thatForm;
+            var sq = thatForm.frm.parseString("select no jv_no,v.vou_date,v.descr,debamt amount,v.keyfld ,f.jv_pos , " +
+                " fa.descr item_descr,fa.code " +
+                "from acvoucher1 v,c7_fadep f, faitems fa " +
+                "where v.keyfld=F.JV_KEYFLD and " +
+                " fa.code=f.itm_code and " +
+                "v.vou_code=1 and v.type=991 and " +
+                "(f.itm_code=':qry1.code' or ':qry1.code' is null ) and " +
+                "f.flag=1 order by vou_date");
+            UtilGen.Search.do_quick_search_simple(sq,
+                ["JV_NO", "VOU_DATE", "DESCR", "AMOUNT"], function (data) {
+                    Util.simpleConfirmDialog("Are you sure to delete this JV # " + data.JV_NO + " ?", function (oAction) {
+                        var sq = ("begin " +
+                            " delete from acvoucher2 where vou_code=1 and type=991 and keyfld=:keyfld ; " +
+                            " delete from acvoucher1 where vou_code=1 and type=991 and keyfld=:keyfld ;" +
+                            " delete from c7_fadep where jv_keyfld=:keyfld; " +
+                            " end;").replaceAll(":keyfld", data.KEYFLD);
+                        var dt = Util.execSQL(sq);
+                        if (dt.ret == "SUCCESS") {
+                            FormView.msgCustom(Util.getLangText("msgDeleted"), "maroon");
+                            if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW)
+                                thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                        }
+                    });
+
+                }, { pWidth: "80%" }, undefined, false, "Select JV to delete.. ", thatForm.helperFunc.getDepListArr());
+        },
+        openDepJv: function () {
+            var thatForm = this.thatForm;
+            var sq = thatForm.frm.parseString("select no jv_no,v.vou_date,v.descr,debamt amount,v.keyfld ,f.jv_pos, " +
+                " fa.descr item_descr,fa.code " +
+                "from acvoucher1 v,c7_fadep f,faitems fa " +
+                "where v.keyfld=F.JV_KEYFLD and " +
+                " fa.code=f.itm_code and " +
+                "v.vou_code=1 and v.type=991 and " +
+                "(f.itm_code=':qry1.code' or ':qry1.code' is null ) and " +
+                "f.flag=1 order by vou_date");
+            UtilGen.Search.do_quick_search_simple(sq,
+                ["JV_NO", "VOU_DATE", "DESCR", "AMOUNT"], function (data) {
+                    UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + data.KEYFLD + " jvpos=" + data.JV_POS, thatForm.view, undefined, undefined, function () {
+                        if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW)
+                            thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                    });
+
+                }, { pWidth: "80%" }, undefined, false, "Open JV...", thatForm.helperFunc.getDepListArr());
+
+        },
+        getDepListArr: function () {
+            return [
+                {
+                    JV_NO: {
+                        colname: "JV_NO",
+                        display_width: 60,
+                        mTitle: Util.getLangText("txtNo"),
+                    }
+                },
+                {
+                    VOU_DATE: {
+                        colname: "VOU_DATE",
+                        display_width: 100,
+                        display_format: "SHORT_DATE_FORMAT",
+                        mTitle: Util.getLangText("dateTxt"),
+                    }
+                },
+                {
+                    DESCR: {
+                        colname: "DESCR",
+                        display_width: 150,
+                        mTitle: Util.getLangText("descrTxt"),
+                    }
+                },
+                {
+                    ITEM_DESCR: {
+                        colname: "ITEM_DESCR",
+                        display_width: 150,
+                        mTitle: Util.getLangText("descrTxt"),
+                    }
+                },
+                {
+                    CODE: {
+                        colname: "CODE",
+                        display_width: 100,
+                        mTitle: Util.getLangText("txtCode"),
+                    }
+                },
+                {
+                    AMOUNT: {
+                        colname: "AMOUNT",
+                        display_width: 130,
+                        display_format: "MONEY_FORMAT",
+                        mTitle: Util.getLangText("amountTxt"),
+                    }
+                },
+                {
+                    KEYFLD: {
+                        colname: 'KEYFLD',
+                        hide: true
+                    }
+                },
+                {
+                    JV_POS: {
+                        colname: 'JV_POS',
+                        hide: true
+                    }
+                },
+
+            ];
         }
     }
     ,
 
     loadData: function () {
         var frag = this;
-        if (Util.nvl(frag.oController.keyfld, "") != "") {
-            frag.frm.setFieldValue('pac', Util.nvl(frag.oController.keyfld, ""));
+        frag.frm.readonly = Util.nvl(frag.oController.readonly, false);
+        if (frag.frm.readonly == "true") frag.frm.readonly = true;
+        if (Util.nvl(frag.oController.code, "") != "") {
+            frag.oController.keyfld = frag.oController.code;
+            frag.frm.setFieldValue('pac', Util.nvl(frag.oController.code, ""));
             frag.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
             frag.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+            UtilGen.Vouchers.formLoadData(this);
         } else {
             UtilGen.Vouchers.formLoadData(this);
         }
