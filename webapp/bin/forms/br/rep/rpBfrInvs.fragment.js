@@ -482,6 +482,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     display_style: "",
                     display_format: "SHORT_DATE_FORMAT",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
+                    count_unique_label: "txtCountDate",
                     other_settings: {},
 
                 },
@@ -501,6 +503,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     default_value: "",
                     other_settings: {},
                 },
+                ord_ref: {
+                    colname: "ord_ref",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtCode",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
                 ord_refnm: {
                     colname: "ord_refnm",
                     data_type: FormView.DataType.String,
@@ -515,6 +534,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
+                    count_unique_label: "txtCountCust",
                     other_settings: {},
 
                 },
@@ -565,6 +586,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
+                    count_unique_label: "itemTxt",
                     other_settings: {},
 
                 },

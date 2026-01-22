@@ -338,7 +338,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "3",
+                    default_value: "0",
                     other_settings: { width: "35%" },
                     list: undefined,
                     edit_allowed: true,
@@ -551,7 +551,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     for (var cl in scl) {
                         ld.getColByName(scl[cl]).mUIHelper.display_width = "120";
                         ld.getColByName(scl[cl]).mUIHelper.data_type = "NUMBER";
-                        ld.getColByName(scl[cl]).mUIHelper.display_format = "QTY_FORMAT";
+                        ld.getColByName(scl[cl]).mUIHelper.display_format = "MONEY_FORMAT";
                         ld.getColByName(scl[cl]).mTitle = Util.getLangText(sct[cl]);
                         ld.getColByName(scl[cl]).mTitleParent = Util.getLangText(scp[cl]);
                         ld.getColByName(scl[cl]).mTitleParentSpan = 2;
@@ -608,7 +608,14 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     };
                     ld.parse("{" + dt.data + "}", true);
 
+                    paras["formatNumber"] = function (oData, rowno, col) {
+                        // if (col.indexOf("cost") >= 0)
+                        if (["BDEB", "BCRD", "TDEB", "TCRD", "CDEB", "CCRD"].indexOf(col) >= 0)
+                            return new DecimalFormat(sett['FORMAT_MONEY_1']);
+                        return undefined;
+                    }
                     // calculating ytd rate.
+
                     paras["showFooter"] = true;
                     paras["fnOnFooter"] = function (footer) {
                         // var dfq1 = new DecimalFormat("#,##0");

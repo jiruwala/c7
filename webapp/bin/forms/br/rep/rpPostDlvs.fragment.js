@@ -117,7 +117,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO"],
+                                filterCols: ["ORD_REF", "ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -142,9 +142,12 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                 },
                                 beforeLoadQry: function (sql) {
                                     var eq = thatForm.frm.getFieldValue("RPPD1@parameter.grpby");
+                                    var colbal = thatForm.frm.getFieldValue("RPPD1@parameter.showbal");
                                     var sq = "SELECT ORD_REF, ORD_REFNM, SALEINV," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT," +
-                                        " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT, INVOICE1.INVOICE_NO," +
+                                        " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT," +
+                                        (colbal == "Y" ? "c7_get_cb(ord_ref,'Y','Y') balance , " : "") +
+                                        "INVOICE1.INVOICE_NO, " +
                                         " SUM(((price_x))*(qty_x))/ SUM(qty_x) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts, " +
                                         " packd_x ," +
                                         " y.salesp slsmn , sp.name slsname " +
@@ -174,9 +177,11 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
                                         var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        var colbal = thatForm.frm.getFieldValue("parameter.showbal");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_REFNM")].mGrouped = iq == "customers";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ITEM_DESCR")].mGrouped = iq == "items";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_DATE")].mGrouped = iq == "day";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BALANCE")].mHideCol = (colbal != "Y");
 
                                     }
                                 },
@@ -482,6 +487,24 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     require: true,
                     dispInPara: true,
                 },
+                showbal: {
+                    colname: "showbal",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"Show Bal? \",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "N",
+                    other_settings: { selected: true, width: "5%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
             };
             return para;
         },
@@ -513,6 +536,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_style: "",
                     display_format: "SHORT_DATE_FORMAT",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
+                    count_unique_label: "txtCountDate",
                     other_settings: {},
 
                 },
@@ -531,6 +556,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_format: "",
                     default_value: "",
                     other_settings: {},
+                    summary: "COUNT_UNIQUE",
                     commandLinkClick: cmdLink
                 },
                 counts: {
@@ -549,6 +575,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     default_value: "",
                     other_settings: {},
                 },
+                ord_ref: {
+                    colname: "ord_ref",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtCode",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
                 ord_refnm: {
                     colname: "ord_refnm",
                     data_type: FormView.DataType.String,
@@ -563,6 +606,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
+                    count_unique_label: "txtCountCust",
                     other_settings: {},
 
                 },
@@ -613,6 +658,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
+                    count_unique_label: "itemTxt",
                     other_settings: {},
 
                 },
@@ -661,6 +708,24 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                     display_align: "ALIGN_END",
                     grouped: false,
                     display_style: "",
+                    display_format: "MONEY_FORMAT",
+                    default_value: "",
+                    other_settings: {},
+                    summary: "SUM",
+
+                },
+                balance: {
+                    colname: "balance",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "balanceTxt",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_END",
+                    grouped: false,
+                    display_style: "background-color:#e5e4e2;",
                     display_format: "MONEY_FORMAT",
                     default_value: "",
                     other_settings: {},

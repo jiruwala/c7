@@ -554,14 +554,14 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlvord", {
                     }, FormView.getFactoryFields.getSettingsOrdRef2({
                         thatForm: thatForm,
                         fnAfteUpdate: function () {
-                            // var locval = thatForm.frm.objs["qry1.ord_ref"].obj.getValue();
+                            var locval = thatForm.frm.objs["qry1.ord_ref"].obj.getValue();
                             thatForm.frm.setFieldValue("qry1.ord_branch", "", "", true);
                             thatForm.checkCLColor();
-                            // thatForm.frm.setFieldValue("qry1.salesp", "", "", true);
-                            // if (locval != "") {
-                            //     var s = Util.getSQLValue("select salesp from c_ycust where code='" + locval + "'");
-                            //     thatForm.frm.setFieldValue("qry1.salesp", s, s, true);
-                            // }
+                            thatForm.frm.setFieldValue("qry1.slsmn", "", "", true);
+                            if (locval != "") {
+                                var s = Util.getSQLValue("select salesp from c_ycust where code='" + locval + "'");
+                                thatForm.frm.setFieldValue("qry1.slsmn", s, s, true);
+                            }
                         },
                     })),
                 ord_refnm: FormView.getFactoryFields.getGeneralField(
