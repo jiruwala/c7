@@ -234,7 +234,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                             }
                             var sls = that.frm.getFieldValue("qry1.salesp");
                             if (Util.nvl(sls, "") != "") {
-                                var s = Util.getSQLValue("select name from acaccount where accno=" + Util.quoted(sls));
+                                var s = Util.getSQLValue("select name from salesp where no=" + Util.quoted(sls));
                                 UtilGen.setControlValue(that.frm.objs["qry1.salesp"].obj, sls, sls, false);
                                 UtilGen.setControlValue(that.frm.objs["qry1.salesname"].obj, s, s, false);
                             }
