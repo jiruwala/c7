@@ -123,7 +123,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                         " packd_x ," +
                                         " '' remarks , " +
                                         " JOINED_CORDER.location_code," +
-                                        " JOINED_CORDER.location_name " +
+                                        " JOINED_CORDER.location_name, " +
+                                        " JOINED_CORDER.cast_type " +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=9 " +
@@ -145,7 +146,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS," +
                                         " DRIVER_NAME ,TEL,TRUCKNO," +
-                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
+                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,cast_type, " +
                                         " PRICE_X,item_descr, BRANCH_NAME , saleinv ,PACKD_X ,INVOICE1.invoice_no " +
                                         ordby;
                                     // " ORDER BY ord_date,ord_no ";
@@ -682,6 +683,25 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
+                    count_unique_label: "txtDriver",
+                    other_settings: {},
+
+                },
+                cast_type: {
+                    colname: "cast_type",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtShift",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "120",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
                     other_settings: {},
 
                 },
@@ -699,6 +719,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
                     other_settings: {},
 
                 },
@@ -716,6 +737,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",                    
                     other_settings: {},
 
                 },
