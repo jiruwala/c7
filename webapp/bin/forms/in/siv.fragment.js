@@ -116,8 +116,8 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                         name: "qry1",
                         dml: "select *from invoice1 where invoice_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ["straname", "strbname", "slsname", "costcentnm"],
-                        insert_exclude_fields: ["straname", "strbname", "slsname", "costcentnm"],
+                        update_exclude_fields: ["straname", "strbname", "slsname", "costcentnm", "jodescr"],
+                        insert_exclude_fields: ["straname", "strbname", "slsname", "costcentnm", "jodescr"],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
                             "INVOICE_CODE": thatForm.vars.vou_code,
@@ -326,7 +326,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         UtilGen.Search.getLOVSearchField("select name from store where no = :CODE ", qry.formview.objs["qry1.stra"].obj, undefined, that.frm.objs["qry1.straname"].obj);
                         UtilGen.Search.getLOVSearchField("select title name from accostcent1 where code = :CODE ", qry.formview.objs["qry1.costcent"].obj, undefined, that.frm.objs["qry1.costcentnm"].obj);
-
+                        UtilGen.Search.getLOVSearchField("select 'JO date# '||to_char(ord_date,'dd/mm/rr')||' '||ord_ref||'-'||ord_refnm title from pord1 where ord_code=601 and ord_no = :CODE ", qry.formview.objs["qry1.jono"].obj, undefined, that.frm.objs["qry1.jodescr"].obj);
                         var sl = Util.execSQLWithData("select po_keyfld,gr_keyfld,invoice_keyfld from invoice1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
                         if (sl.length > 0 && Util.nvl(sl[0].PO_KEYFLD, "") != "") {
                             var no = Util.getSQLValue("select ord_no from pord1 where keyfld=" + sl[0].PO_KEYFLD);
@@ -461,6 +461,12 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                 },
                 beforeExeSql: function (frm, sq) {
                     var kf = frm.getFieldValue("qry1.keyfld");
+                    var jono = frm.getFieldValue("qry1.jono");
+                    var sq2 = "";
+                    if (Util.nvl(jono, "") != "") {
+                        sq2 = "update invoice2 set jono='" + jono + "' where keyfld=" + kf + ";c7_jo_update_issue(" + jono + ");";
+                        sq += sq2;
+                    }
                     return sq + "X_POST_ISSUE(" + kf + ");";
                 }
             };
@@ -532,9 +538,20 @@ sap.ui.jsfragment("bin.forms.in.siv", {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
+            var getSettingJO = function (str, strnm) {
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    code: Util.nvl(str, "jono"),
+                    name: Util.nvl(strnm, "jodescr"),
+                    sqlChange: "select 'JO date# '||to_char(ord_date,'dd/mm/rr')||' '||ord_ref||'-'||ord_refnm  title from pord1 where ord_flag=2 and ord_code=601 and ord_no = ':CODE'",
+                    sqlList: "select ord_no code,'JO date# '||to_char(ord_date,'dd/mm/rr')||' '||ord_ref||'-'||ord_refnm title from pord1 where ord_flag=2 and ord_code=601 order by ord_date desc,ord_no ",
+                    sqlListChange: "select ord_no code,'JO date# '||to_char(ord_date,'dd/mm/rr')||' '||ord_ref||'-'||ord_refnm title from pord1 where ord_flag=2 and ord_code=601 and  ord_no=:CODE",
+                });
+            };
             var getSettingCC = function (str, strnm) {
                 return FormView.getFactoryFields.getSettingsGeneral({
                     thatForm: thatForm,
+                    pPoints: { pWidth: "600px" },
                     code: Util.nvl(str, "costcent"),
                     name: Util.nvl(strnm, "costcentnm"),
                     sqlChange: "select title name from accostcent1 where code = ':CODE'",
@@ -647,8 +664,23 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                         insert_allowed: false,
                         keyboardFocus: false,
                     }, {}),
+                jono: FormView.getFactoryFields.getGeneralField(
+                    "jono", "@", "JO # ", "15%", "", "12%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, getSettingJO("qry1.jono", "qry1.jodescr")),
+                jodescr: FormView.getFactoryFields.getGeneralField(
+                    "jodescr", "@", "", "0px", "", "23%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+                    }, {}),
                 slsmn: FormView.getFactoryFields.getGeneralField(
-                    "slsmn", "@", "txtEmp", "15%", "", "12%",
+                    "slsmn", "", "txtEmp", "15%", "", "12%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -664,7 +696,7 @@ sap.ui.jsfragment("bin.forms.in.siv", {
 
                     }, {}),
                 memo: FormView.getFactoryFields.getGeneralField(
-                    "memo", "", "txtRemark", "15%", "", "85%",
+                    "memo", "@", "txtRemark", "15%", "", "35%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -899,7 +931,13 @@ sap.ui.jsfragment("bin.forms.in.siv", {
             }
             if (cc == undefined)
                 if (Util.nvl(cod, "") == "") errObj("Store out must have value !", "qry1.stra");
-
+            // check jo no is approved
+            var jo = qry.formview.getFieldValue("qry1.jono");
+            if (Util.nvl(jo, "") != "") {
+                var ff = Util.getSQLValue("select ord_flag from pord1 where ord_code=601 and ord_no=" + jo);
+                if (ff != 2)
+                    FormView.err("JO is not approved or closed !");
+            }
             // items
             var dup = {};
             var ld = thatForm.frm.objs["qry2"].obj.mLctb;

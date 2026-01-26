@@ -417,7 +417,13 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             };
             var update_rec = function () {
                 var sq = "update pord1 set ord_flag=2,APPROVED_BY=':approved_by'," +
-                    "approved_time=sysdate where keyfld=" + kf;
+                    ":st approved_time=sysdate where keyfld=" + kf;
+                var pt = Util.getSQLValue("select payterm from pord1 where keyfld=" + kf);
+                if (pt == "outside" || pt == "digial")
+                    sq = sq.replaceAll(":st", "jo_dye_user=':approved_by' , ");
+                else
+                    sq = sq.replaceAll(":st", "");
+
                 sq = sq.replaceAll(":approved_by", sett["LOGON_USER"]);
                 var dt = Util.execSQL(sq);
                 if (dt.ret == "SUCCESS") {
@@ -427,7 +433,10 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
             }
             checkCanApprove();
-            Util.simpleConfirmDialog("After approved you may not edit delete this JO , continue ? ", function (oAction) {
+            var cc = thatForm.frm.getFieldValue("qry1.ord_ref");
+            var bl = Util.getSQLValue("select nvl(sum(debit-credit),0) from acvoucher2 where cust_code='" + cc + "'");
+            var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+            Util.simpleConfirmDialog("BALANCE = " + df.format(bl) + ", \n\nAre you sure you want to approve this JO  ? ", function (oAction) {
                 update_rec();
             });
         }
@@ -1502,7 +1511,6 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
             txtEndTime.setValueFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
             txtEndTime.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
-
             var fe = [
                 Util.getLabelTxt("txtCode", "30%", "", "redText"), txtStepCode,
                 Util.getLabelTxt("", "0px", "@", "redText"), txtStepName,
@@ -1576,7 +1584,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             txtQty.setValue("0");
             txtItemDescr.setValue("");
             txtItemPos.setValue("");
-            txtStartTime.setDateValue(null);
+            txtStartTime.setDateValue(new Date());
             txtEndTime.setDateValue(null);
             txtRemarks.setValue("");
             if (Util.nvl(sp, -1) != -1) {
@@ -2095,6 +2103,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             return {
                 afterLoadQry: function (qry) {
                     thatForm.fileUpload = undefined;
+                    var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+
                     thatForm.fetchCustItems = false;
                     thatForm.fetchCustExp = false;
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
@@ -2113,12 +2123,15 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         var rcvd = Util.getSQLValue("select nvl(sum(tqty),0) from c_order1 where ord_code=9 and pord1_keyfld=" + qry.formview.getFieldValue("keyfld"));
                         var sold = Util.getSQLValue("select nvl(sum(allqty),0) from pur2 where invoice_code=21 and po_keyfld=" + qry.formview.getFieldValue("keyfld"));
                         var ordrd = Util.getSQLValue("select nvl(sum(ord_allqty),0) from pord2 where keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        var matcost = Util.getSQLValue("select nvl(sum(act_mat_cost),0) from pord1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
+                        thatForm.frm.setFieldValue("qry2.actmatcost", matcost, matcost, true);
                         var rcvdp = 0; var soldp = 0;
                         thatForm.dlvqty = rcvd;
                         thatForm.soldqty = sold;
                         if (ordrd > 0) rcvdp = Math.round((100 / ordrd) * rcvd, 2);
                         if (ordrd > 0) soldp = Math.round((100 / ordrd) * sold, 2);
-                        // thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");
+
+                        // thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");                        
                         thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("D/S: " + rcvdp + (soldp == rcvdp ? "" : " / " + soldp) + " %");
                     }
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
@@ -2173,7 +2186,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         UtilGen.setControlValue(objcst, 0, 0, true);
                         UtilGen.setControlValue(objmat, 0, 0, true);
                         UtilGen.setControlValue(objothexp, 0, 0, true);
-
+                        thatForm.frm.setFieldValue("qry2.actmatcost", 0, 0, true);
                         qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
                         objOn.fireSelectionChange();
                         setTimeout(() => {
@@ -2935,7 +2948,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             var thatForm = this.thatForm;
             var flg = "";
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
-
+                var ex = Util.getSQLValue("select nvl(max(ord_no),-1) from pord1 where ord_code='" + thatForm.vars.vou_code + "' and ord_no='" + thatForm.frm.getFieldValue("qry1.ord_no")) + "'";
+                if (Util.nvl(ex, -1) == -1 || Util.nvl(ex, -1) == '-1')
+                    FormView.err("JO no existed !");
             }
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");

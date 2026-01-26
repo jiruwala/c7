@@ -420,7 +420,8 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             " when jo_active_from is not null and ord_flag!=3 then 'Active'  " +
             " else 'Pending' end ) action_status ,usernm,approved_by, " +
             " to_char(o1.JO_ACTIVE_FROM,'dd/mm HH24.MI') jo_active_from ," +
-            " '✔' steps_done , " +
+            " to_char(o1.ord_shpdt,'dd/mm/rr') duedate ," +
+            // " UNISTR('\\2714') steps_done , " +
             " pur.invoice_no,o1.ord_ref,o1.ord_refnm," +
             "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * purqty, 2)) else 0 end)||'%' purp ," +
             "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * DELIVEREDQTY, 2)) else 0 end)||'%' dlvp ," +
@@ -468,12 +469,6 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             Util.setColProperties(qv, "JO_ACTIVE_FROM", {
                 "mTitle": "txtJoActiveFrom",
                 "display_width": 120
-            });
-
-            Util.setColProperties(qv, "STEPS_DONE", {
-                "mTitle": "Steps",
-                "display_align": "center",
-                "display_width": 100,
             });
 
 
@@ -548,6 +543,11 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 "mTitle": "Stock",
                 "display_width": 60,
             });
+            Util.setColProperties(qv, "DUEDATE", {
+                "mTitle": "Due Date",
+                "display_width": 75,
+            });
+
             Util.setColProperties(qv, "JO_PROD_USER", {
                 "mTitle": "Productio",
                 "display_width": 70,
