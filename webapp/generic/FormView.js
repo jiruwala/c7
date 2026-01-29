@@ -691,7 +691,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 qryObj.obj.eventCalc = qryObj.eventCalc;
 
 
-                            UtilGen.applyCols(qryObj.applyCol, qryObj.obj, this);
+                            UtilGen.applyCols(qryObj.applyCol, qryObj.obj, thatForm);
 
                             // when validation of field.
                             if (thatForm.form.events.hasOwnProperty("afterApplyCols"))
@@ -917,7 +917,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             }
         };
 
-        FormView.prototype.parseString = function (str) {
+        FormView.prototype.parseString = function (str, rowno) {
             var lst = str.match(/:[a-zA-Z0-9_.]*/gi);
             var sst = str;
             for (var i = 0; i < Util.nvl(lst, []).length; i++) {
@@ -928,7 +928,25 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     else
                         vl = Util.toOraDateTimeString(vl);
                 }
-                sst = sst.replaceAll(lst[i], vl);
+                if (vl != undefined)
+                    sst = sst.replaceAll(lst[i], vl);
+            }
+            if (rowno != undefined) {
+                for (var i = 0; i < Util.nvl(lst, []).length; i++) {
+                    var qr = lst[i].replaceAll(':', '').split(".");
+                    var qryObj = this.objs[qr[0]];
+                    if ((qryObj.showType == FormView.QueryShowType.QUERYVIEW)) {
+                        var vl = qryObj.obj.mLctb.getFieldValue(rowno, qr[1].toUpperCase());
+                        if (vl instanceof Date) {
+                            if (vl.getTime() === vl.setHours(0, 0, 0, 0))
+                                vl = Util.toOraDateString(vl);
+                            else
+                                vl = Util.toOraDateTimeString(vl);
+                        }
+                        if (vl != undefined)
+                            sst = sst.replaceAll(lst[i], vl);
+                    }
+                }
             }
             return sst;
         };
@@ -1133,6 +1151,11 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 qryObj = qrys[o];
                 if (qryObj.status == FormView.RecordStatus.VIEW ||
                     qryObj.status == FormView.RecordStatus.EDIT) {
+                    if (thatForm.form.events.hasOwnProperty("beforeDelRow")) {
+                        var sqBf = Util.nvl(thatForm.form.events.beforeDelRow(qryObj), "");
+                        sqBf = this.parseString(sqBf);
+                        sql += sqBf;
+                    }
                     var sq = "delete from " + qryObj.table_name +
                         ((Util.nvl(qryObj.where_clause, "") != "") ? " where " + qryObj.where_clause + ";" : "");
                     sql += this.parseString(sq);
@@ -1497,7 +1520,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 qryObj.insert_default_values, true);
                             if (this.form.events.hasOwnProperty("beforeSaveQry"))
                                 sqlRow = Util.nvl(this.form.events.beforeSaveQry(qryObj, sqlRow, i), sqlRow);
-                            sqlRow = this.parseString(sqlRow) + ";";
+                            sqlRow = this.parseString(sqlRow, i) + ";";
                             sq2 += sqlRow;
                             if (this.form.events.hasOwnProperty("addSqlAfterInsert")) {
                                 var adSq = this.form.events.addSqlAfterInsert(qryObj, undefined)
@@ -1539,7 +1562,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 qryObj.insert_default_values, true);
                             if (this.form.events.hasOwnProperty("beforeSaveQry"))
                                 sqlRow = Util.nvl(this.form.events.beforeSaveQry(qryObj, sqlRow, i), sqlRow);
-                            sqlRow = this.parseString(sqlRow) + ";";
+                            sqlRow = this.parseString(sqlRow, i) + ";";
                             sq2 += sqlRow;
                             if (this.form.events.hasOwnProperty("addSqlAfterInsert")) {
                                 var adSq = this.form.events.addSqlAfterInsert(qryObj, undefined)
