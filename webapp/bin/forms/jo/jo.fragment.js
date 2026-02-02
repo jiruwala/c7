@@ -216,7 +216,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "br/salord",
+                        reportFile: "jo",
                     }
                 ],
                 events: thatForm.helperFunc.getEvents(),
@@ -611,7 +611,6 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
         }
         var do_basic_steps = function () {
-
             var txtStepType = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "50%", editable: false });
             var txtStepTimeSend = new sap.m.DateTimePicker({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: commands[para].showRecs ? false : true });
             var txtStepTime = new sap.m.DateTimePicker({
@@ -658,7 +657,32 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     UtilGen.Vouchers.attachShowUpload(thatForm, false);
                 }
             })
-
+            var btDye = new sap.m.ToggleButton({
+                pressed: true,
+                text: "DYE",
+                width: "100px",
+                press: function () {
+                    btDye.setPressed(true);
+                    btPlate.setPressed(false);
+                    para = "dye";
+                    fetchdata();
+                }
+            });
+            var btPlate = new sap.m.ToggleButton({
+                pressed: false,
+                width: "100px",
+                text: "PLATE",
+                press: function () {
+                    btDye.setPressed(false);
+                    btPlate.setPressed(true);
+                    para = "plate";
+                    fetchdata();
+                }
+            });
+            var hb = new sap.m.HBox({
+                items: [new sap.m.Text({ width: "20px" }),
+                    btDye, btPlate]
+            });
             var vb = new sap.m.VBox();
             var doSave = function () {
                 var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
@@ -684,7 +708,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     FormView.err("Err ! Start date is not valid !");
 
                 var usr = Util.nvl(txtStepTime.getDateValue(), null) != null ? sett["LOGON_USER"] : "";
-                var sq = "update pord1 set jo_:step_user=':user' , " +
+                var dyeuser = (para == "plate" ? "jo_dye_user=':user' ," :
+                    (para == "dye" ? "jo_plate_user=':user' , " : ""));
+                var sq = "update pord1 set jo_:step_user=':user' , " + dyeuser +
                     "jo_:step_time_send=:regtime_send , jo_:step_time=:regtime , jo_:step_emp=':empno' ," +
                     "jo_:step_remarks=':remarks' where keyfld=" + kf;
 
@@ -711,6 +737,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             txtStepTimeSend.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"] + " h:mm a");
 
             var fe = [
+                ((para == "plate" || para == "dye") ? hb : Util.getLabelTxt("", "0px", "", "")),
                 Util.getLabelTxt("Step Type", "30%", "", "redText"), txtStepType,
                 Util.getLabelTxt("Sent/Start", "30%", ""), txtStepTimeSend,
                 Util.getLabelTxt("Received Time", "30%", ""), txtStepTime,
@@ -738,7 +765,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             var dlg = new sap.m.Dialog({
                 title: "Steps : " + para,
                 contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 500, "XL": 500 }) + "px",
-                contentHeight: "250px",
+                contentHeight: "300px",
                 content: [vb],
                 modal: true,
                 buttons: [
@@ -767,32 +794,34 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             }).addStyleClass("sapUiSizeCompact");;
             dlg.open();
             //load data            
-            txtStepType.setValue(para);
-            txtStepTime.setDateValue(null);
-            txtStepTimeSend.setDateValue(new Date());
-            txtRemarks.setValue("");
-            txtEmpNo.setValue("");
-            txtEmpName.setValue("");
-            var sqj = ("select ord_flag,ordacc,JO_:STEP_USER JO_STEP_USER, " +
-                "JO_:STEP_EMP JO_STEP_EMP,JO_:STEP_REMARKS JO_STEP_REMARKS," +
-                "to_char(JO_:STEP_TIME,'mm/dd/rrrr hh24.mi' ) JO_STEP_TIME, " +
-                "to_char(JO_:STEP_TIME_SEND,'mm/dd/rrrr hh24.mi' ) JO_STEP_TIME_SEND, " +
-                " (select max(name) from salesp where no=jo_:STEP_emp) JO_STEP_EMPNAME " +
-                "from pord1 where keyfld="
-                + thatForm.frm.getFieldValue("keyfld"))
-                .replaceAll(":STEP", para);
-            var dt = Util.execSQLWithData(sqj);
-            if (dt.length > 0 && dt[0].USER != "") {
-                var sendtme = Util.nvl(dt[0].JO_STEP_TIME_SEND, undefined) == undefined ? null : new Date(dt[0].JO_STEP_TIME_SEND.replaceAll(".", ":"));
-                var tme = Util.nvl(dt[0].JO_STEP_TIME, undefined) == undefined ? null : new Date(dt[0].JO_STEP_TIME.replaceAll(".", ":"));
-                txtStepTimeSend.setDateValue(sendtme);
-                txtStepTime.setDateValue(tme);
-                txtRemarks.setValue(dt[0].JO_STEP_REMARKS);
-                txtEmpNo.setValue(dt[0].JO_STEP_EMP);
-                txtEmpName.setValue(dt[0].JO_STEP_EMPNAME);
+            var fetchdata = function () {
+                txtStepType.setValue(para);
+                txtStepTime.setDateValue(null);
+                txtStepTimeSend.setDateValue(new Date());
+                txtRemarks.setValue("");
+                txtEmpNo.setValue("");
+                txtEmpName.setValue("");
+                var sqj = ("select ord_flag,ordacc,JO_:STEP_USER JO_STEP_USER, " +
+                    "JO_:STEP_EMP JO_STEP_EMP,JO_:STEP_REMARKS JO_STEP_REMARKS," +
+                    "to_char(JO_:STEP_TIME,'mm/dd/rrrr hh24.mi' ) JO_STEP_TIME, " +
+                    "to_char(JO_:STEP_TIME_SEND,'mm/dd/rrrr hh24.mi' ) JO_STEP_TIME_SEND, " +
+                    " (select max(name) from salesp where no=jo_:STEP_emp) JO_STEP_EMPNAME " +
+                    "from pord1 where keyfld="
+                    + thatForm.frm.getFieldValue("keyfld"))
+                    .replaceAll(":STEP", para);
+                var dt = Util.execSQLWithData(sqj);
+                if (dt.length > 0 && dt[0].USER != "") {
+                    var sendtme = Util.nvl(dt[0].JO_STEP_TIME_SEND, undefined) == undefined ? null : new Date(dt[0].JO_STEP_TIME_SEND.replaceAll(".", ":"));
+                    var tme = Util.nvl(dt[0].JO_STEP_TIME, undefined) == undefined ? null : new Date(dt[0].JO_STEP_TIME.replaceAll(".", ":"));
+                    txtStepTimeSend.setDateValue(sendtme);
+                    txtStepTime.setDateValue(tme);
+                    txtRemarks.setValue(dt[0].JO_STEP_REMARKS);
+                    txtEmpNo.setValue(dt[0].JO_STEP_EMP);
+                    txtEmpName.setValue(dt[0].JO_STEP_EMPNAME);
+                }
+                UtilGen.Vouchers.attachLoadQry(thatForm, txtAttach, "JO_" + para, thatForm.frm.getFieldValue("qry1.keyfld"));
             }
-            UtilGen.Vouchers.attachLoadQry(thatForm, txtAttach, "JO_" + para, thatForm.frm.getFieldValue("qry1.keyfld"));
-
+            fetchdata();
         }
         var fncallback = function () {
             thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
@@ -2218,7 +2247,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         var keyfld = thatForm.frm.getFieldValue("qry1.keyfld");
                         var podt = UtilGen.JOFunc.checkJOStatus(keyfld, false);
                         if (podt.ORD_FLAG != 1) FormView.err("Either JO is approved or closed !");
-                        return "delete from pord_exp_jo where keyfld=" + keyfld + "; ";
+                        return "delete from PORD_JO_EXP where keyfld=" + keyfld + "; ";
                     }
                     if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                         qry.obj.addRow();
@@ -2948,8 +2977,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             var thatForm = this.thatForm;
             var flg = "";
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
-                var ex = Util.getSQLValue("select nvl(max(ord_no),-1) from pord1 where ord_code='" + thatForm.vars.vou_code + "' and ord_no='" + thatForm.frm.getFieldValue("qry1.ord_no")) + "'";
-                if (Util.nvl(ex, -1) == -1 || Util.nvl(ex, -1) == '-1')
+                var ex = Util.getSQLValue("select nvl(max(ord_no),-1) from pord1 where ord_code='" + thatForm.vars.vou_code + "' and ord_no='" + thatForm.frm.getFieldValue("qry1.ord_no") + "'");
+                if (Util.extractNumber(ex + "") != -1)
                     FormView.err("JO no existed !");
             }
             var cod = thatForm.frm.getFieldValue("qry1.ord_ref");

@@ -176,11 +176,16 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         thatForm.frm.setFieldValue("CAGE1@parameter.acname", vlnm, vlnm, false);
                                     },
                                     valueHelpRequest: function (event) {
-                                        Util.showSearchList("select code accno,name from c_ycust where childcount>0 and iscust='Y' order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("CAGE1@parameter.pcust", valx, valx, true);
-                                            thatForm.frm.setFieldValue("CAGE1@parameter.acname", val, val, true);
-                                        });
-
+                                        var sq = "select code,name from c_ycust where iscust='Y' and (mov_type='^^list_key' or    '^^list_key'='ALL') and childcount=0 order by path";
+                                        var pListPara = {
+                                            selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                            defaultKey: "ACTIVE",
+                                        };
+                                        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                            thatForm.frm.setFieldValue("CAGE1@parameter.pcust", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue("CAGE1@parameter.pcustname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, pListPara);
                                     },
                                     width: "35%"
                                 },
@@ -208,11 +213,11 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 require: false,
                                 dispInPara: true,
                             },
-                            pstatus: {
-                                colname: "pstatus",
+                            grpby: {
+                                colname: "grpby",
                                 data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: '{\"text\":\"clientStatus\",\"width\":\"15%\","textAlign":"End"}',
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"grpByTxt\",\"width\":\"15%\","textAlign":"End"}',
                                 title2: "",
                                 display_width: colSpan,
                                 display_align: "ALIGN_RIGHT",
@@ -220,9 +225,41 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 display_format: "",
                                 default_value: "",
                                 other_settings: {
-                                    width: "35%"
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "none",
                                 },
-                                list: undefined,
+                                list: "@none/None,salesp/txtSalesPerson",
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            pstatus: {
+                                colname: "pstatus",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"currentStatus\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "ACTIVE",
+                                },
+                                list: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -240,6 +277,24 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 display_format: "",
                                 default_value: "Y",
                                 other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
+                            showOverDue: {
+                                colname: "showOverDue",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"showOverDue\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "50%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -273,14 +328,76 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 masterToolbarInMain: false,
                                 filterCols: ["CODE", "NAME", "BAL", "CRD_LIMIT", "B30", "B60", "B90", "B120", "B150"],
                                 canvasType: ReportView.CanvasType.VBOX,
+                                eventAfterQV: function (qryObj) {
+                                    // var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                    // if (iq != "none")
+                                    qryObj.obj.showToolbar.showGroupFilter = true;//!(iq == "1");
+
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SALESP")].mGrouped = iq == "salesp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SLSNAME")].mGrouped = iq == "salesp";
+
+                                    }
+                                },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     var oModel = this.getControl().getModel();
-                                    var bal = parseFloat(oModel.getProperty("BAL", currentRowContext));
+                                    var bal = Util.extractNumber(oModel.getProperty("BAL", currentRowContext));
+                                    var tbl = qv.getControl();
+                                    var cn = UtilGen.getTableColNo(tbl, "BAL");
+                                    var so = thatForm.frm.getFieldValue("parameter.showOverDue");
+                                    var cols = {
+                                        30: "B30",
+                                        60: "B60",
+                                        90: "B90",
+                                        120: "B120",
+                                        150: "B150"
+                                    }
                                     if (bal >= 0)
-                                        qv.getControl().getRows()[dispRow].getCells()[2].$().css("color", "green");
+                                        qv.getControl().getRows()[dispRow].getCells()[cn].$().css("color", "green");
                                     else
-                                        qv.getControl().getRows()[dispRow].getCells()[2].$().css("color", "red");
+                                        qv.getControl().getRows()[dispRow].getCells()[cn].$().css("color", "red");
+                                    if (so == "Y") {
+                                        var od = Util.extractNumber(oModel.getProperty("DUEDAYS", currentRowContext));
+                                        if (od > 0) {
+                                            var flds = [];
+                                            Object.keys(cols).forEach((ky) => {
+                                                if (ky >= od) {
+                                                    flds.push(cols[ky]);
+                                                    var val = Util.extractNumber(oModel.getProperty(cols[ky], currentRowContext));
+                                                    if (val > 0) {
+                                                        qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, cols[ky])].$().css("color", "red");
+                                                        qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, cols[ky])].$().css("background-color", "khaki");
+                                                        qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, cols[ky])].$().parent().css("background-color", "khaki");
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                },
+                                onPrintRenderAdd: function (ld, idx, col) {
+                                    if (idx >= ld.rows.length) return "";
+                                    var od = Util.nvl(ld.getFieldValue(idx, "DUEDAYS"), 0);
+                                    var cols = {
+                                        30: "B30",
+                                        60: "B60",
+                                        90: "B90",
+                                        120: "B120",
+                                        150: "B150"
+                                    };
+                                    if (od > 0) {
+                                        var flds = [];
+                                        Object.keys(cols).forEach((ky) => {
+                                            if (ky >= od)
+                                                flds.push(cols[ky]);
 
+                                        });
+                                    }
+                                    if (od > 0 && flds.indexOf(col.mColName) >= 0 && Util.nvl(ld.getFieldValue(idx, col.mColName), 0) > 0)
+                                        return "background-color:khaki;color:red;";
+                                    return;
 
                                 },
                                 bat7CustomAddQry: function (qryObj, ps) {
@@ -305,9 +422,25 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                     // });
                                     thatForm.save_cage();
                                     var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-                                    var sq = "select *from C6_VAGE where " + (ez == "Y" ? "  bal!=0 and " : " ") +
-                                        " usernm=c6_session.get_user_session order by code ";
+                                    var sq = "select C6_VAGE.*,c_ycust.salesp,salesp.name slsname " +
+                                        " from C6_VAGE,c_ycust,salesp where " +
+                                        " salesp.no(+)=c_ycust.salesp and " +
+                                        " c_ycust.code=c6_vage.code and " +
+                                        (ez == "Y" ? "  bal!=0 and " : " ") +
+                                        " C6_VAGE.usernm=c6_session.get_user_session order by C6_VAGE.code ";
                                     return sq;
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var so = thatForm.frm.getFieldValue("parameter.showOverDue");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("duedays")].mHideCol = (so != "Y");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("dueamt")].mHideCol = (so != "Y");
+                                        
+                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SALESP")].mGrouped = iq == "salesp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SLSNAME")].mGrouped = iq == "salesp";
+
+                                    }
                                 },
                                 fields: {
                                     code: {
@@ -379,6 +512,43 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    duedays: {
+                                        colname: "duedays",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "custAgeDueDays",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        valOnZero: "",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    dueamt: {
+                                        colname: "dueamt",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "overDue",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        valOnZero: "",
+                                        display_style: "background-color:lavender;",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        summary: "SUM",
                                         commandLinkClick: cmdLink
                                     },
                                     b30: {
@@ -475,8 +645,39 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         other_settings: {},
                                         summary: "SUM",
                                         commandLinkClick: cmdLink
-                                    }
-
+                                    },
+                                    slsname: {
+                                        colname: "slsname",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtSalesPerson",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    salesp: {
+                                        colname: "salesp",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "txtNo",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "50",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
                                 }
                             }
                         ]
@@ -501,7 +702,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             "PATH, SUM (DEBIT) TOTDEB,SUM (CREDIT) TOTCRD" +
             " FROM   :ACVOUCHER2, c_ycust " +
             " WHERE VOU_DATE <= TODATE and  " +
-            " (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus) and " +
+            " (nvl(pstatus,'ALL')='ALL' or c_ycust.mov_type=pstatus) and " +
             "  acvoucher2.cust_code=code " +
             " and c_ycust.path like parent_path " +
             " AND (cust_code>= fromcust and cust_code<=tocust) " +
@@ -512,7 +713,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             " SUM (DEBIT) TOTDEB, SUM (CREDIT) TOTCRD," +
             " VOU_DATE       FROM   :ACVOUCHER2, c_ycust " +
             " WHERE  VOU_DATE <= TODATE " +
-            " and (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus)  " +
+            " and (nvl(pstatus,'ALL')='ALL' or c_ycust.mov_type=pstatus)  " +
             " and c_ycust.path like parent_path " +
             " AND ACVOUCHER2.cust_code = c_ycust.code and iscust='Y' " +
             " AND (cust_code>= fromcust and cust_code<=tocust) :KEYFLD_CONDITION  " +
@@ -587,6 +788,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         paras += " tocust varchar2(100) := ':parameter.to_cust'; ";
         paras += " parent_cust varchar2(255) := ':parameter.pcust'; ";
         paras += " pstatus varchar2(255) := ':parameter.pstatus'; ";
+        paras += " showoverdue varchar2(255) := ':parameter.showOverDue'; ";
         paras += " get_unpostbal varchar2(100) := 'FALSE'; ";
         paras += " slp number ; ";
         paras += " hide_zero varchar2(100) := 'FALSE'; ";
@@ -606,8 +808,6 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         var dt = Util.execSQL(plsql);
         if (dt.ret != "SUCCESS")
             FormView.err("Err. executing sql for multiple years !");
-
-
     }
     ,
     loadData: function () {

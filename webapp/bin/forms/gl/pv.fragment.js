@@ -141,7 +141,7 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                     },
                     afterSaveForm: function (frm) {
                         // frm.loadData(undefined, FormView.RecordStatus.NEW);
-                        frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
+                        // frm.setQueryStatus(undefined, FormView.RecordStatus.NEW);
                         setTimeout(function () {
                             thatForm.fileUpload = undefined;
                         }, 400);

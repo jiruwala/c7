@@ -243,7 +243,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         var cmdStepDye = new sap.m.ToggleButton(this.view.createId("cmdStepDye" + this.timeInLong), {
             icon: "sap-icon://step",
             pressed: false,
-            text: Util.getLangText("Plate"),
+            text: Util.getLangText("Plate/Dye"),
             press: function () {
                 clickStep();
             }
@@ -655,7 +655,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             var stepStk = this.view.byId("cmdStepStk" + this.timeInLong);
             var stepProd = this.view.byId("cmdStepProd" + this.timeInLong);
             setCounts(stepDes, " JO_DESIGN_USER is null ", "Design ");
-            setCounts(stepDye, " JO_DYE_USER is null ", "Plates ");
+            setCounts(stepDye, " JO_DYE_USER is null ", "Plates/Dye ");
             setCounts(stepStk, " JO_STOCK_USER is null ", "Stocks ");
             setCounts(stepProd, " JO_PROD_USER is null and jo_active_from is not null ", "Production ");
         }, 1000);

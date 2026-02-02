@@ -522,6 +522,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     var qr = this.form.db[q];
                     qr.obj = new QueryView(qr.name + "_" + this.timeInLong);
                     qr.obj.getControl().view = this.view;
+                    qr.obj.getControl().frm = this;
                     qr.obj.getControl().addStyleClass("sapUiSizeCondensed");
                     qr.obj.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                     qr.obj.getControl().setFixedBottomRowCount(0);
