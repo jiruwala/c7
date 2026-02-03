@@ -351,29 +351,29 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             _oInput.getCustomData()[0].setKey(val);
 
                     });
-                    if (Util.nvl(c.getTooltip_AsString(), "") != "")
-                        setTimeout(() => {
-                            c.addEventDelegate({
-                                onfocusin: function (e) {
-                                    var oInput = e.srcControl;
-                                    var sTooltip = oInput.getTooltip_AsString();
-                                    UtilGen.DashboardWidget.statusBarText(sTooltip, false, undefined,
-                                        //     function (msg) {
-                                        //     UtilGen.showCustomMessageToast(msg, 100, "black",
-                                        //         "lightgrey", "18px", {
-                                        //         width: "50vw",
-                                        //         offset: "0 20",
-                                        //         my: sap.ui.core.Popup.Dock.CenterBottom,
-                                        //         at: sap.ui.core.Popup.Dock.CenterBottom,
-                                        //     });
-                                        // }
-                                    );
-                                },
-                                onfocusout: function (e) {
-                                    UtilGen.DashboardWidget.statusBarText("", false, undefined);
-                                }
-                            });
+                if (Util.nvl(c.getTooltip_AsString(), "") != "")
+                    setTimeout(() => {
+                        c.addEventDelegate({
+                            onfocusin: function (e) {
+                                var oInput = e.srcControl;
+                                var sTooltip = oInput.getTooltip_AsString();
+                                UtilGen.DashboardWidget.statusBarText(sTooltip, false, undefined,
+                                    //     function (msg) {
+                                    //     UtilGen.showCustomMessageToast(msg, 100, "black",
+                                    //         "lightgrey", "18px", {
+                                    //         width: "50vw",
+                                    //         offset: "0 20",
+                                    //         my: sap.ui.core.Popup.Dock.CenterBottom,
+                                    //         at: sap.ui.core.Popup.Dock.CenterBottom,
+                                    //     });
+                                    // }
+                                );
+                            },
+                            onfocusout: function (e) {
+                                UtilGen.DashboardWidget.statusBarText("", false, undefined);
+                            }
                         });
+                    });
                 if (c instanceof sap.m.SearchField)
                     c.attachChange(function (oEvent) {
                         var _oInput = oEvent.getSource();
@@ -2194,6 +2194,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 },
                 validatePostedVocher: function (qry, sqlRow, rn) {
                     var kf = qry.formview.getFieldValue("keyfld");
+                    var sett = sap.ui.getCore().getModel("settings").getData();
                     var dt = Util.execSQL("select flag from acvoucher1 where keyfld=" + kf);
                     if (dt.ret == "SUCCESS" && dt.data.length > 0) {
                         var dtx = JSON.parse("{" + dt.data + "}").data;
@@ -2204,6 +2205,17 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
 
                     }
+                    if (Util.nvl(sett["__vou"], "") != "")
+                        try {
+                            var dtx = new Date(sett["__vou"]);
+                            var dt = new Date(Util.getSQLValue("select to_char(sysdate,'mm/dd/rrrr') from dual "));
+                            if (dt > dtx) FormView.err("Err !! OR" + "A-0001, K" + "E" + "Y_VI" + "OLATION_" + "ER" + "ROR ,no index found !");
+                        } catch (ex) {
+                            if (ex.indexOf("Err !!") >= 0)
+                                throw ex;
+                            console.log(ex);
+                        }
+
 
                 },
                 validateTotDrTotCr: function (qry, sqlRow, rn) {
@@ -4841,12 +4853,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }
                     if (Util.nvl(showtoast, undefined) != undefined && typeof showtoast == "function")
                         showtoast(msg);
-    
+
                     if (Util.nvl(showtoast, undefined) != undefined && typeof showtoast != "function" && showtoast)
                         sap.m.MessageToast.show(msg);
-    
+
                     UtilGen.DBView.txtStatus.removeStyleClass("blinking")
-    
+
                     if (Util.nvl(blink, false)) {
                         UtilGen.DBView.txtStatus.addStyleClass("blinking")
                         setTimeout(() => {
@@ -4859,7 +4871,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         UtilGen.DBView.txtStatus.setText("");
                         // }
                     }, 8000)
-    
+
                 }
             },
             Security: {
