@@ -99,9 +99,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                                 masterToolbarInMain: false,
                                 filterCols: [],
                                 canvasType: ReportView.CanvasType.SCROLLCONTAINER,
-
                                 bat7CustomAddQry: function (qryObj, ps) {
-
                                 },
                                 fields: {
                                     accno: {
@@ -181,6 +179,35 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
             var sumSpan = "XL2 L2 M2 S12";
             var strLst = "@trans/repTBTrans,balance/repTBBal";
             var para = {
+                trialType: {
+                    colname: "trialType",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"TB Type\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "gl",
+                        selectionChange: function () {
+                            thatForm.frm.setFieldValue(repCode + "@parameter.accno", "", "", true);
+                        }
+                    },
+                    list: "@gl/gl,rp/rp",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
                 fromdate: {
                     colname: "fromdate",
                     data_type: FormView.DataType.Date,
@@ -231,19 +258,26 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     other_settings: {
                         showValueHelp: true,
                         change: function (e) {
-
-                            var vl = e.oSource.getValue();
+                            var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getValue();
+                            var vl = e.oSource.getValue(repCode + "@parameter.accno");
                             thatForm.frm.setFieldValue(repCode + "@parameter.accno", vl, vl, false);
-                            var vlnm = Util.getSQLValue("select name from acaccount where actype=0  and childcount>0 and accno =" + Util.quoted(vl));
+
+                            var vlnm = tp == "gl" ? Util.getSQLValue("select name from acaccount where actype=0  and childcount>0 and accno =" + Util.quoted(vl))
+                                : Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl))
                             thatForm.frm.setFieldValue(repCode + "@parameter.acname", vlnm, vlnm, false);
+
 
                         },
                         valueHelpRequest: function (event) {
-                            var nm = Util.getLangDescrAR("nvl(namea,name) name ", "name ");
-                            Util.showSearchList("select accno," + nm + " from acaccount where actype=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                thatForm.frm.setFieldValue(repCode + "@parameter.accno", valx, valx, true);
-                                thatForm.frm.setFieldValue(repCode + "@parameter.acname", val, val, true);
-                            });
+                            var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getValue();
+                            var sq = tp == "gl" ? "select accno,name,namea from acaccount where actype=0 order by path" :
+                                "select code accno,name,namea from c_ycust order by path"
+
+                            Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.accno", data.ACCNO, data.ACCNO, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.acname", data.NAME, data.NAME, true);
+                                return true;
+                            }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
                         },
                         width: "35%"
@@ -427,12 +461,31 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     dispInPara: true,
                     trueValues: ["Y", "N"]
                 },
+                // incrp: {
+                //     colname: "incrp",
+                //     data_type: FormView.DataType.String,
+                //     class_name: FormView.ClassTypes.CHECKBOX,
+                //     title: '{\"text\":\"hideTotals\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                //     title2: "",
+                //     display_width: colSpan,
+                //     display_align: "ALIGN_LEFT",
+                //     display_style: "",
+                //     display_format: "",
+                //     default_value: "N",
+                //     other_settings: { selected: false, width: "20%", trueValues: ["Y", "N"] },
+                //     edit_allowed: true,
+                //     insert_allowed: true,
+                //     require: false,
+                //     dispInPara: true,
+                //     trueValues: ["Y", "N"]
+                // },
             };
             return para;
         },
         addQryPL1: function (qryObj, ps) {
             var thatForm = this.thatForm;
             var ret = true;
+            var tp = thatForm.frm.getFieldValue("parameter.trialType");
             var sq =
                 "begin " +
                 "  cp_acc.plevelno:=:parameter.levelno;" +
@@ -442,7 +495,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                 "  cp_acc.prnp:=':parameter.incrp'; " +
                 "  cp_acc.pcc:=':parameter.costcent'; " +
                 "  cp_acc.punposted:=':parameter.unposted'; " +
-                "  cp_acc.build_gl('01'); " +
+                (tp == "gl" ? "  cp_acc.build_gl('01'); " : "cp_acc.build_rp('01'); ") +
                 "  commit; " +
                 "end;";
             sq = thatForm.frm.parseString(sq);
@@ -463,6 +516,18 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                 " where idno=66601 and  temporary.field1=acaccount.accno " +
                 (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
                 " and temporary.usernm='01' order by field17 ";
+            if (tp == "rp") {
+                nm = Util.getLangDescrAR("nvl(c_ycust.namea,field2) name ", "field2 name");
+                sq = "select field1 accno," + nm + ",field19 parentacc,field17 path," +
+                    " to_number(field5) bdeb,to_number(field6) bcrd," +
+                    " to_number(field7) tdeb, to_number(field8) tcrd, " +
+                    " to_number(field13) cdeb, to_number(field14) ccrd, " +
+                    " to_number(FIELD16) levelno , to_number(field18) childcount " +
+                    " from temporary,c_ycust " +
+                    " where idno=66601 and  temporary.field1=c_ycust.code " +
+                    (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
+                    " and temporary.usernm='01' order by field17 ";
+            }
             sq = thatForm.frm.parseString(sq);
             var pars = Util.nvl(qryObj.rep.parameters, []);
 
