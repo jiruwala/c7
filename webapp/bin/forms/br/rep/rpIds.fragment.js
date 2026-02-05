@@ -211,7 +211,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "$FIRSTDATEOFYEAR",
+                    default_value: "$FIRSTDATEOFMONTH",
                     other_settings: { width: "35%" },
                     list: undefined,
                     edit_allowed: true,
@@ -319,6 +319,60 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                     require: true,
                     dispInPara: true,
                 },
+                rmix: {
+                    colname: "rmix",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '{\"text\":\"itemTxt\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        showValueHelp: true,
+                        change: function (e) {
+                            var vl = e.oSource.getValue();
+                            thatForm.frm.setFieldValue(repCode + "@parameter.rmix", vl, vl, false);
+                            var vlnm = Util.getSQLValue("select descr name from items where reference =" + Util.quoted(vl));
+                            thatForm.frm.setFieldValue(repCode + "@parameter.rmixname", vlnm, vlnm, false);
+
+                        },
+                        valueHelpRequest: function (event) {
+                            var sq = "select reference code,descr name from items  order by descr2";
+                            Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.rmix", data.CODE, data.CODE, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.rmixname", data.NAME, data.NAME, true);
+                                return true;
+                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
+                        },
+                        width: "35%"
+                    },
+                    list: undefined,
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                },
+                rmixname: {
+                    colname: "rmixname",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: { width: "49%", editable: false },
+                    list: undefined,
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false,
+                    dispInPara: true,
+                },
                 ptype: {
                     colname: "ptype",
                     data_type: FormView.DataType.String,
@@ -387,6 +441,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpIds", {
                 " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
                 " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL) " +
                 " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
+                " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
                 " group by  location_code,location_name,ord_date ,ord_ship, " +
                 " TO_CHAR(ord_date,'DD/MM/RRRR') ,ord_ship||'__:REPCOLNAME'" +
                 " order by location_code,ord_date,ord_ship";

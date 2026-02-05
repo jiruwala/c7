@@ -116,7 +116,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                     var sq = "SELECT ORD_REF, ORD_REFNM," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
                                         " SUM(TQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT," +
-                                        " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
+                                        " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, item_descr item_descr2 ,BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,ord_reference,TEL, " +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS " +
                                         " FROM " +
@@ -130,7 +130,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
                                         " GROUP BY " +
-                                        " ORD_REF, ORD_REFNM," +
+                                        " ORD_REF, ORD_REFNM,ord_reference," +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS," +
                                         " DRIVER_NAME ,TEL,TRUCKNO," +
@@ -420,6 +420,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
+                    summary: "COUNT",
                     other_settings: {},
                 },
                 ord_date: {
@@ -436,6 +437,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     display_style: "",
                     display_format: "SHORT_DATE_FORMAT",
                     default_value: "",
+                    summary: "COUNT_UNIQUE",
+                    count_unique_label: "txtCountDate",
                     other_settings: {},
 
                 },
@@ -452,7 +455,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     grouped: false,
                     display_style: "",
                     display_format: "",
-                    default_value: "",                    
+                    default_value: "",
                     other_settings: {},
 
                 },
@@ -473,8 +476,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     summary: "SUM",
                     other_settings: {},
                 },
-                item_descr: {
-                    colname: "item_descr",
+                item_descr2: {
+                    colname: "item_descr2",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
                     title: "itemDescr",
@@ -490,6 +493,24 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     other_settings: {},
 
                 },
+                item_descr: {
+                    colname: "item_descr",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "itemDescr",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "0",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+
                 pricex: {
                     colname: "pricex",
                     data_type: FormView.DataType.Number,
@@ -532,6 +553,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     parentTitle: "",
                     parentSpan: 1,
                     display_width: "120",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                ord_reference: {
+                    colname: "ord_reference",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "poNo",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "200",
                     display_align: "ALIGN_BEGIN",
                     grouped: false,
                     display_style: "",
