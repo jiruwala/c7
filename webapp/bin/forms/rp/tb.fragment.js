@@ -202,7 +202,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                             thatForm.frm.setFieldValue(repCode + "@parameter.accno", "", "", true);
                         }
                     },
-                    list: "@gl/gl,rp/rp,cc/costCent",
+                    list: "@gl/gl,rp/rp,cc/costCent,fa/fAssets",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -264,14 +264,16 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
 
                             var vlnm = tp == "gl" ? Util.getSQLValue("select name from acaccount where actype=0  and childcount>0 and accno =" + Util.quoted(vl))
                                 : tp == "rp" ? Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl)) :
-                                    tp == "cc" ? Util.getSQLValue("select title name from accostcent1 where code =" + Util.quoted(vl)) : "";
+                                    tp == "cc" ? Util.getSQLValue("select title name from accostcent1 where code =" + Util.quoted(vl)) :
+                                        tp == "fa" ? Util.getSQLValue("select name from C7_FAITEMS_TREE where code =" + Util.quoted(vl)) : "";
                             thatForm.frm.setFieldValue(repCode + "@parameter.acname", vlnm, vlnm, false);
                         },
                         valueHelpRequest: function (event) {
                             var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getSelectedKey();
                             var sq = tp == "gl" ? "select accno,name,namea from acaccount where actype=0 order by path" :
                                 tp == "rp" ? "select code accno,name,namea from c_ycust order by path" :
-                                    tp == "cc" ? Util.getSQLValue("select code accno,title name,titlea namea from accostcent1 order by path") : "";
+                                    tp == "cc" ? Util.getSQLValue("select code accno,title name,titlea namea from accostcent1 order by path") :
+                                        tp == "fa" ? Util.getSQLValue("select code accno, name, namea from C7_FAITEMS_TREE order by path") : "";
 
                             Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.accno", data.ACCNO, data.ACCNO, true);
@@ -498,7 +500,8 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                 (tp == "gl" ? "  cp_acc.build_gl('01'); " :
                     tp == "rp" ? " cp_acc.build_rp('01'); " :
                         tp == "cc" ? " cp_acc.build_cc('01'); " :
-                            "") +
+                            tp == "fa" ? " cp_acc.build_fa('01'); " :
+                                "") +
                 "  commit; " +
                 "end;";
             sq = thatForm.frm.parseString(sq);
@@ -511,23 +514,16 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
             var nm = Util.getLangDescrAR("nvl(namea,name) name ", "name");
             var sq = "select tb.ACCNO, " + nm + " ,tb.PARENTACC, tb.PATH, tb.BDEB, tb.BCRD, tb.TDEB, tb.TCRD, tb.CDEB, tb.CCRD, tb.LEVELNO,tb.CHILDCOUNT " +
-                " from c7_tbacc tb  " +
+                " from :table tb  " +
                 (ez == "Y" ? " where cdeb-ccrd!=0  " : "") +
                 " order by path ";
             // " and temporary.usernm='01' order by field17 ";
-            if (tp == "rp") {
-                sq = "select tb.ACCNO, " + nm + " ,tb.PARENTACC, tb.PATH, tb.BDEB, tb.BCRD, tb.TDEB, tb.TCRD, tb.CDEB, tb.CCRD, tb.LEVELNO ,tb.CHILDCOUNT " +
-                    " from c7_tbrp tb  " +
-                    (ez == "Y" ? " where cdeb-ccrd!=0  " : "") +
-                    " order by path ";
-            }
-            if (tp == "cc") {
-                sq = "select tb.ACCNO, " + nm + " ,tb.PARENTACC, tb.PATH, tb.BDEB, tb.BCRD, tb.TDEB, tb.TCRD, tb.CDEB, tb.CCRD, tb.LEVELNO ,tb.CHILDCOUNT " +
-                    " from c7_tbcc tb  " +
-                    (ez == "Y" ? " where cdeb-ccrd!=0  " : "") +
-                    " order by path ";
+            sq = (tp == "rp" ? sq.replaceAll(":table", "c7_tbrp") :
+                tp == "cc" ? sq.replaceAll(":table", "c7_tbcc") :
+                    tp == "gl" ? sq.replaceAll(":table", "c7_tbacc") :
+                        tp == "fa" ? sq.replaceAll(":table", "c7_tbfa") :
+                            "");
 
-            }
             sq = thatForm.frm.parseString(sq);
             var pars = Util.nvl(qryObj.rep.parameters, []);
 
@@ -644,12 +640,17 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                         var str = tp == "gl" ? "paccno=" + oData[rowno]["ACCNO"] :
                             tp == "rp" ? "pref=" + oData[rowno]["ACCNO"] :
                                 tp == "cc" ? "pcc=" + oData[rowno]["ACCNO"] : "";
-                        if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
+                        if (tp != 'fa' && (col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
                             st = "UtilGen.execCmd('testRep5 formType=dialog" +
                                 " formSize=100%,100% repno=0 para_PARAFORM=false para_EXEC_REP=true " +
                                 str +
                                 " fromdate=@" + fromdt + " todate=@" + todt +
                                 "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        if (tp == "fa") {
+                            st = "UtilGen.execCmd('gl.faitems formType=dialog" +
+                                " formSize=100%,80% readonly=true status=view code=" + oData[rowno]["ACCNO"] +
+                                "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                        }
                         return st;
                     }
 
