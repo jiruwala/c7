@@ -202,7 +202,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                             thatForm.frm.setFieldValue(repCode + "@parameter.accno", "", "", true);
                         }
                     },
-                    list: "@gl/gl,rp/rp",
+                    list: "@gl/gl,rp/rp,cc/costCent",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -258,20 +258,20 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     other_settings: {
                         showValueHelp: true,
                         change: function (e) {
-                            var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getValue();
+                            var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getSelectedKey();
                             var vl = e.oSource.getValue(repCode + "@parameter.accno");
                             thatForm.frm.setFieldValue(repCode + "@parameter.accno", vl, vl, false);
 
                             var vlnm = tp == "gl" ? Util.getSQLValue("select name from acaccount where actype=0  and childcount>0 and accno =" + Util.quoted(vl))
-                                : Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl))
+                                : tp == "rp" ? Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl)) :
+                                    tp == "cc" ? Util.getSQLValue("select title name from accostcent1 where code =" + Util.quoted(vl)) : "";
                             thatForm.frm.setFieldValue(repCode + "@parameter.acname", vlnm, vlnm, false);
-
-
                         },
                         valueHelpRequest: function (event) {
-                            var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getValue();
+                            var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getSelectedKey();
                             var sq = tp == "gl" ? "select accno,name,namea from acaccount where actype=0 order by path" :
-                                "select code accno,name,namea from c_ycust order by path"
+                                tp == "rp" ? "select code accno,name,namea from c_ycust order by path" :
+                                    tp == "cc" ? Util.getSQLValue("select code accno,title name,titlea namea from accostcent1 order by path") : "";
 
                             Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
                                 thatForm.frm.setFieldValue(repCode + "@parameter.accno", data.ACCNO, data.ACCNO, true);
@@ -398,7 +398,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "balance",
+                        selectedKey: "trans",
                     },
                     list: strLst,
                     edit_allowed: true,
@@ -495,7 +495,10 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                 "  cp_acc.prnp:=':parameter.incrp'; " +
                 "  cp_acc.pcc:=':parameter.costcent'; " +
                 "  cp_acc.punposted:=':parameter.unposted'; " +
-                (tp == "gl" ? "  cp_acc.build_gl('01'); " : "cp_acc.build_rp('01'); ") +
+                (tp == "gl" ? "  cp_acc.build_gl('01'); " :
+                    tp == "rp" ? " cp_acc.build_rp('01'); " :
+                        tp == "cc" ? " cp_acc.build_cc('01'); " :
+                            "") +
                 "  commit; " +
                 "end;";
             sq = thatForm.frm.parseString(sq);
@@ -506,27 +509,24 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
             }, false).done(function (data) {
             });
             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-            var nm = Util.getLangDescrAR("nvl(acaccount.namea,field2) name ", "field2 name");
-            var sq = "select field1 accno," + nm + ",field19 parentacc,field17 path," +
-                " to_number(field5) bdeb,to_number(field6) bcrd," +
-                " to_number(field7) tdeb, to_number(field8) tcrd, " +
-                " to_number(field13) cdeb, to_number(field14) ccrd, " +
-                " to_number(FIELD16) levelno , to_number(field18) childcount " +
-                " from temporary,acaccount " +
-                " where idno=66601 and  temporary.field1=acaccount.accno " +
-                (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
-                " and temporary.usernm='01' order by field17 ";
+            var nm = Util.getLangDescrAR("nvl(namea,name) name ", "name");
+            var sq = "select tb.ACCNO, " + nm + " ,tb.PARENTACC, tb.PATH, tb.BDEB, tb.BCRD, tb.TDEB, tb.TCRD, tb.CDEB, tb.CCRD, tb.LEVELNO,tb.CHILDCOUNT " +
+                " from c7_tbacc tb  " +
+                (ez == "Y" ? " where cdeb-ccrd!=0  " : "") +
+                " order by path ";
+            // " and temporary.usernm='01' order by field17 ";
             if (tp == "rp") {
-                nm = Util.getLangDescrAR("nvl(c_ycust.namea,field2) name ", "field2 name");
-                sq = "select field1 accno," + nm + ",field19 parentacc,field17 path," +
-                    " to_number(field5) bdeb,to_number(field6) bcrd," +
-                    " to_number(field7) tdeb, to_number(field8) tcrd, " +
-                    " to_number(field13) cdeb, to_number(field14) ccrd, " +
-                    " to_number(FIELD16) levelno , to_number(field18) childcount " +
-                    " from temporary,c_ycust " +
-                    " where idno=66601 and  temporary.field1=c_ycust.code " +
-                    (ez == "Y" ? " and to_number(field13)-to_number(field14)!=0  " : "") +
-                    " and temporary.usernm='01' order by field17 ";
+                sq = "select tb.ACCNO, " + nm + " ,tb.PARENTACC, tb.PATH, tb.BDEB, tb.BCRD, tb.TDEB, tb.TCRD, tb.CDEB, tb.CCRD, tb.LEVELNO ,tb.CHILDCOUNT " +
+                    " from c7_tbrp tb  " +
+                    (ez == "Y" ? " where cdeb-ccrd!=0  " : "") +
+                    " order by path ";
+            }
+            if (tp == "cc") {
+                sq = "select tb.ACCNO, " + nm + " ,tb.PARENTACC, tb.PATH, tb.BDEB, tb.BCRD, tb.TDEB, tb.TCRD, tb.CDEB, tb.CCRD, tb.LEVELNO ,tb.CHILDCOUNT " +
+                    " from c7_tbcc tb  " +
+                    (ez == "Y" ? " where cdeb-ccrd!=0  " : "") +
+                    " order by path ";
+
             }
             sq = thatForm.frm.parseString(sq);
             var pars = Util.nvl(qryObj.rep.parameters, []);
@@ -636,8 +636,20 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                     }
                     paras["fnOnCellClick"] = function (oData, rowno, col) {
                         var st = "";
+                        var sdf = new simpleDateFormat("MM/dd/yyyy");
+                        var fromdt = sdf.format(thatForm.frm.objs["TB001@parameter.fromdate"].obj.getDateValue());
+                        var todt = sdf.format(thatForm.frm.objs["TB001@parameter.todate"].obj.getDateValue());
+
+                        var tp = thatForm.frm.objs["TB001@parameter.trialType"].obj.getSelectedKey();
+                        var str = tp == "gl" ? "paccno=" + oData[rowno]["ACCNO"] :
+                            tp == "rp" ? "pref=" + oData[rowno]["ACCNO"] :
+                                tp == "cc" ? "pcc=" + oData[rowno]["ACCNO"] : "";
                         if ((col == "ACCNO" || col == "NAME") && oData[rowno]["ACCNO"] != null)
-                            st = "UtilGen.execCmd('testRep5 formType=dialog formSize=100%,100% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + oData[rowno]["ACCNO"] + " toacc=" + oData[rowno]["ACCNO"] + "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
+                            st = "UtilGen.execCmd('testRep5 formType=dialog" +
+                                " formSize=100%,100% repno=0 para_PARAFORM=false para_EXEC_REP=true " +
+                                str +
+                                " fromdate=@" + fromdt + " todate=@" + todt +
+                                "', UtilGen.DBView, this, UtilGen.DBView.newPage)";
                         return st;
                     }
 
