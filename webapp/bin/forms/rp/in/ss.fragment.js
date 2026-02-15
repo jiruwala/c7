@@ -371,12 +371,12 @@ sap.ui.jsfragment("bin.forms.rp.in.ss", {
                             var repc = (ld2.cols[li].mColName.endsWith("__" + repcolname) ? repcolname : repcolnamea);
                             var cn = ld2.cols[li].mColName.replaceAll("__" + repc, "");
 
-                            ld2.cols[li].mTitleParent = cn;
-                            ld2.cols[li].mTitleParentSpan = 2;
-                            ld2.cols[li].mTitle = repc == "PKQTY" ? "txtQty" : "txtValue";
+                            ld2.cols[li].mTitleParent = "";
+                            ld2.cols[li].mTitleParentSpan = 1;
+                            ld2.cols[li].mTitle = repc == "PKQTY" ? cn + " " + Util.getLangText("txtQty") : "txtValue";
                             ld2.cols[li].mUIHelper.display_format = repc == "PKQTY" ? "QTY_FORMAT" : "MONEY_FORMAT";
                             ld2.cols[li].mUIHelper.display_align = repc == "PKQTY" ? "ALIGN_CENTER" : "ALIGN_END";
-                            ld2.cols[li].mUIHelper.display_width = repc == "PKQTY" ? "80" : "120";
+                            ld2.cols[li].mUIHelper.display_width = repc == "PKQTY" ? "120" : "0";
                             ld2.cols[li].mUIHelper.display_style = "background-color:#ffffe0;";
                             ld2.cols[li].valOnZero = "";
                             ld2.cols[li].mSummary = "SUM";
@@ -386,7 +386,7 @@ sap.ui.jsfragment("bin.forms.rp.in.ss", {
                     ld2.cols[ld2.getColPos("REFER")].mSummary = "COUNT_UNIQUE";
                     ld2.cols[ld2.getColPos("REFER")].count_unique_label = "txtCounts";
                     ld2.cols[ld2.getColPos("PKAVER")].mUIHelper.display_format = "MONEY_FORMAT";
-                    ld2.cols[ld2.getColPos("PKAVER")].mUIHelper.display_width = "80";
+                    ld2.cols[ld2.getColPos("PKAVER")].mUIHelper.display_width = "0";
                     ld2.cols[ld2.getColPos("PKAVER")].mTitle = Util.getLangText("avgCost");
                     ld2.cols[ld2.getColPos("PACKD")].mUIHelper.display_width = "100";
 
