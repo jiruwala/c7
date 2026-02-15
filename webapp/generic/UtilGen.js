@@ -1886,7 +1886,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 pgx.addContent(sp);
                                 view.app.toDetail(pgx, "slide");
                                 sp.backFunction = function () {
-                                    view.destroyPage(pgx);
+                                    if (sp.onWndClose != undefined)
+                                        sp.onWndClose();
+                                    if (pOnWndClose != undefined)
+                                        pOnWndClose();
+    
+                                    view.destroyPage(pgx);                                    
                                     sap.m.MessageToast.show("Removing this page..");
                                     sp.destroy();
                                     view.app.toDetail(view.pg, "show");

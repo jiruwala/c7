@@ -1,4 +1,4 @@
-sap.ui.jsfragment("bin.forms.hr.hremp", {
+sap.ui.jsfragment("bin.forms.hr.hemp", {
 
     createContent: function (oController) {
         var that = this;
@@ -56,7 +56,11 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                 that.oController.getForm().getParent().setShowHeader(false);
 
         }, 10);
-
+        this.joApp.onWndClose = function () {
+            if (that.infoObjs["imageurl"] != undefined)
+                URL.revokeObjectURL(that.infoObjs["imageurl"]);
+            sap.m.MessageToast.show("clearing image url...");
+        };
         // UtilGen.setFormTitle(this.oController.getForm(), "Journal Voucher", this.mainPage);
         return this.joApp;
     },
@@ -76,15 +80,8 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                 toolbarBG: "#fff0f5",
                 formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
-                    Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
-                    Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
-                    var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText");
-                    var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "0.000" }));
-                    var hb = new sap.m.Toolbar({
-                        content: [txt, new sap.m.ToolbarSpacer(), txtMsg]
-                    });
-                    txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
-                    vbHeader.addItem(hb);
+                    var ly = thatForm.helperFunc.getHeaderLayout();
+                    vbHeader.addItem(ly);
                 },
                 print_templates: [],
                 events: thatForm.helperFunc.getEvents(),
@@ -99,8 +96,8 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from c7hr_emps where prsonal_id=':pac'",
-                        where_clause: " prsonal_id=':prsonal_id'",
+                        dml: "select *from c7hr_emps where code=':pac'",
+                        where_clause: " code=':code'",
                         update_exclude_fields: [],
                         insert_exclude_fields: [],
                         insert_default_values: {
@@ -186,6 +183,11 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                     // thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.code"));
                 },
                 afterLoadQry: function (qry) {
+                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("code"));
+                    if (qry.name == "qry1") {
+                        thatForm.helperFunc.qryEmpPic("EMP_PICS", thatForm.frm.getFieldValue("qry1.code"));
+                        thatForm.helperFunc.dispInfos();
+                    }
                 },
                 beforeLoadQry: function (qry, sql) {
                     return sql;
@@ -196,7 +198,10 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                 afterSaveForm: function (frm, nxtStatus) {
                 },
                 beforeSaveQry: function (qry, sqlRow, rowNo) {
-                    // if (qry.name == "qry1") {
+                    if (qry.name == "qry1") {
+                        qry.formview.setFieldValue("pac", qry.formview.getFieldValue("code"));
+                        thatForm.helperFunc.saveEmpPic();
+                    }
                     //     var par = that.frm.getFieldValue("qry1.parentcostcent");
                     //     var ac = that.frm.getFieldValue("qry1.code");
                     //     if (!that.canAcParent(par))
@@ -208,10 +213,14 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
-                        that.frm.setFieldValue("pac", "", "", true);
-                        that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
-                        that.view.byId("numtxt" + thatForm.timeInLong).setText("");
+                        that.frm.setFieldValue("pac", "", "", true);                        
+                        thatForm.helperFunc.dispInfos();
+                        // that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
+                        // that.view.byId("numtxt" + thatForm.timeInLong).setText("");
                     }
+                },
+                afterEditRow(qry, index, ld) {
+                    thatForm.helperFunc.dispInfos();
                 },
                 beforeDeleteValidate: function (frm) {
                     // var qry = that.frm.objs["qry1"];
@@ -232,6 +241,11 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
 
                 },
                 afterDelRow: function (qry, ld, data) {
+                    var delAdd = "";
+                    if (qry.name == "qry1") {
+                        delAdd += "delete from c7_attach where kind_of='EMP_PICS' and refer=':qry1.code' ;";
+                        // var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1", "DELETED");
+                    }
 
                 },
                 onCellRender: function (qry, rowno, colno, currentRowContext) {
@@ -248,9 +262,9 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
             var sett = sap.ui.getCore().getModel("settings").getData();
 
             return {
-                sn: { ...FormView.getFactoryFields.getKeyFld("", "15%", "10%"), ...{ colname: "sn", } },
-                prsonal_id: FormView.getFactoryFields.getGeneralField(
-                    "prsonal_id", "@", "txtCode", "7%", "redText boldText", "10%",
+                // sn: { ...FormView.getFactoryFields.getKeyFld("", "15%", "10%"), ...{ colname: "sn", } },
+                code: FormView.getFactoryFields.getGeneralField(
+                    "code", "", "txtCode", "15%", "redText boldText", "35%",
                     {
                         require: true,
                         edit_allowed: false,
@@ -258,8 +272,22 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                         display_style: "redText boldText"
                     }, {
                     change: function () {
-                        thatForm.helperFunc.fetchItem(false);
+                        // thatForm.helperFunc.fetchItem(false);
                     }
+
+                }),
+                name: FormView.getFactoryFields.getGeneralField(
+                    "name", "@", "txtName", "15%", "", "35%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: "redText boldText"
+                    }, {
+                    change: function () {
+
+                    }
+
                 }),
             };
         },
@@ -352,7 +380,7 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                             colname: "TITLE",
                         },
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "",
+                    sql: "select *from c7hr_emps order by code",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -360,8 +388,186 @@ sap.ui.jsfragment("bin.forms.hr.hremp", {
                 }
             ]
 
+        },
+        getHeaderLayout: function () {
+            var thatForm = this.thatForm;
+            Util.destroyID("empImage" + thatForm.timeInLong, thatForm.view);
+            // Util.destroyID("" + thatForm.timeInLong, thatForm.view);
+            var uploadPhoto = function () {
+                var qry = thatForm.frm.objs["qry1"];
+                if (qry.status == FormView.RecordStatus.VIEW)
+                    FormView.err("Form is not EDIT or NEW mode !");
+
+                // fu.openFileDialog();
+                var oInput = fu.getFocusDomRef();
+                if (oInput) {
+                    oInput.click();
+                }
+            };
+            var fu = new sap.ui.unified.FileUploader(thatForm.view.createId("uploader" + thatForm.timeInLong), {
+                visible: true,
+                fileType: ["jpg", "jpeg"],
+                mimeType: ["image/jpeg"],
+                change: function (oEvent) {
+                    onPhotoSelected(oEvent);
+                },
+                beforeDialogOpen: function (para) {
+                    var qry = thatForm.frm.objs["qry1"];
+                    if (qry.status == FormView.RecordStatus.VIEW) {
+                        FormView.err("Form must be in EDIT/NEW mode !");
+                        return false;
+                    }
+                    return true;
+                }
+            });
+
+            var oPhoto = new sap.m.Image(thatForm.view.createId("empImage" + thatForm.timeInLong), {
+                src: "images/no_profile.jpg",
+                width: "150px",
+                height: "150px",
+                densityAware: false,
+                decorative: true,
+                press: function () {
+                    uploadPhoto();
+                }
+            }).addStyleClass("");
+            var oPhotoBox = new sap.m.VBox({
+                width: "20%",
+                alignItems: "Center",
+                items: [oPhoto, fu]
+            }).addStyleClass("sapUiTinyMargin");
+
+            var oInfoBox = new sap.m.VBox({
+                width: "80%",
+                items: []
+            }).addStyleClass("empInfoBox sapUiTinyMargin");
+
+            var oMainLayout = new sap.m.HBox({
+                width: "100%",
+                items: [
+                    oInfoBox,
+                    oPhotoBox
+                ]
+            });
+            var onPhotoSelected = function (oEvent) {
+                var oFile = oEvent.getParameter("files")[0];
+                if (!oFile) {
+                    return;
+                }
+
+                // Validate JPG
+                if (!oFile.type.match("image/jpeg")) {
+                    MessageToast.show("Please select a JPG image");
+                    return;
+                }
+                if (oFile.size > 1024 * 1024) {
+                    sap.m.MessageToast.show("Max file size is 1MB");
+                    return;
+                }
+
+                var fileUpload = oFile;
+                if (thatForm.infoObjs["imageurl"] != undefined)
+                    URL.revokeObjectURL(thatForm.infoObjs["imageurl"]);
+                thatForm.infoObjs["imageurl"] = URL.createObjectURL(fileUpload);
+                thatForm.infoObjs["image"].setSrc(thatForm.infoObjs["imageurl"]);
+                thatForm.infoObjs["fileupload"] = fileUpload;
+
+            };
+
+            // 1- code,15,35        name1,15,35
+            // 2- job,15,35         name2,15,35
+            // 3- dept,15,35        job,15,35
+            // 4, join_date         bod,15,35
+            var fe = [];
+            var txtCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: false }).addStyleClass("empInfoValue");
+            var txtName1 = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: false }).addStyleClass("empInfoValue");
+            var txtEmpJob = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
+            var txtName2 = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: false }).addStyleClass("empInfoValue");
+            var txtEmpDept = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
+            var fe = [
+
+                Util.getLabelTxt("Emp Info", "15%", "#", "", "Begin"), new sap.m.Text({ text: "", width: "0px" }),
+                Util.getLabelTxt("txtCode", "15%"), txtCode,
+                Util.getLabelTxt("txtName", "15%", "@"), txtName1,
+                Util.getLabelTxt("txtName2", "50%", ""), txtName2,
+                Util.getLabelTxt("txtEmpJob", "15%"), txtEmpJob,
+                Util.getLabelTxt("txtEmpDept", "15%", "@"), txtEmpDept,
+            ];
+            var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.VBox, {
+            }, "sapUiSizeCompact", "");
+            // cnt.addContent(new sap.m.VBox({ height: "40px" }));
+            oInfoBox.addItem(cnt);
+
+            if (thatForm.infoObjs != undefined && thatForm.infoObjs["imageurl"] != undefined)
+                URL.revokeObjectURL(thatForm.infoObjs["imageurl"]);
+
+            thatForm.infoObjs = {
+                "txtCode": txtCode,
+                "txtName1": txtName1,
+                "txtName2": txtName2,
+                "txtEmpJob": txtEmpJob,
+                "txtEmpDept": txtEmpDept,
+                "image": oPhoto,
+                "fu": fu
+            };
+
+            return oMainLayout;
+        },
+        resetInfoObjs: function () {
+            var thatForm = this.thatForm;
+            if (thatForm.infoObjs == undefined) return;
+            var kys = Object.keys(thatForm.infoObjs);
+            for (var i in kys)
+                if (thatForm.infoObjs[kys[i]] instanceof sap.m.Text)
+                    thatForm.infoObjs[kys[i]].setText("");
+
+            if (thatForm.infoObjs != undefined && thatForm.infoObjs["imageurl"] != undefined)
+                URL.revokeObjectURL(thatForm.infoObjs["imageurl"]);
+            thatForm.infoObjs["image"].setSrc("images/no_profile.jpg");
+        },
+        qryEmpPic: function (kindof, refer) {
+            var thatForm = this.thatForm;
+            var qry = thatForm.frm.objs["qry1"];
+            // var desc = Util.getSQLValue("select descr from c7_attach where kind_of='" + kindof + "' and refer='" + refer + "'");
+            // qry.formview.setFieldValue("attachment", desc);
+            Util.doXhr("getAttachVou?kindof=" + kindof + "&refer=" + refer, true, function (e) {
+                if (this.status == 200 && this.response.byteLength > 0) {
+                    var fileUpload = new Blob([this.response], { type: "image/jpeg" });
+                    if (thatForm.infoObjs["imageurl"] != undefined)
+                        URL.revokeObjectURL(thatForm.infoObjs["imageurl"]);
+                    thatForm.infoObjs["imageurl"] = URL.createObjectURL(fileUpload);
+                    thatForm.infoObjs["image"].setSrc(thatForm.infoObjs["imageurl"]);
+                    thatForm.infoObjs["fileupload"] = fileUpload;
+                }
+            });
+
+        },
+        saveEmpPic: function () {
+            var thatForm = this.thatForm;
+            var qry = thatForm.frm.objs["qry1"];
+            if (thatForm.infoObjs["fileupload"] == undefined)
+                return;
+            if (qry.status == FormView.RecordStatus.VIEW)
+                return;
+            var refer = thatForm.frm.getFieldValue("qry1.code");
+            var fileUpload = thatForm.infoObjs["fileupload"];
+            Util.doXhrUpdateVouAttach("uploadAttachPdfVou",
+                true, fileUpload, refer, "", "EMP_PICS");
+        },
+        dispInfos: function () {
+            var thatForm = this.thatForm;
+            if (thatForm.infoObjs == undefined)
+                return;
+            var qry = thatForm.frm.objs["qry1"];
+            thatForm.infoObjs["fu"].setEnabled(true);
+            this.resetInfoObjs();
+            if (qry.status == FormView.RecordStatus.VIEW) {
+                thatForm.infoObjs["fu"].setEnabled(false);
+            }
+            thatForm.infoObjs["txtCode"].setText(thatForm.frm.getFieldValue("code"));
+            thatForm.infoObjs["txtName1"].setText(thatForm.frm.getFieldValue("name"));
         }
-    }
+    },
 
 });
 
