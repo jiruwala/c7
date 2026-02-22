@@ -2396,7 +2396,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
                 importClip: function (qrj) {
-                    if (qrj.getControl().view.objs["qry1"].status != FormView.RecordStatus.NEW && qrj.getControl().view.objs["qry1"].status != FormView.RecordStatus.EDIT) {
+                    if (qrj.getControl().frm.objs["qry1"].status != FormView.RecordStatus.NEW && qrj.getControl().frm.objs["qry1"].status != FormView.RecordStatus.EDIT) {
                         sap.m.MessageToast.show("Not in new / edit mode !");
                         return;
                     }
@@ -2463,14 +2463,19 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                         ld.setFieldValue(rn, "ACNAME", nm);
                                     }
                                     if (col == "CUST_CODE") {
-                                        var nm = Util.getSQLValue("select name from c_ycust where childcount=0 and code='" + vl + "'");
-                                        ld.setFieldValue(rn, "ACNAME", nm);
+                                        var nm = Util.execSQLWithData("select name,ac_no from c_ycust where childcount=0 and code='" + vl + "'");
+                                        if (nm.length > 0) {
+                                            ld.setFieldValue(rn, "ACCNO", nm[0].AC_NO);
+                                            ld.setFieldValue(rn, "ACNAME", nm[0].NAME);
+                                        }
                                     }
 
                                 }
                             }
                         };
                         qrj.updateDataToControl();
+                        if (qrj.eventCalc != undefined)
+                            qrj.eventCalc(qrj, undefined, undefined, true);
                         sap.m.MessageToast.show("Excel imported");
                         // this.getView().setModel(
                         //     new sap.ui.model.json.JSONModel({ items: aData }),

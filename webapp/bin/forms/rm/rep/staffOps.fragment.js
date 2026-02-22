@@ -123,7 +123,8 @@ sap.ui.jsfragment("bin.forms.rm.rep.staffOps", {
 
                                     var sq = ("SELECT " +
                                         " SUM(ORD_PKQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT , " + (iq == "Y" ? "cast_type, " : "") +
-                                        " count(*) counts,_grpby_txt empno ,salesp.name empname " +
+                                        " count(*) counts,_grpby_txt empno ,salesp.name empname , " +
+                                        "_grpby_txt empno1 ,salesp.name empname1 " +
                                         " FROM c_order1 , salesp WHERE no=_grpby_txt " +
                                         " and (ord_code=9  " +
                                         " AND ORD_DATE>=:parameter.fromdate " +
@@ -359,7 +360,7 @@ sap.ui.jsfragment("bin.forms.rm.rep.staffOps", {
                     title2: "",
                     parentTitle: "",
                     parentSpan: 1,
-                    display_width: "100",
+                    display_width: "0",
                     display_align: "ALIGN_CENTER",
                     grouped: false,
                     display_style: "",
@@ -370,6 +371,40 @@ sap.ui.jsfragment("bin.forms.rm.rep.staffOps", {
                 },
                 empname: {
                     colname: "empname",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtName",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "0",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                empno1: {
+                    colname: "empno1",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtNo",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
+                empname1: {
+                    colname: "empname1",
                     data_type: FormView.DataType.String,
                     class_name: FormView.ClassTypes.LABEL,
                     title: "txtName",

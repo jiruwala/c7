@@ -83,7 +83,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                 isMaster: false,
                                 showToolbar: true,
                                 masterToolbarInMain: false,
-                                filterCols: ["ORD_NO", "ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO", "INVOICE_NO", "PRICEX"],
+                                filterCols: ["ORD_NO", "ORD_REFNM", "ITEM_DESCR", "ORD_DATE", "BRANCH_NAME", "AMOUNT", "TOTALQTY", "PACKD_X", "DRIVER_NAME", "TEL", "TRUCKNO","TRUCKMIX", "INVOICE_NO", "PRICEX"],
                                 canvasType: ReportView.CanvasType.VBOX,
                                 eventAfterQV: function (qryObj) {
                                     // var iq = thatForm.frm.getFieldValue("parameter.grpby");
@@ -114,17 +114,16 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                     var oy = thatForm.frm.getFieldValue("RPDLV1@parameter.ordby");
                                     var ordby = oy == "ord_no" ? " ORDER BY JOINED_CORDER.ord_date,JOINED_CORDER.ord_no " : " order by JOINED_CORDER." + oy;
                                     var sq = "SELECT ORD_REF, ORD_REFNM," +
-                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
+                                        " ORD_DATE, time_leave,ORD_SHIP,  ORD_DISCAMT,saleinv," +
                                         " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT," +
-                                        " SUM(((price_x))*(qty_x))/ SUM(qty_x) PRICEX,ITEM_DESCR, ITEM_DESCR ITEM_DESCR2 ,BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
+                                        " SUM(((price_x))*(qty_x))/ SUM(qty_x) PRICEX,ITEM_DESCR, ITEM_DESCR ITEM_DESCR2 ,BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TRUCKMIX,TEL, " +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS, " +
                                         " INVOICE1.invoice_no ," +
                                         " packd_x ," +
                                         " '' remarks , " +
                                         " JOINED_CORDER.location_code," +
-                                        " JOINED_CORDER.location_name, " +
-                                        " JOINED_CORDER.cast_type " +
+                                        " JOINED_CORDER.location_name " +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=9 " +
@@ -145,8 +144,8 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                         " JOINED_CORDER.location_name ," +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS," +
-                                        " DRIVER_NAME ,TEL,TRUCKNO," +
-                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,cast_type, " +
+                                        " DRIVER_NAME ,TEL,TRUCKNO,TRUCKMIX," +
+                                        " ORD_DATE, time_leave,ORD_SHIP,  ORD_DISCAMT, " +
                                         " PRICE_X,item_descr, BRANCH_NAME , saleinv ,PACKD_X ,INVOICE1.invoice_no " +
                                         ordby;
                                     // " ORDER BY ord_date,ord_no ";
@@ -548,6 +547,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     count_unique_label: "txtCountDate",
 
                 },
+                time_leave: {
+                    colname: "time_leave",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "Time",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "60",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
                 location_code: {
                     colname: "location_code",
                     data_type: FormView.DataType.String,
@@ -683,25 +699,6 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
-                    summary: "COUNT_UNIQUE",
-                    count_unique_label: "txtDriver",
-                    other_settings: {},
-
-                },
-                cast_type: {
-                    colname: "cast_type",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.LABEL,
-                    title: "txtShift",
-                    title2: "",
-                    parentTitle: "",
-                    parentSpan: 1,
-                    display_width: "120",
-                    display_align: "ALIGN_BEGIN",
-                    grouped: false,
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
                     other_settings: {},
 
                 },
@@ -719,7 +716,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
-                    summary: "COUNT_UNIQUE",
+                    other_settings: {},
+
+                },
+                truckmix: {
+                    colname: "truckmix",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "Veh No",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "80",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
                     other_settings: {},
 
                 },
@@ -737,7 +750,6 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     display_style: "",
                     display_format: "",
                     default_value: "",
-                    summary: "COUNT_UNIQUE",                    
                     other_settings: {},
 
                 },
