@@ -260,7 +260,10 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
-
+            // keyfld,15,15 ,
+            // emp_cd 15,15 ,
+            // cmp_id,15,15,  brn_id,15,15,
+            // 
             return {
                 // sn: { ...FormView.getFactoryFields.getKeyFld("", "15%", "10%"), ...{ colname: "sn", } },
                 code: FormView.getFactoryFields.getGeneralField(
