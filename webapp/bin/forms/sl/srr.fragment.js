@@ -861,7 +861,7 @@ sap.ui.jsfragment("bin.forms.sl.srr", {
                     var kf = that.frm.getFieldValue("qry1.keyfld");
                     var oa = that.frm.getFieldValue("qry1.ordacc");
                     if (oa != UtilGen.SalesRetReqFunc.initAction.saleRets)
-                        FormView.err("Must be inital action = Sales invoice");
+                        FormView.err("Must be inital action = Sales Return");
                     var dts = Util.execSQLWithData("select invoice_no,location_code,type from pur1 where po_keyfld=" + kf);
                     if (dts.length <= 0) FormView.err("No Invoice Found !");
                     return params + "&_para_pfromno=" + dts[0].INVOICE_NO +
@@ -1902,9 +1902,13 @@ sap.ui.jsfragment("bin.forms.sl.srr", {
                 var uqty = Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY"));
                 var pk = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"))
                 var pr = Util.extractNumber(ld.getFieldValue(i, "PRICE"));
-                if (dup[rfr + "-" + str] != undefined)
+                var ds = Util.extractNumber(ld.getFieldValue(i, "ORD_DISCAMT"));
+                // if (dup[rfr + "-" + str] != undefined)
+                //     errRow(i, "Save Denied : Duplicate item entry # store = " + str);
+                // dup[rfr + "-" + str] = rfr;
+                if (dup[rfr + "-" + str + "-" + (pr - ds) + "-" + pk] != undefined)
                     errRow(i, "Save Denied : Duplicate item entry # store = " + str);
-                dup[rfr + "-" + str] = rfr;
+                dup[rfr + "-" + str + "-" + (pr - ds) + "-" + pk] = rfr;
                 var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
                 if (cnt > 0)
                     errRow(i, "Save Denied : Item is a group item ! ");
