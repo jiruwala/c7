@@ -213,7 +213,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
-                        that.frm.setFieldValue("pac", "", "", true);                        
+                        that.frm.setFieldValue("pac", "", "", true);
                         thatForm.helperFunc.dispInfos();
                         // that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         // that.view.byId("numtxt" + thatForm.timeInLong).setText("");
@@ -261,8 +261,10 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
             // keyfld,15,15 ,
-            // emp_cd 15,15 ,
-            // cmp_id,15,15,  brn_id,15,15,
+            // emp_cd 15,20 ,   dept_id,deptname,status,15,30,5
+            // aname1,aname2,aname3,aname4,aname1
+            // lname1,lname2,lname3,aname4,aname1
+            //
             // 
             return {
                 // sn: { ...FormView.getFactoryFields.getKeyFld("", "15%", "10%"), ...{ colname: "sn", } },
@@ -482,6 +484,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             // 3- dept,15,35        job,15,35
             // 4, join_date         bod,15,35
             var fe = [];
+            var txtKeyfld = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "60px", editable: false }).addStyleClass("keyIdText");
             var txtCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: false }).addStyleClass("empInfoValue");
             var txtName1 = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: false }).addStyleClass("empInfoValue");
             var txtEmpJob = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
@@ -489,7 +492,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             var txtEmpDept = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
             var fe = [
 
-                Util.getLabelTxt("Emp Info", "15%", "#", "", "Begin"), new sap.m.Text({ text: "", width: "0px" }),
+                Util.getLabelTxt("hrEmpInfo", "15%", "#", "", "Begin"), new sap.m.Text({ text: " keyId # ", width: "50px" }), txtKeyfld,
                 Util.getLabelTxt("txtCode", "15%"), txtCode,
                 Util.getLabelTxt("txtName", "15%", "@"), txtName1,
                 Util.getLabelTxt("txtName2", "50%", ""), txtName2,
@@ -505,6 +508,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 URL.revokeObjectURL(thatForm.infoObjs["imageurl"]);
 
             thatForm.infoObjs = {
+                "keyfld": txtKeyfld,
                 "txtCode": txtCode,
                 "txtName1": txtName1,
                 "txtName2": txtName2,
