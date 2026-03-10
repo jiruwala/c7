@@ -330,6 +330,24 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
+                            showLastPay: {
+                                colname: "showLastPay",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"showLastPay\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "N",
+                                other_settings: { selected: true, width: "5%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                         ],
@@ -355,13 +373,22 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 canvasType: ReportView.CanvasType.VBOX,
                                 beforeLoadQry: function (sql) {
                                     var iq = thatForm.frm.getFieldValue("parameter.cust_code");
+                                    var lp = thatForm.frm.getFieldValue("parameter.showLastPay");
                                     var replc = "iscust='Y'";
                                     if (iq != "") replc = '1=1';
+                                    var lp_date = (lp == "Y" ? " (select max(vou_date) from acvoucher2 where cust_code=c_ycust.code and vou_code=2 )"
+                                        : " null ") + " lp_date ";
+                                    var lp_amt = (lp == "Y" ? " (select max(credit) from acvoucher2 " +
+                                        " where vou_code=2 and cust_code=c_ycust.code and " +
+                                        " vou_date=(select max(vou_date) from acvoucher2 where vou_code=2 and cust_code=c_ycust.code )  ) "
+                                        : " null ") + " lp_amt ";
+
                                     return ("SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ,c_ycust.salesp," +
                                         " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
                                         " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +
                                         " (select nvl(sum((sale_price)*ord_pkqty),0) from c_order1 " +
-                                        " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal " +
+                                        " where ord_code=9 and ord_ref=c_ycust.code and saleinv is null and ord_date<=:parameter.todate) unpost_bal , " +
+                                        " " + lp_date + " , " + lp_amt + " " +
                                         " FROM  acvoucher2 v, c_ycust,salesp sl WHERE sl.no(+)=c_ycust.salesp and  v.cust_code = c_ycust.code and :iscust " +
                                         " and (nvl(':parameter.pstatus','ALL')='ALL' or c_ycust.mov_type=':parameter.pstatus')  " +
                                         " and (c_ycust.path like (select nvl(max(c.path),'')||'%' from c_ycust c where c.code=':parameter.cust_code') ) " +
@@ -408,8 +435,11 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
                                         var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        var lp = thatForm.frm.getFieldValue("parameter.showLastPay");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SALESP")].mGrouped = iq == "salesp";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SLSNAME")].mGrouped = iq == "salesp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LP_DATE")].mHideCol = !(lp == "Y");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LP_AMT")].mHideCol = !(lp == "Y");
 
                                     }
                                 },
@@ -554,6 +584,42 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                         default_value: "",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
+                                    },
+                                    lp_amt: {
+                                        colname: "lp_amt",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "amountTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        parentSpan: 2,
+                                        parentTitle: "latestCollect",
+                                        other_settings: {},
+                                        commandLinkClick: undefined
+                                    },
+                                    lp_date: {
+                                        colname: "lp_date",
+                                        data_type: FormView.DataType.Date,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "dateTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "SHORT_DATE_FORMAT",
+                                        default_value: "",
+                                        parentSpan: 2,
+                                        parentTitle: "latestCollect",
+                                        other_settings: {},
+                                        commandLinkClick: undefined
                                     },
                                     slsname: {
                                         colname: "slsname",

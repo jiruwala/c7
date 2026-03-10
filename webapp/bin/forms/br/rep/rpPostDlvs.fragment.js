@@ -146,7 +146,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPostDlvs", {
                                     var sq = "SELECT ORD_REF, ORD_REFNM, SALEINV," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT," +
                                         " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT," +
-                                        (colbal == "Y" ? "c7_get_cb(ord_ref,'Y','Y') balance , " : "") +
+                                        (colbal == "Y" ? "c7_get_cb(ord_ref,'Y','Y',:parameter.todate) balance , " : "") +
                                         "INVOICE1.INVOICE_NO, " +
                                         " SUM(((price_x))*(qty_x))/ SUM(qty_x) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts, " +
                                         " packd_x ," +
