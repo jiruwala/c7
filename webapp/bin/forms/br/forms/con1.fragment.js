@@ -255,6 +255,7 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                         table_name: "c_custitems",
                         before_add_table: function (scrollObjs, qrj) {
                             UtilGen.createDefaultToolbar1(qrj, ["REFER", "DESCR"], true);
+                            qrj.showToolbar.toolbar.addContent(thatForm.helperFunc.addCopyCmd());
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
                                 var totalRows = qrj.getControl().getModel().getData().length;
@@ -859,6 +860,130 @@ sap.ui.jsfragment("bin.forms.br.forms.con1", {
                     thatForm.cmdButtons.cmdNew.firePress();
                 }
             });
+
+        },
+        addCopyCmd: function () {
+            var thatForm = this.thatForm;
+            var qrj = thatForm.frm.objs["qry2"].obj;
+            var copyDt = function (cust, brn, dt) {
+                var qry = thatForm.frm.objs["qry1"];
+                if (!(qry.status == FormView.RecordStatus.EDIT ||
+                    qry.status == FormView.RecordStatus.NEW)
+                ) FormView.err("Must be in EDIT or NEW mode");
+
+                var sq = ("select refer,price,asm_ctg from c_contract_items  " +
+                    " where cust_code=':cust' and branch_no=':brn' " +
+                    " and to_char(startdate,'dd/mm/rrrr')=':startdt' " +
+                    " order by 1").replaceAll(":cust", cust)
+                    .replaceAll(":brn", brn)
+                    .replaceAll(":startdt", dt);
+                var dat = Util.execSQLWithData(sq);
+                qrj.updateDataToTable();
+                var ld = qrj.mLctb;
+                var dup = {};
+                var cnt = 0;
+                for (var ii = 0; ii < ld.rows.length; ii++) { dup[ld.getFieldValue(ii, "REFER")] = ld.getFieldValue(ii, "DESCR") }
+                if (dat.length > 0)
+                    for (var i in dat) {
+                        var rn = (ld.rows.length - 1 < 0 ? 0 : ld.rows.length - 1);
+                        if (Util.nvl(dup[dat[i]["REFER"]], "") != "")
+                            continue;
+                        if (ld.rows.length <= 0 ||
+                            Util.nvl(ld.getFieldValue(ld.rows.length - 1, "REFER"), "") != "")
+                            rn = ld.addRow();
+                        cnt++;
+                        ld.setFieldValue(rn, "REFER", dat[i]["REFER"]);
+                        ld.setFieldValue(rn, "PRICE", dat[i]["PRICE"]);
+                        ld.setFieldValue(rn, "ASM_CTG", dat[i]["ASM_CTG"]);
+                        ld.setFieldValue(rn, "PRICE_VAR", dat[i]["PRICE_VAR"]);
+                        ld.setFieldValue(rn, "PRICE_BUY", dat[i]["PRICE_BUY"]);
+                        var ds = Util.execSQLWithData("select reference,descr,packd,unitd,pack from items where reference='" + dat[i]["REFER"] + "'");
+                        if (ds.length > 0) {
+                            ld.setFieldValue(rn, "DESCR", ds[0].DESCR);
+                            ld.setFieldValue(rn, "PACKD", ds[0].PACKD);
+                            ld.setFieldValue(rn, "PACK", ds[0].PACK);
+                            ld.setFieldValue(rn, "UNITD", ds[0].UNITD);
+                        }
+                    }
+                qrj.updateDataToControl();
+                sap.m.MessageToast.show("(" + cnt + ") items copied ");
+            };
+            var bt = new sap.m.Button({
+                icon: "sap-icon://copy",
+                press: function () {
+                    var qry = thatForm.frm.objs["qry1"];
+                    if (!(qry.status == FormView.RecordStatus.EDIT ||
+                        qry.status == FormView.RecordStatus.NEW)
+                    ) FormView.err("Must be in EDIT or NEW mode");
+                    var mnus = [];
+                    mnus.push(new sap.m.MenuItem({
+                        text: "Copy from Date",
+                        press: function () {
+                            var sq = thatForm.frm.parseString("select distinct to_char(startdate,'dd/mm/rrrr') startdate from C_CONTRACT_ITEMS " +
+                                " where cust_code=':qry1.cust_code' and branch_no=':qry1.branch_no' " +
+                                " order by 1");
+                            UtilGen.Search.do_quick_search_simple(sq,
+                                ["STARTDATE"], function (data) {
+                                    var dt = data.STARTDATE;
+                                    var cust = thatForm.frm.getFieldValue("qry1.cust_code");
+                                    var brn = thatForm.frm.getFieldValue("qry1.branch_no");
+                                    copyDt(cust, brn, dt);
+                                }, { pWidth: "200px" }, undefined, undefined, "Select a date copy from ...",
+                                undefined,
+                            );
+                        }
+                    }));
+                    mnus.push(new sap.m.MenuItem({
+                        text: "Copy from Other Client",
+                        press: function () {
+                            var sq = thatForm.frm.parseString("select distinct cust_code,y.name,branch_no,b.b_name branch_name," +
+                                " to_char(startdate,'dd/mm/rrrr') startdate from C_CONTRACT_ITEMS, c_ycust y,cbranch b " +
+                                " where y.code=cust_code and " +
+                                " b.brno=branch_no and b.code=y.code " +
+                                " order by cust_code,branch_no,startdate ");
+                            UtilGen.Search.do_quick_search_simple(sq,
+                                ["STARTDATE"], function (data) {
+                                    var dt = data.STARTDATE;
+                                    var cust = data.CUST_CODE;
+                                    var brn = data.BRANCH_NO;
+                                    copyDt(cust, brn, dt);
+                                }, { pWidth: "80%" }, undefined, undefined, "Select a date copy from ...",
+                                undefined,
+                            );
+                        }
+                    }));
+                    mnus.push(new sap.m.MenuItem({
+                        text: "Increase/Decrease Price ",
+                        press: function () {
+                            var qry = thatForm.frm.objs["qry1"];
+                            if (!(qry.status == FormView.RecordStatus.EDIT ||
+                                qry.status == FormView.RecordStatus.NEW)
+                            ) FormView.err("Must be in EDIT or NEW mode");
+
+                            UtilGen.inputDialog("Increase/Decrease Price", "Increase/Decrease Price : ", .5, function (str) {
+                                qrj.updateDataToTable();
+                                var ld = qrj.mLctb;
+                                var incr = Util.extractNumber(str);
+                                for (var ii = 0; ii < ld.rows.length; ii++) {
+                                    var pr = ld.getFieldValue(ii, "PRICE");
+                                    ld.setFieldValue(ii, "PRICE", (pr + incr));
+                                }
+                                qrj.updateDataToControl();
+                                sap.m.MessageToast.show("Increased all price by " + str);
+                                return true;
+                            }, function () {
+                                return true;
+                            }, undefined, undefined, {});
+                        }
+                    }));
+                    var mnu = new sap.m.Menu({
+                        items: mnus
+                    });
+                    mnu.openBy(bt);
+                }
+            });
+
+            return bt;
 
         }
     }

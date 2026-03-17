@@ -859,6 +859,8 @@ sap.ui.jsfragment("bin.forms.in.items", {
         },
         getList: function () {
             var that2 = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var si = Util.nvl(sett["formsecure_show_items"], "");
             return [
                 {
                     name: 'list1',
@@ -880,7 +882,9 @@ sap.ui.jsfragment("bin.forms.in.items", {
                         },
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select descr,reference,price1, pkaver Pack_cost from items order by descr2",
+                    sql: "select descr,reference,price1, pkaver Pack_cost from items " +
+                        " where descr2 like '" + si + "%' " +
+                        " order by descr2 ",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
