@@ -260,16 +260,51 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
+
+            var getSettingsDept = function () {
+                var ordref = "qry1.dept_id";
+                var ordrefnm = "qry1.deptname";
+
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    code: Util.nvl(ordref),
+                    name: Util.nvl(ordrefnm),
+                    getBtns: undefined,
+                    sqlChange: "select deptno,",
+                    sqlList: "",
+                    sqlListChange: "",
+                });
+            }
+
             // keyfld,15,15 ,
-            // emp_cd 15,20 ,   dept_id,deptname,status,15,30,5
-            // aname1,aname2,aname3,aname4,aname1
-            // lname1,lname2,lname3,aname4,aname1
-            //
+            // emp_cd 15,20 ,            dept_id,deptname,status,15,30,5
+            // aname1,aname2,aname3,aname4,aname5, 15,17
+            // lname1,lname2,lname3,aname4,aname5  15, 17
+            // gender,dob,15,10,10,15   nation,15,35
+            // mar_stat,religion,,15,10,10,15   mob_no,15,35
+            // email_per,15,35             addr_cur,15,35                    
             // 
+            // Visa
+            // visa_typ, visa_no,15,10,10,15     civil_id 15,35
+            // res_iss_dt,res_exp_dt,15,10,10,15,  res_year,visa_no,15,10,10,15
+            // sponsor_id,sponsor_name,15,10,25            
+            // 
+            // Employement
+            // dt_join,emp_type, 15,15,10,10,  mgr_emp_id,mgr_name, 15,10,25
+            // job_tit,15,35                job_desc,15,35
+            // salary:
+            // basic_amt,15,35,         pay_mode,15,35
+            // lbl_allowances,lbl_amount, 25,20
+            // hra_amt,25,20
+            // trns_amt,25,20
+            // food_amt,25,20
+            // oth_amt,25,20
+            // _totamt,15,20
+            //
             return {
                 // sn: { ...FormView.getFactoryFields.getKeyFld("", "15%", "10%"), ...{ colname: "sn", } },
-                code: FormView.getFactoryFields.getGeneralField(
-                    "code", "", "txtCode", "15%", "redText boldText", "35%",
+                emp_cd: FormView.getFactoryFields.getGeneralField(
+                    "emp_cd", "", "txtCode", "15%", "redText boldText", "20%",
                     {
                         require: true,
                         edit_allowed: false,
@@ -281,19 +316,115 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     }
 
                 }),
-                name: FormView.getFactoryFields.getGeneralField(
-                    "name", "@", "txtName", "15%", "", "35%",
+                dept_id: FormView.getFactoryFields.getGeneralField(
+                    "dept_id", "@", "txtDept", "15%", "redText boldText", "15%",
                     {
                         require: true,
-                        edit_allowed: true,
+                        edit_allowed: false,
                         insert_allowed: true,
+                        display_style: "redText boldText"
+                    }, getSettingsDept()),
+
+                deptname: FormView.getFactoryFields.getGeneralField(
+                    "deptname", "@", "", "0px", "", "30%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                    },
+                ),
+                status: FormView.getFactoryFields.getGeneralField(
+                    "status", "@", "", "0px", "redText boldText", "5%",
+                    {
+                        edit_allowed: false,
+                        insert_allowed: false,
                         display_style: "redText boldText"
                     }, {
                     change: function () {
-
+                        // thatForm.helperFunc.fetchItem(false);
                     }
 
                 }),
+                aname1: FormView.getFactoryFields.getGeneralField(
+                    "aname1", "", "", "15%", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                aname2: FormView.getFactoryFields.getGeneralField(
+                    "aname2", "", "", "0px", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                aname3: FormView.getFactoryFields.getGeneralField(
+                    "aname3", "", "", "0px", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                aname4: FormView.getFactoryFields.getGeneralField(
+                    "aname4", "", "", "0px", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                aname5: FormView.getFactoryFields.getGeneralField(
+                    "aname5", "", "", "0px", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                lname1: FormView.getFactoryFields.getGeneralField(
+                    "lname1", "", "", "15%", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                lname2: FormView.getFactoryFields.getGeneralField(
+                    "lname2", "", "", "0px", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                lname3: FormView.getFactoryFields.getGeneralField(
+                    "lname3", "", "", "0px", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                lname4: FormView.getFactoryFields.getGeneralField(
+                    "lname4", "", "", "0px", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                lname5: FormView.getFactoryFields.getGeneralField(
+                    "lname5", "", "", "0px", "", "17%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
             };
         },
         getCommands: function () {

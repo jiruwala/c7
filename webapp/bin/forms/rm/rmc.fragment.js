@@ -174,6 +174,34 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
             var colSpan = "XL2 L2 M2 S12";
             var sumSpan = "XL2 L2 M2 S12";
             var para = {
+                ploc: {
+                    colname: "ploc",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
+                    title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        showSelectAll: true,
+                        selectedKeys: Util.getSQLColArray("select code from locations order by code")
+
+                    },
+                    list: "select code,name from locations order by code",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
                 fromdate: {
                     colname: "fromdate",
                     data_type: FormView.DataType.Date,
@@ -241,6 +269,7 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
             var sqitm = "select ord_ship,I.DESCR,sum(O.tqty) totqty from c_order1 o,ITEMS I " +
                 " where ord_code=9 AND I.REFERENCE=O.ORD_SHIP " +
                 " and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate " +
+                " and (':parameter.ploc' like '%\"'||location_code||'\"%' ) " +
                 " group by ord_ship,I.DESCR ORDER BY ORD_SHIP";
 
             var sq = "select i.reference,i.descr baseitem,m.refer rfr," +
@@ -249,7 +278,8 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
                 " from items i, masterasm m,items i2 where m.baseitem=i.reference " +
                 " and m.refer=i2.reference " +
                 " and baseitem in " +
-                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate) " +
+                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate " +
+                " and (':parameter.ploc' like '%\"'||location_code||'\"%' ) ) " +
                 " group by i.reference,i.descr,m.refer,i2.descr||' - '||m.packd, i2.descr || ' - ' || m.packd || '__QTY' " +
                 " order by 1,rfr";
             var sqcst = "select i.reference,i.descr baseitem,m.refer rfr," +
@@ -258,7 +288,8 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
                 " from items i, masterasm m,items i2 where m.baseitem=i.reference " +
                 " and m.refer=i2.reference " +
                 " and baseitem in " +
-                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate) " +
+                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate " +
+                " and (':parameter.ploc' like '%\"'||location_code||'\"%' )) " +
                 " group by i.reference,i.descr,m.refer,i2.descr||' - '||m.packd, i2.descr || ' - ' || m.packd || '__CST' " +
                 " order by 1,rfr";
             var sqavg = "select i.reference,i.descr baseitem,m.refer rfr," +
@@ -267,7 +298,8 @@ SQ = sap.ui.jsfragment("bin.forms.rm.rmc", {
                 " from items i, masterasm m,items i2 where m.baseitem=i.reference " +
                 " and m.refer=i2.reference " +
                 " and baseitem in " +
-                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate) " +
+                " (select distinct ord_ship from c_order1 where ord_date>=:parameter.fromdate and ord_date<=:parameter.todate " +
+                " and (':parameter.ploc' like '%\"'||location_code||'\"%' )) " +
                 " group by i.reference,i.descr,m.refer,i2.descr||' - '||m.packd, i2.descr || ' - ' || m.packd || '__AVG' " +
                 " order by 1,rfr";
             sq = thatForm.frm.parseString(sq);
