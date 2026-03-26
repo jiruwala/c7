@@ -78,7 +78,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             form: {
                 title: Util.getLangText("hrEmpMaster"),
                 toolbarBG: "#fff0f5",
-                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
+                // formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
+                formSetting: FormView.getDefaultHeadCSS("jvForm", undefined, 450),
                 customDisplay: function (vbHeader) {
                     var ly = thatForm.helperFunc.getHeaderLayout();
                     vbHeader.addItem(ly);
@@ -346,7 +347,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
 
                 }),
                 aname1: FormView.getFactoryFields.getGeneralField(
-                    "aname1", "", "", "15%", "", "17%",
+                    "aname1", "", "", "15%", "txtName", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -354,7 +355,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 aname2: FormView.getFactoryFields.getGeneralField(
-                    "aname2", "", "", "0px", "", "17%",
+                    "aname2", "@", "", "0px", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -362,7 +363,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 aname3: FormView.getFactoryFields.getGeneralField(
-                    "aname3", "", "", "0px", "", "17%",
+                    "aname3", "@", "", "0px", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -370,7 +371,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 aname4: FormView.getFactoryFields.getGeneralField(
-                    "aname4", "", "", "0px", "", "17%",
+                    "aname4", "@", "", "0px", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -378,7 +379,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 aname5: FormView.getFactoryFields.getGeneralField(
-                    "aname5", "", "", "0px", "", "17%",
+                    "aname5", "@", "", "0px", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -386,7 +387,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 lname1: FormView.getFactoryFields.getGeneralField(
-                    "lname1", "", "", "15%", "", "17%",
+                    "lname1", "", "", "15%", "txtName2", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -394,7 +395,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 lname2: FormView.getFactoryFields.getGeneralField(
-                    "lname2", "", "", "0px", "", "17%",
+                    "lname2", "@", "", "0px", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -402,7 +403,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 lname3: FormView.getFactoryFields.getGeneralField(
-                    "lname3", "", "", "0px", "", "17%",
+                    "lname3", "@", "", "0px", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -410,7 +411,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 lname4: FormView.getFactoryFields.getGeneralField(
-                    "lname4", "", "", "0px", "", "17%",
+                    "lname4", "@", "", "0px", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -418,13 +419,123 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 lname5: FormView.getFactoryFields.getGeneralField(
-                    "lname5", "", "", "0px", "", "17%",
+                    "lname5", "@", "", "0px", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
                     },
                 ),
+                gender: FormView.getFactoryFields.getComboField(
+                    "gender", "", "txtGender",
+                    "15%", "", "10%",
+                    {
+                        list: "@male/txtMale,female/txtFemale",
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    selectionChange: function () {
+                    }
+                }),
+                dob: FormView.getFactoryFields.getDateField(
+                    "dob", "@", "txtDob", "10%", "", "15%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, {}),
+                nation: FormView.getFactoryFields.getComboField(
+                    "nation", "@", "txtNation",
+                    "15%", "", "35%",
+                    {
+                        list: "select name code,name from relists where idlist='NATION' order by name",
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    selectionChange: function () {
+                    }
+                }),
+                email_per: FormView.getFactoryFields.getGeneralField(
+                    "email_per", "", "txtEmail", "15%", "", "35%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                addr_cur: FormView.getFactoryFields.getGeneralField(
+                    "addr_cur", "@", "txtAddressCurr", "15%", "", "35%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                _lblLv1: FormView.getFactoryFields.getTextField("_lblLv1", "", "", "100%", "", {}, {}),
+                _titVisa: FormView.getFactoryFields.getGeneralField(
+                    "_titVisa", "", "titVisa", "100%", "qrGroup", "0px",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                    }, {}, "Begin"),
+                _lblLv2: FormView.getFactoryFields.getTextField("_lblLv2", "", "", "100%", "", {}, {}),
+                visa_typ: FormView.getFactoryFields.getComboField(
+                    "visa_typ", "", "txtVisaType",
+                    "15%", "", "10%",
+                    {
+                        list: "@18/18,20/20,22/22",
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    selectedKey: '18',
+                    selectionChange: function () {
+                    }
+                }),
+                visa_no: FormView.getFactoryFields.getGeneralField(
+                    "visa_no", "@", "txtVisaNo", "10%", "", "15%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                civil_id: FormView.getFactoryFields.getGeneralField(
+                    "civil_id", "@", "txtCivilId", "15%", "", "35%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                ),
+                res_iss_dt: FormView.getFactoryFields.getDateField(
+                    "res_iss_dt", "", "txtResIssDt", "15%", "", "10%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, {}),
+                res_exp_dt: FormView.getFactoryFields.getDateField(
+                    "res_exp_dt", "", "txtResExpDt", "10%", "", "15%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, {}),
+                res_year: FormView.getFactoryFields.getComboField(
+                    "res_year", "", "txtResYear",
+                    "15%", "", "10%",
+                    {
+                        list: "@1/1,2/2,3/3,4/4,5/5",
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    selectedKey: '1',
+                    selectionChange: function () {
+                    }
+                }),
             };
         },
         getCommands: function () {

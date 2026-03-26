@@ -137,7 +137,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
                     // width: { "S": 500, "M": 650, "L": 850, "XL": 1000 },
-                    width: ((sap.ui.Device.resize.width - 500) > 900 ? 900 : (sap.ui.Device.resize.width - 500)) + "px",
+                    width: ((sap.ui.Device.resize.width - 300) > 1200 ? 1200 : (sap.ui.Device.resize.width - 300)) + "px",
                     class: "jvForm",
                     cssText: [],
                     // cssText: [
