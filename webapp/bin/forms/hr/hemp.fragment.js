@@ -99,8 +99,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         name: "qry1",
                         dml: "select *from c7hr_emps where code=':pac'",
                         where_clause: " code=':code'",
-                        update_exclude_fields: [],
-                        insert_exclude_fields: [],
+                        update_exclude_fields: ["sponsorname", "deptname", "mgr_empname"],
+                        insert_exclude_fields: ["sponsorname", "deptname", "mgr_empname"],
                         insert_default_values: {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
@@ -276,6 +276,20 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     sqlListChange: "",
                 });
             }
+            var getSettingsSponsor = function () {
+                var ordref = "qry1.sponsor_id";
+                var ordrefnm = "qry1.sponsorname";
+
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    code: Util.nvl(ordref),
+                    name: Util.nvl(ordrefnm),
+                    getBtns: undefined,
+                    sqlChange: "select deptno,",
+                    sqlList: "",
+                    sqlListChange: "",
+                });
+            }
 
             // keyfld,15,15 ,
             // emp_cd 15,20 ,            dept_id,deptname,status,15,30,5
@@ -287,7 +301,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             // 
             // Visa
             // visa_typ, visa_no,15,10,10,15     civil_id 15,35
-            // res_iss_dt,res_exp_dt,15,10,10,15,  res_year,visa_no,15,10,10,15
+            // res_iss_dt,res_exp_dt,15,10,10,15,  res_year,res_no,15,10,10,15
             // sponsor_id,sponsor_name,15,10,25            
             // 
             // Employement
@@ -508,6 +522,15 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            var c = this;
+                            if (c.getValue().length > 0 &&
+                                c.getValue().length != 12
+                            )
+                                setTimeout(() => { c.focus(); FormView.err("Below 12 digits") }, 100);
+                        }
+                    }
                 ),
                 res_iss_dt: FormView.getFactoryFields.getDateField(
                     "res_iss_dt", "", "txtResIssDt", "15%", "", "10%",
@@ -517,14 +540,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true
                     }, {}),
                 res_exp_dt: FormView.getFactoryFields.getDateField(
-                    "res_exp_dt", "", "txtResExpDt", "10%", "", "15%",
+                    "res_exp_dt", "@", "txtResExpDt", "10%", "", "15%",
                     {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true
                     }, {}),
                 res_year: FormView.getFactoryFields.getComboField(
-                    "res_year", "", "txtResYear",
+                    "res_year", "@", "txtResYear",
                     "15%", "", "10%",
                     {
                         list: "@1/1,2/2,3/3,4/4,5/5",
@@ -536,6 +559,106 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     selectionChange: function () {
                     }
                 }),
+                res_no: FormView.getFactoryFields.getGeneralField(
+                    "res_no", "@", "txtResNo", "10%", "", "15%",
+                    {
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                    {
+                        change: function () {
+                            var c = this;
+                            if (c.getValue().length > 0 &&
+                                c.getValue().length != 9
+                            )
+                                setTimeout(() => { c.focus(); FormView.err("Below 9 digits") }, 100);
+                        }
+                    }
+                ),
+                sponsor_id: FormView.getFactoryFields.getGeneralField(
+                    "sponsor_id", "", "txtSponsor", "15%", "", "10%",
+                    {
+                        require: true,
+                        edit_allowed: false,
+                        insert_allowed: true,
+                        display_style: "redText boldText"
+                    }, getSettingsSponsor()),
+                sponsorname: FormView.getFactoryFields.getGeneralField(
+                    "sponsorname", "@", "", "0px", "", "25%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                    },
+                ),
+                _lblLv3: FormView.getFactoryFields.getTextField("_lblLv3", "", "", "100%", "", {}, {}),
+                _titEmployement: FormView.getFactoryFields.getGeneralField(
+                    "_titEmployement", "", "titEmployment", "100%", "qrGroup", "0px",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                    }, {}, "Begin"),
+                _lblLv4: FormView.getFactoryFields.getTextField("_lblLv4", "", "", "100%", "", {}, {}),
+                dt_join: FormView.getFactoryFields.getDateField(
+                    "dt_join", "", "txtJoinDate", "15%", "", "15%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, {}),
+                emp_type: FormView.getFactoryFields.getComboField(
+                    "emp_type", "@", "txtEmpType",
+                    "10%", "", "10%",
+                    {
+                        list: "@permanent/txtPermanent,contract/txtContract",
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    selectedKey: '1',
+                    selectionChange: function () {
+                    }
+                }),
+                mgr_emp_id: FormView.getFactoryFields.getGeneralField(
+                    "mgr_emp_id", "@", "txtManager", "15%", "", "10%",
+                    {
+                        require: true,
+                        edit_allowed: false,
+                        insert_allowed: true,
+                        display_style: "redText boldText"
+                    }, getSettingsSponsor()),
+                    mgr_empname: FormView.getFactoryFields.getGeneralField(
+                    "mgr_empname", "@", "", "0px", "", "25%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                    },
+                ),
+                nation: FormView.getFactoryFields.getComboField(
+                    "nation", "@", "txtJobTitle",
+                    "15%", "", "35%",
+                    {
+                        list: "select name code,name from relists where idlist='JOBS' order by name",
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    selectionChange: function () {
+                    }
+                }),
+                job_desc: FormView.getFactoryFields.getGeneralField(
+                    "job_desc", "", "txtJobDescr", "15%", "", "35%",
+                    {
+                        class_name: FormView.ClassTypes.TEXTAREA,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    },
+                    {
+                        rows: 2
+                    }
+                ),
             };
         },
         getCommands: function () {
