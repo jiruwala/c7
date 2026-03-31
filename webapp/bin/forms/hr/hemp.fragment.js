@@ -79,7 +79,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 title: Util.getLangText("hrEmpMaster"),
                 toolbarBG: "#fff0f5",
                 // formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
-                formSetting: FormView.getDefaultHeadCSS("jvForm", undefined, 450),
+                formSetting: FormView.getDefaultHeadCSS("jvForm", undefined, 500),
                 customDisplay: function (vbHeader) {
                     var ly = thatForm.helperFunc.getHeaderLayout();
                     vbHeader.addItem(ly);
@@ -627,7 +627,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: "redText boldText"
                     }, getSettingsSponsor()),
-                    mgr_empname: FormView.getFactoryFields.getGeneralField(
+                mgr_empname: FormView.getFactoryFields.getGeneralField(
                     "mgr_empname", "@", "", "0px", "", "25%",
                     {
                         require: false,
@@ -659,6 +659,97 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         rows: 2
                     }
                 ),
+                _lblLv5: FormView.getFactoryFields.getTextField("_lblLv5", "", "", "100%", "", {}, {}),
+                _titSalary: FormView.getFactoryFields.getGeneralField(
+                    "_titSalary", "", "titSalary", "100%", "qrGroup", "0px",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                    }, {}, "Begin"),
+                _lblLv6: FormView.getFactoryFields.getTextField("_lblLv6", "", "", "100%", "", {}, {}),
+                basic_amt: FormView.getFactoryFields.getGeneralField(
+                    "basic_amt", "", "txtBasicSalary", "15%", "", "35%",
+                    {
+                        data_type: FormView.DataType.Number,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: "",
+                        display_format: sett["FORMAT_MONEY_1"],
+                    },
+                ),
+                pay_mode: FormView.getFactoryFields.getComboField(
+                    "pay_mode", "@", "txtPayMode",
+                    "15%", "", "35%",
+                    {
+                        list: "@bank/txtBank,cash/txtCash",
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {
+                    selectedKey: "bank",
+                    selectionChange: function () {
+                    }
+                }),
+                _titAllowance: FormView.getFactoryFields.getGeneralField(
+                    "_titAllowance", "", "titAllowances", "25%", "", "0px",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                    }, {}, "End"),
+                _titAmt: FormView.getFactoryFields.getGeneralField(
+                    "_titAmt", "@", "amountTxt", "20%", "", "0px",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                    }, {}, "End"),
+                hra_amt: FormView.getFactoryFields.getGeneralField(
+                    "hra_amt", "", "txtAllowHouse", "25%", "", "20%",
+                    {
+                        data_type: FormView.DataType.Number,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: "",
+                        display_format: sett["FORMAT_MONEY_1"],
+                    },
+                ),
+                trns_amt: FormView.getFactoryFields.getGeneralField(
+                    "trns_amt", "", "txtAllowTrans", "25%", "", "20%",
+                    {
+                        data_type: FormView.DataType.Number,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: "",
+                        display_format: sett["FORMAT_MONEY_1"],
+                    },
+                ),
+                food_amt: FormView.getFactoryFields.getGeneralField(
+                    "food_amt", "", "txtAllowFood", "25%", "", "20%",
+                    {
+                        data_type: FormView.DataType.Number,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: "",
+                        display_format: sett["FORMAT_MONEY_1"],
+                    },
+                ),
+                oth_amt: FormView.getFactoryFields.getGeneralField(
+                    "oth_amt", "", "txtAllowOther", "25%", "", "20%",
+                    {
+                        data_type: FormView.DataType.Number,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: "",
+                        display_format: sett["FORMAT_MONEY_1"],
+                    },
+                ),
+                _totamt: FormView.getFactoryFields.getGeneralField(
+                    "_totamt", "", "totalTxt", "25%", "", "20%",
+                    {
+                        data_type: FormView.DataType.Number,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        display_style: "totInput",
+                        display_format: sett["FORMAT_MONEY_1"],
+                    },
+                ),
+
             };
         },
         getCommands: function () {
