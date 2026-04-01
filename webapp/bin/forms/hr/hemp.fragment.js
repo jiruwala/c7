@@ -79,7 +79,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 title: Util.getLangText("hrEmpMaster"),
                 toolbarBG: "#fff0f5",
                 // formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
-                formSetting: FormView.getDefaultHeadCSS("jvForm", undefined, 500),
+                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
                     var ly = thatForm.helperFunc.getHeaderLayout();
                     vbHeader.addItem(ly);
@@ -97,7 +97,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from c7hr_emps where code=':pac'",
+                        dml: "select *from c7hr_emp where code=':pac'",
                         where_clause: " code=':code'",
                         update_exclude_fields: ["sponsorname", "deptname", "mgr_empname"],
                         insert_exclude_fields: ["sponsorname", "deptname", "mgr_empname"],
@@ -107,7 +107,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                             // "TYPE": 3
                         },
                         update_default_values: {},
-                        table_name: "c7hr_emps",
+                        table_name: "c7hr_emp",
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: false,
@@ -188,6 +188,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     if (qry.name == "qry1") {
                         thatForm.helperFunc.qryEmpPic("EMP_PICS", thatForm.frm.getFieldValue("qry1.code"));
                         thatForm.helperFunc.dispInfos();
+                        thatForm.helperFunc.calcTotSalary();
                     }
                 },
                 beforeLoadQry: function (qry, sql) {
@@ -201,6 +202,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 beforeSaveQry: function (qry, sqlRow, rowNo) {
                     if (qry.name == "qry1") {
                         qry.formview.setFieldValue("pac", qry.formview.getFieldValue("code"));
+                        var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7hr_emp");
+                        qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
                         thatForm.helperFunc.saveEmpPic();
                     }
                     //     var par = that.frm.getFieldValue("qry1.parentcostcent");
@@ -216,8 +219,17 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     if (qry.name == "qry1") {
                         that.frm.setFieldValue("pac", "", "", true);
                         thatForm.helperFunc.dispInfos();
-                        // that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
-                        // that.view.byId("numtxt" + thatForm.timeInLong).setText("");
+                        qry.formview.setFieldValue("qry1.visa_typ", "18", "18", true);
+                        qry.formview.setFieldValue("qry1.res_year", "1", "1", true);
+                        qry.formview.setFieldValue("qry1.emp_type", "txtPermanent", "txtPermanent", true);
+                        qry.formview.setFieldValue("qry1.basic_amt", 0, 0, true);
+                        qry.formview.setFieldValue("qry1.hra_amt", 0, 0, true);
+                        qry.formview.setFieldValue("qry1.trns_amt", 0, 0, true);
+                        qry.formview.setFieldValue("qry1.food_amt", 0, 0, true);
+                        qry.formview.setFieldValue("qry1.oth_amt", 0, 0, true);
+                        qry.formview.setFieldValue("qry1._totamt", 0, 0, true);
+                        qry.formview.setFieldValue("qry1.pay_mode", "txtBank", "txtBank", true);
+                        qry.formview.setFieldValue("qry1.gender", "txtMale", "txtMale", true);
                     }
                 },
                 afterEditRow(qry, index, ld) {
@@ -271,9 +283,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
                     getBtns: undefined,
-                    sqlChange: "select deptno,",
-                    sqlList: "",
-                    sqlListChange: "",
+                    sqlChange: "select deptno code,title from c7hr_dept where deptno=':CODE' and flag=1",
+                    sqlList: "select deptno code,title from c7hr_dept where flag=1 order by deptno ",
+                    sqlListChange: "select deptno code,title from C7HR_DEPT where deptno=:CODE and flag=1",
                 });
             }
             var getSettingsSponsor = function () {
@@ -285,11 +297,15 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     code: Util.nvl(ordref),
                     name: Util.nvl(ordrefnm),
                     getBtns: undefined,
-                    sqlChange: "select deptno,",
-                    sqlList: "",
-                    sqlListChange: "",
+                    sqlChange: "select spn_no code,comp_name title from c7hr_sponsor where spn_no=':CODE' and flag=1",
+                    sqlList: "select spn_no code,comp_name title from c7hr_sponsor where flag=1 order by spn_no ",
+                    sqlListChange: "select spn_no code,comp_name title from c7hr_sponsor where spn_no=:CODE and flag=1",
                 });
             }
+            var getSettingsManager = function () {
+
+            }
+
 
             // keyfld,15,15 ,
             // emp_cd 15,20 ,            dept_id,deptname,status,15,30,5
@@ -314,7 +330,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             // trns_amt,25,20
             // food_amt,25,20
             // oth_amt,25,20
-            // _totamt,15,20
+            // _totamt,25,20
             //
             return {
                 // sn: { ...FormView.getFactoryFields.getKeyFld("", "15%", "10%"), ...{ colname: "sn", } },
@@ -622,11 +638,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 mgr_emp_id: FormView.getFactoryFields.getGeneralField(
                     "mgr_emp_id", "@", "txtManager", "15%", "", "10%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: false,
                         insert_allowed: true,
                         display_style: "redText boldText"
-                    }, getSettingsSponsor()),
+                    }, getSettingsManager()),
                 mgr_empname: FormView.getFactoryFields.getGeneralField(
                     "mgr_empname", "@", "", "0px", "", "25%",
                     {
@@ -675,6 +691,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.calcTotSalary();
+                        }
+                    }
                 ),
                 pay_mode: FormView.getFactoryFields.getComboField(
                     "pay_mode", "@", "txtPayMode",
@@ -690,17 +711,17 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     }
                 }),
                 _titAllowance: FormView.getFactoryFields.getGeneralField(
-                    "_titAllowance", "", "titAllowances", "25%", "", "0px",
+                    "_titAllowance", "", "titAllowances", "40%", "qrGroup", "0px",
                     {
                         class_name: FormView.ClassTypes.LABEL,
-                    }, {}, "End"),
+                    }, {}, "Center"),
                 _titAmt: FormView.getFactoryFields.getGeneralField(
-                    "_titAmt", "@", "amountTxt", "20%", "", "0px",
+                    "_titAmt", "@", "amountTxt", "40%", "qrGroup", "0px",
                     {
                         class_name: FormView.ClassTypes.LABEL,
-                    }, {}, "End"),
+                    }, {}, "Center"),
                 hra_amt: FormView.getFactoryFields.getGeneralField(
-                    "hra_amt", "", "txtAllowHouse", "25%", "", "20%",
+                    "hra_amt", "", "txtAllowHouse", "40%", "", "20%",
                     {
                         data_type: FormView.DataType.Number,
                         edit_allowed: true,
@@ -708,9 +729,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.calcTotSalary();
+                        }
+                    }
                 ),
                 trns_amt: FormView.getFactoryFields.getGeneralField(
-                    "trns_amt", "", "txtAllowTrans", "25%", "", "20%",
+                    "trns_amt", "", "txtAllowTrans", "40%", "", "20%",
                     {
                         data_type: FormView.DataType.Number,
                         edit_allowed: true,
@@ -718,9 +744,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.calcTotSalary();
+                        }
+                    }
                 ),
                 food_amt: FormView.getFactoryFields.getGeneralField(
-                    "food_amt", "", "txtAllowFood", "25%", "", "20%",
+                    "food_amt", "", "txtAllowFood", "40%", "", "20%",
                     {
                         data_type: FormView.DataType.Number,
                         edit_allowed: true,
@@ -728,9 +759,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.calcTotSalary();
+                        }
+                    }
                 ),
                 oth_amt: FormView.getFactoryFields.getGeneralField(
-                    "oth_amt", "", "txtAllowOther", "25%", "", "20%",
+                    "oth_amt", "", "txtAllowOther", "40%", "", "20%",
                     {
                         data_type: FormView.DataType.Number,
                         edit_allowed: true,
@@ -738,9 +774,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.calcTotSalary();
+                        }
+                    }
                 ),
                 _totamt: FormView.getFactoryFields.getGeneralField(
-                    "_totamt", "", "totalTxt", "25%", "", "20%",
+                    "_totamt", "", "totalTxt", "40%", "", "20%",
                     {
                         data_type: FormView.DataType.Number,
                         edit_allowed: false,
@@ -841,7 +882,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                             colname: "TITLE",
                         },
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select *from c7hr_emps order by code",
+                    sql: "select *from c7hr_emp order by code",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -948,7 +989,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             var txtEmpDept = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
             var fe = [
 
-                Util.getLabelTxt("hrEmpInfo", "15%", "#", "", "Begin"), new sap.m.Text({ text: " keyId # ", width: "50px" }), txtKeyfld,
+                Util.getLabelTxt(Util.getLangText("hrEmpInfo"), "15%", "#", "", "Begin"), new sap.m.Text({ text: " keyId # ", width: "50px" }), txtKeyfld,
                 Util.getLabelTxt("txtCode", "15%"), txtCode,
                 Util.getLabelTxt("txtName", "15%", "@"), txtName1,
                 Util.getLabelTxt("txtName2", "50%", ""), txtName2,
@@ -1016,6 +1057,17 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             var fileUpload = thatForm.infoObjs["fileupload"];
             Util.doXhrUpdateVouAttach("uploadAttachPdfVou",
                 true, fileUpload, refer, "", "EMP_PICS");
+        },
+        calcTotSalary: function () {
+            var thatForm = this.thatForm;
+            var basic = Util.extractNumber(thatForm.frm.getFieldValue("qry1.basic_amt"));
+            var hra = Util.extractNumber(thatForm.frm.getFieldValue("qry1.hra_amt"));
+            var trns = Util.extractNumber(thatForm.frm.getFieldValue("qry1.trns_amt"));
+            var food = Util.extractNumber(thatForm.frm.getFieldValue("qry1.food_amt"));
+            var other = Util.extractNumber(thatForm.frm.getFieldValue("qry1.oth_amt"));
+            var tot = basic + hra + trns + food + other;
+            thatForm.frm.setFieldValue("qry1._totamt", tot, tot, true);
+
         },
         dispInfos: function () {
             var thatForm = this.thatForm;
