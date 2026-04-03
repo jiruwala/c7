@@ -614,16 +614,16 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             // this.objs["default_canvas"].obj.destroyToolbar();
             this.tbHeader = new sap.m.Toolbar();
             this.toolbarPg.setShowSubHeader(true);
-            if (this.form.fixedDisplay != undefined) {
-                // this.toolbarPg.setSubHeader(this.tbHeader);
-                this.form.fixedDisplay(this.vbFixed);
-                this.vbFixed = new sap.m.VBOX({
-                    items: [this.tbHeader, this.vbFixed]
-                })
-                this.toolbarPg.setSubHeader(this.vbFixed);
-                // this.addContent(this.vbFixed);
-            } else
-                this.toolbarPg.setSubHeader(this.tbHeader);
+            this.toolbarPg.setSubHeader(this.tbHeader);
+            // if (this.form.fixedDisplay != undefined) {
+            //     // this.toolbarPg.setSubHeader(this.tbHeader);
+            //     this.form.fixedDisplay(this.vbFixed);
+            //     this.toolbarPg.setShowHeader(true);
+            //     this.toolbarPg.removeAllHeaderContent();
+            //     this.toolbarPg.addHeaderContent(this.vbFixed);
+            //     // this.addContent(this.vbFixed);
+            // }
+                
 
 
             for (var c in this.form.commands) {

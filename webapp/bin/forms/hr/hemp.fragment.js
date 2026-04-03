@@ -85,8 +85,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     // vbHeader.addItem(ly);
                 },
                 fixedDisplay: function (vbHeader) {
-                    var ly = thatForm.helperFunc.getHeaderLayout();
-                    vbHeader.addItem(ly);
+                    // var ly = thatForm.helperFunc.getHeaderLayout();
+                    // vbHeader.addItem(ly);
                 },
                 print_templates: [],
                 events: thatForm.helperFunc.getEvents(),
@@ -125,6 +125,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             }
         }
             ;
+
+        var ly = thatForm.helperFunc.getHeaderLayout();
+        this.mainPage.addContent(ly);
 
         this.frm = new FormView(this.mainPage);
         this.frm.view = view;
@@ -208,9 +211,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 beforeSaveQry: function (qry, sqlRow, rowNo) {
                     if (qry.name == "qry1") {
                         qry.formview.setFieldValue("pac", qry.formview.getFieldValue("emp_cd"));
-                        var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7hr_emp");
-                        // qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
-                        thatForm.infoObjs["keyfld"].setText(kfld);
+                        // var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7hr_emp");
+                        // qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);                        
+                        // thatForm.infoObjs["keyfld"].setText(kfld);
                         thatForm.helperFunc.saveEmpPic();
                     }
                     //     var par = that.frm.getFieldValue("qry1.parentcostcent");
@@ -240,7 +243,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         qry.formview.setFieldValue("qry1.visa_typ", "18", "18", true);
 
                         var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7hr_emp");
-                        thatForm.infoObjs["keyfld"].setText(kfld);
+                        if (thatForm.infoObjs != undefined && thatForm.infoObjs["keyfld"] != undefined)
+                            thatForm.infoObjs["keyfld"].setText(kfld);
                     }
                 },
                 afterEditRow(qry, index, ld) {
@@ -391,7 +395,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
 
                 }),
                 aname1: FormView.getFactoryFields.getGeneralField(
-                    "aname1", "", "", "15%", "txtName", "17%",
+                    "aname1", "", "txtName", "15%", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -431,7 +435,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 lname1: FormView.getFactoryFields.getGeneralField(
-                    "lname1", "", "", "15%", "txtName2", "17%",
+                    "lname1", "", "txtName2", "15%", "", "17%",
                     {
                         edit_allowed: true,
                         insert_allowed: true,
@@ -964,7 +968,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     oInfoBox,
                     oPhotoBox
                 ]
-            });
+            }).addStyleClass("fixedBox");
             var onPhotoSelected = function (oEvent) {
                 var oFile = oEvent.getParameter("files")[0];
                 if (!oFile) {
