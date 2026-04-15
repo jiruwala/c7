@@ -11,7 +11,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
         try {
             that.isDialog = (that.oController.getForm().getParent() instanceof sap.m.Dialog);
         } catch (e) { };
-        this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
+        this.joApp = new sap.m.SplitApp({ height: "80%", mode: sap.m.SplitAppMode.HideMode });
         // this.vars = {
         //     keyfld: -1,
         //     flag: 1,  // 1=closed,2 opened,
@@ -29,6 +29,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
         });
 
         this.mainPage = new sap.m.Page({
+            enableScrolling: true,
             showHeader: false,
             content: []
         }).addStyleClass("sapUiSizeCompact");
@@ -62,6 +63,36 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             sap.m.MessageToast.show("clearing image url...");
         };
         // UtilGen.setFormTitle(this.oController.getForm(), "Journal Voucher", this.mainPage);
+
+        this.mainPage.addEventDelegate({
+            onAfterRendering: function () {
+                that.mainPage.$().find("input, textarea, select, button").on("focus", function (e) {
+
+                    var oInput = e.target;
+
+                    setTimeout(function () {
+        
+                        var oPage = that.mainPage;
+
+                        var pageDom = oPage.$("cont")[0];   // page content area
+                        var pageRect = pageDom.getBoundingClientRect();
+        
+                        var inputRect = oInput.getBoundingClientRect();
+        
+                        var isVisible =
+                            inputRect.top >= pageRect.top &&
+                            inputRect.bottom <= pageRect.bottom-180;
+        
+                        if (!isVisible) {
+                            oPage.scrollToElement(oInput, 300);
+                        }
+        
+                    }, 100);
+
+                });
+            }
+        });
+
         return this.joApp;
     },
     createView: function () {
@@ -80,9 +111,10 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 toolbarBG: "#fff0f5",
                 // formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
+                mainCanvas: sap.m.Panel,
                 customDisplay: function (vbHeader) {
-                    // var ly = thatForm.helperFunc.getHeaderLayout();
-                    // vbHeader.addItem(ly);
+                    var ly = thatForm.helperFunc.getHeaderLayout();
+                    vbHeader.addItem(ly);
                 },
                 fixedDisplay: function (vbHeader) {
                     // var ly = thatForm.helperFunc.getHeaderLayout();
@@ -126,8 +158,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
         }
             ;
 
-        var ly = thatForm.helperFunc.getHeaderLayout();
-        this.mainPage.addContent(ly);
+        // var ly = thatForm.helperFunc.getHeaderLayout();
+        // this.mainPage.addContent(ly);
 
         this.frm = new FormView(this.mainPage);
         this.frm.view = view;
@@ -272,9 +304,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     var delAdd = "";
                     if (qry.name == "qry1") {
                         delAdd += "delete from c7_attach where kind_of='EMP_PICS' and refer=':qry1.emp_cd' ;";
-                        // var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1", "DELETED");
+                        // var sqLog = UtilGen.Vouchers.getInsertLogFuncStr(that2, "JV", that2.vars.vou_code, that2.vars.type, "ACVOUCHER1", "DELETED");                    
                     }
-
+                    return delAdd;
                 },
                 onCellRender: function (qry, rowno, colno, currentRowContext) {
                 },

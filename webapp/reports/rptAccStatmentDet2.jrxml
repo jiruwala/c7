@@ -25,7 +25,7 @@
 		<![CDATA[select
 FIELD3 ACCNO,
 FIELD4 ACNAME,
-to_date(FIELD5,'mm/dd/rrrr HH.MI.SS') vou_date,
+to_date(FIELD5,'mm/dd/rrrr HH.MI.SS AM') vou_date,
 --CAST(TO_TIMESTAMP(FIELD5,'RRRR-MM-DD HH24.MI.SS.FF') AS DATE) VOU_DATE,
 FIELD6 DESCR,
 TO_NUMBER(DECODE(field7,'null',0,FIELD7)) VOU_NO,

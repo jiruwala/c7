@@ -182,7 +182,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var evs = Util.nvl(json.form.events, {});
             this.form.events = { ...evs };
             this.form.hideTemplates = Util.nvl(json.form.hideTemplates, false);
+            this.form.mainCanvas = Util.nvl(json.form.mainCanvas, sap.m.ScrollContainer);
             this.form.print_templates = [];
+
             var pls = Util.nvl(json.form.print_templates, []);
             for (var i in pls) {
                 var pt = {};
@@ -365,7 +367,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             }
             // canvases
             this.form.canvases = Util.nvl(json.form.canvas, [
-                { name: "default_canvas", obj: undefined, objType: FormView.ObjTypes.CANVAS }]);
+                { name: "default_canvas", obj: undefined, objType: FormView.ObjTypes.CANVAS, classType: this.form.mainCanvas }]);
             this.objs["default_canvas"] = this.form.canvases[0];
             var cnvs = Util.nvl(json.form.canvases, []);
 
@@ -603,7 +605,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             }
 
             // this.objs["default_canvas"].obj = UtilGen.formCreate("", true, this.dispCanvases["default_canvas"], qr.labelSpan, qr.emptySpan, qr.columnsSpan);
-            this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, sap.m.ScrollContainer, this.form.formSetting, undefined, "10px");
+            this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, this.objs["default_canvas"].classType, this.form.formSetting, undefined, "10px");
             this.objs["default_canvas"].obj.addStyleClass("sapUiSizeCondensed");
             this.sc.addContent(this.objs["default_canvas"].obj);
 
@@ -623,7 +625,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             //     this.toolbarPg.addHeaderContent(this.vbFixed);
             //     // this.addContent(this.vbFixed);
             // }
-                
+
 
 
             for (var c in this.form.commands) {
@@ -1184,7 +1186,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     if (thatForm.form.events.hasOwnProperty("afterDelRow")) {
                         var sqAdd = Util.nvl(thatForm.form.events.afterDelRow(qryObj), "");
                         sqAdd = this.parseString(sqAdd);
-                        sql += sqAdd
+                        sql += sqAdd;
                     }
                     sv++;
                 }
