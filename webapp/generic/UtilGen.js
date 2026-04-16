@@ -4878,7 +4878,112 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 }
 
-            }
+            },
+            Security: {
+                canEdit: function (grp, form, pForceful) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    if (!forceful && Util.nvl(sett[grp + "_" + form + "_editable"], 'TRUE') != "TRUE")
+                        return false;
+                    if (forceful && Util.nvl(sett[grp + "_" + form + "_editable"], 'FALSE') != "TRUE")
+                        return false;
+
+                    return true;
+
+                },
+                canDelete: function (grp, form, pForceful) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    if (!forceful && Util.nvl(sett[grp + "_" + form + "_deletable"], 'TRUE') != "TRUE")
+                        return false;
+                    if (forceful && Util.nvl(sett[grp + "_" + form + "_deletable"], 'FALSE') != "TRUE")
+                        return false;
+
+                    return true;
+
+                },
+                isReadOnly: function (grp, form, pForceful) {
+                    var forceful = Util.nvl(pForceful, false);
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    if (!forceful && Util.nvl(sett[grp + "_" + form + "_readonly"], 'TRUE') != "TRUE")
+                        return false;
+                    if (forceful && Util.nvl(sett[grp + "_" + form + "_readonly"], 'FALSE') != "TRUE")
+                        return true;
+                    return false;
+                },
+                setLocatonEdit: function (form, ploc, throwErr, pDefaultLoc) {
+                    var loc = Util.nvl(ploc, "qry1.location_code");
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var can_edit_loc = Util.getSetupVal("formsecure_change_location", "TRUE", true) == "TRUE" ? true : false;
+
+                    if (!can_edit_loc) try {
+                        form.frm.objs[loc].insert_allowed = false;
+                        form.frm.objs[loc].edit_allowed = false;
+                        form.frm.objs[loc].obj.setEditable(false);
+                        if (Util.nvl(pDefaultLoc, false)) form.frm.setFieldValue(loc, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], false);
+                    } catch (e) { if (Util.nvl(throwErr, false)) throw e; else console.log(e); }
+                },
+                setStoreEdit: function (form, pstore, throwErr, pDefaultStr) {
+                    var str = Util.nvl(pstore, "qry1.stra");
+                    var can_edit_store = Util.getSetupVal("formsecure_change_store", "TRUE", true) == "TRUE" ? true : false;
+                    if (!can_edit_store) try {
+                        form.frm.objs[str].insert_allowed = false;
+                        form.frm.objs[str].insert_allowed = false;
+                        form.frm.objs[str].obj.setEditable(false);
+                        if (Util.nvl(pDefaultStr, false)) form.frm.setFieldValue(str, sett["DEFAULT_LOCATION"], sett["DEFAULT_STORE"], false);
+                    } catch (e) { if (Util.nvl(throwErr, false)) throw e; else console.log(e); }
+                },
+                setLocatonEditRV: function (form, ploc, throwErr, pDefaultLoc) {
+                    var thatRV = form;
+                    var rptNo = Util.nvl(undefined, UtilGen.getControlValue(thatRV.lstRep));
+
+                    var repCode = thatRV.reports[rptNo].code;
+                    var loc = repCode + "@" + Util.nvl(ploc, "parameter.ploc");
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var can_edit_loc = Util.getSetupVal("formsecure_change_location", "TRUE", true) == "TRUE" ? true : false;
+
+                    if (!can_edit_loc) try {
+                        // var parent = form.view.byId("rep" + rptNo + "_" + (Util.nvl(ploc, "parameter.ploc") + form.timeInLong).replaceAll(".", ""));
+                        // var para = form.view.byId("rep" + rptNo + "_" + (Util.nvl(ploc, "parameter.ploc") + "Para" + form.timeInLong).replaceAll(".", ""));
+
+                        // parent.setEditable(false);
+                        // para.setEditable(false);
+                        // para.setEnabled(false);
+                        // parent.setEnabled(false);
+                        // form.objs[loc].obj.setEnabled(false);
+                        form.objs[loc].obj.setEditable(false);
+                        // form.objs[loc].obj.paraObj.setEnabled(false);
+                        form.objs[loc].obj.paraObj.setEditable(false);
+                        // form.objs[loc].obj.mainObj.setEnabled(false);
+                        form.objs[loc].obj.mainObj.setEditable(false);
+                        console.log('disabling......');
+
+                        if (Util.nvl(pDefaultLoc, false)) form.setFieldValue(loc, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], false);
+                    } catch (e) { if (Util.nvl(throwErr, false)) throw e; else console.log(e); }
+                },
+                setStoreEditRV: function (form, pstore, throwErr, pDefaultStr) {
+                    var thatRV = form;
+                    var rptNo = Util.nvl(undefined, UtilGen.getControlValue(thatRV.lstRep));
+
+                    var repCode = thatRV.reports[rptNo].code;
+                    var str = repCode + "@" + Util.nvl(pstore, "parameter.strno");
+                    var sett = sap.ui.getCore().getModel("settings").getData();
+                    var can_edit_store = Util.getSetupVal("formsecure_change_location", "TRUE", true) == "TRUE" ? true : false;
+
+                    if (!can_edit_store) try {
+                        // form.objs[str].obj.setEnabled(false);
+                        form.objs[str].obj.setEditable(false);
+                        // form.objs[str].obj.paraObj.setEnabled(false);
+                        form.objs[str].obj.paraObj.setEditable(false);
+                        // form.objs[str].obj.mainObj.setEnabled(false);
+                        form.objs[str].obj.mainObj.setEditable(false);
+
+                        if (Util.nvl(pDefaultStr, false)) form.setFieldValue(str, sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], false);
+                    } catch (e) { if (Util.nvl(throwErr, false)) throw e; else console.log(e); }
+                }
+
+            },
+
 
         };
 
