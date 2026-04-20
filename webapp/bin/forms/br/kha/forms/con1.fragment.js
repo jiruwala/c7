@@ -181,8 +181,8 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.con1", {
                             delAdd += "update c_order1 set sale_price=0 where saleinv is null and ord_ref=':qry1.cust_code' and ord_discamt=':qry1.branch_no';";
 
 
-                        if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
-                            qry.obj.addRow();
+                        // if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
+                        //     qry.obj.addRow();
                         return delAdd;
                     },
                     onCellRender: function (qry, rowno, colno, currentRowContext) {
