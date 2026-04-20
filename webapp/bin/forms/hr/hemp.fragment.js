@@ -71,22 +71,22 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     var oInput = e.target;
 
                     setTimeout(function () {
-        
+
                         var oPage = that.mainPage;
 
                         var pageDom = oPage.$("cont")[0];   // page content area
                         var pageRect = pageDom.getBoundingClientRect();
-        
+
                         var inputRect = oInput.getBoundingClientRect();
-        
+
                         var isVisible =
                             inputRect.top >= pageRect.top &&
-                            inputRect.bottom <= pageRect.bottom-180;
-        
+                            inputRect.bottom <= pageRect.bottom - 180;
+
                         if (!isVisible) {
                             oPage.scrollToElement(oInput, 300);
                         }
-        
+
                     }, 100);
 
                 });
@@ -227,8 +227,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 afterLoadQry: function (qry) {
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("emp_cd"));
                     if (qry.name == "qry1") {
+                        UtilGen.Search.getLOVSearchField("select title name from c7hr_dept where deptno = ':CODE' ", qry.formview.objs["qry1.dept_id"].obj, undefined, that.frm.objs["qry1.deptname"].obj);
+                        UtilGen.Search.getLOVSearchField("select comp_name name from c7hr_sponsor where spn_no = ':CODE' ", qry.formview.objs["qry1.sponsor_id"].obj, undefined, that.frm.objs["qry1.sponsorname"].obj);
+
                         thatForm.helperFunc.qryEmpPic("EMP_PICS", thatForm.frm.getFieldValue("qry1.emp_cd"));
-                        thatForm.helperFunc.dispInfos();
+                        thatForm.helperFunc.dispInfos(qry);
                         thatForm.helperFunc.calcTotSalary();
                     }
                 },
@@ -260,7 +263,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
                         that.frm.setFieldValue("pac", "", "", true);
-                        thatForm.helperFunc.dispInfos();
+                        thatForm.helperFunc.dispInfos(qry);
                         qry.formview.setFieldValue("qry1.visa_typ", "18", "18", true);
                         qry.formview.setFieldValue("qry1.res_year", "1", "1", true);
                         qry.formview.setFieldValue("qry1.emp_type", "permanent", "permanent", true);
@@ -280,7 +283,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     }
                 },
                 afterEditRow(qry, index, ld) {
-                    thatForm.helperFunc.dispInfos();
+                    if (qry.name == "qry1")
+                        thatForm.helperFunc.dispInfos(qry);
                 },
                 beforeDeleteValidate: function (frm) {
                     // var qry = that.frm.objs["qry1"];
@@ -646,7 +650,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     "sponsor_id", "", "txtSponsor", "15%", "", "10%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true,
                         display_style: "redText boldText"
                     }, getSettingsSponsor()),
@@ -701,8 +705,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: false,
                     },
                 ),
-                nation: FormView.getFactoryFields.getComboField(
-                    "nation", "@", "txtJobTitle",
+                job_tit: FormView.getFactoryFields.getComboField(
+                    "job_tit", "@", "txtJobTitle",
                     "15%", "", "35%",
                     {
                         list: "select name code,name from relists where idlist='JOBS' order by name",
@@ -1119,18 +1123,36 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             thatForm.frm.setFieldValue("qry1._totamt", tot, tot, true);
 
         },
-        dispInfos: function () {
+        dispInfos: function (qry) {
             var thatForm = this.thatForm;
             if (thatForm.infoObjs == undefined)
                 return;
             var qry = thatForm.frm.objs["qry1"];
             thatForm.infoObjs["fu"].setEnabled(true);
             this.resetInfoObjs();
+
             if (qry.status == FormView.RecordStatus.VIEW) {
                 thatForm.infoObjs["fu"].setEnabled(false);
             }
+            if (qry._datax != undefined)
+                thatForm.infoObjs["keyfld"].setText(qry._datax[0]["KEYFLD"]);
+
+            var full_name1 = thatForm.frm.getFieldValue("aname1") + " " +
+                thatForm.frm.getFieldValue("aname2") + " " +
+                thatForm.frm.getFieldValue("aname3") + " " +
+                thatForm.frm.getFieldValue("aname4") + " " +
+                thatForm.frm.getFieldValue("aname5");
+
+            var full_name2 = thatForm.frm.getFieldValue("lname1") + " " +
+                thatForm.frm.getFieldValue("lname2") + " " +
+                thatForm.frm.getFieldValue("lname3") + " " +
+                thatForm.frm.getFieldValue("lname4") + " " +
+                thatForm.frm.getFieldValue("lname5");
+
             thatForm.infoObjs["txtCode"].setText(thatForm.frm.getFieldValue("emp_cd"));
-            thatForm.infoObjs["txtName1"].setText(thatForm.frm.getFieldValue("name"));
+            thatForm.infoObjs["txtName1"].setText(full_name1);
+            thatForm.infoObjs["txtName2"].setText(full_name2);
+
         }
     },
 

@@ -107,7 +107,7 @@ sap.ui.jsfragment("bin.forms.hr.dept", {
                         name: "qry1",
                         dml: "select *from c7hr_dept where deptno=':pac'",
                         where_clause: " deptno=':deptno'",
-                        update_exclude_fields: ["no", "attachment", "vehiclename"],
+                        update_exclude_fields: ["deptno", "attachment", "vehiclename"],
                         insert_exclude_fields: ["attachment", "vehiclename"],
                         insert_default_values: {
                             // "CREATDT": "sysdate",
@@ -192,7 +192,7 @@ sap.ui.jsfragment("bin.forms.hr.dept", {
                     // thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.code"));
                 },
                 afterLoadQry: function (qry) {
-                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("code"));
+                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("deptno"));
                     if (qry.name == "qry1") {
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         // UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.expense_ac"].obj, undefined, that.frm.objs["qry1.expensename"].obj);
@@ -207,7 +207,7 @@ sap.ui.jsfragment("bin.forms.hr.dept", {
                 afterSaveForm: function (frm, nxtStatus) {
                 },
                 beforeSaveQry: function (qry, sqlRow, rowNo) {
-                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("no"));
+                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("deptno"));
                     // if (qry.name == "qry1") {
                     //     var par = that.frm.getFieldValue("qry1.parentcostcent");
                     //     var ac = that.frm.getFieldValue("qry1.code");
@@ -223,8 +223,6 @@ sap.ui.jsfragment("bin.forms.hr.dept", {
                         that.frm.setFieldValue("pac", "", "", true);
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         that.view.byId("numtxt" + thatForm.timeInLong).setText("");
-                        var newKf = Util.getSQLValue("select nvl(max(no),0)+1 from salesp");
-                        that.frm.setFieldValue("qry1.no", newKf, newKf, true);
                     }
                 },
                 beforeDeleteValidate: function (frm) {
@@ -232,30 +230,14 @@ sap.ui.jsfragment("bin.forms.hr.dept", {
                     if (qry.name == "qry1" && (qry.status == FormView.RecordStatus.EDIT) ||
                         (qry.status == FormView.RecordStatus.VIEW)) {
                         var valx = that.frm.getFieldValue("pac");
-                        var no = that.frm.getFieldValue("qry1.no");
+                        var no = that.frm.getFieldValue("qry1.deptno");
                         var vldtt = Util.getSQLValue(
-                            "select nvl(max(ord_no),-1) from c_order1 where (" +
-                            " issue_plant_no =" + no + " or " +
-                            " ordered_key=" + no + " or " +
-                            " ord_empno=" + no + " or " +
-                            " salesp=" + no + " ) "
+                            "select nvl(max(emp_cd),-1) from c7hr_emp where (" +
+                            " dept_id=" + no + " ) "
                         );
                         if (Util.nvl(vldtt, -1) >= 0)
-                            FormView.err("Err ! , This staff exist in delivery # " + vldtt);
-                        vldtt = Util.getSQLValue(
-                            "select nvl(max(code||'-'||name),'') from c_ycust where salesp=" + no +
-                            "");
-                        if (Util.nvl(vldtt, '') != '')
-                            FormView.err("Found in customer " + vldtt);
-                        vldtt = Util.getSQLValue(
-                            "select nvl(max(keyfld),'') from pur1 where slsmn=" + no +
-                            "");
-                        if (Util.nvl(vldtt, '') != '')
-                            FormView.err("Found in Purchase / Sales KeyId # " + vldtt);
+                            FormView.err("Err ! , Found in emp # " + vldtt);
 
-                        if (Util.nvl(vldtt, 0) > 0) {
-                            FormView.err("Err ! , this cost center have transaction #" + vldtt);
-                        }
                     }
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
