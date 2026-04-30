@@ -201,7 +201,15 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         objType: FormView.ObjTypes.CANVAS,
                         classType: sap.m.VBox,
                         container: function (dp) {
-                            return thatForm.tabs[dp];
+                            return thatForm.tabs["default_canvas"];
+                        }
+                    },
+                    {
+                        name: "tabVisa",
+                        objType: FormView.ObjTypes.CANVAS,
+                        classType: sap.m.VBox,
+                        container: function (dp) {
+                            return thatForm.tabs["tabVisa"];
                         }
                     }
 
