@@ -72,9 +72,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
 
                     setTimeout(function () {
 
-                        var oPage = that.sc;
+                        var oPage = that.mainPage;
 
-                        var pageDom = oPage.$()[0];   // page content area
+                        var pageDom = oPage.$("cont")[0];   // page content area
                         var pageRect = pageDom.getBoundingClientRect();
 
                         var inputRect = oInput.getBoundingClientRect();
@@ -111,54 +111,10 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 toolbarBG: "#fff0f5",
                 // formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
-                mainCanvas: sap.m.VBox,
+                mainCanvas: sap.m.Panel,
                 customDisplay: function (vbHeader) {
                     var ly = thatForm.helperFunc.getHeaderLayout();
-                    // thatForm.sc = new sap.m.ScrollContainer({
-                    //     vertical: true,
-                    //     height: "auto",   // IMPORTANT
-                    //     layoutData: new sap.m.FlexItemData({
-                    //         growFactor: 1
-                    //     }),
-                    // });
-                    thatForm.tabs = {
-                        "default_canvas": new sap.m.ScrollContainer({ vertical: true }),
-                        "tabVisa": new sap.m.ScrollContainer({ vertical: true }),
-                    };
-
-
-
                     vbHeader.addItem(ly);
-                    setTimeout(() => {
-                        var oPage = that.mainPage;
-                        var pageDom = oPage.$("cont")[0];   // page content area
-                        var pageRect = pageDom.getBoundingClientRect();
-                        var lyout = thatForm.view.byId("layoutInfo" + thatForm.timeInLong);
-                        var lyoutRect = (lyout.$()[0]).getBoundingClientRect();
-                        var h = Math.round(pageRect.height - lyoutRect.height) - 100;
-
-                        thatForm.sc = new sap.m.TabContainer({
-                            height: h + "px",
-                            editable: false,
-                            showAddNewButton: false,
-                            items: [
-                                new sap.m.TabContainerItem({
-                                    name: "Master Data",
-                                    content: [thatForm.tabs["default_canvas"]]
-                                }),
-                                new sap.m.TabContainerItem({
-                                    name: "Visa",
-                                    content: [thatForm.tabs["tabVisa"]]
-                                })]
-                        });
-
-                        thatForm.mainPage.addContent(thatForm.sc);
-                        thatForm.sc.setHeight(h + "px");
-                        var kys = Object.keys(thatForm.tabs);
-                        for (var k in kys)
-                            thatForm.tabs[k].setHeight(h + "px");
-
-                    });
                 },
                 fixedDisplay: function (vbHeader) {
                     // var ly = thatForm.helperFunc.getHeaderLayout();
@@ -195,17 +151,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         fields: thatForm.helperFunc.getFields1()
                     }
                 ],
-                canvas: [
-                    {
-                        name: "default_canvas",
-                        objType: FormView.ObjTypes.CANVAS,
-                        classType: sap.m.VBox,
-                        container: function (dp) {
-                            return thatForm.tabs[dp];
-                        }
-                    }
-
-                ],
+                canvas: [],
                 commands: thatForm.helperFunc.getCommands(),
                 lists: thatForm.helperFunc.getLists(),
             }
@@ -214,6 +160,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
 
         // var ly = thatForm.helperFunc.getHeaderLayout();
         // this.mainPage.addContent(ly);
+
         this.frm = new FormView(this.mainPage);
         this.frm.view = view;
         this.frm.pg = this.mainPage;
@@ -615,9 +562,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     "_titVisa", "", "titVisa", "100%", "qrGroup", "0px",
                     {
                         class_name: FormView.ClassTypes.LABEL,
-                        canvas: "tabVisa"
                     }, {}, "Begin"),
-                _lblLv2: FormView.getFactoryFields.getTextField("_lblLv2", "", "", "100%", "", { canvas: "tabVisa" }, {}),
+                _lblLv2: FormView.getFactoryFields.getTextField("_lblLv2", "", "", "100%", "", {}, {}),
                 visa_typ: FormView.getFactoryFields.getComboField(
                     "visa_typ", "", "txtVisaType",
                     "15%", "", "10%",
@@ -626,7 +572,6 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
-                        canvas:"tabVisa"
                     }, {
                     selectedKey: '18',
                     selectionChange: function () {
@@ -761,7 +706,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     },
                 ),
                 job_tit: FormView.getFactoryFields.getComboField(
-                    "job_tit", "", "txtJobTitle",
+                    "job_tit", "@", "txtJobTitle",
                     "15%", "", "35%",
                     {
                         list: "select name code,name from relists where idlist='JOBS' order by name",
@@ -1053,7 +998,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 items: []
             }).addStyleClass("empInfoBox sapUiTinyMargin");
 
-            var oMainLayout = new sap.m.HBox(thatForm.view.createId("layoutInfo" + thatForm.timeInLong), {
+            var oMainLayout = new sap.m.HBox({
                 width: "100%",
                 items: [
                     oInfoBox,

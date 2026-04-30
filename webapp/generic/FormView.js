@@ -279,7 +279,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 fd.list = Util.nvl(met[f].list, "");
                                 fd.title = Util.nvl(met[f].descr, met[f].colname);
                                 fd.title2 = Util.nvl(met[f].descrar, met[f].colname);
-                                fd.canvas = "default_canvas";
+                                fd.canvas = Util.nvl(met[f].canvas, "default_canvas");
                                 fd.display_width = Util.nvl(met[f].display_width, "");
                                 fd.display_align = Util.nvl(met[f].display_align, "").replace("ALIGN_", "").toLowerCase();
                                 fd.display_style = Util.nvl(met[f].display_style, "");
@@ -310,7 +310,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         // fd.class_type = sap.m.Input;
                         fd.title = Util.nvl(met[f].title, fd.colname);
                         fd.title2 = Util.nvl(met[f].title2, fd.colname);
-                        fd.canvas = "default_canvas";
+                        // fd.canvas = "default_canvas";
+                        fd.canvas = Util.nvl(met[f].canvas, "default_canvas");
                         fd.list = Util.nvl(met[f].list, "");
                         fd.require = Util.nvl(met[f].require, false);
                         fd.display_width = Util.nvl(met[f].display_width, "");
@@ -344,7 +345,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         // fd.class_type = sap.m.Input;
                         fd.title = Util.nvl(met[f].title, fd.colname);
                         fd.title2 = Util.nvl(met[f].title2, fd.colname);
-                        fd.canvas = "default_canvas";
+                        // fd.canvas = "default_canvas";
+                        fd.canvas = Util.nvl(met[f].canvas, "default_canvas");
                         fd.list = Util.nvl(met[f].list, "");
                         fd.require = Util.nvl(met[f].require, false);
                         fd.display_width = Util.nvl(met[f].display_width, "");
@@ -367,7 +369,13 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             }
             // canvases
             this.form.canvases = Util.nvl(json.form.canvas, [
-                { name: "default_canvas", obj: undefined, objType: FormView.ObjTypes.CANVAS, classType: this.form.mainCanvas }]);
+                {
+                    name: "default_canvas",
+                    obj: undefined,
+                    objType: FormView.ObjTypes.CANVAS,
+                    classType: this.form.mainCanvas
+                }
+            ]);
             this.objs["default_canvas"] = this.form.canvases[0];
             var cnvs = Util.nvl(json.form.canvases, []);
 
@@ -605,12 +613,33 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             }
 
             // this.objs["default_canvas"].obj = UtilGen.formCreate("", true, this.dispCanvases["default_canvas"], qr.labelSpan, qr.emptySpan, qr.columnsSpan);
-            this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, this.objs["default_canvas"].classType, this.form.formSetting, undefined, "10px");
-            this.objs["default_canvas"].obj.addStyleClass("sapUiSizeCondensed");
-            this.sc.addContent(this.objs["default_canvas"].obj);
+            var cvs = this.form.canvases;
+            for (var c in cvs) {
+                var cvnm = cvs[c].name;
+                this.objs[cvnm].obj = UtilGen.formCreate2("", true, this.dispCanvases[cvnm], undefined, this.objs[cvnm].classType, this.form.formSetting, undefined, "10px");
+                this.objs[cvnm].obj.addStyleClass("sapUiSizeCondensed");
+                //add into container either page or defined container.
+                if (this.objs[cvnm].container == undefined)
+                    this.sc.addContent(this.objs[cvnm].obj);
+                else if (typeof this.objs[cvnm].container == "function")
+                    this.objs[cvnm].container(cvnm).addContent(this.objs[cvnm].obj);
 
-            if (this.objs["default_canvas"].hasOwnProperty("after_add_canvas") && this.objs["default_canvas"].after_add_canvas != undefined)
-                this.objs["default_canvas"].after_add_canvas(this.objs["default_canvas"].obj);
+                if (this.objs[cvnm].hasOwnProperty("after_add_canvas") && this.objs[cvnm].after_add_canvas != undefined)
+                    this.objs[cvnm].after_add_canvas(this.objs[cvnm].obj);
+
+            }
+
+            // this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, this.objs["default_canvas"].classType, this.form.formSetting, undefined, "10px");
+            // this.objs["default_canvas"].obj.addStyleClass("sapUiSizeCondensed");
+            // //add into container either page or defined container.
+            // if (this.objs["default_canvas"].container == undefined)
+            //     this.sc.addContent(this.objs["default_canvas"].obj);
+            // else if (typeof this.objs["default_canvas"].container == "function")
+            //     this.objs["default_canvas"].container("default_canvas").addContent(this.objs["default_canvas"].obj)
+
+            // if (this.objs["default_canvas"].hasOwnProperty("after_add_canvas") && this.objs["default_canvas"].after_add_canvas != undefined)
+            //     this.objs["default_canvas"].after_add_canvas(this.objs["default_canvas"].obj);
+
 
             // this.objs["default_canvas"].obj.setToolbar(undefined);
             // this.objs["default_canvas"].obj.destroyToolbar();
@@ -647,8 +676,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
             for (var i in scrollObjs)
                 this.sc.addContent(scrollObjs[i]);
-
-            this.sc.addContent(new sap.m.VBox({ height: "100px" }));
+            if (this.objs["default_canvas"].container != undefined && typeof this.objs["default_canvas"].container == "function")
+                this.objs["default_canvas"].container("default_canvas").addContent(new sap.m.VBox({ height: "100px" }))
+            else
+                this.sc.addContent(new sap.m.VBox({ height: "100px" }));
 
             if (this.firstObj != undefined) {
                 this.toolbarPg.addEventDelegate({
