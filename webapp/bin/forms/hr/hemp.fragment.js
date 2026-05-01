@@ -122,8 +122,10 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     //     }),
                     // });
                     thatForm.tabs = {
-                        "default_canvas": new sap.m.ScrollContainer({ vertical: true }),
-                        "tabVisa": new sap.m.ScrollContainer({ vertical: true }),
+                        "default_canvas": new sap.m.VBox({ vertical: true }),
+                        "tabVisa": new sap.m.VBox({ vertical: true }),
+                        "tabEmp": new sap.m.VBox({ vertical: true }),
+                        "tabSal": new sap.m.VBox({ vertical: true }),
                     };
 
 
@@ -138,25 +140,42 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         var h = Math.round(pageRect.height - lyoutRect.height) - 100;
 
                         thatForm.sc = new sap.m.TabContainer({
-                            height: h + "px",
+                            // height: h + "px",
                             editable: false,
+                            fitContainer: true,
                             showAddNewButton: false,
                             items: [
                                 new sap.m.TabContainerItem({
-                                    name: "Master Data",
+                                    name: Util.getLangText("Master Data"),
                                     content: [thatForm.tabs["default_canvas"]]
                                 }),
                                 new sap.m.TabContainerItem({
-                                    name: "Visa",
+                                    name: Util.getLangText("titVisa"),
                                     content: [thatForm.tabs["tabVisa"]]
-                                })]
-                        });
+                                }),
+                                new sap.m.TabContainerItem({
+                                    name: Util.getLangText("titEmployment"),
+                                    content: [thatForm.tabs["tabEmp"]]
+                                }),
+                                new sap.m.TabContainerItem({
+                                    name: Util.getLangText("titSalary"),
+                                    content: [thatForm.tabs["tabSal"]]
+                                }),
 
-                        thatForm.mainPage.addContent(thatForm.sc);
-                        thatForm.sc.setHeight(h + "px");
+                            ]
+                        }).addStyleClass("noTabClose");
+
+                        thatForm.mainPage.addContent(
+                            new sap.m.Panel({
+                                height: h + "px",
+                                vertical: true,
+                                content: thatForm.sc
+                            })
+                        );
+                        // thatForm.sc.setHeight(h + "px");
                         var kys = Object.keys(thatForm.tabs);
-                        for (var k in kys)
-                            thatForm.tabs[k].setHeight(h + "px");
+                        // for (var k in kys)
+                        //     thatForm.tabs[k].setHeight(h + "px");
 
                     });
                 },
@@ -210,6 +229,22 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         classType: sap.m.VBox,
                         container: function (dp) {
                             return thatForm.tabs["tabVisa"];
+                        }
+                    },
+                    {
+                        name: "tabEmp",
+                        objType: FormView.ObjTypes.CANVAS,
+                        classType: sap.m.VBox,
+                        container: function (dp) {
+                            return thatForm.tabs["tabEmp"];
+                        }
+                    },
+                    {
+                        name: "tabSal",
+                        objType: FormView.ObjTypes.CANVAS,
+                        classType: sap.m.VBox,
+                        container: function (dp) {
+                            return thatForm.tabs["tabSal"];
                         }
                     }
 
@@ -618,7 +653,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         display_style: ""
                     },
                 ),
-                _lblLv1: FormView.getFactoryFields.getTextField("_lblLv1", "", "", "100%", "", {}, {}),
+                // _lblLv1: FormView.getFactoryFields.getTextField("_lblLv1", "", "", "100%", "", {}, {}),
                 _titVisa: FormView.getFactoryFields.getGeneralField(
                     "_titVisa", "", "titVisa", "100%", "qrGroup", "0px",
                     {
@@ -634,7 +669,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
-                        canvas:"tabVisa"
+                        canvas: "tabVisa"
                     }, {
                     selectedKey: '18',
                     selectionChange: function () {
@@ -645,7 +680,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     {
                         edit_allowed: true,
                         insert_allowed: true,
-                        display_style: ""
+                        display_style: "",
+                        canvas: "tabVisa"
                     },
                 ),
                 civil_id: FormView.getFactoryFields.getGeneralField(
@@ -653,7 +689,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     {
                         edit_allowed: true,
                         insert_allowed: true,
-                        display_style: ""
+                        display_style: "",
+                        canvas: "tabVisa"
                     },
                     {
                         change: function () {
@@ -670,14 +707,16 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     {
                         require: false,
                         edit_allowed: true,
-                        insert_allowed: true
+                        insert_allowed: true,
+                        canvas: "tabVisa"
                     }, {}),
                 res_exp_dt: FormView.getFactoryFields.getDateField(
                     "res_exp_dt", "@", "txtResExpDt", "10%", "", "15%",
                     {
                         require: false,
                         edit_allowed: true,
-                        insert_allowed: true
+                        insert_allowed: true,
+                        canvas: "tabVisa"
                     }, {}),
                 res_year: FormView.getFactoryFields.getComboField(
                     "res_year", "@", "txtResYear",
@@ -687,6 +726,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
+                        canvas: "tabVisa"
                     }, {
                     selectedKey: '1',
                     selectionChange: function () {
@@ -697,7 +737,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     {
                         edit_allowed: true,
                         insert_allowed: true,
-                        display_style: ""
+                        display_style: "",
+                        canvas: "tabVisa"
                     },
                     {
                         change: function () {
@@ -715,7 +756,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true,
-                        display_style: "redText boldText"
+                        display_style: "redText boldText",
+                        canvas: "tabVisa"
                     }, getSettingsSponsor()),
                 sponsorname: FormView.getFactoryFields.getGeneralField(
                     "sponsorname", "@", "", "0px", "", "25%",
@@ -723,21 +765,24 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
+                        canvas: "tabVisa"
                     },
                 ),
-                _lblLv3: FormView.getFactoryFields.getTextField("_lblLv3", "", "", "100%", "", {}, {}),
+                // _lblLv3: FormView.getFactoryFields.getTextField("_lblLv3", "", "", "100%", "", {}, {}),
                 _titEmployement: FormView.getFactoryFields.getGeneralField(
                     "_titEmployement", "", "titEmployment", "100%", "qrGroup", "0px",
                     {
                         class_name: FormView.ClassTypes.LABEL,
+                        canvas: "tabEmp"
                     }, {}, "Begin"),
-                _lblLv4: FormView.getFactoryFields.getTextField("_lblLv4", "", "", "100%", "", {}, {}),
+                _lblLv4: FormView.getFactoryFields.getTextField("_lblLv4", "", "", "100%", "", { canvas: "tabEmp" }, {}),
                 dt_join: FormView.getFactoryFields.getDateField(
                     "dt_join", "", "txtJoinDate", "15%", "", "15%",
                     {
                         require: false,
                         edit_allowed: true,
-                        insert_allowed: true
+                        insert_allowed: true,
+                        canvas: "tabEmp"
                     }, {}),
                 emp_type: FormView.getFactoryFields.getComboField(
                     "emp_type", "@", "txtEmpType",
@@ -747,6 +792,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
+                        canvas: "tabEmp"
                     }, {
                     selectedKey: '1',
                     selectionChange: function () {
@@ -758,7 +804,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: true,
-                        display_style: "redText boldText"
+                        display_style: "redText boldText",
+                        canvas: "tabEmp"
                     }, getSettingsManager()),
                 mgr_empname: FormView.getFactoryFields.getGeneralField(
                     "mgr_empname", "@", "", "0px", "", "25%",
@@ -766,6 +813,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
+                        canvas: "tabEmp"
                     },
                 ),
                 job_tit: FormView.getFactoryFields.getComboField(
@@ -776,6 +824,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
+                        canvas: "tabEmp"
                     }, {
                     selectionChange: function () {
                     }
@@ -786,19 +835,21 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         class_name: FormView.ClassTypes.TEXTAREA,
                         edit_allowed: true,
                         insert_allowed: true,
-                        display_style: ""
+                        display_style: "",
+                        canvas: "tabEmp"
                     },
                     {
                         rows: 2
                     }
                 ),
-                _lblLv5: FormView.getFactoryFields.getTextField("_lblLv5", "", "", "100%", "", {}, {}),
+                // _lblLv5: FormView.getFactoryFields.getTextField("_lblLv5", "", "", "100%", "", {}, {}),
                 _titSalary: FormView.getFactoryFields.getGeneralField(
                     "_titSalary", "", "titSalary", "100%", "qrGroup", "0px",
                     {
                         class_name: FormView.ClassTypes.LABEL,
+                        canvas: "tabSal"
                     }, {}, "Begin"),
-                _lblLv6: FormView.getFactoryFields.getTextField("_lblLv6", "", "", "100%", "", {}, {}),
+                _lblLv6: FormView.getFactoryFields.getTextField("_lblLv6", "", "", "100%", "", {canvas: "tabSal"}, {}),
                 basic_amt: FormView.getFactoryFields.getGeneralField(
                     "basic_amt", "", "txtBasicSalary", "15%", "", "35%",
                     {
@@ -807,6 +858,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
+                        canvas: "tabSal"
                     },
                     {
                         change: function () {
@@ -822,20 +874,24 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
+                        canvas: "tabSal"
                     }, {
                     selectedKey: "bank",
                     selectionChange: function () {
                     }
                 }),
+                _lblLv7: FormView.getFactoryFields.getTextField("_lblLv7", "", "", "100%", "", {canvas: "tabSal"}, {}),
                 _titAllowance: FormView.getFactoryFields.getGeneralField(
                     "_titAllowance", "", "titAllowances", "40%", "qrGroup", "0px",
                     {
                         class_name: FormView.ClassTypes.LABEL,
-                    }, {}, "Center"),
+                        canvas: "tabSal"
+                    }, {}, "End"),
                 _titAmt: FormView.getFactoryFields.getGeneralField(
-                    "_titAmt", "@", "amountTxt", "40%", "qrGroup", "0px",
+                    "_titAmt", "@", "amountTxt", "20%", "qrGroup", "0px",
                     {
                         class_name: FormView.ClassTypes.LABEL,
+                        canvas: "tabSal"
                     }, {}, "Center"),
                 hra_amt: FormView.getFactoryFields.getGeneralField(
                     "hra_amt", "", "txtAllowHouse", "40%", "", "20%",
@@ -845,6 +901,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
+                        canvas: "tabSal"
                     },
                     {
                         change: function () {
@@ -860,6 +917,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
+                        canvas: "tabSal"
                     },
                     {
                         change: function () {
@@ -875,6 +933,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
+                        canvas: "tabSal"
                     },
                     {
                         change: function () {
@@ -890,6 +949,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: "",
                         display_format: sett["FORMAT_MONEY_1"],
+                        canvas: "tabSal"
                     },
                     {
                         change: function () {
@@ -905,6 +965,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: false,
                         display_style: "totInput",
                         display_format: sett["FORMAT_MONEY_1"],
+                        canvas: "tabSal"
                     },
                 ),
 
