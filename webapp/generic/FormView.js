@@ -59,7 +59,6 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 ]
             };
         };
-
         FormView.err = function (msg) {
             sap.m.MessageToast.show(msg, {
                 my: sap.ui.core.Popup.Dock.RightBottom,
@@ -395,6 +394,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 cnv.name = cnvs[i].name;
                 cnv.obj = Util.nvl(cnvs[i].obj, undefined);
                 cnv.objType = FormView.ObjTypes.CANVAS;
+                cnv.formSetting = Util.nvl(cnvs[i].formSetting, undefined);
                 cnv.container = Util.nvl(cnvs[i].container, undefined);
                 cnv.classType = Util.nvl(cnvs[i].classType, sap.m.ScrollContainer);
                 this.form.canvases.push(cnv);
@@ -473,13 +473,14 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             this.firstObj = undefined;
             // thatForm.txtMsg = new sap.m.Text({width: "100%"}).addStyleClass("redMiniText");
             // scrollObjs1.push(thatForm.txtMsg);
-            for (var q in this.form.db) {
-                if (this.form.db[q].showType == FormView.QueryShowType.FORM) {
-                    var flds = this.form.db[q].fields;
+
+            for (var q in thatForm.form.db) {
+                if (thatForm.form.db[q].showType == FormView.QueryShowType.FORM) {
+                    var flds = thatForm.form.db[q].fields;
                     for (var f in flds)
                         if (Util.nvl(flds[f].canvas, "") != "") {
-                            this.dispCanvases[flds[f].canvas]
-                                = Util.nvl(this.dispCanvases[flds[f].canvas],
+                            thatForm.dispCanvases[flds[f].canvas]
+                                = Util.nvl(thatForm.dispCanvases[flds[f].canvas],
                                     []);
                             var set = {};
                             if (flds[f].display_width != "")
@@ -488,11 +489,11 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                 set = { ...set, ...flds[f].other_settings };
                             }
                             if (flds[f].obj == undefined) {
-                                flds[f].obj = UtilGen.addControl(this.dispCanvases[flds[f].canvas],
+                                flds[f].obj = UtilGen.addControl(thatForm.dispCanvases[flds[f].canvas],
                                     flds[f].title, eval(flds[f].class_name),
-                                    flds[f].name.replace(".", '') + this.timeInLong,
+                                    flds[f].name.replace(".", '') + thatForm.timeInLong,
                                     set, flds[f].data_type,
-                                    flds[f].display_format, this.view, undefined, flds[f].list);
+                                    flds[f].display_format, thatForm.view, undefined, flds[f].list);
                                 if (set.hasOwnProperty("trueValues"))
                                     flds[f].obj.trueValues = set["trueValues"];
                                 if (flds[f].hasOwnProperty("trueValues"))
@@ -502,22 +503,22 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                                 if (flds[f].obj instanceof sap.m.Input && flds[f].obj.getShowValueHelp()) {
                                     flds[f].obj.attachBrowserEvent("keydown", function (oEvent) {
-                                        if (this.getEditable() && oEvent.key == 'F9') {
-                                            this.fireValueHelpRequest(oEvent);
+                                        if (thatForm.getEditable() && oEvent.key == 'F9') {
+                                            thatForm.fireValueHelpRequest(oEvent);
                                         }
                                     });
                                 }
                                 flds[f].obj.tableCol = flds[f];
-                                // this.dispCanvases[flds[f].canvas].push(flds[f].obj);
+                                // thatForm.dispCanvases[flds[f].canvas].push(flds[f].obj);
                                 flds[f].obj.addStyleClass(flds[f].display_style);
-                                if (this.firstObj == undefined && flds[f].obj instanceof sap.m.InputBase)
-                                    this.firstObj = flds[f].obj;
+                                if (thatForm.firstObj == undefined && flds[f].obj instanceof sap.m.InputBase)
+                                    thatForm.firstObj = flds[f].obj;
                                 if (flds[f].obj instanceof sap.m.Text) {
                                     flds[f].obj.setValue = function (vl) {
-                                        this.setText(vl);
+                                        thatForm.setText(vl);
                                     }
                                     flds[f].obj.getValue = function (vl) {
-                                        return this.getText();
+                                        return thatForm.getText();
                                     }
 
                                 }
@@ -526,10 +527,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                         }
 
-                } else if (this.form.db[q].showType == FormView.QueryShowType.QUERYVIEW) {
-                    var qr = this.form.db[q];
-                    qr.obj = new QueryView(qr.name + "_" + this.timeInLong);
-                    qr.obj.getControl().view = this;
+                } else if (thatForm.form.db[q].showType == FormView.QueryShowType.QUERYVIEW) {
+                    var qr = thatForm.form.db[q];
+                    qr.obj = new QueryView(qr.name + "_" + thatForm.timeInLong);
+                    qr.obj.getControl().view = thatForm;
                     qr.obj.getControl().addStyleClass("sapUiSizeCondensed");
                     qr.obj.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
                     qr.obj.getControl().setFixedBottomRowCount(0);
@@ -537,7 +538,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     qr.obj.getControl().setVisibleRowCount(qr.dispRecords);
                     qr.obj.insertable = qr.insert_allowed;
                     qr.obj.deletable = qr.delete_allowed;
-                    qr.obj.frag = this.frag;
+                    qr.obj.frag = thatForm.frag;
                     thatForm.loadQueryView(qr, true);
 
                     if (qr.hasOwnProperty("before_add_table") && qr.before_add_table != undefined) {
@@ -546,8 +547,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                     scrollObjs.push(qr.obj.getControl());
 
-                    if (this.firstObj == undefined)
-                        this.firstObj = qr.obj.getControl();
+                    if (thatForm.firstObj == undefined)
+                        thatForm.firstObj = qr.obj.getControl();
                     qr.obj.onAddRow = function (idx, ld) {
                         if (thatForm.form.events.hasOwnProperty("afterNewRow")) {
                             thatForm.form.events.afterNewRow(qr, idx, ld);
@@ -573,7 +574,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     }
 
                     qr.sumObj = undefined;
-                    var flds = this.form.db[q].summary;
+                    var flds = thatForm.form.db[q].summary;
                     var fe = []
                     if (qr.summary != undefined)
                         for (var f in flds) {
@@ -586,9 +587,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                             if (flds[f].obj == undefined) {
                                 flds[f].obj = UtilGen.addControl(fe,
                                     flds[f].title, eval(flds[f].class_name),
-                                    flds[f].name.replace(".", '') + this.timeInLong,
+                                    flds[f].name.replace(".", '') + thatForm.timeInLong,
                                     set, flds[f].data_type,
-                                    flds[f].display_format, this.view, undefined, flds[f].list);
+                                    flds[f].display_format, thatForm.view, undefined, flds[f].list);
                                 flds[f].obj.addStyleClass(flds[f].display_style);
                             }
 
@@ -601,9 +602,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 }
 
             }
-            var cvs = this.form.canvases;
+            var cvs = thatForm.form.canvases;
             for (var c in cvs)
-                Util.navEnter(this.dispCanvases[cvs[c].name], function (lastObj) {
+                Util.navEnter(thatForm.dispCanvases[cvs[c].name], function (lastObj) {
                     if (thatForm.form.db.length > 1) {
                         if (thatForm.form.db[1].showType == FormView.QueryShowType.QUERYVIEW) {
                             thatForm.form.db[1].obj.getControl().focus();
@@ -614,95 +615,73 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                 });
 
-            this.sc = this.pg;// new sap.m.ScrollContainer();
+            thatForm.sc = thatForm.pg;// new sap.m.ScrollContainer();
             for (var si in scrollObjs1)
-                this.sc.addContent(scrollObjs1[si]);
+                thatForm.sc.addContent(scrollObjs1[si]);
             //
-            this.vbCustom = new sap.m.VBox().addStyleClass("sapUiSizeCompact");
-            this.vbFixed = new sap.m.VBox().addStyleClass("sapUiSizeCompact");
+            thatForm.vbCustom = new sap.m.VBox().addStyleClass("sapUiSizeCompact");
+            thatForm.vbFixed = new sap.m.VBox().addStyleClass("sapUiSizeCompact");
 
-            if (this.form.customDisplay != undefined) {
-                this.form.customDisplay(this.vbCustom);
-                this.sc.addContent(this.vbCustom);
+            if (thatForm.form.customDisplay != undefined) {
+                thatForm.form.customDisplay(thatForm.vbCustom);
+                thatForm.sc.addContent(thatForm.vbCustom);
             }
 
-            // this.objs["default_canvas"].obj = UtilGen.formCreate("", true, this.dispCanvases["default_canvas"], qr.labelSpan, qr.emptySpan, qr.columnsSpan);
-            var cvs = this.form.canvases;
+            // thatForm.objs["default_canvas"].obj = UtilGen.formCreate("", true, thatForm.dispCanvases["default_canvas"], qr.labelSpan, qr.emptySpan, qr.columnsSpan);
+            var cvs = thatForm.form.canvases;
+
             for (var c in cvs) {
                 var cvnm = cvs[c].name;
-                this.objs[cvnm].obj = UtilGen.formCreate2("", true, this.dispCanvases[cvnm], undefined, this.objs[cvnm].classType, this.form.formSetting, undefined, "10px");
-                this.objs[cvnm].obj.addStyleClass("sapUiSizeCondensed");
+                thatForm.objs[cvnm].obj = UtilGen.formCreate2("", true, thatForm.dispCanvases[cvnm], undefined, thatForm.objs[cvnm].classType,
+                    Util.nvl(thatForm.objs[cvnm].formSetting, thatForm.form.formSetting), undefined, "10px");
+                thatForm.objs[cvnm].obj.addStyleClass("sapUiSizeCondensed");
                 //add into container either page or defined container.
-                if (this.objs[cvnm].container == undefined)
-                    this.sc.addContent(this.objs[cvnm].obj);
-                else if (typeof this.objs[cvnm].container == "function")
-                    if (this.objs[cvnm].container(cvnm).addContent != undefined)
-                        this.objs[cvnm].container(cvnm).addContent(this.objs[cvnm].obj);
-                    else if (this.objs[cvnm].container(cvnm).addItem != undefined)
-                        this.objs[cvnm].container(cvnm).addItem(this.objs[cvnm].obj);
+                if (thatForm.objs[cvnm].container == undefined)
+                    thatForm.sc.addContent(thatForm.objs[cvnm].obj);
+                else if (typeof thatForm.objs[cvnm].container == "function")
+                    if (thatForm.objs[cvnm].container(cvnm).addContent != undefined)
+                        thatForm.objs[cvnm].container(cvnm).addContent(thatForm.objs[cvnm].obj);
+                    else if (thatForm.objs[cvnm].container(cvnm).addItem != undefined)
+                        thatForm.objs[cvnm].container(cvnm).addItem(thatForm.objs[cvnm].obj);
 
-                if (this.objs[cvnm].hasOwnProperty("after_add_canvas") && this.objs[cvnm].after_add_canvas != undefined)
-                    this.objs[cvnm].after_add_canvas(this.objs[cvnm].obj);
+                if (thatForm.objs[cvnm].hasOwnProperty("after_add_canvas") && thatForm.objs[cvnm].after_add_canvas != undefined)
+                    thatForm.objs[cvnm].after_add_canvas(thatForm.objs[cvnm].obj);
 
             }
 
-            // this.objs["default_canvas"].obj = UtilGen.formCreate2("", true, this.dispCanvases["default_canvas"], undefined, this.objs["default_canvas"].classType, this.form.formSetting, undefined, "10px");
-            // this.objs["default_canvas"].obj.addStyleClass("sapUiSizeCondensed");
-            // //add into container either page or defined container.
-            // if (this.objs["default_canvas"].container == undefined)
-            //     this.sc.addContent(this.objs["default_canvas"].obj);
-            // else if (typeof this.objs["default_canvas"].container == "function")
-            //     this.objs["default_canvas"].container("default_canvas").addContent(this.objs["default_canvas"].obj)
+            thatForm.tbHeader = new sap.m.Toolbar();
+            thatForm.toolbarPg.setShowSubHeader(true);
+            thatForm.toolbarPg.setSubHeader(thatForm.tbHeader);
 
-            // if (this.objs["default_canvas"].hasOwnProperty("after_add_canvas") && this.objs["default_canvas"].after_add_canvas != undefined)
-            //     this.objs["default_canvas"].after_add_canvas(this.objs["default_canvas"].obj);
-
-
-            // this.objs["default_canvas"].obj.setToolbar(undefined);
-            // this.objs["default_canvas"].obj.destroyToolbar();
-            this.tbHeader = new sap.m.Toolbar();
-            this.toolbarPg.setShowSubHeader(true);
-            this.toolbarPg.setSubHeader(this.tbHeader);
-            // if (this.form.fixedDisplay != undefined) {
-            //     // this.toolbarPg.setSubHeader(this.tbHeader);
-            //     this.form.fixedDisplay(this.vbFixed);
-            //     this.toolbarPg.setShowHeader(true);
-            //     this.toolbarPg.removeAllHeaderContent();
-            //     this.toolbarPg.addHeaderContent(this.vbFixed);
-            //     // this.addContent(this.vbFixed);
-            // }
-
-
-
-            for (var c in this.form.commands) {
-                var cmd = this.form.commands[c];
-                cmd.obj = Util.nvl(cmd.obj, this.cmdButtons[cmd.name]);
+            for (var c in thatForm.form.commands) {
+                var cmd = thatForm.form.commands[c];
+                cmd.obj = Util.nvl(cmd.obj, thatForm.cmdButtons[cmd.name]);
                 if (cmd.obj != undefined && cmd.canvas == "default_canvas") {
-                    // this.objs["default_canvas"].obj.getToolbar().addContent(cmd.obj);
-                    this.tbHeader.addContent(cmd.obj);
+                    // thatForm.objs["default_canvas"].obj.getToolbar().addContent(cmd.obj);
+                    thatForm.tbHeader.addContent(cmd.obj);
                     cmd.obj.setText(Util.nvl(cmd.title, cmd.obj.getText()));
                 }
             }
-            this.tbHeader.addContent(new sap.m.ToolbarSpacer());
-            this.tbHeader.addContent(new sap.m.Title({ text: this.form.title }).addStyleClass(Util.nvl(this.form.titleStyle, "titleFontWithoutPad2")));
+            thatForm.tbHeader.addContent(new sap.m.ToolbarSpacer());
+            thatForm.tbHeader.addContent(new sap.m.Title({ text: thatForm.form.title }).addStyleClass(Util.nvl(thatForm.form.titleStyle, "titleFontWithoutPad2")));
 
 
             // focus on first object after showing form
-            // this.pg.addContent(this.sc);
+            // thatForm.pg.addContent(thatForm.sc);
 
 
             for (var i in scrollObjs)
-                this.sc.addContent(scrollObjs[i]);
-            if (this.objs["default_canvas"].container != undefined && typeof this.objs["default_canvas"].container == "function")
-                if (this.objs["default_canvas"].container("default_canvas").addContent != undefined)
-                    this.objs["default_canvas"].container("default_canvas").addContent(new sap.m.VBox({ height: "100px" }))
-                else if (this.objs["default_canvas"].container("default_canvas").addItem != undefined)
-                    this.objs["default_canvas"].container("default_canvas").addItem(new sap.m.VBox({ height: "100px" }))
+                thatForm.sc.addContent(scrollObjs[i]);
+            if (thatForm.objs["default_canvas"].container != undefined && typeof thatForm.objs["default_canvas"].container == "function")
+                if (thatForm.objs["default_canvas"].container("default_canvas").addContent != undefined)
+                    thatForm.objs["default_canvas"].container("default_canvas").addContent(new sap.m.VBox({ height: "100px" }))
+                else if (thatForm.objs["default_canvas"].container("default_canvas").addItem != undefined)
+                    thatForm.objs["default_canvas"].container("default_canvas").addItem(new sap.m.VBox({ height: "100px" }))
                 else
-                    this.sc.addContent(new sap.m.VBox({ height: "100px" }));
+                    thatForm.sc.addContent(new sap.m.VBox({ height: "100px" }));
 
-            if (this.firstObj != undefined) {
-                this.toolbarPg.addEventDelegate({
+            if (thatForm.firstObj != undefined) {
+                thatForm.toolbarPg.addEventDelegate({
                     onAfterShow: function (evt) {
                         setTimeout(function () {
                             thatForm.firstObj.focus();
@@ -717,8 +696,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             // if (this.objs["default_canvas"].frm
             // adding command buttons on toolbar.
 
-        }
-            ;
+        };
         FormView.prototype.refreshDisplay = function () {
             var thatForm = this;
             setTimeout(function () {
@@ -727,13 +705,15 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     thatForm.tbHeader.$().css("cssText", "background-color:" + thatForm.form.toolbarBG + " !important;");
                     thatForm.tbHeader.$().css("cssText", "background-color:" + thatForm.form.toolbarBG + " !important;");
                 }
-                if (thatForm.objs["default_canvas"].obj != undefined) {
-                    var ar = [].concat(thatForm.form.formSetting["cssText"]);
-                    thatForm.objs["default_canvas"].obj.$().css("cssText", ar);
+                var cvs = thatForm.form.canvases;
+
+                for (var c in cvs) {
+                    var cvnm = cvs[c].name;
+                    if (thatForm.objs[cvnm].obj != undefined) {
+                        var ar = [].concat(thatForm.form.formSetting["cssText"]);
+                        thatForm.objs[cvnm].obj.$().css("cssText", ar);
+                    }
                 }
-                // thatForm.objs["default_canvas"].obj.getToolbar().addStyleClass(thatForm.form.toolbarBG);
-                // $($(".sapUiFormResGrid , .sapUiFormToolbar")[0]).css("cssText", "background-color:" + thatForm.form.toolbarBG + " !important;");
-                // $(".sapUiFormResGrid , .sapUiFormToolbar").css("cssText", "background-color:" + thatForm.form.toolbarBG + " !important;")
 
             }, 500);
         };

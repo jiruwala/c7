@@ -227,6 +227,17 @@ area:-webkit-any-link {
     background-color: #dcdcdc;
 }
 
+.rpFormN {
+    display: block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-style: groove;
+    border-radius: 15px;    
+    border-color: darkblue;
+    border-width: thin;
+    background-color: #ebf5fe;
+}
+
 .jvForm2 {
     padding-bottom: 10px;
 }

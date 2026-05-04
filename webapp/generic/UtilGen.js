@@ -735,8 +735,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 var hbSet = Util.nvl(pHbSet, {});
                 // if (hbSet.hasOwnProperty("width"))
                 //     hbSet["width"] = "100%";
-                if (hbSet.hasOwnProperty("height"))
-                    hbSet["height"] = "24px";
+                // if (hbSet.hasOwnProperty("height"))
+                //     hbSet["height"] = "24px";
                 var hb = new sap.m.HBox(hbSet);
 
                 for (var i in content) {

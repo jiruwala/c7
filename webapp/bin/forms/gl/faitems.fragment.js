@@ -71,7 +71,8 @@ sap.ui.jsfragment("bin.forms.gl.faitems", {
                 title: Util.getLangText("Fixed Assets Items"),
                 toolbarBG: "lightblue",
                 titleStyle: "titleFontWithoutPad2 violetText",
-                formSetting: FormView.getDefaultHeadCSS("jvForm",undefined,350),
+                // formSetting: FormView.getDefaultHeadCSS("jvForm",undefined,500),
+                formSetting: FormView.getDefaultHeadCSSAuto("jvForm", thatForm.isDialog),
                 customDisplay: function (vbHeader) {
                     Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
                     Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);

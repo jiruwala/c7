@@ -219,6 +219,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         name: "default_canvas",
                         objType: FormView.ObjTypes.CANVAS,
                         classType: sap.m.VBox,
+                        formSetting: {
+                            width: { "S": 400, "M": 700, "L": 800, "XL": 900 },
+                        },
                         container: function (dp) {
                             return thatForm.tabs["default_canvas"];
                         }
@@ -227,6 +230,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         name: "tabVisa",
                         objType: FormView.ObjTypes.CANVAS,
                         classType: sap.m.VBox,
+                        formSetting: {
+                            width: { "S": 400, "M": 700, "L": 800, "XL": 900 },
+                        },
                         container: function (dp) {
                             return thatForm.tabs["tabVisa"];
                         }
@@ -235,6 +241,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         name: "tabEmp",
                         objType: FormView.ObjTypes.CANVAS,
                         classType: sap.m.VBox,
+                        formSetting: {
+                            width: { "S": 400, "M": 700, "L": 800, "XL": 900 },
+                        },
                         container: function (dp) {
                             return thatForm.tabs["tabEmp"];
                         }
@@ -243,6 +252,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         name: "tabSal",
                         objType: FormView.ObjTypes.CANVAS,
                         classType: sap.m.VBox,
+                        formSetting: {
+                            width: { "S": 400, "M": 700, "L": 800, "XL": 900 },
+                        },
                         container: function (dp) {
                             return thatForm.tabs["tabSal"];
                         }
@@ -376,6 +388,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7hr_emp");
                         if (thatForm.infoObjs != undefined && thatForm.infoObjs["keyfld"] != undefined)
                             thatForm.infoObjs["keyfld"].setText(kfld);
+                        if (thatForm.sc != undefined)
+                            thatForm.sc.setSelectedItem(thatForm.sc.getItems()[0]);
                     }
                 },
                 afterEditRow(qry, index, ld) {
@@ -849,7 +863,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         class_name: FormView.ClassTypes.LABEL,
                         canvas: "tabSal"
                     }, {}, "Begin"),
-                _lblLv6: FormView.getFactoryFields.getTextField("_lblLv6", "", "", "100%", "", {canvas: "tabSal"}, {}),
+                _lblLv6: FormView.getFactoryFields.getTextField("_lblLv6", "", "", "100%", "", { canvas: "tabSal" }, {}),
                 basic_amt: FormView.getFactoryFields.getGeneralField(
                     "basic_amt", "", "txtBasicSalary", "15%", "", "35%",
                     {
@@ -880,7 +894,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     selectionChange: function () {
                     }
                 }),
-                _lblLv7: FormView.getFactoryFields.getTextField("_lblLv7", "", "", "100%", "", {canvas: "tabSal"}, {}),
+                _lblLv7: FormView.getFactoryFields.getTextField("_lblLv7", "", "", "100%", "", { canvas: "tabSal" }, {}),
                 _titAllowance: FormView.getFactoryFields.getGeneralField(
                     "_titAllowance", "", "titAllowances", "40%", "qrGroup", "0px",
                     {
