@@ -1144,12 +1144,21 @@ sap.ui.jsview('bin.Dashboard', {
                                 that.mv.getControl().collapseAll();
                             }
                         });
+                        var m5 = new sap.m.MenuItem({
+                            icon: "sap-icon://add",
+                            text: Util.getLangText("Add Menu Group"),
+                            press: function () {
+                                that.showMenuForm("", "");
+                            }
+                        });
                         mnu.addItem(m1);
                         mnu.addItem(m11);
                         if (!sap.ui.Device.system.phone)
                             mnu.addItem(m2);
                         mnu.addItem(m3);
                         mnu.addItem(m4);
+                        if (sett["PROFILENO"] == 0)
+                            mnu.addItem(m5);
                         mnu.openBy(this);
                     }
                 }),

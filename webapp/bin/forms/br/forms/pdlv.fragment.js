@@ -673,10 +673,26 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     display_align: "ALIGN_CENTER",
                     display_style: "",
                     display_format: "",
-                    other_settings: { editable: true, width: "35%" },
+                    other_settings: { editable: true, width: "12%" },
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true
+                },
+                lcno: {
+                    colname: "lcno",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"Ship Name\",\"width\":\"10%\","textAlign":"End","styleClass":"boldText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { editable: true, width: "13%" },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
                 },
                 ord_empno: {
                     colname: "ord_empno",

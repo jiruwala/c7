@@ -116,12 +116,13 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                     var sq = "SELECT ORD_REF, ORD_REFNM," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
                                         " SUM(TQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT," +
-                                        " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, item_descr item_descr2 ,BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,ord_reference,TEL, " +
+                                        " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, item_descr item_descr2 ,BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,ord_reference,TEL, storename, " +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS " +
                                         " FROM " +
                                         " JOINED_CORDER11 joined_corder,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=11 " +
+                                        " and (':parameter.ploc' like '%\"'||joined_corder.location_code||'\"%' ) " +
                                         " AND SALEINV=INVOICE1.KEYFLD (+) " +
                                         " and (invoice1.invoice_no=':parameter.pinvoice_no' or ':parameter.pinvoice_no' is null)  " +
                                         " AND ORD_DATE>=:parameter.fromdate " +
@@ -130,10 +131,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
                                         " AND (DESCR2 LIKE (select nvl(max(descr2),'zzz') from items where reference=':parameter.rmix' )||'%'  OR RTRIM(':parameter.rmix') IS NULL)  " +
                                         " GROUP BY " +
-                                        " ORD_REF, ORD_REFNM,ord_reference," +
+                                        " ORD_REF, ORD_REFNM, ord_reference," +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS," +
-                                        " DRIVER_NAME ,TEL,TRUCKNO," +
+                                        " DRIVER_NAME ,TEL,TRUCKNO,storename," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT, " +
                                         " SALE_PRICE,item_descr, BRANCH_NAME , saleinv " +
                                         " ORDER BY ord_date,ord_no ";
@@ -214,7 +215,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                 ploc: {
                     colname: "ploc",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.COMBOBOX,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
                     title: '{\"text\":\"Location\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
@@ -229,9 +230,10 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "ALL",
+                        showSelectAll: true,
+                        selectedKeys: Util.getSQLColArray("select code from locations order by code")
                     },
-                    list: "select 'ALL' code,'ALL' name from dual union all select code,name from locations order by code",
+                    list: "select code,name from locations order by code",
                     edit_allowed: true,
                     insert_allowed: true,
                     require: true,
@@ -628,6 +630,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                     default_value: "",
                     other_settings: {},
                     summary: "SUM",
+
+                },
+                storename: {
+                    colname: "storename",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "storeNo",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_BEGIN",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
 
                 },
                 saleinv: {

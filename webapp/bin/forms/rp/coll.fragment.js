@@ -245,6 +245,32 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 require: false,
                                 dispInPara: true,
                             },
+                            ordby: {
+                                colname: "ordby",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"ordByTxt\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "vou_date",
+                                },
+                                list: "@vou_date/vouDate Date,duedate/Due Date",
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
 
                         },
                         print_templates: [
@@ -258,12 +284,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 disp_class: "reportTable2",
                                 dispRecords: -1,
                                 execOnShow: false,
-                                dml: "select a.*,decode(type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type, " +
-                                    " (select max(descr2) from acvoucher2 where keyfld=a.keyfld and credit>0 ) acc_name " +
-                                    " from ACC_TRANSACTION_up a " +
-                                    " where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and " +
-                                    "(a.accno=':parameter.accno' or ':parameter.accno' is null) and " +
-                                    "  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 order by keyfld",
+                                dml: "",
                                 parent: "",
                                 levelCol: "",
                                 code: "",
@@ -273,6 +294,19 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 masterToolbarInMain: false,
                                 filterCols: ["ACCNO", "DESCR2", "CUST_CODE", "VOU_DATE", "CHEQUENO", "RCVFROM", "CREDOT", "NO"],
                                 canvasType: ReportView.CanvasType.VBOX,
+                                beforeLoadQry: function (sql) {
+
+                                    var oy = thatForm.frm.getFieldValue("parameter.ordby");
+                                    var ordby = " ORDER BY " + oy + " , a.no ";
+
+                                    return "select a.*,decode(type,1,'Bank',2,'Cash',6,'Bank',7,'Cash') rec_type, " +
+                                        " (select max(descr2) from acvoucher2 where keyfld=a.keyfld and credit>0 ) acc_name " +
+                                        " from ACC_TRANSACTION_up a " +
+                                        " where (a.cust_code=':parameter.pcust' or ':parameter.pcust' is null) and " +
+                                        "(a.accno=':parameter.accno' or ':parameter.accno' is null) and " +
+                                        "  a.vou_code in (2) and a.vou_date>=:parameter.fromdate  and a.vou_date<=:parameter.todate and a.vou_code=2 and credit>0 " +
+                                        ordby + "";
+                                },
                                 onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                                     // var oModel = this.getControl().getModel();
                                     // var bal = parseFloat(oModel.getProperty("BALANCE", currentRowContext));
@@ -283,6 +317,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
 
 
                                 },
+
                                 bat7CustomAddQry: function (qryObj, ps) {
 
                                 },
