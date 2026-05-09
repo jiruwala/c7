@@ -503,8 +503,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                                 if (flds[f].obj instanceof sap.m.Input && flds[f].obj.getShowValueHelp()) {
                                     flds[f].obj.attachBrowserEvent("keydown", function (oEvent) {
-                                        if (thatForm.getEditable() && oEvent.key == 'F9') {
-                                            thatForm.fireValueHelpRequest(oEvent);
+                                        if (this.getEditable() && oEvent.key == 'F9') {
+                                            this.fireValueHelpRequest(oEvent);
                                         }
                                     });
                                 }

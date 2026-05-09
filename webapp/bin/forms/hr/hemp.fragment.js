@@ -8,6 +8,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
         this.timeInLong = (new Date()).getTime();
         that.helperFunc.init(this);
         this.isDialog = false;
+        this.status = {
+            "-8": "txtSuspended",
+            "-9": "txtTerminated",
+            "0": "txtNotActive",
+            "1": "txtActPresent",
+            "2": "txtActPaidLeave",
+            "3": "txtActUnPaidLeave"
+        };
         try {
             that.isDialog = (that.oController.getForm().getParent() instanceof sap.m.Dialog);
         } catch (e) { };
@@ -204,9 +212,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                             // "CREATDT": "sysdate",
                             // "USERNM": Util.quoted(sett["LOGON_USER"]),
                             // "TYPE": 3
+                            "NAME1": "trim(':qry1.aname1 :qry1.aname2  :qry1.aname3 :qry1.aname4 :qry1.aname5')",
+                            "NAME2": "trim(':qry1.lname1 :qry1.lname2  :qry1.lname3 :qry1.lname4 :qry1.lname5')",
                             "KEYFLD": "(select nvl(max(keyfld),0)+1 from c7hr_emp) "
                         },
-                        update_default_values: {},
+                        update_default_values: {
+                            "NAME1": "trim(':qry1.aname1 :qry1.aname2  :qry1.aname3 :qry1.aname4 :qry1.aname5')",
+                            "NAME2": "trim(':qry1.lname1 :qry1.lname2  :qry1.lname3 :qry1.lname4 :qry1.lname5')",
+                        },
                         table_name: "c7hr_emp",
                         edit_allowed: true,
                         insert_allowed: true,
@@ -358,6 +371,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         // qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);                        
                         // thatForm.infoObjs["keyfld"].setText(kfld);
                         thatForm.helperFunc.saveEmpPic();
+                        var cod = qry.formview.getFieldValue("emp_cd");
+                        var mgr = Util.nvl(qry.formview.getFieldValue("mgr_emp_id"), "");
+                        if (mgr != "" && mgr == cod) {
+                            FormView.err("Err !, Manager ID and Employee cant be same !");
+                        }
                     }
                     //     var par = that.frm.getFieldValue("qry1.parentcostcent");
                     //     var ac = that.frm.getFieldValue("qry1.emp_cd");
@@ -447,6 +465,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     sqlChange: "select title from c7hr_dept where deptno=':CODE' and flag=1",
                     sqlList: "select deptno code,title from c7hr_dept where flag=1 order by deptno ",
                     sqlListChange: "select deptno code,title from C7HR_DEPT where deptno=:CODE and flag=1",
+                    fnAfteUpdate: function () {
+                        thatForm.helperFunc.dispInfos();
+                    }
                 });
             }
             var getSettingsSponsor = function () {
@@ -464,7 +485,22 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 });
             }
             var getSettingsManager = function () {
+                var ordref = "qry1.mgr_emp_id";
+                var ordrefnm = "qry1.mgr_empname";
+                var sqwhere = " ";
+                // var qry = thatForm.frm.objs["qry1"];
+                // if (qry.status == FormView.RecordStatus.EDIT)
+                //     sqwhere = " emp_cd!=:qry1.emp_cd and ";
 
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    code: Util.nvl(ordref),
+                    name: Util.nvl(ordrefnm),
+                    getBtns: undefined,
+                    sqlChange: "select name1 title from c7hr_emp where " + sqwhere + " emp_cd=':CODE' and flag=1",
+                    sqlList: "select emp_cd code,name1 title,name2 from c7hr_emp where  " + sqwhere + " flag=1 order by emp_cd",
+                    sqlListChange: "select emp_cd code,name1 title from c7hr_emp where " + sqwhere + " emp_cd=:CODE and flag=1",
+                });
             }
 
 
@@ -504,7 +540,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         display_style: "redText boldText"
                     }, {
                     change: function () {
-                        // thatForm.helperFunc.fetchItem(false);
+                        thatForm.helperFunc.dispInfos();
                     }
 
                 }),
@@ -546,7 +582,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
-                    },
+                    }, {
+                    change: function () {
+                        thatForm.helperFunc.dispInfos();
+                    }
+                }
                 ),
                 aname2: FormView.getFactoryFields.getGeneralField(
                     "aname2", "@", "", "0px", "", "17%",
@@ -555,6 +595,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 aname3: FormView.getFactoryFields.getGeneralField(
                     "aname3", "@", "", "0px", "", "17%",
@@ -563,6 +608,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 aname4: FormView.getFactoryFields.getGeneralField(
                     "aname4", "@", "", "0px", "", "17%",
@@ -571,6 +621,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 aname5: FormView.getFactoryFields.getGeneralField(
                     "aname5", "@", "", "0px", "", "17%",
@@ -579,6 +634,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 lname1: FormView.getFactoryFields.getGeneralField(
                     "lname1", "", "txtName2", "15%", "", "17%",
@@ -587,6 +647,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 lname2: FormView.getFactoryFields.getGeneralField(
                     "lname2", "@", "", "0px", "", "17%",
@@ -595,6 +660,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 lname3: FormView.getFactoryFields.getGeneralField(
                     "lname3", "@", "", "0px", "", "17%",
@@ -603,6 +673,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 lname4: FormView.getFactoryFields.getGeneralField(
                     "lname4", "@", "", "0px", "", "17%",
@@ -611,6 +686,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 lname5: FormView.getFactoryFields.getGeneralField(
                     "lname5", "@", "", "0px", "", "17%",
@@ -619,6 +699,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         insert_allowed: true,
                         display_style: ""
                     },
+                    {
+                        change: function () {
+                            thatForm.helperFunc.dispInfos();
+                        }
+                    }
                 ),
                 gender: FormView.getFactoryFields.getComboField(
                     "gender", "", "txtGender",
@@ -816,7 +901,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     "mgr_emp_id", "@", "txtManager", "15%", "", "10%",
                     {
                         require: false,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true,
                         display_style: "redText boldText",
                         canvas: "tabEmp"
@@ -841,6 +926,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                         canvas: "tabEmp"
                     }, {
                     selectionChange: function () {
+                        thatForm.helperFunc.dispInfos();
                     }
                 }),
                 job_desc: FormView.getFactoryFields.getGeneralField(
@@ -1028,11 +1114,43 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 }
                 ,
                 {
+                    name: "cmdOther",
+                    canvas: "default_canvas",
+                    title: "Action",
+
+                    obj: new sap.m.Button({
+                        icon: "sap-icon://action",
+                        press: function () {
+                            var mnus = [];
+                            if (
+                                (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW
+                                )) {
+                                var flg = Util.getSQLValue("select flag from c7hr_emp where emp_cd='" +
+                                    that2.frm.getFieldValue("qry1.emp_cd") + "'");
+                                if (flg == 0)
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon: "checklist-item-2",
+                                        text: Util.getLangText("Activate"),
+                                        press: function () {
+
+                                        }
+                                    }));
+
+                            }
+                            var mnu = new sap.m.Menu({
+                                items: mnus
+                            });
+                            mnu.openBy(this);
+                        }
+                    })
+                },
+                {
                     name: "cmdPrint",
                     canvas:
                         "default_canvas",
                     title:
-                        "SOA",
+                        "",
                     onPress:
 
                         function (e) {
@@ -1173,20 +1291,24 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             // 3- dept,15,35        job,15,35
             // 4, join_date         bod,15,35
             var fe = [];
-            var txtKeyfld = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "60px", editable: false }).addStyleClass("keyIdText");
+            var txtKeyfld = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "60px", editable: false }).addStyleClass("empInfoValue");
+            var txtEmpStatus = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
             var txtCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: false }).addStyleClass("empInfoValue");
             var txtName1 = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: false }).addStyleClass("empInfoValue");
             var txtEmpJob = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
             var txtName2 = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: false }).addStyleClass("empInfoValue");
             var txtEmpDept = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
+            var txtEmpStatus = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
             var fe = [
 
                 Util.getLabelTxt(Util.getLangText("hrEmpInfo"), "15%", "#", "", "Begin"), new sap.m.Text({ text: " keyId # ", width: "50px" }), txtKeyfld,
+                Util.getLabelTxt("txtStatus", "15%", "@"), txtEmpStatus,
                 Util.getLabelTxt("txtCode", "15%"), txtCode,
                 Util.getLabelTxt("txtName", "15%", "@"), txtName1,
                 Util.getLabelTxt("txtName2", "50%", ""), txtName2,
                 Util.getLabelTxt("txtEmpJob", "15%"), txtEmpJob,
                 Util.getLabelTxt("txtEmpDept", "15%", "@"), txtEmpDept,
+                Util.getLabelTxt("txtEmpDept", "15%", ""), txtEmpDept,
             ];
             var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.VBox, {
             }, "sapUiSizeCompact", "");
@@ -1198,6 +1320,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
 
             thatForm.infoObjs = {
                 "keyfld": txtKeyfld,
+                "txtStatus": txtEmpStatus,
                 "txtCode": txtCode,
                 "txtName1": txtName1,
                 "txtName2": txtName2,
@@ -1217,8 +1340,12 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 if (thatForm.infoObjs[kys[i]] instanceof sap.m.Text)
                     thatForm.infoObjs[kys[i]].setText("");
 
-            if (thatForm.infoObjs != undefined && thatForm.infoObjs["imageurl"] != undefined)
+            if (thatForm.infoObjs != undefined &&
+                thatForm.infoObjs["imageurl"] != undefined) {
                 URL.revokeObjectURL(thatForm.infoObjs["imageurl"]);
+                thatForm.infoObjs["fileupload"] = undefined;
+            }
+
             thatForm.infoObjs["image"].setSrc("images/no_profile.jpg");
         },
         qryEmpPic: function (kindof, refer) {
@@ -1261,6 +1388,19 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             thatForm.frm.setFieldValue("qry1._totamt", tot, tot, true);
 
         },
+        showStatus: function () {
+            var thatForm = this.thatForm;
+            var qry = thatForm.frm.objs["qry1"];
+            if (qry.status == FormView.RecordStatus.NEW)
+                thatForm.infoObjs["txtStatus"].setText(Util.getLangText("txtNotActive"));
+            else {
+                var flg = Util.getSQLValue("select flag from c7hr_emp where emp_cd='" +
+                    thatForm.frm.getFieldValue("qry1.emp_cd") + "'");
+                thatForm.infoObjs["txtStatus"].setText(Util.getLangText(thatForm.status[flg]));
+            }
+
+
+        },
         dispInfos: function (qry) {
             var thatForm = this.thatForm;
             if (thatForm.infoObjs == undefined)
@@ -1269,11 +1409,14 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             thatForm.infoObjs["fu"].setEnabled(true);
             this.resetInfoObjs();
 
-            if (qry.status == FormView.RecordStatus.VIEW) {
+            if (qry.status == FormView.RecordStatus.VIEW)
                 thatForm.infoObjs["fu"].setEnabled(false);
-            }
+
+
             if (qry._datax != undefined)
                 thatForm.infoObjs["keyfld"].setText(qry._datax[0]["KEYFLD"]);
+
+            var dept = thatForm.frm.getFieldValue("dept_id") + " - " + thatForm.frm.getFieldValue("deptname");
 
             var full_name1 = thatForm.frm.getFieldValue("aname1") + " " +
                 thatForm.frm.getFieldValue("aname2") + " " +
@@ -1290,6 +1433,10 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             thatForm.infoObjs["txtCode"].setText(thatForm.frm.getFieldValue("emp_cd"));
             thatForm.infoObjs["txtName1"].setText(full_name1);
             thatForm.infoObjs["txtName2"].setText(full_name2);
+
+            thatForm.infoObjs["txtEmpJob"].setText(thatForm.frm.getFieldValue("job_tit"));
+            thatForm.infoObjs["txtEmpDept"].setText(dept);
+            thatForm.helperFunc.showStatus();
 
         }
     },
