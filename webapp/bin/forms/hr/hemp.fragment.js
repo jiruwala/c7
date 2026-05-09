@@ -1133,7 +1133,11 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                                         icon: "checklist-item-2",
                                         text: Util.getLangText("Activate"),
                                         press: function () {
-
+                                            var flg = Util.getSQLValue("select flag from c7hr_emp where emp_cd='" +
+                                                that2.frm.getFieldValue("qry1.emp_cd") + "'");
+                                            if (flg != 0)
+                                                FormView.err("Cant Activate , already Activated !");
+                                            
                                         }
                                     }));
 
@@ -1291,24 +1295,25 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             // 3- dept,15,35        job,15,35
             // 4, join_date         bod,15,35
             var fe = [];
-            var txtKeyfld = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "60px", editable: false }).addStyleClass("empInfoValue");
-            var txtEmpStatus = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
+            var txtKeyfld = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "15%", editable: false }).addStyleClass("");
+            var txtEmpStatus = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("");
             var txtCode = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: false }).addStyleClass("empInfoValue");
             var txtName1 = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: false }).addStyleClass("empInfoValue");
             var txtEmpJob = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
             var txtName2 = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: false }).addStyleClass("empInfoValue");
             var txtEmpDept = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
-            var txtEmpStatus = new sap.m.Text({ textAlign: sap.ui.core.TextAlign.Begin, width: "35%", editable: false }).addStyleClass("empInfoValue");
+
             var fe = [
 
-                Util.getLabelTxt(Util.getLangText("hrEmpInfo"), "15%", "#", "", "Begin"), new sap.m.Text({ text: " keyId # ", width: "50px" }), txtKeyfld,
+                Util.getLabelTxt(Util.getLangText("hrEmpInfo"), "15%", "#", "", "Begin"),
+                Util.getLabelTxt("Key Id #", "50%", "@"), txtKeyfld,
                 Util.getLabelTxt("txtStatus", "15%", "@"), txtEmpStatus,
+                Util.getLabelTxt("", "0px", ""),
                 Util.getLabelTxt("txtCode", "15%"), txtCode,
                 Util.getLabelTxt("txtName", "15%", "@"), txtName1,
                 Util.getLabelTxt("txtName2", "50%", ""), txtName2,
                 Util.getLabelTxt("txtEmpJob", "15%"), txtEmpJob,
                 Util.getLabelTxt("txtEmpDept", "15%", "@"), txtEmpDept,
-                Util.getLabelTxt("txtEmpDept", "15%", ""), txtEmpDept,
             ];
             var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.VBox, {
             }, "sapUiSizeCompact", "");
@@ -1398,8 +1403,6 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     thatForm.frm.getFieldValue("qry1.emp_cd") + "'");
                 thatForm.infoObjs["txtStatus"].setText(Util.getLangText(thatForm.status[flg]));
             }
-
-
         },
         dispInfos: function (qry) {
             var thatForm = this.thatForm;
