@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.hr.hemp", {
-// test
+// test 2
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
