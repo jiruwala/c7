@@ -1,5 +1,5 @@
 sap.ui.jsfragment("bin.forms.hr.hemp", {
-// test 2
+    // test 2
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -336,6 +336,27 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
         init: function (thatForm) {
             this.thatForm = thatForm;
         },
+        fetchItem: function () {
+            var rfrFld = "emp_cd";
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                return;
+            setTimeout(function () {
+                var rfr = thatForm.frm.getFieldValue("qry1." + rfrFld);
+                var qr = Util.execSQLWithData("select emp_cd,name1 from c7hr_emp where emp_cd='" + rfr + "'");
+                if (Util.nvl(qr, "") == "" || qr.length == 0)
+                    return;
+                var rfrx = qr[0].EMP_CD;
+                var desx = qr[0].NAME1;
+                if (qr.length == 1)
+                    Util.simpleConfirmDialog("Employee existed  :" + desx + " fetch data ?", function (oAction) {
+                        thatForm.frm.setFieldValue('pac', rfrx);
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+
+                    }, undefined, undefined, "OK");
+            });
+        },
         getEvents: function () {
             var thatForm = this.thatForm;
             var that = this.thatForm;
@@ -366,16 +387,15 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                 },
                 beforeSaveQry: function (qry, sqlRow, rowNo) {
                     if (qry.name == "qry1") {
-                        qry.formview.setFieldValue("pac", qry.formview.getFieldValue("emp_cd"));
-                        // var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7hr_emp");
-                        // qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);                        
-                        // thatForm.infoObjs["keyfld"].setText(kfld);
-                        thatForm.helperFunc.saveEmpPic();
+                        thatForm.helperFunc.beforeSaveValidateQry(qry);
                         var cod = qry.formview.getFieldValue("emp_cd");
                         var mgr = Util.nvl(qry.formview.getFieldValue("mgr_emp_id"), "");
                         if (mgr != "" && mgr == cod) {
                             FormView.err("Err !, Manager ID and Employee cant be same !");
                         }
+
+                        qry.formview.setFieldValue("pac", qry.formview.getFieldValue("emp_cd"));
+                        thatForm.helperFunc.saveEmpPic();
                     }
                     //     var par = that.frm.getFieldValue("qry1.parentcostcent");
                     //     var ac = that.frm.getFieldValue("qry1.emp_cd");
@@ -541,6 +561,8 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                     }, {
                     change: function () {
                         thatForm.helperFunc.dispInfos();
+                        thatForm.helperFunc.fetchItem(false);
+
                     }
 
                 }),
@@ -1137,7 +1159,23 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                                                 that2.frm.getFieldValue("qry1.emp_cd") + "'");
                                             if (flg != 0)
                                                 FormView.err("Cant Activate , already Activated !");
-                                            
+
+                                            Util.simpleConfirmDialog("Are you sure to activate ?", function (oAction) {
+                                                var empid = that2.frm.getFieldValue("qry1.emp_cd");
+                                                if (
+                                                    (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT))
+                                                    that2.frm.cmdButtons.cmdSave.firePress();
+                                                if (
+                                                    (that2.frm.objs["qry1"].status != FormView.RecordStatus.VIEW))
+                                                    FormView.err("Must be in VIEW mode to activate employee");
+                                                var sq = "update c7hr_emp set flag=1 where emp_cd='" + empid + "'";
+                                                var dt = Util.execSQL(sq);
+                                                if (dt.ret == "SUCCESS") {
+                                                    that2.frm.loadData(undefined, "view");
+                                                    FormView.msgSuccess(Util.getLangText("msgSaved"));
+                                                }
+
+                                            });
                                         }
                                     }));
 
@@ -1196,7 +1234,7 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
                             colname: "ANAME1",
                         },
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select emp_cd,aname1 from c7hr_emp order by emp_cd",
+                    sql: "select emp_cd,aname1,civil_id from c7hr_emp order by emp_cd",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -1441,6 +1479,9 @@ sap.ui.jsfragment("bin.forms.hr.hemp", {
             thatForm.infoObjs["txtEmpDept"].setText(dept);
             thatForm.helperFunc.showStatus();
 
+        },
+        beforeSaveValidateQry: function (qry) {
+            var thatForm = this.thatForm;
         }
     },
 
