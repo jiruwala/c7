@@ -435,6 +435,24 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
+                            showCheque: {
+                                colname: "showCheque",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"showChequeNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                             {
@@ -581,13 +599,19 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                     // }, false).done(function (data) {
                                     // });
                                     thatForm.save_soa();
-                                    return "select *from C6_GL2 where 1=1 and usernm=c6_session.get_user_session order by pos";
+                                    var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");
+                                    var sq = "select *from C6_GL2 where 1=1 and usernm=c6_session.get_user_session order by pos"
+                                    if (ch == "Y")
+                                        sq = "select C6_GL2.*,v1.chequeno from C6_GL2,acvoucher1 v1  where v1.keyfld=C6_GL2.keyfld and 1=1 and C6_GL2.usernm=c6_session.get_user_session order by C6_GL2.pos";
+                                    return sq;
                                 },
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
 
                                         var iq = Util.nvl(thatForm.frm.getFieldValue("parameter.pref"), "");
+                                        var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TQTY")].mHideCol = (iq == "");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CHEQUENO")].mHideCol = (ch == "N");
 
                                     }
                                 },
@@ -678,10 +702,27 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         other_settings: {},
                                     },
                                     vou_no: {
-                                        colname: "VOU_NO",
+                                        colname: "vou_no",
                                         data_type: FormView.DataType.Number,
                                         class_name: FormView.ClassTypes.LABEL,
                                         title: "Vou No",
+                                        title2: "",
+                                        parentTitle: undefined,
+                                        parentSpan: 1,
+                                        display_width: "70",
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        display_type: "NONE",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    chequeno: {
+                                        colname: "chequeno",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Cheque",
                                         title2: "",
                                         parentTitle: undefined,
                                         parentSpan: 1,
@@ -1140,6 +1181,24 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
+                            showCheque: {
+                                colname: "showCheque",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"showChequeNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                             {
@@ -1242,7 +1301,20 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                     });
                                     */
                                     thatForm.save_soa_acc();
-                                    return "select *from c7_gl_ac2 where 1=1 and usernm=c6_session.get_user_session order by accno,pos";
+                                    var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");
+                                    var sq = "select *from c7_gl_ac2 where 1=1 and usernm=c6_session.get_user_session order by accno,pos"
+                                    if (ch == "Y")
+                                        sq="select c7_gl_ac2.* , v1.chequeno from c7_gl_ac2, acvoucher1 v1 where v1.keyfld(+)=c7_gl_ac2.keyfld and c7_gl_ac2.usernm=c6_session.get_user_session order by c7_gl_ac2.accno,c7_gl_ac2.pos";
+                                        //"select C6_GL2.*,v1.chequeno from C6_GL2,acvoucher1 v1  where v1.keyfld=C6_GL2.keyfld and 1=1 and C6_GL2.usernm=c6_session.get_user_session order by C6_GL2.pos";
+
+                                    return sq;
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qryAc2") {                                        
+                                        var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");                                        
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CHEQUENO")].mHideCol = (ch == "N");
+
+                                    }
                                 },
                                 fields: {
                                     balance: {
@@ -1331,6 +1403,23 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_format: "",
                                         default_value: "",
                                         other_settings: {},
+                                    },
+                                    chequeno: {
+                                        colname: "chequeno",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Cheque",
+                                        title2: "",
+                                        parentTitle: undefined,
+                                        parentSpan: 1,
+                                        display_width: "70",
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        display_type: "NONE",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
                                     },
                                     vou_no: {
                                         colname: "VOU_NO",
