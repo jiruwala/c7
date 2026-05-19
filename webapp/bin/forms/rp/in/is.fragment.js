@@ -76,312 +76,6 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
             show_para_pop: false,
             reports: [
                 {
-                    code: "IS001",
-                    name: Util.getLangText("isRepName1"),
-                    descr: Util.getLangText("isRepDescr1"),
-                    paraColSpan: undefined,
-                    hideAllPara: false,
-                    paraLabels: undefined,
-                    showSQLWhereClause: true,
-                    showFilterCols: true,
-                    showDispCols: true,
-                    showCustomPara: function (vbPara, rep) {
-
-                    },
-                    onSubTitHTML: function () {
-
-                        var tbstr = Util.getLangText("isRepName1");
-                        var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
-                        return ht;
-                    },
-                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
-                    rep: {
-                        parameters: {
-                            fromdate: {
-                                colname: "fromdate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$FIRSTDATEOFYEAR",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            todate: {
-                                colname: "todate",
-                                data_type: FormView.DataType.Date,
-                                class_name: FormView.ClassTypes.DATEFIELD,
-                                title: '{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "$TODAY",
-                                other_settings: { width: "35%" },
-                                list: undefined,
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            invtype: {
-                                colname: "invtype",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.COMBOBOX,
-                                title: '{\"text\":\"stkVouType\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "-1",
-                                other_settings: {
-                                    width: "35%",
-                                    items: {
-                                        path: "/",
-                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                                        templateShareable: true
-                                    },
-                                    selectedKey: "-1",
-                                },
-                                list: "@-1/All,11/Purchase/,19/Adj.In,17/Assembly In,12/Sales Ret,1/BF,13/SRVs,25/Issues,21/Sales,29/Adj.Out,27/Assembly Out,28/Samples,22/Pur.Ret,26/Imapired,30/POS",
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                            grpby: {
-                                colname: "grpby",
-                                data_type: FormView.DataType.String,
-                                class_name: FormView.ClassTypes.COMBOBOX,
-                                title: '{\"text\":\"grpByTxt\",\"width\":\"15%\","textAlign":"End"}',
-                                title2: "",
-                                display_width: colSpan,
-                                display_align: "ALIGN_RIGHT",
-                                display_style: "",
-                                display_format: "",
-                                default_value: "",
-                                other_settings: {
-                                    width: "35%",
-                                    items: {
-                                        path: "/",
-                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
-                                        templateShareable: true
-                                    },
-                                    selectedKey: "1",
-                                },
-                                list: "@1/None,2/Date,3/Locations",
-                                edit_allowed: true,
-                                insert_allowed: true,
-                                require: true,
-                                dispInPara: true,
-                            },
-                        },
-                        print_templates: [
-                            {
-                                title: "Jasper Template ",
-                                reportFile: "trans_1",
-                            }
-                        ],
-                        canvas: [],
-                        db: [
-                            {
-                                type: "query",
-                                name: "qry2",
-                                showType: FormView.QueryShowType.QUERYVIEW,
-                                disp_class: "reportTable2",
-                                dispRecords: { "S": 10, "M": 16, "L": 20 },
-                                execOnShow: false,
-                                dml: "SELECT LOCATION_NAME,LOCATION_CODE,INVOICE_NO,INVOICE_DATE,MEMO,SHORT_NAME,COSTCENT,CS_NAME,itempos,sum(PKCOST*pack) pkcost,SUM(PKCOST*ALLQTY) AMOUNT FROM JOINED_INVOICE " +
-                                    " where (type=:parameter.invtype or :parameter.invtype='-1' ) and invoice_date>=:parameter.fromdate and invoice_date<=:parameter.todate " +
-                                    " GROUP BY  LOCATION_NAME,LOCATION_CODE,INVOICE_NO,INVOICE_DATE,MEMO,SHORT_NAME,COSTCENT,CS_NAME,itempos order by location_code,invoice_no,itempos ",
-                                parent: "",
-                                levelCol: "",
-                                code: "",
-                                title: "",
-                                isMaster: false,
-                                showToolbar: true,
-                                masterToolbarInMain: false,
-                                filterCols: ["MEMO", "LOCATION_NAME", "SHORT_NAME", "COSTCENT", "CS_NAME"],
-                                canvasType: ReportView.CanvasType.VBOX,
-                                eventAfterQV: function (qryObj) {
-                                    // var iq = thatForm.frm.getFieldValue("parameter.grpby");
-                                    qryObj.obj.showToolbar.showGroupFilter = true;//!(iq == "1");
-                                },
-                                afterApplyCols: function (qryObj) {
-                                    if (qryObj.name == "qry2") {
-                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("INVOICE_DATE")].mGrouped = iq == "2";
-                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mGrouped = iq == "3";
-
-                                    }
-                                },
-                                onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
-                                    // var oModel = this.getControl().getModel();
-                                    // var bal = parseFloat(oModel.getProperty("BALANCE", currentRowContext));
-                                    // if (bal >= 0)
-                                    //     qv.getControl().getRows()[dispRow].getCells()[3].$().css("color", "green");
-                                    // else
-                                    //     qv.getControl().getRows()[dispRow].getCells()[3].$().css("color", "red");
-
-
-                                },
-                                bat7CustomAddQry: function (qryObj, ps) {
-
-                                },
-                                fields: {
-                                    invoice_date: {
-                                        colname: "invoice_date",
-                                        data_type: FormView.DataType.Date,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "transDate",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "120",
-                                        display_align: "ALIGN_CENTER",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "SHORT_DATE_FORMAT",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    invoice_no: {
-                                        colname: "invoice_no",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "transNo",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "100",
-                                        display_align: "ALIGN_LEFT",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "QTY_FORMAT",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    location_name: {
-                                        colname: "location_name",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "locName",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "130",
-                                        display_align: "ALIGN_LEFT",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    short_name: {
-                                        colname: "short_name",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "transType",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "130",
-                                        display_align: "ALIGN_LEFT",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    costcent: {
-                                        colname: "costcent",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "costCent",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "100",
-                                        display_align: "ALIGN_LEFT",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    cs_name: {
-                                        colname: "cs_name",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "titleTxt",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "130",
-                                        display_align: "ALIGN_LEFT",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    memo: {
-                                        colname: "memo",
-                                        data_type: FormView.DataType.String,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "memoTxt",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "150",
-                                        display_align: "ALIGN_LEFT",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "",
-                                        default_value: "",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },
-                                    amount: {
-                                        colname: "amount",
-                                        data_type: FormView.DataType.Number,
-                                        class_name: FormView.ClassTypes.LABEL,
-                                        title: "amountTxt",
-                                        title2: "",
-                                        parentTitle: "",
-                                        parentSpan: 1,
-                                        display_width: "120",
-                                        display_align: "ALIGN_LEFT",
-                                        grouped: false,
-                                        display_style: "",
-                                        display_format: "MONEY_FORMAT",
-                                        default_value: "",
-                                        summary: "SUM",
-                                        other_settings: {},
-                                        commandLinkClick: cmdLink
-                                    },                                    
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
                     code: "IS002",
                     name: Util.getLangText("isRepName2"),
                     descr: Util.getLangText("isRepDescr2"),
@@ -459,6 +153,70 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                 require: true,
                                 dispInPara: true,
                             },
+                            costcent: {
+                                colname: "costcent",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"costCent\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                showInPreview: true,
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue("parameter.costcent", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select title from accostcent1 where CODE =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue("parameter.csname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        // var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getSelectedKey();
+                                        var sq = "select code,title from accostcent1 order by path"
+                                        Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
+                                            thatForm.frm.setFieldValue("IS002@parameter.costcent", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue("IS002@parameter.csname", data.TITLE, data.TITLE, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+                                        // Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("parameter.costcent", valx, valx, true);
+                                        //     thatForm.frm.setFieldValue("parameter.csname", val, val, true);
+                                        // });
+
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            csname: {
+                                colname: "csname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                showInPreview: true,
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
                             grpby: {
                                 colname: "grpby",
                                 data_type: FormView.DataType.String,
@@ -503,6 +261,7 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                                 execOnShow: false,
                                 dml: "SELECT LOCATION_NAME,LOCATION_CODE,SHORT_NAME,PARENTITEM,PARENTITEMDESCR,REFER,DESCR, (SUM(PKCOST*ALLQTY)/SUM(ALLQTY))*(ITPACK) PKCOST ,(SUM(ALLQTY)/(ITPACK)) PKQTY, SUM(PKCOST*ALLQTY) AMOUNT FROM JOINED_INVOICE " +
                                     " where (type=:parameter.invtype or :parameter.invtype='-1' ) and invoice_date>=:parameter.fromdate and invoice_date<=:parameter.todate " +
+                                    " and (costcent=':parameter.costcent' or ':parameter.costcent' is null ) " +
                                     " GROUP BY  REFER,DESCR,ITPACKD,ITPACKD,ITPACK,PARENTITEM,PARENTITEMDESCR,LOCATION_NAME,LOCATION_CODE,SHORT_NAME having sum(allqty)>0 order by location_code,refer",
                                 parent: "",
                                 levelCol: "",
@@ -719,7 +478,379 @@ sap.ui.jsfragment("bin.forms.rp.in.is", {
                             }
                         ]
                     }
-                }
+                },
+                {
+                    code: "IS001",
+                    name: Util.getLangText("isRepName1"),
+                    descr: Util.getLangText("isRepDescr1"),
+                    paraColSpan: undefined,
+                    hideAllPara: false,
+                    paraLabels: undefined,
+                    showSQLWhereClause: true,
+                    showFilterCols: true,
+                    showDispCols: true,
+                    showCustomPara: function (vbPara, rep) {
+
+                    },
+                    onSubTitHTML: function () {
+
+                        var tbstr = Util.getLangText("isRepName1");
+                        var ht = "<div class='reportTitle'>" + tbstr + "</div > ";
+                        return ht;
+                    },
+                    mainParaContainerSetting: ReportView.getDefaultParaFormCSS(),
+                    rep: {
+                        parameters: {
+                            fromdate: {
+                                colname: "fromdate",
+                                data_type: FormView.DataType.Date,
+                                class_name: FormView.ClassTypes.DATEFIELD,
+                                title: '{\"text\":\"fromDate\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "$FIRSTDATEOFYEAR",
+                                other_settings: { width: "35%" },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            todate: {
+                                colname: "todate",
+                                data_type: FormView.DataType.Date,
+                                class_name: FormView.ClassTypes.DATEFIELD,
+                                title: '{\"text\":\"toDate\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "$TODAY",
+                                other_settings: { width: "35%" },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            invtype: {
+                                colname: "invtype",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"stkVouType\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "-1",
+                                other_settings: {
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "-1",
+                                },
+                                list: "@-1/All,11/Purchase/,19/Adj.In,17/Assembly In,12/Sales Ret,1/BF,13/SRVs,25/Issues,21/Sales,29/Adj.Out,27/Assembly Out,28/Samples,22/Pur.Ret,26/Imapired,30/POS",
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                            costcent: {
+                                colname: "costcent",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"costCent\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                showInPreview: true,
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue("parameter.costcent", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select title from accostcent1 where CODE =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue("parameter.csname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        // var tp = thatForm.frm.objs[repCode + "@parameter.trialType"].obj.getSelectedKey();
+                                        var sq = "select code,title from accostcent1 order by path"
+                                        Util.show_list(sq, ["CODE", "TITLE"], "", function (data) {
+                                            thatForm.frm.setFieldValue("IS001@parameter.costcent", data.CODE, data.CODE, true);
+                                            thatForm.frm.setFieldValue("IS001@parameter.csname", data.TITLE, data.TITLE, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+                                        // Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("parameter.costcent", valx, valx, true);
+                                        //     thatForm.frm.setFieldValue("parameter.csname", val, val, true);
+                                        // });
+
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            csname: {
+                                colname: "csname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                showInPreview: true,
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            grpby: {
+                                colname: "grpby",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.COMBOBOX,
+                                title: '{\"text\":\"grpByTxt\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    width: "35%",
+                                    items: {
+                                        path: "/",
+                                        template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                                        templateShareable: true
+                                    },
+                                    selectedKey: "1",
+                                },
+                                list: "@1/None,2/Date,3/Locations",
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: true,
+                                dispInPara: true,
+                            },
+                        },
+                        print_templates: [
+                            {
+                                title: "Jasper Template ",
+                                reportFile: "trans_1",
+                            }
+                        ],
+                        canvas: [],
+                        db: [
+                            {
+                                type: "query",
+                                name: "qry2",
+                                showType: FormView.QueryShowType.QUERYVIEW,
+                                disp_class: "reportTable2",
+                                dispRecords: { "S": 10, "M": 16, "L": 20 },
+                                execOnShow: false,
+                                dml: "SELECT LOCATION_NAME,LOCATION_CODE,INVOICE_NO,INVOICE_DATE,MEMO,SHORT_NAME,COSTCENT,CS_NAME,itempos,sum(PKCOST*pack) pkcost,SUM(PKCOST*ALLQTY) AMOUNT FROM JOINED_INVOICE " +
+                                    " where (type=:parameter.invtype or :parameter.invtype='-1' ) and invoice_date>=:parameter.fromdate and invoice_date<=:parameter.todate " +
+                                    " and (costcent=':parameter.costcent' or ':parameter.costcent' is null ) " +
+                                    " GROUP BY  LOCATION_NAME,LOCATION_CODE,INVOICE_NO,INVOICE_DATE,MEMO,SHORT_NAME,COSTCENT,CS_NAME,itempos order by location_code,invoice_no,itempos ",
+                                parent: "",
+                                levelCol: "",
+                                code: "",
+                                title: "",
+                                isMaster: false,
+                                showToolbar: true,
+                                masterToolbarInMain: false,
+                                filterCols: ["MEMO", "LOCATION_NAME", "SHORT_NAME", "COSTCENT", "CS_NAME"],
+                                canvasType: ReportView.CanvasType.VBOX,
+                                eventAfterQV: function (qryObj) {
+                                    // var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                    qryObj.obj.showToolbar.showGroupFilter = true;//!(iq == "1");
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+                                        var iq = thatForm.frm.getFieldValue("parameter.grpby");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("INVOICE_DATE")].mGrouped = iq == "2";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mGrouped = iq == "3";
+
+                                    }
+                                },
+                                onRowRender: function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
+                                    // var oModel = this.getControl().getModel();
+                                    // var bal = parseFloat(oModel.getProperty("BALANCE", currentRowContext));
+                                    // if (bal >= 0)
+                                    //     qv.getControl().getRows()[dispRow].getCells()[3].$().css("color", "green");
+                                    // else
+                                    //     qv.getControl().getRows()[dispRow].getCells()[3].$().css("color", "red");
+
+
+                                },
+                                bat7CustomAddQry: function (qryObj, ps) {
+
+                                },
+                                fields: {
+                                    invoice_date: {
+                                        colname: "invoice_date",
+                                        data_type: FormView.DataType.Date,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "transDate",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "120",
+                                        display_align: "ALIGN_CENTER",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "SHORT_DATE_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    invoice_no: {
+                                        colname: "invoice_no",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "transNo",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    location_name: {
+                                        colname: "location_name",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "locName",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "130",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    short_name: {
+                                        colname: "short_name",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "transType",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "130",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    costcent: {
+                                        colname: "costcent",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "costCent",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    cs_name: {
+                                        colname: "cs_name",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "titleTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "130",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    memo: {
+                                        colname: "memo",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "memoTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "150",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    amount: {
+                                        colname: "amount",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "amountTxt",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "120",
+                                        display_align: "ALIGN_LEFT",
+                                        grouped: false,
+                                        display_style: "",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        summary: "SUM",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                }
+                            }
+                        ]
+                    }
+                },
+
             ]
         };
 
