@@ -258,22 +258,22 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                         "group by ord_refer) ob3 ";
 
                                     var sq = "SELECT    JI.REFER, nvl(descr,descra) DESCRA, first_pur_date,ITPACKD,max(ob1.BAL) qtybf ," +
-                                        "NVL (SUM (ROUND ( (qtyin ), 3) / PACK), 0) qtyin ," +
-                                        "NVL (SUM (ROUND ( (qtyout ), 3) / PACK), 0) qtyout ," +
-                                        "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) qtyx," +
-                                        " reserve_stock/pack reserve_stock,NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0)+nvl(max(ob1.bal),0) - (reserve_stock/pack) available_stock," +
+                                        "NVL (SUM (ROUND ( (qtyin ), 3) / ITPACK), 0) qtyin ," +
+                                        "NVL (SUM (ROUND ( (qtyout ), 3) / ITPACK), 0) qtyout ," +
+                                        "NVL (SUM (ROUND ( (qtyin - qtyout), 3) / ITPACK), 0)+nvl(max(ob1.bal),0) qtyx," +
+                                        " reserve_stock/ITpack reserve_stock,NVL (SUM (ROUND ( (qtyin - qtyout), 3) / ITPACK), 0)+nvl(max(ob1.bal),0) - (reserve_stock/ITpack) available_stock," +
                                         " MAX(0) PACK_COST," +
                                         "PKAVER, NVL (SUM ( (pkcost / itpack) * (qtyin - qtyout)), 0) costamt, descr2," +
                                         "PARENTITEM , PARENTITEMDESCR , barcode " +
                                         " FROM   JOINED_INVOICE JI , " +
-                                        " (select refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3) / invoice2.PACK), 0) bal " +
-                                        " from invoice2 where  dat<:parameter.fromdate AND (invoice2.STRA = :parameter.strno or :parameter.strno=0 ) group by refer ) ob1 , " +
+                                        " (select invoice2.refer, NVL (SUM (ROUND ( (invoice2.qtyin-invoice2.qtyout ), 3) / items.PACK), 0) bal " +
+                                        " from invoice2,ITEMS  where  ITEMS.REFERENCE=INVOICE2.REFER AND dat<:parameter.fromdate AND (invoice2.STRA = :parameter.strno or :parameter.strno=0 ) group by refer ) ob1 , " +
                                         (showFirstPur == "Y" ? ob2 + " , " : "(select null refer,null first_pur_date from dual) ob2 , ") +
                                         (showRsrvStock == "Y" ? ob3 : " (select null ord_refer,0 reserve_stock from dual) ob3 ") +
                                         " WHERE   ob1.refer(+)=ji.refer and ob2.refer(+)=ji.refer  and  ob3.ord_refer(+)=ji.refer " +
                                         " and ITPRICE4=0 and INVOICE_DATE >=:parameter.fromdate and  INVOICE_DATE <=:parameter.todate AND (STRA = :parameter.strno or :parameter.strno=0 ) " +
                                         " and descr2 like (select max(descr2) from items ix where ix.reference=':parameter.prefer')||'%' " +
-                                        " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode ,first_pur_date ,reserve_stock/pack " +
+                                        " GROUP BY   ji.REFER, descr2,  nvl(descr,descra) , ITPACKD,PKAVER,PARENTITEM , PARENTITEMDESCR , barcode ,first_pur_date ,reserve_stock/itpack " +
                                         " ORDER BY  descr2 ";
                                     return sq;
                                 },
@@ -630,7 +630,7 @@ sap.ui.jsfragment("bin.forms.rp.in.sb", {
                                 dispRecords: { "S": 10, "M": 16, "L": 20, "XL": 25 },
                                 execOnShow: false,
                                 dml: "SELECT   REFER, nvl(descr,descra) DESCRA, ITPACKD," +
-                                    " NVL (SUM (ROUND ( (qtyin - qtyout), 3) / PACK), 0) qtyx,max(0) pack_cost, " +
+                                    " NVL (SUM (ROUND ( (qtyin - qtyout), 3) / ITPACK), 0) qtyx,max(0) pack_cost, " +
                                     " PKAVER, NVL (SUM ( (pkcost) * (qtyin - qtyout)), 0) costamt, descr2," +
                                     " PARENTITEM , PARENTITEMDESCR ,barcode" +
                                     " FROM   JOINED_INVOICE" +
