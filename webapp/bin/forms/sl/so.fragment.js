@@ -383,7 +383,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     var pqt = Util.extractNumber(ld.getFieldValue(i1, "ORD_PKQTY"));
                                     var qt = Util.extractNumber(ld.getFieldValue(i1, "ORD_UNQTY"));
                                     var pack = Util.extractNumber(ld.getFieldValue(i1, "ORD_PACK"));
-                                    var price = Util.extractNumber(ld.getFieldValue(i1, "ORD_PRICE"));
+                                    var price = Util.extractNumber(df.format(ld.getFieldValue(i1, "ORD_PRICE")));
                                     var ds = Util.extractNumber(ld.getFieldValue(i1, "ORD_DISCAMT"));
                                     var dp = 0;
                                     var sq = '';
@@ -402,7 +402,6 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     var exp_dt = undefined;
 
                                     if (sqdt.length > 0) {
-
                                         sq = sqdt[0].DESCR;
                                         child = sqdt[0].CHILDCOUNTS;
                                         packd = Util.nvl(packd, sqdt[0].PACKD);
@@ -416,7 +415,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                         exp_dt = new Date((sqdt[0].EXP_DT + "").replaceAll(",", ":"));
                                         cstamt = (pcost / pack) * ((pqt * pack) + qt);
                                         lsamt = (lsprice / pack) * ((pqt * pack) + qt);
-                                        amt = ((price - ds) / pack) * ((pqt * pack) + qt);
+                                        amt = ((price - ds) / pack).toFixed(10) * ((pqt * pack) + qt);
                                         if (price > 0 && ds > 0)
                                             dp = (ds / price) * 100;
                                     }
@@ -452,8 +451,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                 sumCost += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "COST_AMT"), df), 0);
                                 sumLs += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "LSAMT"), df), 0);
                             }
+                            sumAmt = (sumAmt != 0 ? Util.extractNumber(df.format(sumAmt)) : 0);
                             var discp = 0
-                            var disc = Util.nvl(thatForm.frm.getFieldValue("disc_amt"), 0);
+                            var disc = Util.extractNumber(df.format(Util.nvl(thatForm.frm.getFieldValue("disc_amt"), 0)));
                             if (sumAmt > 0 && disc > 0)
                                 discp = (100 / sumAmt) * disc;
                             thatForm.frm.setFieldValue('disc_p', discp.toFixed(5));
