@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fazecast.jSerialComm.SerialPort;
 
@@ -40,24 +42,28 @@ public class PortReader {
     }
 
     private double extractNumber(String input) {
-        if (input == null)
+        if (input == null || input.trim().isEmpty())
             return -1;
-
-        // Keep digits, optional minus, optional decimal
-        // String cleaned = input.replaceAll("[^0-9.-]", "");
-        String cleaned =input.replaceAll("[^0-9+\\-.]", "");
-        // cleaned = cleaned.replaceAll("(\\+|\\-)(\\s+)", "$1");
-
-        // Edge cases
-        if (cleaned.isEmpty() || cleaned.equals("-") || cleaned.equals(".")) {
-            return -1;
+    
+        // Remove all control/special characters first, keep only printable chars
+        String cleaned = input.replaceAll("[\\x00-\\x1F\\x7F]", " ");
+    
+        // Normalize thousands separators (12,450 → 12450)
+        String normalized = cleaned.replaceAll("(?<=\\d),(?=\\d{3}\\b)", "");
+    
+        // Grab the first valid number anywhere in the string
+        Pattern pattern = Pattern.compile("([+-]?\\d+\\.?\\d*)");
+        Matcher matcher = pattern.matcher(normalized);
+    
+        if (matcher.find()) {
+            try {
+                return Double.parseDouble(matcher.group(1));
+            } catch (NumberFormatException e) {
+                return -1;
+            }
         }
-
-        try {
-            return Double.parseDouble(cleaned);
-        } catch (Exception e) {
-            return -1;
-        }
+    
+        return -1;
     }
 
     public void startListening() {
