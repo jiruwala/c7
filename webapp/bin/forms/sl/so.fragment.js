@@ -744,9 +744,9 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                                     thatForm.cmdButtons.cmdNew.firePress();
                                 }
                             });
-
+                        thatForm.helperFunc.beforeSaveValidateQry(qry);
                     }
-                    thatForm.helperFunc.beforeSaveValidateQry(qry);
+
                     if (qry.name == "qry2") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var odt = thatForm.frm.getFieldValue("qry1.ord_date");
@@ -2012,8 +2012,12 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 var pdt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_PRD_DATE2"));
                 var edt = Util.toOraDateString(ld.getFieldValue(rn, "ORD_EXP_DATE2"));
                 var pkd = ld.getFieldValue(rn, "ORD_PACKD");
+                var pk = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"));
                 var allqty = (dta.qty * dta.pk) + dta.uqty;
-                var sq = "select c7_can_user_issue_item(':user',:str,':rfr',:allqty,:pdt,:prdt,:expdt,':exckf') from dual ";
+                var sq = "select c7_can_user_issue_item(':user',:str,':rfr',:allqty,:pdt,:prdt,:expdt,':exckf') into can_issue from dual; ";
+                sq += " if can_issue < :allqty then " +
+                    "   insertTmp(can_issue ,rowno,'Save Denied : Can issue only '||(round(can_issue / " + pk + ",3))||'" + pkd + "'); end if; " +
+                    " ";
                 sq = sq.replaceAll(":user", sett["LOGON_USER"])
                     .replaceAll(":rfr", dta.rfr)
                     .replaceAll(":str", dta.str)
@@ -2023,12 +2027,30 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     .replaceAll(":expdt", edt)
                     .replaceAll(":exckf", '"' + kf + '"');
 
-
-                var can_issue = Util.getSQLValue(sq);
-                if (can_issue < allqty)
-                    errRow(i, "Save Denied : Can issue only " + (can_issue / pk) + " " + pkd);
+                return sq;
+                // var can_issue = Util.getSQLValue(sq);
+                // if (can_issue < allqty)
+                //     errRow(i, "Save Denied : Can issue only " + (can_issue / pk) + " " + pkd);
             }
-
+            var sqlCountHead = "Declare " +
+                "rowno number:=-1; " +
+                "str number; " +
+                "rfr varchar2(500); " +
+                "can_issue number; " +
+                "cntParent number:=0;" +
+                "cntItem number:=0;" +
+                "cntStore number:=0;" +
+                "procedure insertTmp (cnt number,rowno number,msg varchar2) is  " +
+                " begin " +
+                "  insert into temporary(idno,usernm,field1,field2,field3) values " +
+                "   (7788.1,'A',cnt,rowno,msg); " +
+                " end; " +
+                " begin " +
+                "  delete from temporary where idno=7788.1 and usernm='A';";
+            var sqlCountns = "";
+            var chkSql = "if cntParent>0 then insertTmp(cntParent,rowno,'Save Denied : '||rfr||' # Item is a group item !');end if;";
+            chkSql += "if cntItem=0 then insertTmp(cntParent,rowno,'Save Denied :  '||rfr||' #  Item is invalid !');end if;";
+            chkSql += "if cntStore=0 then insertTmp(cntParent,rowno,'Save Denied : '||str||' #  STORE is invalid !');end if;";
             for (var i = 0; i < ld.rows.length; i++) {
                 var str = Util.extractNumber(ld.getFieldValue(i, "STRA"));
                 var rfr = ld.getFieldValue(i, "ORD_REFER");
@@ -2037,21 +2059,30 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 var pk = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"))
                 var pr = Util.extractNumber(ld.getFieldValue(i, "ORD_PRICE"));
                 var ds = Util.extractNumber(ld.getFieldValue(i, "ORD_DISCAMT"));
-                checkStockReserve(i, {
+                var chkRsrvSQL = checkStockReserve(i, {
                     str: str, rfr: rfr, qty: qty, uqty: uqty, pk: pk
                 });
                 if (dup[rfr + "-" + str + "-" + (pr - ds) + "-" + pk] != undefined)
                     errRow(i, "Save Denied : Duplicate item entry # store = " + str);
                 dup[rfr + "-" + str + "-" + (pr - ds) + "-" + pk] = rfr;
-                var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
-                if (cnt > 0)
-                    errRow(i, "Save Denied : Item is a group item ! ");
-                var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where " + flg + " reference='" + rfr + "'");
-                if (cnt == 0)
-                    errRow(i, "Save Denied: Item " + rfr + " is invalid entry !");
-                var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from store where " + flg + " no='" + str + "'");
-                if (cnt == 0)
-                    errRow(i, "Save Denied: STORE # " + stra + " is invalid entry !");
+
+                var sqls = "select nvl(count(*),0) into cntParent from items where parentitem='" + rfr + "'; ";
+                sqls += "select nvl(count(*),0) into cntItem from items where " + flg + " reference='" + rfr + "';";
+                sqls += "select nvl(count(*),0) into cntStore from store where " + flg + " no='" + str + "';";
+                sqlCountns += sqls +
+                    " rowno:=" + i + ";" +
+                    " rfr:='" + rfr + "';" +
+                    " str:=" + str + ";" +
+                    chkSql + chkRsrvSQL;
+                // var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where parentitem='" + rfr + "'");
+                // if (cnt > 0)
+                //     errRow(i, "Save Denied : Item is a group item ! ");
+                // var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where " + flg + " reference='" + rfr + "'");
+                // if (cnt == 0)
+                //     errRow(i, "Save Denied: Item " + rfr + " is invalid entry !");
+                // var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from store where " + flg + " no='" + str + "'");
+                // if (cnt == 0)
+                //     errRow(i, "Save Denied: STORE # " + stra + " is invalid entry !");
 
                 if ((pr - ds) < 0)
                     errRow(i, "Save Denied: PRICE invalid value !");
@@ -2059,6 +2090,14 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     errRow(i, "Save Denied: QTY invalid value !");
 
             }
+            var sqx = sqlCountHead + sqlCountns + " end;";
+            var ddt = Util.execSQL(sqx);
+            if (ddt.ret == "SUCCESS") {
+                var dd = Util.execSQLWithData("select field1,field2,field3 from temporary where usernm='A' and idno=7788.1 ");
+                if (dd.length > 0) {
+                    errRow(dd[0].FIELD2, dd[0].FIELD3);
+                }
+            } else FormView.err("Cant check items !");
 
         },
         setNewPurNo: function () {

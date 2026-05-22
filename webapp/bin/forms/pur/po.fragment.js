@@ -605,7 +605,9 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     // frm.loadData(undefined, FormView.RecordStatus.NEW);
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
-                    thatForm.helperFunc.beforeSaveValidateQry(qry);
+                    if (qry.name == "qry1") {
+                        thatForm.helperFunc.beforeSaveValidateQry(qry);
+                    }
                     if (qry.name == "qry2") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var ld = qry.obj.mLctb;
@@ -1677,10 +1679,10 @@ sap.ui.jsfragment("bin.forms.pur.po", {
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_REFER");
-                var pqty = ld.getFieldValue(i, "ORD_PKQTY");
-                var pk = ld.getFieldValue(i, "ORD_PACK");
-                var qty = ld.getFieldValue(i, "ORD_UNQTY");
-                var pr = ld.getFieldValue(i, "SALE_PRICE");
+                var pqty = Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY"));
+                var pk = Util.extractNumber(ld.getFieldValue(i, "ORD_PACK"));
+                var qty = Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY"));
+                var pr = Util.extractNumber(ld.getFieldValue(i, "ORD_PRICE"));
                 if (dup[rfr] != undefined)
                     FormView.err("Save Denied : Duplicate item entry # " + rfr);
                 dup[rfr] = rfr;

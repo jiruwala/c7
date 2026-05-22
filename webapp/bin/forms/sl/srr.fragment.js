@@ -687,9 +687,9 @@ sap.ui.jsfragment("bin.forms.sl.srr", {
                                     thatForm.cmdButtons.cmdNew.firePress();
                                 }
                             });
-
+                        thatForm.helperFunc.beforeSaveValidateQry(qry);
                     }
-                    thatForm.helperFunc.beforeSaveValidateQry(qry);
+
                     if (qry.name == "qry2") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var odt = thatForm.frm.getFieldValue("qry1.ord_date");
