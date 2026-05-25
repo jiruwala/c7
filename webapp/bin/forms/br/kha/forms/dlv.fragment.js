@@ -18,7 +18,7 @@ sap.ui.jsfragment("bin.forms.br.kha.forms.dlv", {
         // this.pgDetail = new sap.m.Page({ showHeader: false });
         that.rcv_data_timer = setInterval(function () {
             that._rcvData();
-        }, 1000);
+        }, 3000);
 
         this.bk = new sap.m.Button({
             icon: "sap-icon://nav-back",
