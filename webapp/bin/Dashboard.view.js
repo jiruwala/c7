@@ -843,6 +843,7 @@ sap.ui.jsview('bin.Dashboard', {
         Util.doAjaxGet(pth, "", false).done(function (data) {
             if (data != undefined) {
                 var dt = JSON.parse(data);
+                dt = that.rebuild_modules_list(dt);
                 var oModel = new sap.ui.model.json.JSONModel(dt);
                 sap.ui.getCore().setModel(oModel, "profiles");
 
@@ -881,6 +882,27 @@ sap.ui.jsview('bin.Dashboard', {
 
     }
     ,
+    rebuild_modules_list: function (dt) {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var lstx = [];
+        var md = [];
+        var mdlLable = Util.getLangText("txtModules")
+        dt.list.forEach(el => {
+            if (el.code.startsWith("."))
+                md.push({ code: el.code, name: el.name });
+            else
+                lstx.push({ code: el.code, name: el.name });
+
+        });
+        if (sett["PROFILENO"] == 0 && md.length > 0) {
+            lstx = [...[{ code: '.', name: mdlLable }], ...lstx]
+        }
+
+
+        var dtx = { list: lstx };
+        return dtx;
+    },
     loadData_main: function () {
         var that = this;
         Util.Notifications.checkNewNotifications();
