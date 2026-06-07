@@ -1383,7 +1383,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     var flds = { ...Util.nvl(qryObj.fields, []), ...Util.nvl(qryObj.summary, {}) };
                     for (var i in flds) {
                         var fld = flds[i].obj;
-                        this._setQryEditableObj(fld, true);
+                        this._setQryEditableObj(fld, false);
                     }
                     if (qryObj.status != FormView.RecordStatus.VIEW && Util.nvl(qryObj.addRowOnEmpty, false) && qryObj.obj.mLctb.rows.length == 0)
                         qryObj.obj.addRow();

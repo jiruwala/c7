@@ -887,7 +887,8 @@ sap.ui.jsview('bin.Dashboard', {
         var sett = sap.ui.getCore().getModel("settings").getData();
         var lstx = [];
         var md = [];
-        var mdlLable = Util.getLangText("txtModules")
+        var mdlLable = Util.getLangText("txtModules");
+        sap.ui.getCore().setModel(new sap.ui.model.json.JSONModel({}), "modules");
         dt.list.forEach(el => {
             if (el.code.startsWith("."))
                 md.push({ code: el.code, name: el.name });
@@ -896,10 +897,12 @@ sap.ui.jsview('bin.Dashboard', {
 
         });
         if (sett["PROFILENO"] == 0 && md.length > 0) {
-            lstx = [...[{ code: '.', name: mdlLable }], ...lstx]
+            lstx = [...[{ code: '.', name: mdlLable }], ...lstx];
+            var mdls = { list: md };
+            var oModel = new sap.ui.model.json.JSONModel(mdls);
+            sap.ui.getCore().setModel(oModel, "modules");
+
         }
-
-
         var dtx = { list: lstx };
         return dtx;
     },
@@ -1095,27 +1098,55 @@ sap.ui.jsview('bin.Dashboard', {
                     Util.doAjaxGet(pth, "", false).done(function (data) {
                         if (data != undefined) {
                             var dt = JSON.parse(data);
+                            dt = that.rebuild_modules_list(dt);
                             var oModel = new sap.ui.model.json.JSONModel(dt);
                             sap.ui.getCore().setModel(oModel, "profiles");
                         }
                     });
                 }
                 var ps = sap.ui.getCore().getModel("profiles").getData();
+                var mList = sap.ui.getCore().getModel("modules").getData().list;
                 var mnus = [];
                 var pList = ps.list;
+                var exeMenu = function (cs, cmd) {
+                    that.current_profile = cs.split("::=")[0];
+                    that.current_profile_name = cs.split("::=")[1];
+                    cmd.setText(cs.split("::=")[1]);
+                    that.show_main_menus();
+                    that.loadData_main();
+                }
                 for (var i in pList) {
-                    var mnu = new sap.m.MenuItem({
-                        text: pList[i].code + "-" + pList[i].name,
-                        customData: { key: pList[i].code + "::=" + pList[i].name },
-                        press: function (ev) {
-                            var cs = this.getCustomData()[0].getKey();
-                            that.current_profile = cs.split("::=")[0];
-                            that.current_profile_name = cs.split("::=")[1];
-                            this.setText(cs.split("::=")[1]);
-                            that.show_main_menus();
-                            that.loadData_main();
+                    var mnu;
+                    if (pList[i].code == ".") {
+                        var mnmdl = [];
+                        for (var mi in mList) {
+                            mnmdl.push(new sap.m.MenuItem({
+                                text: mList[mi].name,
+                                customData: { key: mList[mi].code + "::=" + mList[mi].name },
+                                press: function (ev) {
+                                    var cs = this.getCustomData()[0].getKey();
+                                    exeMenu(cs, this);
+                                }
+                            }))
                         }
-                    });
+                        mnu = new sap.m.MenuItem({
+                            text: pList[i].name,
+                            icon: "sap-icon://grid",
+                            items: mnmdl
+                        });
+                    } else {
+                        mnu = new sap.m.MenuItem({
+                            text: pList[i].code + "-" + pList[i].name,
+                            icon: "sap-icon://bo-strategy-management",
+                            customData: { key: pList[i].code + "::=" + pList[i].name },
+                            press: function (ev) {
+                                var cs = this.getCustomData()[0].getKey();
+                                if (cs.split("::=")[0] != '.')
+                                    exeMenu(cs, this);
+                            }
+                        });
+                    }
+
                     mnus.push(mnu);
                 }
                 var mnu = new sap.m.Menu({

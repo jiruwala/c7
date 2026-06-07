@@ -230,10 +230,30 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                     onCellRender(qry, rowno, colno, currentRowContext) {
                         UtilGen.Vouchers.onCellRender(qry, rowno, colno, currentRowContext);
                     },
+                    afterApplyCols: function (qry) {
+                        if (qry.name == "qry2") {
+                            var qryObj = thatForm.frm.objs["qry2"];
+                            var sdb = Util.nvl(sett["SHOW_DEBIT_ON_RV"], "FALSE");
+                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("FCDEBIT")].mHideCol = true;
+                            if (sdb == 'TRUE') {
+                                qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("FCDEBIT")].mHideCol = sdb != "TRUE";
+                            }
+                        }
 
+                    },
                     beforeExeSql: function (frm, sq) {
                         var sql = sq;
                         var kf = frm.getFieldValue("keyfld");
+                        var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+                        var qrobj = thatForm.frm.objs["qry2"].obj;
+                        qrobj.eventCalc(qrobj, undefined, -1, true);
+                        var drIns = Util.extractNumber(frm.getFieldValue("qry2.totalcredit"))
+                            - Util.extractNumber(frm.getFieldValue("qry2.totdebit"));
+                        if (drIns != undefined &&
+                            typeof drIns == "number" && drIns.toString().includes('e'))
+                            drIns = parseFloat(drIns.toFixed(10));
+                        if (drIns <= 0)
+                            FormView.err("Cant insert " + df.format(drIns) + " in " + frm.getFieldValue("qry1.codename"));
                         var dsq = "delete from acvoucher2 where keyfld=" + kf + " and type=" + thatForm.vars.type_2;
                         var insq = UtilGen.getInsertRowStringByObj(
                             "ACVOUCHER2",
@@ -247,15 +267,14 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                                 "TYPE": thatForm.vars.type_2,
                                 "CREATDT": "sysdate",
                                 "CREDIT": 0,
-                                "DEBIT": Util.extractNumber(frm.getFieldValue("qry2.totalcredit")),
-                                "FCDEBIT": 0,
+                                "DEBIT": drIns,
                                 "FLAG": 1,
                                 "FC_MAIN": Util.quoted(sett["DEFAULT_CURRENCY"]),
                                 "FC_MAIN_RATE": 1,
                                 "FCCODE": Util.quoted(sett["DEFAULT_CURRENCY"]),
                                 "FCRATE": 1,
                                 "POS": "(select nvl(max(pos),0)+1 from acvoucher2 where keyfld=:qry1.keyfld)",
-                                "FCDEBIT": Util.extractNumber(frm.getFieldValue("qry2.totalcredit")),
+                                "FCDEBIT": drIns,
                                 "FCCREDIT": 0,
                                 "ACCNO": "':qry1.code'",
                                 "DESCR": "':qry1.descr'",
@@ -663,8 +682,8 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                             "TYPE": this.vars.type,
                             "CREATDT": "sysdate",
                             "CREDIT": ":FCCREDIT",
-                            "DEBIT": 0,
-                            "FCDEBIT": 0,
+                            // "DEBIT": 0,
+                            // "FCDEBIT": 0,
                             "FLAG": 1,
                             "FC_MAIN": sett["DEFAULT_CURRENCY"],
                             "FC_MAIN_RATE": 1,
@@ -684,7 +703,10 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                             var sett = sap.ui.getCore().getModel("settings").getData();
                             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
                             var oModel = currentRowoIndexContext.oModel;
-                            var camt = parseFloat(oModel.getProperty(currentRowoIndexContext.sPath + '/FCCREDIT').replace(/[^\d\.],/g, '').replace(/,/g, ''));
+                            var camt = Util.extractNumber(oModel.getProperty(currentRowoIndexContext.sPath + '/FCCREDIT'));
+                            var damt = Util.extractNumber(oModel.getProperty(currentRowoIndexContext.sPath + '/FCDEBIT'));
+                            var sdb = Util.nvl(sett["SHOW_DEBIT_ON_RV"], "FALSE");
+
 
                             var des = Util.nvl(oModel.getProperty(currentRowoIndexContext.sPath + '/DESCR'), "");
                             if (cx.mColName == "ACCNO" && des == "") {
@@ -692,10 +714,14 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                                 oModel.setProperty(currentRowoIndexContext.sPath + "/DESCR", that.frm.getFieldValue("qry1.descr"));
                             }
 
-                            if (cx.mColName == "FCCREDIT" && camt < 0)
+                            if ((cx.mColName == "FCCREDIT" && camt < 0) ||
+                                (cx.mColName == "FCDEBIT" && damt < 0))
                                 FormView.err("Less than 0 not allowed !");
-                            // if (cx.mColName == "FCDEBIT" && damt > 0)
-                            //     oModel.setProperty(currentRowoIndexContext.sPath + '/FCCREDIT', df.format(0));
+
+                            if (cx.mColName == "FCCREDIT" && camt > 0)
+                                oModel.setProperty(currentRowoIndexContext.sPath + '/FCDEBIT', df.format(0));
+                            if (cx.mColName == "FCDEBIT" && damt > 0)
+                                oModel.setProperty(currentRowoIndexContext.sPath + '/FCCREDIT', df.format(0));
                             // if (cx.mColName == "ACCNO")
                             //     sap.m.MessageToast.show(".....selected acc");
                             if (des == "")
@@ -712,12 +738,25 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                             var ld = qv.mLctb;
                             var sumDr = 0;
                             var sumCr = 0;
+                            var cd = thatForm.frm.getFieldValue("qry1.code");
+                            var cdnm = thatForm.frm.getFieldValue("qry1.codename");
 
                             for (var i = 0; i < ld.rows.length; i++) {
                                 sumDr += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "FCDEBIT"), df), 0);
                                 sumCr += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "FCCREDIT"), df), 0);
                             }
                             thatForm.frm.setFieldValue('totalcredit', df.format(sumCr));
+                            thatForm.frm.setFieldValue('totdebit', df.format(sumDr));
+
+                            var drIns = sumCr - sumDr;
+                            if (drIns != undefined &&
+                                typeof drIns == "number" && drIns.toString().includes('e'))
+                                drIns = parseFloat(drIns.toFixed(10));
+
+                            thatForm.frm.setFieldValue('sumcode', cd);
+                            thatForm.frm.setFieldValue('sumcodename', cdnm);
+                            thatForm.frm.setFieldValue('sumcodeamt', df.format(drIns));
+
                             // thatForm.frm.setFieldValue('totalcredit', df.format(sumCr));
                             // thatForm.frm.setFieldValue('totDiff', df.format(sumDr - sumCr));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
@@ -726,22 +765,90 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
 
                         },
                         summary: {
-                            totcredit: {
-                                colname: "totalcredit",
+                            _lblLv2: FormView.getFactoryFields.getTextField("_lblLv2", "", "", "100%", "", {}, {}),
+                            totdebit: {
+                                colname: "totdebit",
                                 data_type: FormView.DataType.Number,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: "Total CR",
-                                title2: "Total CR",
+                                title: '{\"text\":\"Total DR/CR\",\"width\":\"25%\","textAlign":"End","styleClass":"boldText"}',
                                 canvas: "default_canvas",
                                 display_width: sumSpan,
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: sett["FORMAT_MONEY_1"],
-                                other_settings: {},
+                                other_settings: { width: "25%", editable: false },
                                 edit_allowed: false,
                                 insert_allowed: false,
                                 require: true
                             },
+                            totalcredit: {
+                                colname: "totalcredit",
+                                data_type: FormView.DataType.Number,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":"boldText"}',
+                                canvas: "default_canvas",
+                                display_width: sumSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: sett["FORMAT_MONEY_1"],
+                                other_settings: { width: "25%", editable: false },
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: true
+                            },
+                            sumcode: {
+                                colname: "sumcode",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"Cash/Bank\",\"width\":\"25%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: fullSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: { width: "15%", editable: false },
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: true
+                            },
+                            sumcodename: {
+                                colname: "sumcodename",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                canvas: "default_canvas",
+                                display_width: fullSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                other_settings: {
+                                    width: "35%",
+                                    editable: false
+                                },
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                keyboardFocus: false,
+                            },
+                            sumcodeamt: {
+                                colname: "sumcodeamt",
+                                data_type: FormView.DataType.Number,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":"boldText"}',
+                                canvas: "default_canvas",
+                                display_width: sumSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: sett["FORMAT_MONEY_1"],
+                                other_settings: { width: "25%", editable: false },
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: true
+                            },
+                            _lblLvdr: FormView.getFactoryFields.getTextField("_lblLvdr", "@", "debitTxt", "100px", "", {}, {}),
+                            _lblLv3: FormView.getFactoryFields.getTextField("_lblLv3", "", "", "100%", "", {}, {}),
                             createdBy: {
                                 colname: "createdBy",
                                 data_type: FormView.DataType.String,
@@ -762,7 +869,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                                 colname: "createdOn",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
-                                title: "Created On ",
+                                title: "@Created On ",
                                 title2: "",
                                 canvas: "default_canvas",
                                 display_width: sumSpan2,
@@ -848,6 +955,30 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
 
                                     }
                                 }));
+                                // SHOW_DEBIT_ON_RV
+                                if (sett["PROFILENO"] == 0)
+                                    mnus.push(new sap.m.MenuItem({
+                                        text: "Show/Hide Debit Column",
+                                        icon: "sap-icon://",
+                                        press: function () {
+                                            var sh = sett["SHOW_DEBIT_ON_RV"];
+                                            var tobesh = (sh == "TRUE" ? "FALSE" : "TRUE");
+                                            Util.simpleConfirmDialog("Are you sure , you want to " + tobesh, function (oAction) {
+                                                var sq = "begin " +
+                                                    " delete from cp_user_profiles where profileno=0 and variable='SHOW_DEBIT_ON_RV';" +
+                                                    " insert into cp_user_profiles(variable,profileno,value,keyfld,descr) values " +
+                                                    " ('SHOW_DEBIT_ON_RV',0,'" + tobesh + "',1.101,'Show Debit On' ); " +
+                                                    " end; ";
+                                                var dt = Util.execSQL(sq);
+                                                if (dt.ret == "SUCCESS") {
+                                                    sap.m.MessageToast.show("must open again to check changes !");
+                                                    sett["SHOW_DEBIT_ON_RV"] = tobesh;
+                                                }
+                                            });
+
+
+                                        }
+                                    }));
                                 var bts = [];
                                 if (that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
                                     var dt = Util.execSQL("select keyfld||'-'||bat_id code , descr from c7_batches_1 where bat_type='RVB' order by keyfld");
@@ -938,6 +1069,21 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
         this.frm.createView();
 
         // this.mainPage.addContent(sc);
+
+    },
+    validateTotDrTotCr: function () {
+        var thatForm = this;
+        var frm = thatForm.frm;
+        var qry = thatForm.frm.objs["qry2"];
+        qry.eventCalc(qry, undefined, -1, true);
+        var drIns = Util.extractNumber(frm.getFieldValue("qry2.totalcredit")) -
+            Util.extractNumber(frm.getFieldValue("qry2.totdebit"));
+        if (drIns != undefined &&
+            typeof drIns == "number" && drIns.toString().includes('e'))
+            drIns = parseFloat(drIns.toFixed(10));
+        if (drIns <= 0)
+            FormView.err("Cant insert " + df.format(drIns) + " in " + frm.getFieldValue("qry1.codename"));
+
 
     },
     setFormEditable: function () {
