@@ -155,21 +155,29 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                         return sq;
                     },
                     beforeSaveQry: function (qry, sqlRow, rowno) {
-
+                        var sqx = "";
                         UtilGen.Vouchers.getNewKF(qry, sqlRow, rowno);
                         UtilGen.Vouchers.validateDetails(qry, sqlRow, rowno);
 
                         if (qry.name == "qry1") {
 
-                            UtilGen.Vouchers.validateTotDrTotCr(qry, sqlRow, rowno);
+                            // UtilGen.Vouchers.validateTotDrTotCr(qry, sqlRow, rowno);
+                            thatForm.validateTotDrTotCr();
                             UtilGen.Vouchers.validatePostedVocher(qry, sqlRow, rowno);
                             UtilGen.Vouchers.validateFieldsBeforeSave(qry, sqlRow, rowno, thatForm);
                             UtilGen.Vouchers.attachSaveQry(that2, "VOU", that2.frm.getFieldValue("qry1.keyfld"));
 
                         }
+                        if (qry.name == "qry2") {
+                            //TODO test after insert 
+                            if (qry.obj.mLctb.getColByName("FCDEBIT").mHideCol) {
+                                var sq = "update acvoucher2 set " +
+                                    " fcdebit=0,debit=0 where keyfld=':qry1.keyfld' and pos=:qry2.pos ";
+                                sqx = sqlRow + ";" + sq;
+                            }
+                        }
 
-
-                        return "";
+                        return sqx;
                     },
                     afterNewRow: function (qry, idx, ld) {
                         if (qry.name == "qry2") {
@@ -682,7 +690,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                             "TYPE": this.vars.type,
                             "CREATDT": "sysdate",
                             "CREDIT": ":FCCREDIT",
-                            // "DEBIT": 0,
+                            "DEBIT": ":FCDEBIT",
                             // "FCDEBIT": 0,
                             "FLAG": 1,
                             "FC_MAIN": sett["DEFAULT_CURRENCY"],
@@ -693,7 +701,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                         update_default_values: {
                             "DESCR2": ":ACNAME",
                             "CREDIT": ":FCCREDIT",
-                            "DEBIT": 0,
+                            // "DEBIT": 0,
                         },
                         table_name: "ACVOUCHER2",
                         before_add_table: function (scrollObjs, qrj) {
@@ -731,7 +739,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                         eventCalc: function (qv, cx, rowno, reAmt) {
                             var sett = sap.ui.getCore().getModel("settings").getData();
                             var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
-
+                            var qry = thatForm.frm.objs["qry2"];
                             if (reAmt)
                                 qv.updateDataToTable();
 
@@ -745,6 +753,11 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                                 sumDr += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "FCDEBIT"), df), 0);
                                 sumCr += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "FCCREDIT"), df), 0);
                             }
+                            if (qry.obj.mLctb.getColByName("FCDEBIT").mHideCol &&
+                                (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                                    that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW))
+                                sumDr = 0;
+
                             thatForm.frm.setFieldValue('totalcredit', df.format(sumCr));
                             thatForm.frm.setFieldValue('totdebit', df.format(sumDr));
 
@@ -847,7 +860,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                                 insert_allowed: false,
                                 require: true
                             },
-                            _lblLvdr: FormView.getFactoryFields.getTextField("_lblLvdr", "@", "debitTxt", "100px", "", {}, {}),
+                            _lblLvdr: FormView.getFactoryFields.getTextField("_lblLvdr", "@", "", "0px", "", {}, {}),
                             _lblLv3: FormView.getFactoryFields.getTextField("_lblLv3", "", "", "100%", "", {}, {}),
                             createdBy: {
                                 colname: "createdBy",
@@ -956,10 +969,13 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                                     }
                                 }));
                                 // SHOW_DEBIT_ON_RV
-                                if (sett["PROFILENO"] == 0)
+                                if (sett["PROFILENO"] == 0) {
+                                    var tit = Util.getLangText(
+                                        sett["SHOW_DEBIT_ON_RV"] == "TRUE" ?
+                                            "txtsetHideDebitColumn" : "txtsetShowDebitColumn");
                                     mnus.push(new sap.m.MenuItem({
-                                        text: "Show/Hide Debit Column",
-                                        icon: "sap-icon://",
+                                        text: tit,
+                                        icon: "sap-icon://hide",
                                         press: function () {
                                             var sh = sett["SHOW_DEBIT_ON_RV"];
                                             var tobesh = (sh == "TRUE" ? "FALSE" : "TRUE");
@@ -979,6 +995,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
 
                                         }
                                     }));
+                                }
                                 var bts = [];
                                 if (that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW) {
                                     var dt = Util.execSQL("select keyfld||'-'||bat_id code , descr from c7_batches_1 where bat_type='RVB' order by keyfld");
@@ -1073,8 +1090,10 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
     },
     validateTotDrTotCr: function () {
         var thatForm = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
         var frm = thatForm.frm;
-        var qry = thatForm.frm.objs["qry2"];
+        var qry = thatForm.frm.objs["qry2"].obj;
         qry.eventCalc(qry, undefined, -1, true);
         var drIns = Util.extractNumber(frm.getFieldValue("qry2.totalcredit")) -
             Util.extractNumber(frm.getFieldValue("qry2.totdebit"));

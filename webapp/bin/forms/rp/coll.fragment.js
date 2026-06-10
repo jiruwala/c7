@@ -335,7 +335,7 @@ sap.ui.jsfragment("bin.forms.rp.coll", {
                                 display_align: "ALIGN_LEFT",
                                 display_style: "",
                                 display_format: "",
-                                default_value: "Y",
+                                default_value: "N",
                                 other_settings: { selected: true, width: "5%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
