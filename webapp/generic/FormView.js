@@ -515,10 +515,10 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                                     thatForm.firstObj = flds[f].obj;
                                 if (flds[f].obj instanceof sap.m.Text) {
                                     flds[f].obj.setValue = function (vl) {
-                                        thatForm.setText(vl);
+                                        this.setText(vl);
                                     }
                                     flds[f].obj.getValue = function (vl) {
-                                        return thatForm.getText();
+                                        return this.getText();
                                     }
 
                                 }
