@@ -101,7 +101,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                 var typ = dtx[0].TYPE;
                 var rkld = dtx[0].REFERKEYFLD;
                 var rfcode = dtx[0].REFERCODE;
-                var rftype = dtx[0].REFEERTYPE;
+                var rftype = dtx[0].REFERTYPE;
 
                 if (vcd == 1 && typ == 1) {
                     UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
@@ -116,10 +116,21 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                 } else if (vcd == 3 && (typ == 2 || typ == 7)) {
                     UtilGen.execCmd("gl.pvc readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
                 } else if (vcd == 1) {
-                    if (rfcode == 25 && rftype == 25 && Util.nvl(rkld, -1) != -1) 
-                        Util.simpleConfirmDialog("Open JV or Issue Voucher ?", function (oAction) {
+                    if (rfcode == 25 && Util.nvl(rkld, -1) != -1)
+                        Util.simpleConfirmDialog(Util.getLangText("msgDoYouWantToOpenIssVou") + ",\n " + Util.getLangText("msgOktoIssueVou") + " \n " + Util.getLangText("msgCancelToOpenJv"), function (oAction) {
+                            UtilGen.execCmd("bin.forms.in.siv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + rkld, thatForm.view, obj, undefined);
+                        }, function () {
                             UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
-                        }, undefined, undefined, "JV");
+                        },
+                            undefined, "OK");
+                    else if (rfcode == 13 && Util.nvl(rkld, -1) != -1)
+                        Util.simpleConfirmDialog(Util.getLangText("msgDoYouWantToOpenRcptVou") + ",\n " + Util.getLangText("msgOktoReceiptVou") + " \n " + Util.getLangText("msgCancelToOpenJv"), function (oAction) {
+                            UtilGen.execCmd("bin.forms.in.srv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + rkld, thatForm.view, obj, undefined);
+                        }, function () {
+                            UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                        },
+                            undefined, "OK");
+                    else
                         UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
                 }
 
