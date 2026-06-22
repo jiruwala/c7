@@ -123,7 +123,7 @@ sap.ui.jsfragment("bin.forms.rp.costana", {
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
                                             // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
                                             qr.getControl().setVisibleRowCount(10);
-                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 40, "L": 35, "XL": 20 });
+                                            qr.setAutoDispRecords(thatForm.mainPage, /*{ "S": 70, "M": 40, "L": 50, "XL": 20 }*/);
                                             qr.getControl().setRowHeight(18);
                                             qr.getControl().attachColumnResize(undefined, function (e) { e.preventDefault(); });
                                             qr.filterCols = [];
@@ -231,10 +231,16 @@ sap.ui.jsfragment("bin.forms.rp.costana", {
 
                         },
                         valueHelpRequest: function (event) {
-                            Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
-                                thatForm.frm.setFieldValue(repCode + "@parameter.costcent", valx, valx, true);
-                                thatForm.frm.setFieldValue(repCode + "@parameter.csname", val, val, true);
-                            });
+                            // Util.showSearchList("select code,title from accostcent1 order by path", "TITLE", "CODE", function (valx, val) {
+                            //     thatForm.frm.setFieldValue(repCode + "@parameter.costcent", valx, valx, true);
+                            //     thatForm.frm.setFieldValue(repCode + "@parameter.csname", val, val, true);
+                            // });
+                            var sq = "select code accno,title name,titlea namea from accostcent1 order by path";
+                            Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                thatForm.frm.setFieldValue(repCode + "@parameter.costcent", data.ACCNO, data.ACCNO, true);
+                                thatForm.frm.setFieldValue(repCode + "@parameter.csname", data.NAME, data.NAME, true);
+                                return true;
+                            }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
                         },
                         width: "35%"
@@ -300,7 +306,8 @@ sap.ui.jsfragment("bin.forms.rp.costana", {
                 " from acaccount ac,accostcent1 cc,acvoucher2 v where " +
                 ev + " v.accno=ac.accno and v.costcent=cc.code(+) " +
                 " and v.vou_date>=:parameter.fromdate and v.vou_date<=:parameter.todate " +
-                " group by  v.costcent,cc.title,v.accno order by v.costcent,v.accno ";
+                " and cc.path like (select nvl(max(path),'') from accostcent1 where code=':parameter.costcent')||'%' " +
+                " group by  v.costcent,cc.title,v.accno order by v.costcent,v.accno";
             // var sq = "select location_code,location_name,ord_date,ord_ship item,sum(:RTYPECOL) :REPCOLNAME , " +
             //     " TO_CHAR(ord_date,'DD/MM/RRRR') DAT,ord_ship||'__:REPCOLNAME' ITEM_BAL " +
             //     " from joined_corder where " +
@@ -338,12 +345,14 @@ sap.ui.jsfragment("bin.forms.rp.costana", {
             that.ld = undefined;
             var frm = thatForm.frm;
             var cmdLink = function (obj, rowno, colno, lctb, frm) {
+                var tbl = thatForm.qr.getControl();
                 var mdl = thatForm.qr.getControl().getModel();
                 var rr = thatForm.qr.getControl().getRows().indexOf(obj.getParent());
 
                 var cont = thatForm.qr.getControl().getContextByIndex(rr);
                 var rowid = mdl.getProperty("_rowid", cont);
-                var code = Util.nvl(lctb.getFieldValue(rowid, "CODE"), "");
+                // var code = Util.nvl(lctb.getFieldValue(rowid, "CODE"), "");
+                var code = tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "CODE")].getText();
                 // var ac = thatForm.qr.getControl().getRows()[rr].getCells()[0].getText().split("__");
 
                 var sdf = new simpleDateFormat("MM/dd/yyyy");
@@ -355,12 +364,14 @@ sap.ui.jsfragment("bin.forms.rp.costana", {
                 UtilGen.execCmd(st, UtilGen.DBView, obj, UtilGen.DBView.newPage);
             }
             var cmdLink2 = function (obj, rowno, colno, lctb, frm) {
+                var tbl = thatForm.qr.getControl();
                 var mdl = thatForm.qr.getControl().getModel();
                 var rr = thatForm.qr.getControl().getRows().indexOf(obj.getParent());
                 var cc = obj.getParent().indexOfCell(obj);
                 var cont = thatForm.qr.getControl().getContextByIndex(rr);
                 var rowid = mdl.getProperty("_rowid", cont);
-                var code = Util.nvl(lctb.getFieldValue(rowid, "CODE"), "");
+                var code = tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "CODE")].getText();
+                // var code = Util.nvl(lctb.getFieldValue(rowid, "CODE"), "");
                 var acno = lctb.cols[cc].mColName.split("__")[0];
 
                 var sdf = new simpleDateFormat("MM/dd/yyyy");
