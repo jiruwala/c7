@@ -849,6 +849,7 @@ sap.ui.jsview('bin.Dashboard', {
         Util.doAjaxGet(pth, "", false).done(function (data) {
             if (data != undefined) {
                 var dt = JSON.parse(data);
+                dt = that.rebuild_modules_list(dt);
                 var oModel = new sap.ui.model.json.JSONModel(dt);
                 sap.ui.getCore().setModel(oModel, "profiles");
 
@@ -887,6 +888,30 @@ sap.ui.jsview('bin.Dashboard', {
 
     }
     ,
+    rebuild_modules_list: function (dt) {
+        var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        var lstx = [];
+        var md = [];
+        var mdlLable = Util.getLangText("txtModules");
+        sap.ui.getCore().setModel(new sap.ui.model.json.JSONModel({}), "modules");
+        dt.list.forEach(el => {
+            if (el.code.startsWith("."))
+                md.push({ code: el.code, name: el.name });
+            else
+                lstx.push({ code: el.code, name: el.name });
+
+        });
+        if (sett["PROFILENO"] == 0 && md.length > 0) {
+            lstx = [...[{ code: '.', name: mdlLable }], ...lstx];
+            var mdls = { list: md };
+            var oModel = new sap.ui.model.json.JSONModel(mdls);
+            sap.ui.getCore().setModel(oModel, "modules");
+
+        }
+        var dtx = { list: lstx };
+        return dtx;
+    },
     loadData_main: function () {
         var that = this;
         Util.Notifications.checkNewNotifications();
@@ -1079,27 +1104,55 @@ sap.ui.jsview('bin.Dashboard', {
                     Util.doAjaxGet(pth, "", false).done(function (data) {
                         if (data != undefined) {
                             var dt = JSON.parse(data);
+                            dt = that.rebuild_modules_list(dt);
                             var oModel = new sap.ui.model.json.JSONModel(dt);
                             sap.ui.getCore().setModel(oModel, "profiles");
                         }
                     });
                 }
                 var ps = sap.ui.getCore().getModel("profiles").getData();
+                var mList = sap.ui.getCore().getModel("modules").getData().list;
                 var mnus = [];
                 var pList = ps.list;
+                var exeMenu = function (cs, cmd) {
+                    that.current_profile = cs.split("::=")[0];
+                    that.current_profile_name = cs.split("::=")[1];
+                    cmd.setText(cs.split("::=")[1]);
+                    that.show_main_menus();
+                    that.loadData_main();
+                }
                 for (var i in pList) {
-                    var mnu = new sap.m.MenuItem({
-                        text: pList[i].code + "-" + pList[i].name,
-                        customData: { key: pList[i].code + "::=" + pList[i].name },
-                        press: function (ev) {
-                            var cs = this.getCustomData()[0].getKey();
-                            that.current_profile = cs.split("::=")[0];
-                            that.current_profile_name = cs.split("::=")[1];
-                            this.setText(cs.split("::=")[1]);
-                            that.show_main_menus();
-                            that.loadData_main();
+                    var mnu;
+                    if (pList[i].code == ".") {
+                        var mnmdl = [];
+                        for (var mi in mList) {
+                            mnmdl.push(new sap.m.MenuItem({
+                                text: mList[mi].name,
+                                customData: { key: mList[mi].code + "::=" + mList[mi].name },
+                                press: function (ev) {
+                                    var cs = this.getCustomData()[0].getKey();
+                                    exeMenu(cs, this);
+                                }
+                            }))
                         }
-                    });
+                        mnu = new sap.m.MenuItem({
+                            text: pList[i].name,
+                            icon: "sap-icon://grid",
+                            items: mnmdl
+                        });
+                    } else {
+                        mnu = new sap.m.MenuItem({
+                            text: pList[i].code + "-" + pList[i].name,
+                            icon: "sap-icon://bo-strategy-management",
+                            customData: { key: pList[i].code + "::=" + pList[i].name },
+                            press: function (ev) {
+                                var cs = this.getCustomData()[0].getKey();
+                                if (cs.split("::=")[0] != '.')
+                                    exeMenu(cs, this);
+                            }
+                        });
+                    }
+
                     mnus.push(mnu);
                 }
                 var mnu = new sap.m.Menu({
@@ -1152,6 +1205,24 @@ sap.ui.jsview('bin.Dashboard', {
                                 that.mv.getControl().collapseAll();
                             }
                         });
+                        var m41 = new sap.m.MenuItem({
+                            icon: "sap-icon://sap-icon://enablement",
+                            text: Util.getLangText("menuDashboardSetup"),
+                            items: [
+                                new sap.m.MenuItem({
+                                    text: "Add new item..",
+                                    press: function () {
+                                        that.addDashboardTile();
+                                    }
+                                }),
+                                new sap.m.MenuItem({
+                                    text: "Delete item..",
+                                    press: function () {
+                                        that.delDashboardTile();
+                                    }
+                                })
+                            ]
+                        });
                         var m5 = new sap.m.MenuItem({
                             icon: "sap-icon://add",
                             text: Util.getLangText("Add Menu Group"),
@@ -1166,8 +1237,10 @@ sap.ui.jsview('bin.Dashboard', {
                             mnu.addItem(m2);
                         mnu.addItem(m3);
                         mnu.addItem(m4);
-                        if (sett["PROFILENO"] == 0)
+                        if (sett["PROFILENO"] == 0) {
+                            mnu.addItem(m41);
                             mnu.addItem(m5);
+                        }
                         mnu.openBy(this);
                     }
                 }),
@@ -1346,6 +1419,44 @@ sap.ui.jsview('bin.Dashboard', {
             that.showShortcuts();
 
         });
+    },
+    addDashboardTile: function () {
+        var thatForm = this;
+        var addTile = function (code) {
+            var sq = Util.getSQLValue("select custom_obj from c7_secs_tiles where TILE_ID='99990.1'");
+            sq = "declare" +
+                " cp varchar2(500):='" + thatForm.current_profile + "'; " +
+                " cpy_cod varchar2(500):='" + code + "';" + sq;
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS") {
+                thatForm.loadData(false, false);
+                FormView.msgSuccess(Util.getLangText("msgSaved"));
+            }
+        }
+        var sq = "SELECT TILE_ID CODE, tile_title_1 name , tile_title_2 name2 from c7_secs_tiles where tile_id like '899%' order by tile_id";
+        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+            addTile(data.CODE);
+            return true;
+        }, "600px", undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+    },
+    delDashboardTile: function () {
+        var thatForm = this;
+        var delTile = function (code) {
+            var sq = "begin " +
+                " delete from c7_secs where tile_id='" + code + "';" +
+                " delete from c7_secs_tiles where tile_id='" + code + "'; end ;";
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS") {
+                FormView.msgCustom(Util.getLangText("msgDeleted"), "maroon");
+                thatForm.loadData(false, false);
+            }
+        };
+        var cd = thatForm.current_profile;
+        var sq = "SELECT TILE_ID CODE, tile_title_1 name,menu_group from v_secs where menu_group='" + cd + "' order by tile_id";
+        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+            delTile(data.CODE);
+            return true;
+        }, "600px", undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     },
     copyMenus: function (mc) {
         var that = this;
