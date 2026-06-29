@@ -993,7 +993,8 @@ sap.ui.jsview('bin.Dashboard', {
                             titleUppercase: false,
                             showTitle: true,
                         }),
-                        hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
+                        // hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
+                        hbox: new sap.m.HBox({ wrap: sap.m.FlexWrap.Wrap }).addStyleClass("paddingTinyBot")
                         // hbox: new sap.ui.layout.Grid({
                         //     vSpacing: 1,
                         //     hSpacing: 1,
@@ -1039,10 +1040,10 @@ sap.ui.jsview('bin.Dashboard', {
 
                     secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj["dtx"] = dtxM[i];
                     secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj.addStyleClass("mytilex");
-                    if (secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.getContent() == 0)
+                    if (secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.getItems().length == 0)
                         secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj.addBlock(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox);
 
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.addContent(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj);
+                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.addItem(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj);
                 }
 
             }

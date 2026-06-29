@@ -1,7 +1,5 @@
 sap.ui.jsfragment("bin.forms.jo.jo", {
 
-    //TODO show dashboard with how many active 
-    //TODO CLOSEJO to just close in case.
 
     createContent: function (oController) {
         var that = this;
@@ -155,8 +153,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                             saveForm(fnExe, "production");
                         }
 
-                    });
-                    //TODO mockup sales wizard to show atleast multiple invoices 
+                    });                    
 
                     thatForm.commands.cmdDlv = new sap.m.Button({
                         icon: thatForm.rectangleIcon,

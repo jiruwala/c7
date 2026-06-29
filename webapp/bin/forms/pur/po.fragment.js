@@ -1,14 +1,14 @@
 sap.ui.jsfragment("bin.forms.pur.po", {
 
-    //TODO Prices fetch from contract 
+    //TODO 97. Prices fetch from contract 
 
-    //TODO description can be re-written and columns arragment
+    //TODO 98.description can be re-written and columns arragment
 
 
     //LATER po wizard to select many pos and close in one purchase.
 
     //LATER approve if same approved user logon
-    // PO can be Unclosed if closed , delete delivery and can delete PO
+    //LATER PO can be Unclosed if closed , delete delivery and can delete PO
 
 
     createContent: function (oController) {
@@ -900,7 +900,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                         UtilGen.PurchaseOrderFunc.initAction.purInvs + "/purInvs," +
                         UtilGen.PurchaseOrderFunc.initAction.closePO + "/closePO"
                 },
-                //TODO get data if entered no
+                //TODO 99.get data if entered no
                 ord_rfr: {
                     colname: "ord_rfr",
                     data_type: FormView.DataType.String,
@@ -1102,7 +1102,7 @@ sap.ui.jsfragment("bin.forms.pur.po", {
                     require: true,
                     list: "select null code,null name  from dual"
                 },
-                //TODO get data if entered no
+                //TODO 99. get data if entered no
                 ord_no: {
                     colname: "ord_no",
                     data_type: FormView.DataType.String,

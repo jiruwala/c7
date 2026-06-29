@@ -2032,6 +2032,8 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 // if (can_issue < allqty)
                 //     errRow(i, "Save Denied : Can issue only " + (can_issue / pk) + " " + pkd);
             }
+            
+            //TODO 100.use  timeInLong  variable to store and delete temporary table to avoid lock from other user 
             var sqlCountHead = "Declare " +
                 "rowno number:=-1; " +
                 "str number; " +
