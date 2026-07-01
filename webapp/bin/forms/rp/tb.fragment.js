@@ -363,7 +363,7 @@ sap.ui.jsfragment("bin.forms.rp.tb", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "balance",
+                        selectedKey: "trans",
                     },
                     list: strLst,
                     edit_allowed: true,
