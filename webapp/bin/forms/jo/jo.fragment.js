@@ -419,7 +419,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 var sq = "update pord1 set ord_flag=2,APPROVED_BY=':approved_by'," +
                     ":st approved_time=sysdate where keyfld=" + kf;
                 var pt = Util.getSQLValue("select payterm from pord1 where keyfld=" + kf);
-                if (pt == "outside" || pt == "digial")
+                if (pt == "outside" || pt == "digial" || pt == "plotter")
                     sq = sq.replaceAll(":st", "jo_dye_user=':approved_by' , ");
                 else
                     sq = sq.replaceAll(":st", "");
@@ -683,6 +683,20 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 items: [new sap.m.Text({ width: "20px" }),
                     btDye, btPlate]
             });
+            var autTm = new sap.m.Button(
+                {
+                    text: "Get Times",
+                    enabled: commands[para].showRecs ? false : true,
+                    press: function () {
+                        if (commands[(para == "plate" ? "dye" : para)].showRecs)
+                            return;
+                        var nowtim = Date.now();
+                        txtStepTime.setDateValue(new Date(nowtim));
+                        txtStepTimeSend.setDateValue(new Date(nowtim - (1000 * 120)));
+                    }
+                }
+            )
+
             var vb = new sap.m.VBox();
             var doSave = function () {
                 var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
@@ -738,6 +752,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
             var fe = [
                 ((para == "plate" || para == "dye") ? hb : Util.getLabelTxt("", "0px", "", "")),
+                Util.getLabelTxt("", "0px", "", ""),
+                autTm,
                 Util.getLabelTxt("Step Type", "30%", "", "redText"), txtStepType,
                 Util.getLabelTxt("Sent/Start", "30%", ""), txtStepTimeSend,
                 Util.getLabelTxt("Received Time", "30%", ""), txtStepTime,
@@ -1125,8 +1141,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         var fetchData = function () {
 
             var sqf = thatForm.frm.parseString("select p.item_pos,p.refer,i.descr,p.packd," +
-                "p.unitd,p.pack,pkqty,C7_GET_STORE_ITEM_ALLQTY(p.refer)/p.pack qih ," +
-                "p.allqty " +
+                "p.unitd,p.pack,pkqty,(C7_GET_STORE_ITEM_ALLQTY(p.refer) - (c7_getJoQty(refer,':qry1.keyfld')))/p.pack qih ," +
+                " (c7_getJoQty(refer,':qry1.keyfld')/p.pack) APPROVED_ORDER,p.allqty,i.itprice4 " +
                 " from pord_jo_exp p,items i where i.reference=p.refer " +
                 "and p.keyfld=':qry1.keyfld' and p.exp_type=1 order by p.item_pos");
             var dt = Util.execSQL(sqf);
@@ -1149,12 +1165,16 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 qv.mLctb.cols[qv.mLctb.getColPos("QIH")].getMUIHelper().display_style = "font-size:14px;"
                 qv.mLctb.cols[qv.mLctb.getColPos("PKQTY")].getMUIHelper().display_format = "QTY_FORMAT";
                 qv.mLctb.cols[qv.mLctb.getColPos("QIH")].getMUIHelper().display_format = "QTY_FORMAT";
+                qv.mLctb.cols[qv.mLctb.getColPos("APPROVED_ORDER")].getMUIHelper().display_format = "QTY_FORMAT";
+                qv.mLctb.cols[qv.mLctb.getColPos("APPROVED_ORDER")].getMUIHelper().display_width = 100;
                 qv.mLctb.cols[qv.mLctb.getColPos("ALLQTY")].mHideCol = true;
+                qv.mLctb.cols[qv.mLctb.getColPos("ITPRICE4")].getMUIHelper().display_width = 0;
 
                 qv.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                     var oModel = this.getControl().getModel();
                     var qih = Util.extractNumber(oModel.getProperty("QIH", currentRowContext));
                     var pkqty = Util.extractNumber(oModel.getProperty("PKQTY", currentRowContext));
+                    var ip = Util.extractNumber(oModel.getProperty("ITPRICE4", currentRowContext));
                     if (pkqty > qih)
                         for (var i = startCell; i < endCell; i++) {
                             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", "red");
@@ -1165,6 +1185,15 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
+                var ld = qv.mLctb;
+                for (var i = 0; i < ld.rows.length; i++) {
+                    var ip = ld.getFieldValue(i, "ITPRICE4");
+                    if (ip > 0) {
+                        ld.setFieldValue(i, "QIH", (ld.getFieldValue(i, "ALLQTY") / ld.getFieldValue(i, "PACK")));
+                        ld.setFieldValue(i, "APPROVED_ORDER", 0);
+                    }
+                }
+                qv.updateDataToControl();
 
                 setTimeout(() => {
                     var ld = qv.mLctb;
@@ -2071,7 +2100,8 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         var df = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " h:m:a");
         var sqj = "select ord_flag,ordacc," +
             "JO_DESIGN_USER,to_char(JO_DESIGN_TIME,'mm/dd//rrrr hh24.mi' ) JO_DESIGN_TIME," +
-            "JO_DYE_USER,to_char(JO_DYE_TIME,'mm/dd//rrrr hh24.mi' ) JO_DYE_TIME," +
+            "JO_DYE_USER,to_char(nvl(JO_DYE_TIME,MODIFIED_TIME),'mm/dd//rrrr hh24.mi' ) JO_DYE_TIME," +
+            " to_char(nvl(JO_PLATE_TIME,MODIFIED_TIME),'mm/dd//rrrr hh24.mi' ) JO_PLATE_TIME , " +
             "JO_STOCK_USER,to_char(JO_STOCK_TIME,'mm/dd//rrrr hh24.mi' ) JO_STOCK_TIME " +
             " from pord1 where keyfld="
             + thatForm.frm.getFieldValue("keyfld");
@@ -2084,6 +2114,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
         var dest = new Date(dt[0].JO_DESIGN_TIME.replaceAll(".", ":"));
         var dyt = new Date(dt[0].JO_DYE_TIME.replaceAll(".", ":"));
+        var plt = new Date(dt[0].JO_PLATE_TIME.replaceAll(".", ":"));
         var dstt = new Date(dt[0].JO_STOCK_TIME.replaceAll(".", ":"));
         var tp = new Date(Math.max(dest.getTime(), dyt.getTime(), dstt.getTime()));
         Util.simpleConfirmDialog(Util.getLangText("Are you sure to activate this JO from ->  " + df.format(tp) + " ?"), function (oAction) {
@@ -2636,6 +2667,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                         display_style: "redText boldText"
                     }, {
                     change: function () {
+                        thatForm.helperFunc.fetchItem(false);
                     }
                 }),
                 ord_date: FormView.getFactoryFields.getDateField(
@@ -2649,7 +2681,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     "payterm", "", "joSection",
                     "15%", "", "35%",
                     {
-                        list: "@digital/Digital,outside/Outside,offset/Offset",
+                        list: "@digital/Digital,outside/Outside,offset/Offset,plotter/Plotter",
                         require: true
                     }, {
 
@@ -3059,7 +3091,29 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             thatForm.frm.setFieldValue('qry2.otherexp', df.format(totOtherExp));
             thatForm.frm.setFieldValue('qry2.totcost', df.format(totMatExp + totOtherExp));
         },
+        fetchItem: function () {
+            var rfrFld = "ord_no";
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                return;
+            setTimeout(function () {
+                var rfr = thatForm.frm.getFieldValue("qry1." + rfrFld);
+                var loc = thatForm.frm.getFieldValue("qry1.location_code");
+                var qr = Util.execSQLWithData("select keyfld,ord_refnm from pord1 where location_code='" + loc + "' and ORD_CODE=601 AND " + rfrFld + "='" + rfr + "'");
+                if (Util.nvl(qr, "") == "" || qr.length == 0)
+                    return;
+                var rfrx = qr[0].KEYFLD;
+                var desx = qr[0].ORD_DESCR;
+                if (qr.length == 1)
+                    Util.simpleConfirmDialog("Delivery existed for client :" + desx + " fetch data ?", function (oAction) {
+                        thatForm.frm.setFieldValue('pac', rfrx);
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
 
+                    }, undefined, undefined, "OK");
+
+            });
+        },
     }
     ,
     loadData: function () {
