@@ -243,7 +243,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             var rowIdx = tbl.getRows().indexOf(obj.getParent());
             var absRow = tbl.getFirstVisibleRow() + rowIdx;
             var dayNo = parseInt(lctb.cols[colno].mColName.replace("D" + ""));
-            that._onCellClick(absRow, "D" + dayNo, dayNo, tbl);
+            that._onCellClick(absRow, "D" + dayNo, dayNo, tbl, obj);
         }
 
         for (var i = 1; i <= iDays; i++)
@@ -331,167 +331,215 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         });
     },
 
-    /* ── _onCellClick ─────────────────────────────────────────── */
-    _onCellClick: function (iAbsRow, sColName, iDay) {
+    _onCellClick: function (iAbsRow, sColName, iDay, obj) {
         var that = this;
         var oTable = this._qr.getControl();
         var oModel = oTable.getModel();
         var aData = oModel.getData();
         if (!aData || iAbsRow >= aData.length) return;
-
         var oRec = aData[iAbsRow];
-        var stored = oRec["_rec_" + iDay] || {};
 
+        /* store context for later use */
         this._oCellCtx = {
             absRow: iAbsRow,
             colName: sColName,
             day: iDay,
             empId: oRec.EMP_ID,
             empCode: oRec.EMP_CODE,
-            empName: oRec.EMP_NAME
+            empName: oRec.EMP_NAME,
+            currentType: oRec[sColName] || "P"
         };
 
-        if (!this._oPopover) this._buildPopover();
+        /* create menu items */
+        var aMenuItems = [
+            { key: "P", text: "✅ Present" },
+            { key: "A", text: "❌ Absent" },
+            { key: "WO", text: "📅 Weekly Off" },
+            { key: "PH", text: "🎉 Public Holiday" },
+            { key: "AL", text: "🏖 Annual Leave" },
+            { key: "SL", text: "🤒 Sick Leave" },
+            { key: "UL", text: "💰 Unpaid Leave" },
+            { key: "OT", text: "⏰ Overtime" },
+            { key: "HD", text: "🌗 Half Day" }
+        ];
 
-        this._oCellModel.setData({
-            title: oRec.EMP_CODE + " – " + oRec.EMP_NAME + "  |  Day " + iDay,
-            day_type: stored.DAY_TYPE || oRec[sColName] || "P",
-            leave_type: stored.LEAVE_TYPE || "",
-            day_fraction: stored.DAY_FRACTION !== undefined ? stored.DAY_FRACTION : 1.0,
-            ot_hours: stored.OT_HOURS || 0,
-            late_min: stored.LATE_MIN || 0,
-            remarks: stored.REMARKS || ""
+        var oMenu = new sap.m.Menu();
+        aMenuItems.forEach(function (it) {
+            oMenu.addItem(new sap.m.MenuItem({
+                text: it.text,
+                key: it.key,
+                press: function (oEv) {
+                    var sKey = oEv.getParameter("item").getKey();
+                    if (sKey === "P") {
+                        that._openPresentPopup();
+                    } else {
+                        that._applyStatus(sKey);
+                    }
+                }
+            }));
         });
 
-        /* open near clicked DOM cell */
+        /* open near clicked cell */
         var oDom = document.querySelector(
             "[data-col='" + sColName + "'][data-row='" + iAbsRow + "']"
         );
         if (oDom) {
-            /* wrap in jQuery-compatible opener */
-            this._oPopover.openBy(
-                sap.ui.getCore().byId(
-                    jQuery(oDom).closest("[data-sap-ui]").attr("id")
-                ) || oTable
+            var oControl = sap.ui.getCore().byId(
+                jQuery(oDom).closest("[data-sap-ui]").attr("id")
             );
-        } else {
-            this._oPopover.openBy(oTable);
-        }
-    },
-
-    /* ── _buildPopover ────────────────────────────────────────── */
-    _buildPopover: function () {
-        var that = this;
-        this._oCellModel = new sap.ui.model.json.JSONModel();
-
-        var oDTSel = new sap.m.ComboBox({
-            width: "100%",
-            selectedKey: "{/day_type}",
-            change: function (e) {
-                var v = UtilGen.getControlValue(oDTSel);
-                that._oCellModel.setProperty("/day_type", v);
-                var frac = (v === "A" || v === "WO" || v === "PH") ? 0
-                    : v === "HD" ? 0.5 : 1.0;
-                that._oCellModel.setProperty("/day_fraction", frac);
+            if (oControl) {
+                oMenu.openBy(oControl);
+                return;
             }
-        }).setModel(this._oCellModel);
-
-        [
-            { key: "P", text: "P  – Present" },
-            { key: "A", text: "A  – Absent" },
-            { key: "WO", text: "WO – Weekly Off" },
-            { key: "PH", text: "PH – Public Holiday" },
-            { key: "AL", text: "AL – Annual Leave" },
-            { key: "SL", text: "SL – Sick Leave" },
-            { key: "UL", text: "UL – Unpaid Leave" },
-            { key: "OT", text: "OT – Overtime" },
-            { key: "HD", text: "HD – Half Day" }
-        ].forEach(function (it) {
-            oDTSel.addItem(new sap.ui.core.Item({ key: it.key, text: it.text }));
-        });
-
-        var oLTSel = new sap.m.ComboBox({
-            width: "100%",
-            selectedKey: "{/leave_type}"
-        }).setModel(this._oCellModel);
-        [
-            { key: "", text: "None" },
-            { key: "AL", text: "AL – Annual Leave" },
-            { key: "SL", text: "SL – Sick Leave" },
-            { key: "UL", text: "UL – Unpaid Leave" }
-        ].forEach(function (it) {
-            oLTSel.addItem(new sap.ui.core.Item({ key: it.key, text: it.text }));
-        });
-
-        /* use UtilGen.formCreate style for the popover fields */
-        var oFrm = UtilGen.formCreate(
-            "", true,
-            [
-                "Day Type", oDTSel,
-                "Leave Type", oLTSel,
-                "Fraction",
-                new sap.m.StepInput({ value: "{/day_fraction}", min: 0, max: 1, step: 0.5, width: "100%" })
-                    .setModel(this._oCellModel),
-                "OT Hours",
-                new sap.m.StepInput({ value: "{/ot_hours}", min: 0, max: 24, step: 0.5, width: "100%" })
-                    .setModel(this._oCellModel),
-                "Late (min)",
-                new sap.m.StepInput({ value: "{/late_min}", min: 0, max: 480, step: 5, width: "100%" })
-                    .setModel(this._oCellModel),
-                "Remarks",
-                new sap.m.Input({ value: "{/remarks}", width: "100%" })
-                    .setModel(this._oCellModel)
-            ],
-            [12, 4, 4, 3], [0, 1, 1, 1], [1, 1, 2]
-        );
-        oFrm.setModel(this._oCellModel);
-
-        this._oPopover = new sap.m.Popover({
-            title: "{/title}",
-            placement: sap.m.PlacementType.Auto,
-            contentWidth: "300px",
-            content: [oFrm],
-            footer: new sap.m.Toolbar({
-                content: [
-                    new sap.m.ToolbarSpacer(),
-                    new sap.m.Button({
-                        text: "Apply",
-                        type: "Emphasized",
-                        press: function () { that._applyCell(); }
-                    }),
-                    new sap.m.Button({
-                        text: "Cancel",
-                        press: function () { that._oPopover.close(); }
-                    })
-                ]
-            })
-        }).setModel(this._oCellModel);
+        }
+        oMenu.openBy(obj);
     },
 
-    /* ── _applyCell ───────────────────────────────────────────── */
-    _applyCell: function () {
+    /* ── _applyStatus (non‑Present) ──────────────────────────── */
+    _applyStatus: function (sStatus) {
         var ctx = this._oCellCtx;
+        if (!ctx) return;
         var oTable = this._qr.getControl();
         var oModel = oTable.getModel();
         var aData = oModel.getData();
         var oRec = aData[ctx.absRow];
-        var dt = this._oCellModel.getProperty("/day_type");
-        var clr = this._DAY_COLORS[dt] || { bg: "#f5f5f5", fg: "#333" };
 
-        /* update model row */
-        oRec[ctx.colName] = dt;
+        oRec[ctx.colName] = sStatus;
         oRec["_rec_" + ctx.day] = {
             EMP_ID: ctx.empId,
             DAY_NO: ctx.day,
-            DAY_TYPE: dt,
-            LEAVE_TYPE: this._oCellModel.getProperty("/leave_type") || "",
-            DAY_FRACTION: this._oCellModel.getProperty("/day_fraction"),
-            OT_HOURS: this._oCellModel.getProperty("/ot_hours") || 0,
-            LATE_MIN: this._oCellModel.getProperty("/late_min") || 0,
-            REMARKS: this._oCellModel.getProperty("/remarks") || ""
+            DAY_TYPE: sStatus,
+            LEAVE_TYPE: "",
+            DAY_FRACTION: (sStatus === "A" || sStatus === "WO" || sStatus === "PH") ? 0 :
+                (sStatus === "HD") ? 0.5 : 1,
+            OT_HOURS: 0,
+            LATE_MIN: 0,
+            REMARKS: ""
         };
 
-        /* recalculate summary */
+        this._recalcSummary(oRec);
+        oModel.refresh(true);
+        this._dirty[ctx.empId + "_" + ctx.day] = oRec["_rec_" + ctx.day];
+
+        /* update DOM colour */
+        var clr = this._DAY_COLORS[sStatus] || { bg: "#f5f5f5", fg: "#333" };
+        var oDom = document.querySelector(
+            "[data-col='" + ctx.colName + "'][data-row='" + ctx.absRow + "']"
+        );
+        if (oDom) {
+            oDom.style.background = clr.bg;
+            oDom.style.color = clr.fg;
+            oDom.textContent = sStatus;
+        }
+    },
+
+    /* ── _openPresentPopup ────────────────────────────────────── */
+    _openPresentPopup: function () {
+        var that = this;
+        var ctx = this._oCellCtx;
+        if (!ctx) return;
+
+        /* ── 1. Create a new QueryView ── */
+        var qvPopup = new QueryView("presentPopup" + this.timeInLong);
+        qvPopup.getControl().addStyleClass("sapUiSizeCondensed");
+        qvPopup.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
+        qvPopup.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
+        qvPopup.getControl().setVisibleRowCount(1);
+        qvPopup.getControl().setFixedBottomRowCount(0);
+        qvPopup.getControl().setRowHeight(32);
+        qvPopup.insertable = false;
+        qvPopup.deletable = false;
+        qvPopup.editable = true;
+
+        /* ── 2. Define metadata & columns ── */
+        var metadata = {
+            metadata: [
+                { colname: "IN_TIME", data_type: "STRING", display_width: 120, display_align: "ALIGN_BEGIN", descr: "In Time" },
+                { colname: "OUT_TIME", data_type: "STRING", display_width: 120, display_align: "ALIGN_BEGIN", descr: "Out Time" },
+                { colname: "EXTRA_HOURS", data_type: "NUMBER", display_width: 100, display_align: "ALIGN_END", descr: "Extra Hours" },
+                { colname: "REMARKS", data_type: "STRING", display_width: 200, display_align: "ALIGN_BEGIN", descr: "Remarks" }
+            ],
+            data: [
+                { IN_TIME: "", OUT_TIME: "", EXTRA_HOURS: 0, REMARKS: "" }
+            ]
+        };
+
+        qvPopup.setJsonStrMetaData(JSON.stringify(metadata));
+        qvPopup.mLctb.parse(JSON.stringify(metadata), true);
+        qvPopup.loadData();
+
+        /* ── 3. Dialog with OK/Cancel buttons ── */
+        var oDialog = new sap.m.Dialog({
+            title: ctx.empCode + " – " + ctx.empName + "  |  Day " + ctx.day + "  (Present Details)",
+            content: [qvPopup.getControl()],
+            contentHeight: "200px",
+            contentWidth: "500px",
+            buttons: [
+                new sap.m.Button({
+                    text: "OK",
+                    type: "Emphasized",
+                    press: function () {
+                        var ld = qvPopup.mLctb;
+                        if (ld.rows.length === 0) {
+                            sap.m.MessageToast.show("No data entered.");
+                            return;
+                        }
+                        var oRowData = {
+                            IN_TIME: ld.getFieldValue(0, "IN_TIME") || "",
+                            OUT_TIME: ld.getFieldValue(0, "OUT_TIME") || "",
+                            EXTRA_HOURS: parseFloat(ld.getFieldValue(0, "EXTRA_HOURS")) || 0,
+                            REMARKS: ld.getFieldValue(0, "REMARKS") || ""
+                        };
+                        that._applyPresentWithDetails(oRowData);
+                        oDialog.close();
+                    }
+                }),
+                new sap.m.Button({
+                    text: "Cancel",
+                    press: function () { oDialog.close(); }
+                })
+            ]
+        });
+        oDialog.open();
+    },
+
+    /* ── _applyPresentWithDetails ────────────────────────────── */
+    _applyPresentWithDetails: function (oDetails) {
+        var ctx = this._oCellCtx;
+        if (!ctx) return;
+        var oTable = this._qr.getControl();
+        var oModel = oTable.getModel();
+        var aData = oModel.getData();
+        var oRec = aData[ctx.absRow];
+
+        oRec[ctx.colName] = "P";
+        oRec["_rec_" + ctx.day] = {
+            EMP_ID: ctx.empId,
+            DAY_NO: ctx.day,
+            DAY_TYPE: "P",
+            IN_TIME: oDetails.IN_TIME,
+            OUT_TIME: oDetails.OUT_TIME,
+            EXTRA_HOURS: oDetails.EXTRA_HOURS,
+            REMARKS: oDetails.REMARKS
+        };
+
+        this._recalcSummary(oRec);
+        oModel.refresh(true);
+        this._dirty[ctx.empId + "_" + ctx.day] = oRec["_rec_" + ctx.day];
+
+        var clr = this._DAY_COLORS["P"];
+        var oDom = document.querySelector(
+            "[data-col='" + ctx.colName + "'][data-row='" + ctx.absRow + "']"
+        );
+        if (oDom) {
+            oDom.style.background = clr.bg;
+            oDom.style.color = clr.fg;
+            oDom.textContent = "P";
+        }
+    },
+
+    /* ── _recalcSummary ───────────────────────────────────────── */
+    _recalcSummary: function (oRec) {
         var iP = 0, iA = 0, iOT = 0;
         for (var d = 1; d <= this._iDays; d++) {
             var v = oRec["D" + d] || "P";
@@ -502,23 +550,6 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         oRec.S_P = iP;
         oRec.S_A = iA;
         oRec.S_OT = iOT;
-
-        oModel.refresh(true);
-
-        /* mark dirty */
-        this._dirty[ctx.empId + "_" + ctx.day] = oRec["_rec_" + ctx.day];
-
-        /* patch DOM directly — same fast approach as db.fragment inline edits */
-        var oDom = document.querySelector(
-            "[data-col='" + ctx.colName + "'][data-row='" + ctx.absRow + "']"
-        );
-        if (oDom) {
-            oDom.style.background = clr.bg;
-            oDom.style.color = clr.fg;
-            oDom.textContent = dt;
-        }
-
-        this._oPopover.close();
     },
 
     /* ── saveAttendance ───────────────────────────────────────── */
