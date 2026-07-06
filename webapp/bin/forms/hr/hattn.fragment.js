@@ -68,6 +68,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(recs);
         qr.getControl().setFixedBottomRowCount(0);
+        qr.getControl().setFixedColumnCount(2);
         qr.getControl().setRowHeight(30);
         qr.insertable = false;
         qr.deletable = false;
@@ -117,48 +118,42 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var fe = [];
 
         /* destroy old controls if re-rendering */
-        Util.destroyID("cbMonth" + this.timeInLong, view);
-        Util.destroyID("cbYear" + this.timeInLong, view);
-        Util.destroyID("cbDept" + this.timeInLong, view);
+        var oMonthYearInput = new sap.m.Input({
+            width: "120px",
+            placeholder: "YYYY/MM",
+            value: this._getDefaultMonthYear(),
+            change: function () { that.loadData(); },
+            customData: [new sap.ui.core.CustomData({ key: "", value: "" })]
+        });
+        oMonthYearInput.addStyleClass("sapUiSmallMarginEnd");
 
-        /* Title label */
-        var lblTitle = Util.getLabelTxt(
-            "Attendance Entry",
-            "100%", "", "titleFontWithoutPad2 boldText"
-        );
+        var btUp = new sap.m.Button({
+            icon: "sap-icon://up",
+            tooltip: "Next month",
+            press: function () { that._stepMonth(1); }
+        });
+        var btDown = new sap.m.Button({
+            icon: "sap-icon://down",
+            tooltip: "Previous month",
+            press: function () { that._stepMonth(-1); }
+        });
 
-        /* Month combo  — UtilGen.addControl pattern from db.fragment */
-        var cbMonth = UtilGen.addControl(
-            fe, "Month", sap.m.ComboBox, "cbMonth" + this.timeInLong,
-            {
-                width: "130px",
-                selectionChange: function () { that.loadData(); }
-            },
-            "string", undefined, view, undefined,
-            "@1/January,2/February,3/March,4/April,5/May,6/June," +
-            "7/July,8/August,9/September,10/October,11/November,12/December"
-        );
-
-        /* Year combo */
-        var cbYear = UtilGen.addControl(
-            fe, "Year", sap.m.ComboBox, "cbYear" + this.timeInLong,
-            {
-                width: "90px",
-                selectionChange: function () { that.loadData(); }
-            },
-            "string", undefined, view, undefined,
-            "@2023/2023,2024/2024,2025/2025,2026/2026,2027/2027"
-        );
+        this.oMonthYearInput = oMonthYearInput;
 
         /* Department combo */
         var cbDept = UtilGen.addControl(
             fe, "Department", sap.m.ComboBox, "cbDept" + this.timeInLong,
             {
+                items: {
+                    path: "/",
+                    template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                    templateShareable: true
+                },
                 width: "150px",
                 selectionChange: function () { that.loadData(); }
             },
             "string", undefined, view, undefined,
-            "@/All,Production/Production,Admin/Admin,Finance/Finance,HR/HR,IT/IT"
+            "@all/All"
         );
 
         /* Refresh button */
@@ -166,39 +161,65 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             icon: "sap-icon://refresh",
             press: function () { that.loadData(); }
         });
-        fe.push(""); fe.push(btRefresh);
-
-        /* set current month + year defaults */
-        var oNow = new Date();
-        UtilGen.setControlValue(cbMonth, oNow.getMonth() + 1,
-            oNow.getMonth() + 1, false);
-        UtilGen.setControlValue(cbYear, oNow.getFullYear(),
-            oNow.getFullYear(), false);
+        var cmdClose = new sap.m.Button({
+            icon: "sap-icon://decline",
+            text: Util.getLangText("cmdClose"),
+            press: function () {
+                that.joApp.backFunction();
+            }
+        });
 
         /* store refs for loadData */
-        this.cbMonth = cbMonth;
-        this.cbYear = cbYear;
         this.cbDept = cbDept;
 
-        /* formCreate2 — same style as db.fragment createViewHeader */
-        var cnt = UtilGen.formCreate2(
-            "", true, fe, undefined, sap.m.ScrollContainer,
-            {
-                width: { "S": 380, "M": 580, "L": 780, "XL": 980 },
-                cssText: [
-                    "padding-left:8px;" +
-                    "padding-top:4px;" +
-                    "border-style:groove;" +
-                    "margin-left:1%;" +
-                    "margin-right:1%;" +
-                    "border-radius:10px;" +
-                    "margin-top:4px;"
-                ]
-            },
-            "sapUiSizeCompact", ""
-        );
+        /* layout using UtilGen.formCreate2 */
+        var fe = [
+            Util.getLabelTxt("Attendance Sheet", "100%", "", "titleFontWithoutPad2 boldText"),
+            Util.getLabelTxt("Month/Year", "15%"), oMonthYearInput,
+            Util.getLabelTxt("", "0px", "@"), btDown, btUp,
+            Util.getLabelTxt("Dept", "15%", "@"), cbDept,
+            Util.getLabelTxt("", "1%", "@"), btRefresh,
+            Util.getLabelTxt("", "1%", "@"), cmdClose,
+        ];
+
+        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+            width: { "S": 380, "M": 580, "L": 680, "XL": 780, "XXL": 800 },
+            cssText: [
+                "padding-left:2px ;" +
+                "padding-top:2px;" +
+                "border-style: groosve;" +
+                "margin-left: 1%;" +
+                "margin-right: 1%;" +
+                "border-radius:20px;" +
+                "margin-top: 2px;"
+            ]
+        }, "sapUiSizeCompact", "");
 
         this.mainPage.addContent(cnt);
+    },
+    _getDefaultMonthYear: function () {
+        var d = new Date();
+        return d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0");
+    },
+
+    _stepMonth: function (delta) {
+        var sVal = this.oMonthYearInput.getValue();
+        var parts = sVal.split("/");
+        if (parts.length !== 2) return;
+        var m = parseInt(parts[1]) - 1; // JS month 0‑based
+        var y = parseInt(parts[0]);
+        var d = new Date(y, m + delta, 1);
+        this.oMonthYearInput.setValue(
+            d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0")
+        );
+        this.loadData();
+    },
+
+    _getMonthYearFromInput: function () {
+        var sVal = this.oMonthYearInput.getValue();
+        var parts = sVal.split("/");
+        if (parts.length !== 2) return { month: new Date().getMonth() + 1, year: new Date().getFullYear() };
+        return { month: parseInt(parts[1]), year: parseInt(parts[0]) };
     },
 
     /* ── loadData ─────────────────────────────────────────────── */
@@ -216,161 +237,47 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         this._iMonth = iMonth;
         this._iDays = iDays;
         this._dirty = {};
+        var colsStr = "";
+        var cmdLink = function (obj, rowno, colno, lctb, frm) {
+            var tbl = obj.getParent().getParent();
+            var rowIdx = tbl.getRows().indexOf(obj.getParent());
+            var absRow = tbl.getFirstVisibleRow() + rowIdx;
+            var dayNo = parseInt(lctb.cols[colno].mColName.replace("D" + ""));
+            that._onCellClick(absRow, "D" + dayNo, dayNo, tbl);
+        }
 
-        // Util.doSpin("Loading attendance...");
+        for (var i = 1; i <= iDays; i++)
+            colsStr += (colsStr.length > 0 ? " , " : "") + " '-' as D" + i + " ";
 
-        // ── REAL DB CALL ─────────────────────────────────────────
         var dtEmp = Util.execSQL(
-            "select e.emp_code, e.emp_name " +
-            "from c7hr_emp e " +
+            "select emp_cd,name1 , " + colsStr +
+            " from c7hr_emp e " +
             "where e.flag=1 " +
-            (sDept != "" ? " and e.department='" + sDept + "'" : "") +
-            " order by e.emp_code"
-        );
-        var dtAtt = Util.execSQL(
-            "select a.emp_code, to_number(to_char(a.att_date,'DD')) day_no, " +
-            " a.day_type, a.leave_type, a.day_fraction, a.ot_hours, a.late_min, a.remarks " +
-            "from c7hr_attend a " +
-            "where to_char(a.att_date,'YYYY')='" + iYear + "' " +
-            " and to_char(a.att_date,'MM')='" + String(iMonth).padStart(2, '0') + "' " +
-            (sDept != "" ?
-                " and a.emp_id in (select emp_id from c7hr_employee where department='" + sDept + "')" : "") +
-            " order by a.emp_id, day_no"
+            // (sDept != "" ? " and e.department='" + sDept + "'" : "") +
+            " order by e.emp_cd"
         );
         if (dtEmp.ret == "SUCCESS") {
-            var aEmp = JSON.parse("{" + dtEmp.data + "}").data;
-            var aAtt = dtAtt.ret == "SUCCESS" ? JSON.parse("{" + dtAtt.data + "}").data : [];
-            that._buildMatrix(iYear, iMonth, iDays, aEmp, aAtt, qv);
-        }
-        //    Util.stopSpin();
-        // ───────────────────────────────────────────────────────── 
+            qv.setJsonStrMetaData("{" + dtEmp.data + "}");
+            for (var i = 1; i <= iDays; i++) {
+                Util.setColProperties(qv, "D" + i, {
+                    "mTitle": "Day " + i,
+                    // "mSummary": "COUNT_UNIQUE",
+                    "display_width": 70,
+                });
+                qv.mLctb.cols[qv.mLctb.getColPos("D" + i)].commandLinkClick = cmdLink;
 
-    },
-
-    /* ── _buildMatrix ─────────────────────────────────────────── */
-    _buildMatrix: function (iYear, iMonth, iDays, aEmp, aAtt, qv) {
-        var that = this;
-        var oLctb = qv.mLctb;
-
-        /* build attend map: empId_day → record */
-        var oAttMap = {};
-        aAtt.forEach(function (r) {
-            oAttMap[r.EMP_ID + "_" + r.DAY_NO] = r;
-        });
-
-        /* ── build JSON for qv.setJsonStrMetaData ── */
-        /*
-         * We build a metadata+data JSON string in the same format
-         * as Util.execSQL returns (like db.fragment does with dt.data).
-         * metadata: column definitions
-         * data:     rows
-         */
-        var aCols = [];
-        aCols.push({ colname: "EMP_ID", data_type: "NUMBER", display_format: "", display_width: 0, display_align: "ALIGN_CENTER" });
-        aCols.push({ colname: "EMP_CODE", data_type: "STRING", display_format: "", display_width: 70, display_align: "ALIGN_CENTER" });
-        aCols.push({ colname: "EMP_NAME", data_type: "STRING", display_format: "", display_width: 150, display_align: "ALIGN_BEGIN" });
-
-        for (var d = 1; d <= iDays; d++) {
-            var dn = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][new Date(iYear, iMonth - 1, d).getDay()];
-            aCols.push({
-                colname: "D" + d,
-                data_type: "STRING",
-                display_format: "",
-                display_width: 36,
-                display_align: "ALIGN_CENTER",
-                _isDay: true,
-                _dayNo: d,
-                _dayName: dn,
-                _isWeekend: (dn === "Fr" || dn === "Sa")
-            });
-        }
-        aCols.push({ colname: "S_P", data_type: "NUMBER", display_format: "", display_width: 40, display_align: "ALIGN_CENTER" });
-        aCols.push({ colname: "S_A", data_type: "NUMBER", display_format: "", display_width: 40, display_align: "ALIGN_CENTER" });
-        aCols.push({ colname: "S_OT", data_type: "NUMBER", display_format: "", display_width: 40, display_align: "ALIGN_CENTER" });
-
-        /* build data rows */
-        var aRows = [];
-        aEmp.forEach(function (e) {
-            var row = {};
-            var iP = 0, iA = 0, iOT = 0;
-            row.EMP_ID = e.EMP_ID;
-            row.EMP_CODE = e.EMP_CODE;
-            row.EMP_NAME = e.EMP_NAME;
-
-            for (var d = 1; d <= iDays; d++) {
-                var rec = oAttMap[e.EMP_ID + "_" + d]
-                    || {
-                        DAY_TYPE: "P", LEAVE_TYPE: "", DAY_FRACTION: 1.0,
-                    OT_HOURS: 0, LATE_MIN: 0, REMARKS: ""
-                };
-                var dt = rec.DAY_TYPE || "P";
-                row["D" + d] = dt;
-                row["_rec_" + d] = rec;   /* store full rec for save */
-                if (dt === "P") iP++;
-                if (dt === "OT") { iP++; iOT++; }
-                if (dt === "A") iA++;
             }
-            row.S_P = iP;
-            row.S_A = iA;
-            row.S_OT = iOT;
-            aRows.push(row);
-        });
+            qv.getControl().attachRowsUpdated(function () {
+                setTimeout(function () { that._colorDayCells(qv); });
+            });
 
-        /* build metadata JSON string — same format Util.execSQL returns */
-        var metaStr = '"metadata":' + JSON.stringify({ columns: aCols });
-        var dataStr = '"data":' + JSON.stringify(aRows);
-        var jsonFull = "{" + metaStr + "," + dataStr + "}";
-
-        /* parse into QueryView — same as db.fragment loadData pattern */
-        qv.setJsonStrMetaData(jsonFull);
-
-        /* ── column settings — same as db.fragment col tuning ── */
-        var lctb = qv.mLctb;
-
-        /* set titles */
-        var cCode = lctb.getColByName("EMP_CODE");
-        if (cCode) cCode.mTitle = "Code";
-        var cName = lctb.getColByName("EMP_NAME");
-        if (cName) cName.mTitle = "Employee";
-
-        /* day column headers: show day number + dow */
-        for (var d = 1; d <= iDays; d++) {
-            var cx = lctb.getColByName("D" + d);
-            if (!cx) continue;
-            var dn = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
-            [new Date(iYear, iMonth - 1, d).getDay()];
-            cx.mTitle = d + "\n" + dn;
-            cx._isDay = true;
-            cx._dayNo = d;
-            cx._isWeekend = (dn === "Fr" || dn === "Sa");
-
-            /* cell click handler on day columns */
-            cx.commandLinkClick = (function (dayNo) {
-                return function (oCtrl) {
-                    var tbl = oCtrl.getParent().getParent();
-                    var rowIdx = tbl.getRows().indexOf(oCtrl.getParent());
-                    var absRow = tbl.getFirstVisibleRow() + rowIdx;
-                    that._onCellClick(absRow, "D" + dayNo, dayNo, tbl);
-                };
-            }(d));
+            qv.mLctb.parse("{" + dtEmp.data + "}", true);
+            qv.loadData();
+            qv.getControl().setFirstVisibleRow(0);
         }
-
-        var cSP = lctb.getColByName("S_P"); if (cSP) cSP.mTitle = "P";
-        var cSA = lctb.getColByName("S_A"); if (cSA) cSA.mTitle = "A";
-        var cSOT = lctb.getColByName("S_OT"); if (cSOT) cSOT.mTitle = "OT";
-
-        /* fix columns: EMP_CODE + EMP_NAME */
-        qv.getControl().setFixedColumnCount(2);
-
-        /* colour rows hook — same as db.fragment colorRows pattern */
-        qv.getControl().attachRowsUpdated(function () {
-            setTimeout(function () { that._colorDayCells(qv); });
+        setTimeout(() => {
+            UtilGen.DBView.autoShowHideMenu(false, that.joApp);
         });
-
-        /* parse + load — same as db.fragment */
-        lctb.parse(jsonFull, true);
-        qv.loadData();
-        qv.getControl().setFirstVisibleRow(0);
     },
 
     /* ── _colorDayCells ───────────────────────────────────────── */
