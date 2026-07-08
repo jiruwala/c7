@@ -13,25 +13,22 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
      *           • QueryView for the grid
      **************************************************************/
 
-    /* ── day-type colour map ──────────────────────────────────── */
-    _DAY_COLORS: {
-        P: { bg: "#e8f5e9", fg: "#2e7d32" },
-        A: { bg: "#ffebee", fg: "#c62828" },
-        WO: { bg: "#e3f2fd", fg: "#1565c0" },
-        PH: { bg: "#fff9c4", fg: "#f57f17" },
-        AL: { bg: "#f3e5f5", fg: "#6a1b9a" },
-        SL: { bg: "#fce4ec", fg: "#880e4f" },
-        UL: { bg: "#fbe9e7", fg: "#bf360c" },
-        OT: { bg: "#e0f2f1", fg: "#00695c" },
-        HD: { bg: "#fff3e0", fg: "#e65100" }
-    },
-
-    /* ── createContent ────────────────────────────────────────── */
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
         this.view = oController.getView();
         this.timeInLong = (new Date()).getTime();
+        that.aMenuItems = [
+            { key: "P", text: "Present", icon: "✅" },
+            { key: "A", text: "Absent", icon: "❌" },
+            { key: "WO", text: "Weekly Off", icon: "📅" },
+            { key: "PH", text: "Public Holiday", icon: "🎉" },
+            { key: "AL", text: "Annual Leave", icon: "🏖" },
+            { key: "SL", text: "Sick Leave", icon: "🤒" },
+            { key: "UL", text: "Unpaid Leave", icon: "💰" },
+            { key: "OT", text: "Overtime", icon: "⏰" },
+            { key: "HD", text: "Half Day", icon: "🌗" }
+        ];
 
         /* SplitApp wrapper — same pattern as db.fragment */
         this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
@@ -45,8 +42,6 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
         this.joApp.addDetailPage(this.mainPage);
         this.joApp.to(this.mainPage, "show");
-
-        this._injectCSS();
         return this.joApp;
     },
 
@@ -242,8 +237,8 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             var tbl = obj.getParent().getParent();
             var rowIdx = tbl.getRows().indexOf(obj.getParent());
             var absRow = tbl.getFirstVisibleRow() + rowIdx;
-            var dayNo = parseInt(lctb.cols[colno].mColName.replace("D" + ""));
-            that._onCellClick(absRow, "D" + dayNo, dayNo, tbl, obj);
+            var dayNo = parseInt(lctb.cols[colno].mColName.replace("D", ""));
+            that._onCellClick(absRow, "D" + dayNo, dayNo, obj);
         }
 
         for (var i = 1; i <= iDays; i++)
@@ -268,67 +263,44 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
             }
             qv.getControl().attachRowsUpdated(function () {
-                setTimeout(function () { that._colorDayCells(qv); });
+                // setTimeout(function () { that._colorDayCells(qv); });
             });
 
             qv.mLctb.parse("{" + dtEmp.data + "}", true);
             qv.loadData();
             qv.getControl().setFirstVisibleRow(0);
+            that.readData();
         }
         setTimeout(() => {
             UtilGen.DBView.autoShowHideMenu(false, that.joApp);
         });
     },
-
-    /* ── _colorDayCells ───────────────────────────────────────── */
-    /* Called after rows update — adds background colours to day cells */
-    _colorDayCells: function (qv) {
+    readData: function () {
         var that = this;
-        var oTable = qv.getControl();
-        var oModel = oTable.getModel();
-        if (!oModel) return;
-        var aData = oModel.getData();
-        if (!aData || !aData.length) return;
-        var iStart = oTable.getFirstVisibleRow();
-
-        oTable.getRows().forEach(function (oRow, iRowIdx) {
-            var iAbsRow = iStart + iRowIdx;
-            if (iAbsRow >= aData.length) return;
-            var oRec = aData[iAbsRow];
-            if (!oRec) return;
-
-            oRow.getCells().forEach(function (oCell, iCellIdx) {
-                var oCols = oTable.getColumns();
-                if (iCellIdx >= oCols.length) return;
-                var sColName = oCols[iCellIdx].getLabel()
-                    && oCols[iCellIdx].getLabel().getText
-                    ? oCols[iCellIdx]._colName : "";
-
-                /* find the column name stored on column object */
-                sColName = oCols[iCellIdx]._colName || "";
-                if (!sColName.startsWith("D")) return;
-
-                var dt = oRec[sColName] || "P";
-                var clr = that._DAY_COLORS[dt] || { bg: "#f5f5f5", fg: "#333" };
-                var oDom = oCell.getDomRef();
-                if (!oDom) return;
-
-                oDom.style.background = clr.bg;
-                oDom.style.color = clr.fg;
-                oDom.style.fontWeight = "700";
-                oDom.style.fontSize = "11px";
-                oDom.style.textAlign = "center";
-                oDom.style.cursor = "pointer";
-                oDom.style.borderRadius = "3px";
-
-                /* store day info for click */
-                oDom.dataset.row = iAbsRow;
-                oDom.dataset.col = sColName;
-                oDom.onclick = (function (r, c) {
-                    return function () { that._onCellClick(r, c, parseInt(c.replace("D", ""))); };
-                }(iAbsRow, sColName));
-            });
-        });
+        var qv = this._qr;
+        var lctb = qv.mLctb;
+        that.empData = {};
+        var sq = "select at.*,to_number(to_char(att_date,'DD')) day_of_month " +
+            " from c7hr_attend at,c7hr_emp e " +
+            " where at.emp_code=e.emp_cd " +
+            " and e.flag=1 " +
+            " order by e.emp_cd ";
+        var dt = Util.execSQLWithData(sq);
+        //  continue reading and setting data to 
+        //  qv.updateDataToControl();
+        for (var i = 0; i < dt.length; i++) {
+            if (!that.empData[dt[i].EMP_CODE]) that.empData[dt[i].EMP_CODE] = {};
+            that.empData[dt[i].EMP_CODE][dt[i].DAY_OF_MONTH] = { ...dt[i] };
+        }
+        for (var i = 0; i < lctb.rows.length; i++) {
+            var ec = lctb.getFieldValue(i, "EMP_CD");
+            var dyk = Object.keys(that.empData[ec]);
+            for (var i1 = 0; i1 < dyk.length; i1++) {
+                // var dy = that.empData[ec][dyk[i1]].DAY_OF_MONTH;
+                lctb.setFieldValue(i, "D" + dyk[i1], that.getMenuItem(that.empData[ec][dyk[i1]].DAY_TYPE).icon);
+            }
+        }
+        qv.updateDataToControl();
     },
 
     _onCellClick: function (iAbsRow, sColName, iDay, obj) {
@@ -337,6 +309,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var oModel = oTable.getModel();
         var aData = oModel.getData();
         if (!aData || iAbsRow >= aData.length) return;
+        this._oCellCtx = undefined;
         var oRec = aData[iAbsRow];
 
         /* store context for later use */
@@ -351,25 +324,14 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         };
 
         /* create menu items */
-        var aMenuItems = [
-            { key: "P", text: "✅ Present" },
-            { key: "A", text: "❌ Absent" },
-            { key: "WO", text: "📅 Weekly Off" },
-            { key: "PH", text: "🎉 Public Holiday" },
-            { key: "AL", text: "🏖 Annual Leave" },
-            { key: "SL", text: "🤒 Sick Leave" },
-            { key: "UL", text: "💰 Unpaid Leave" },
-            { key: "OT", text: "⏰ Overtime" },
-            { key: "HD", text: "🌗 Half Day" }
-        ];
 
         var oMenu = new sap.m.Menu();
-        aMenuItems.forEach(function (it) {
+        that.aMenuItems.forEach(function (it) {
             oMenu.addItem(new sap.m.MenuItem({
-                text: it.text,
+                text: it.icon + " " + it.text,
                 key: it.key,
                 press: function (oEv) {
-                    var sKey = oEv.getParameter("item").getKey();
+                    var sKey = this.getKey();
                     if (sKey === "P") {
                         that._openPresentPopup();
                     } else {
@@ -379,24 +341,12 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             }));
         });
 
-        /* open near clicked cell */
-        var oDom = document.querySelector(
-            "[data-col='" + sColName + "'][data-row='" + iAbsRow + "']"
-        );
-        if (oDom) {
-            var oControl = sap.ui.getCore().byId(
-                jQuery(oDom).closest("[data-sap-ui]").attr("id")
-            );
-            if (oControl) {
-                oMenu.openBy(oControl);
-                return;
-            }
-        }
         oMenu.openBy(obj);
     },
 
     /* ── _applyStatus (non‑Present) ──────────────────────────── */
     _applyStatus: function (sStatus) {
+        var that = this;
         var ctx = this._oCellCtx;
         if (!ctx) return;
         var oTable = this._qr.getControl();
@@ -404,7 +354,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var aData = oModel.getData();
         var oRec = aData[ctx.absRow];
 
-        oRec[ctx.colName] = sStatus;
+        oRec[ctx.colName] = that.getMenuItem(sStatus).icon;
         oRec["_rec_" + ctx.day] = {
             EMP_ID: ctx.empId,
             DAY_NO: ctx.day,
@@ -420,17 +370,6 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         this._recalcSummary(oRec);
         oModel.refresh(true);
         this._dirty[ctx.empId + "_" + ctx.day] = oRec["_rec_" + ctx.day];
-
-        /* update DOM colour */
-        var clr = this._DAY_COLORS[sStatus] || { bg: "#f5f5f5", fg: "#333" };
-        var oDom = document.querySelector(
-            "[data-col='" + ctx.colName + "'][data-row='" + ctx.absRow + "']"
-        );
-        if (oDom) {
-            oDom.style.background = clr.bg;
-            oDom.style.color = clr.fg;
-            oDom.textContent = sStatus;
-        }
     },
 
     /* ── _openPresentPopup ────────────────────────────────────── */
@@ -505,6 +444,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
     /* ── _applyPresentWithDetails ────────────────────────────── */
     _applyPresentWithDetails: function (oDetails) {
+        var that = this;
         var ctx = this._oCellCtx;
         if (!ctx) return;
         var oTable = this._qr.getControl();
@@ -512,7 +452,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var aData = oModel.getData();
         var oRec = aData[ctx.absRow];
 
-        oRec[ctx.colName] = "P";
+        oRec[ctx.colName] = that.getMenuItem("P").icon;
         oRec["_rec_" + ctx.day] = {
             EMP_ID: ctx.empId,
             DAY_NO: ctx.day,
@@ -526,16 +466,6 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         this._recalcSummary(oRec);
         oModel.refresh(true);
         this._dirty[ctx.empId + "_" + ctx.day] = oRec["_rec_" + ctx.day];
-
-        var clr = this._DAY_COLORS["P"];
-        var oDom = document.querySelector(
-            "[data-col='" + ctx.colName + "'][data-row='" + ctx.absRow + "']"
-        );
-        if (oDom) {
-            oDom.style.background = clr.bg;
-            oDom.style.color = clr.fg;
-            oDom.textContent = "P";
-        }
     },
 
     /* ── _recalcSummary ───────────────────────────────────────── */
@@ -716,32 +646,13 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
     /* ── save_data ────────────────────────────────────────────── */
     save_data: function () { this.saveAttendance(); },
-
-    /* ── _injectCSS ───────────────────────────────────────────── */
-    _injectCSS: function () {
-        if (document.getElementById("c7hrAttendCSS")) return;
-        var s = document.createElement("style");
-        s.id = "c7hrAttendCSS";
-        s.innerHTML = `
-            /* day cell badge */
-            .sapUiTableDataCell[data-col] {
-                transition: filter .1s;
-            }
-            .sapUiTableDataCell[data-col]:hover {
-                filter: brightness(0.88);
-            }
-            /* weekend header column */
-            .c7hr-col-wknd .sapUiTableColCell {
-                background : #fce4ec !important;
-                color      : #880e4f !important;
-            }
-            /* compact table */
-            .sapUiTableTr > td {
-                padding-top    : 2px !important;
-                padding-bottom : 2px !important;
-            }
-        `;
-        document.head.appendChild(s);
+    getMenuItem: function (stat) {
+        var that = this;
+        var it = that.aMenuItems;
+        for (var i in it) {
+            if (it[i].key == stat)
+                return it[i];
+        }
     }
 
 });
