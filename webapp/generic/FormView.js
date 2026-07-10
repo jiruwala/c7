@@ -70,7 +70,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             throw msg;
         };
         FormView.msgSuccess = function (msg) {
-            sap.m.MessageToast.show(msg, {
+            sap.m.MessageToast.show("✓ " + msg, {
             });
             var oMessageToastDOM = $('#content').parent().find('.sapMMessageToast');
             oMessageToastDOM.css('color', "darkgreen");

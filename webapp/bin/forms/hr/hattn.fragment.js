@@ -19,6 +19,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         this.view = oController.getView();
         this.timeInLong = (new Date()).getTime();
         that.aMenuItems = [
+            { key: "-", text: "Clear", icon: "-" },
             { key: "P", text: "Present", icon: "✅" },
             { key: "A", text: "Absent", icon: "❌" },
             { key: "WO", text: "Weekly Off", icon: "📅" },
@@ -223,8 +224,8 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var qv = this._qr;
         if (!qv) return;
 
-        var iMonth = parseInt(Util.nvl(UtilGen.getControlValue(this.cbMonth), new Date().getMonth() + 1));
-        var iYear = parseInt(Util.nvl(UtilGen.getControlValue(this.cbYear), new Date().getFullYear()));
+        var iMonth = parseInt(that._getMonthYearFromInput().month);
+        var iYear = parseInt(that._getMonthYearFromInput().year);
         var sDept = Util.nvl(UtilGen.getControlValue(this.cbDept), "");
         var iDays = new Date(iYear, iMonth, 0).getDate();
 
@@ -317,10 +318,9 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             absRow: iAbsRow,
             colName: sColName,
             day: iDay,
-            empId: oRec.EMP_ID,
-            empCode: oRec.EMP_CODE,
-            empName: oRec.EMP_NAME,
-            currentType: oRec[sColName] || "P"
+            empCode: oRec.EMP_CD,
+            empName: oRec.NAME1,
+            currentType: oRec[sColName] // (Util.nvl(oRec[sColName], "-") == "-" ? "P" : oRec[sColName])
         };
 
         /* create menu items */
@@ -355,21 +355,22 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var oRec = aData[ctx.absRow];
 
         oRec[ctx.colName] = that.getMenuItem(sStatus).icon;
+
         oRec["_rec_" + ctx.day] = {
-            EMP_ID: ctx.empId,
+            KEYFLD: undefined,
+            EMP_CODE: ctx.empCode,
             DAY_NO: ctx.day,
             DAY_TYPE: sStatus,
             LEAVE_TYPE: "",
             DAY_FRACTION: (sStatus === "A" || sStatus === "WO" || sStatus === "PH") ? 0 :
                 (sStatus === "HD") ? 0.5 : 1,
             OT_HOURS: 0,
-            LATE_MIN: 0,
             REMARKS: ""
         };
 
         this._recalcSummary(oRec);
         oModel.refresh(true);
-        this._dirty[ctx.empId + "_" + ctx.day] = oRec["_rec_" + ctx.day];
+        this._dirty[ctx.empCode + "_" + ctx.day] = oRec["_rec_" + ctx.day];
     },
 
     /* ── _openPresentPopup ────────────────────────────────────── */
@@ -377,59 +378,161 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var that = this;
         var ctx = this._oCellCtx;
         if (!ctx) return;
+        var fe = [];
+        var recalcTotals = function () {
+            var duty = parseFloat(inpDuty.getValue()) || 0;
+            var extra = parseFloat(inpExtra.getValue()) || 0;
+            var totalMins = 0;
+            var rows = [{ in: inpIn1, out: inpOut1, total: inpRowTotal1 },];
+            if (Util.nvl(inpIn1.getValue(), "") != "" && Util.nvl(inpOut1.getValue(), "") != "") {
+                for (var i = 0; i < rows.length; i++) {
+                    var inTime = rows[i].in.getValue() || "";
+                    var outTime = rows[i].out.getValue() || "";
+                    if (inTime && outTime) {
+                        var partsIn = inTime.split(":");
+                        var partsOut = outTime.split(":");
+                        if (partsIn.length === 2 && partsOut.length === 2) {
+                            var hIn = parseInt(partsIn[0]) || 0;
+                            var mIn = parseInt(partsIn[1]) || 0;
+                            var hOut = parseInt(partsOut[0]) || 0;
+                            var mOut = parseInt(partsOut[1]) || 0;
+                            var mins = (hOut * 60 + mOut) - (hIn * 60 + mIn);
+                            if (mins < 0) mins += 1440;
+                            totalMins += mins;
+                            rows[i].total.setValue((mins / 60).toFixed(2));
+                        }
+                    }
+                }
+                var noOfHours = totalMins / 60;
+                inpNoOf.setValue(noOfHours.toFixed(2));
+                inpTotal.setValue((noOfHours + extra).toFixed(2));
+            } else {
+                var noOfHours = Util.extractNumber(inpNoOf.getValue());
+                inpNoOf.setValue(noOfHours.toFixed(2));
+                inpTotal.setValue((noOfHours + extra).toFixed(2));
 
-        /* ── 1. Create a new QueryView ── */
-        var qvPopup = new QueryView("presentPopup" + this.timeInLong);
-        qvPopup.getControl().addStyleClass("sapUiSizeCondensed");
-        qvPopup.getControl().setSelectionMode(sap.ui.table.SelectionMode.None);
-        qvPopup.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
-        qvPopup.getControl().setVisibleRowCount(1);
-        qvPopup.getControl().setFixedBottomRowCount(0);
-        qvPopup.getControl().setRowHeight(32);
-        qvPopup.insertable = false;
-        qvPopup.deletable = false;
-        qvPopup.editable = true;
+            }
 
-        /* ── 2. Define metadata & columns ── */
-        var metadata = {
-            metadata: [
-                { colname: "IN_TIME", data_type: "STRING", display_width: 120, display_align: "ALIGN_BEGIN", descr: "In Time" },
-                { colname: "OUT_TIME", data_type: "STRING", display_width: 120, display_align: "ALIGN_BEGIN", descr: "Out Time" },
-                { colname: "EXTRA_HOURS", data_type: "NUMBER", display_width: 100, display_align: "ALIGN_END", descr: "Extra Hours" },
-                { colname: "REMARKS", data_type: "STRING", display_width: 200, display_align: "ALIGN_BEGIN", descr: "Remarks" }
-            ],
-            data: [
-                { IN_TIME: "", OUT_TIME: "", EXTRA_HOURS: 0, REMARKS: "" }
-            ]
         };
+        var loadPresentDetails = function () {
+            var aDirty = Object.values(that._dirty || {});
+            var oTable = that._qr.getControl();
+            var oModel = oTable.getModel();
+            var aData = oModel.getData();
+            var oRec = aData[ctx.absRow];
 
-        qvPopup.setJsonStrMetaData(JSON.stringify(metadata));
-        qvPopup.mLctb.parse(JSON.stringify(metadata), true);
-        qvPopup.loadData();
+            if (aDirty.length > 0 && oRec["_rec_" + ctx.day] != undefined) {
+                var rec = oRec["_rec_" + ctx.day];
+                inpDuty.setValue(rec.dutyHours);
+                inpNoOf.setValue(rec.noOfHours);
+                inpExtra.setValue(rec.extraHours);
+                inpTotal.setValue(rec.totalHours);
+                inpIn1.setValue(rec.timeEntries.inTime1);
+                inpOut1.setValue(rec.timeEntries.outTime1);
 
-        /* ── 3. Dialog with OK/Cancel buttons ── */
+            }
+        };
+        /* ── Duty Hours ── */
+        var inpDuty = new sap.m.Input({ type: "Number", width: "40%", value: "8" });
+
+        //NoOf Hours
+        var inpNoOf = new sap.m.Input({
+            type: "Number", width: "40%", editable: true, value: "0",
+        });
+        /* ── Extra Hours ── */
+        var inpExtra = new sap.m.Input({ type: "Number", width: "40%", value: "0" });
+        /* ── Total Hours (readonly) ── */
+        var inpTotal = new sap.m.Input({ type: "Number", width: "40%", editable: false, value: "0" });
+        var chkUseInOut = new sap.m.CheckBox({
+            selected: false,
+            select: function () {
+                if (this.getSelected()) {
+                    inpIn1.setEditable(true);
+                    inpOut1.setEditable(true);
+                    inpNoOf.setEditable(false);
+                    recalcTotals();
+                } else {
+                    inpIn1.setValue("");
+                    inpOut1.setValue("");
+                    inpIn1.setEditable(false);
+                    inpOut1.setEditable(false);
+                    inpNoOf.setEditable(true);
+
+                }
+            }
+        })
+
+
+            ;
+
+        var inpIn1 = new sap.m.Input({
+            placeholder: "In", width: "35%", value: "", editable: false, change: function () {
+                recalcTotals();
+            }
+        });
+        var inpOut1 = new sap.m.Input({
+            placeholder: "Out", width: "35%", value: "", editable: false, change: function () {
+                recalcTotals();
+            }
+        });
+        var inpRowTotal1 = new sap.m.Input({ width: "15%", editable: false, textAlign: sap.ui.core.TextAlign.End, value: "0" });
+        fe.push(Util.getLabelTxt("", "15%", ""), inpTotal);
+
+        var fe = [
+            Util.getLabelTxt("Duty Hours", "40%"), inpDuty,
+            Util.getLabelTxt("No Of Hours", "40%"), inpNoOf,
+            Util.getLabelTxt("Extra Hours", "40%"), inpExtra,
+            Util.getLabelTxt("Total Hours", "40%"), inpTotal,
+            Util.getLabelTxt("", "40%"), chkUseInOut,
+            Util.getLabelTxt("Time Entries", "100%", "#", "boldText", "Center"),
+            Util.getLabelTxt("", "15%"), inpIn1,
+            Util.getLabelTxt("", "0px", "@"), inpOut1,
+            Util.getLabelTxt("", "0px", "@"), inpRowTotal1,
+        ];
+
+        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+            width: "550px",//{ "S": 380, "M": 480, "L": 580, "XL": 800 },
+            cssText: [
+                "padding-left:5px ;" +
+                "padding-top:3px;" +
+                "border-style: groosve;" +
+                "margin-left: 1%;" +
+                "margin-right: 1%;" +
+                "border-radius:20px;" +
+                "margin-top: 3px;"
+            ]
+        }, "sapUiSizeCompact", "");
+        cnt.addContent(new sap.m.VBox({ height: "40px" }));
+
+        /* ── Dialog ── */
         var oDialog = new sap.m.Dialog({
             title: ctx.empCode + " – " + ctx.empName + "  |  Day " + ctx.day + "  (Present Details)",
-            content: [qvPopup.getControl()],
-            contentHeight: "200px",
-            contentWidth: "500px",
+            content: [cnt],
+            contentHeight: "300px",
+            contentWidth: "600px",
             buttons: [
                 new sap.m.Button({
                     text: "OK",
                     type: "Emphasized",
                     press: function () {
-                        var ld = qvPopup.mLctb;
-                        if (ld.rows.length === 0) {
-                            sap.m.MessageToast.show("No data entered.");
-                            return;
-                        }
-                        var oRowData = {
-                            IN_TIME: ld.getFieldValue(0, "IN_TIME") || "",
-                            OUT_TIME: ld.getFieldValue(0, "OUT_TIME") || "",
-                            EXTRA_HOURS: parseFloat(ld.getFieldValue(0, "EXTRA_HOURS")) || 0,
-                            REMARKS: ld.getFieldValue(0, "REMARKS") || ""
-                        };
-                        that._applyPresentWithDetails(oRowData);
+                        var duty = parseFloat(inpDuty.getValue()) || 0;
+                        var noOf = parseFloat(inpNoOf.getValue()) || 0;
+                        var extra = parseFloat(inpExtra.getValue()) || 0;
+                        var total = parseFloat(inpTotal.getValue()) || 0;
+                        var timeEntries = [];
+                        var in1 = inpIn1.getValue() || "";
+                        var out1 = inpOut1.getValue() || "";
+
+                        that._applyPresentWithDetails({
+                            dutyHours: duty,
+                            noOfHours: noOf,
+                            extraHours: extra,
+                            totalHours: total,
+                            timeEntries: {
+                                inTime1: in1,
+                                outTime1: out1
+                            }
+                        });
                         oDialog.close();
                     }
                 }),
@@ -440,6 +543,16 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             ]
         });
         oDialog.open();
+        setTimeout(() => {
+            loadPresentDetails();
+            if (inpIn1.getValue() != "") {
+                chkUseInOut.setSelected(true);
+                chkUseInOut.fireSelect();
+            }
+            recalcTotals();
+        });
+
+
     },
 
     /* ── _applyPresentWithDetails ────────────────────────────── */
@@ -454,18 +567,28 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
         oRec[ctx.colName] = that.getMenuItem("P").icon;
         oRec["_rec_" + ctx.day] = {
-            EMP_ID: ctx.empId,
+            EMP_CODE: ctx.empCode,
             DAY_NO: ctx.day,
+            DAY_FRACTION: 1,
             DAY_TYPE: "P",
-            IN_TIME: oDetails.IN_TIME,
-            OUT_TIME: oDetails.OUT_TIME,
-            EXTRA_HOURS: oDetails.EXTRA_HOURS,
-            REMARKS: oDetails.REMARKS
+            EXTRA_HOURS: 0, //oDetails.EXTRA_HOURS,
+            OT_HOURS: 0,
+            REMARKS: '',
+            dutyHours: oDetails.dutyHours,
+            noOfHours: oDetails.noOfHours,
+            extraHours: oDetails.extraHours,
+            totalHours: oDetails.totalHours,
+            timeEntries: {
+                inTime1: oDetails.timeEntries.inTime1,
+                outTime1: oDetails.timeEntries.outTime1,
+            }
+
+
         };
 
         this._recalcSummary(oRec);
         oModel.refresh(true);
-        this._dirty[ctx.empId + "_" + ctx.day] = oRec["_rec_" + ctx.day];
+        this._dirty[ctx.empCode + "_" + ctx.day] = oRec["_rec_" + ctx.day];
     },
 
     /* ── _recalcSummary ───────────────────────────────────────── */
@@ -498,43 +621,45 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
         /* build SQL inserts/updates — same Util.execSQL pattern */
         var errCount = 0;
-        aDirty.forEach(function (rec) {
+        var sqls = "";
+        for (var r in aDirty) {
+            var rec = aDirty[r];
             var sDate = "to_date('" + sYear + "-" + sMon + "-"
-                + String(rec.DAY_NO).padStart(2, "0") + "','dd/mm/yyyy')";
+                + String(rec.DAY_NO).padStart(2, "0") + "','rrrr/mm/dd')";
+            var sqlMerge = "";
+            if (rec.DAY_TYPE != '-')
+                sqlMerge =
+                    "merge into c7hr_attend a " +
+                    "using dual on (a.emp_code='" + rec.EMP_CODE + "' and a.att_date=" + sDate + ") " +
+                    " when matched then update set " +
+                    "  a.day_type='" + rec.DAY_TYPE + "'," +
+                    "  a.leave_type='" + rec.LEAVE_TYPE + "'," +
+                    "  a.day_fraction=" + rec.DAY_FRACTION + "," +
+                    "  a.ot_hours=" + rec.OT_HOURS + "," +
+                    "  a.remarks='" + rec.REMARKS + "' " +
+                    " when not matched then insert " +
+                    "  (emp_code,att_date,day_type,leave_type,day_fraction," +
+                    "   ot_hours,remarks,keyfld) " +
+                    " values (" + rec.EMP_CODE + "," + sDate + ",'" +
+                    rec.DAY_TYPE + "','" + rec.LEAVE_TYPE + "'," +
+                    rec.DAY_FRACTION + "," + rec.OT_HOURS + "," +
+                    "'" + rec.REMARKS + "'," +
+                    "(select nvl(max(keyfld),0)+1 from c7hr_attend)) ; ";
+            else
+                sqlMerge = "delete from c7hr_attend where emp_code='" + rec.EMP_CODE + "' and att_date=" + sDate + "; "
 
-            /* ── REPLACE with real SQL ──────────────────────────────
-               var sqlMerge =
-                   "merge into c7hr_attend a " +
-                   "using dual on (a.emp_id=" + rec.EMP_ID + " and a.att_date=" + sDate + ") " +
-                   "when matched then update set " +
-                   "  a.day_type='"      + rec.DAY_TYPE     + "'," +
-                   "  a.leave_type='"    + rec.LEAVE_TYPE   + "'," +
-                   "  a.day_fraction="   + rec.DAY_FRACTION  + "," +
-                   "  a.ot_hours="       + rec.OT_HOURS      + "," +
-                   "  a.late_min="       + rec.LATE_MIN      + "," +
-                   "  a.remarks='"       + rec.REMARKS       + "'," +
-                   "  a.processed_flag='N' " +
-                   "when not matched then insert " +
-                   "  (emp_id,att_date,day_type,leave_type,day_fraction," +
-                   "   ot_hours,late_min,remarks,processed_flag) " +
-                   "values (" + rec.EMP_ID + "," + sDate + ",'" +
-                   rec.DAY_TYPE + "','" + rec.LEAVE_TYPE + "'," +
-                   rec.DAY_FRACTION + "," + rec.OT_HOURS + "," +
-                   rec.LATE_MIN + ",'" + rec.REMARKS + "','N')";
-               var r = Util.execSQL(sqlMerge);
-               if (r.ret !== "SUCCESS") errCount++;
-            ──────────────────────────────────────────────────────── */
-            console.log("[c7hr_attend] save:", rec);
-        });
+            sqls += sqlMerge;
+        }
+        if (sqls.length > 0) {
+            sqls = "begin " + sqls + " end;";
+            var r = Util.execSQL(sqls);
+            if (r.ret !== "SUCCESS") errCount++;
+            FormView.msgSuccess(Util.getLangText("msgSaved"));
+        } else
+            sap.m.MessageToast.show("No Records saved !");
 
         Util.stopSpin();
 
-        if (errCount === 0) {
-            that._dirty = {};
-            sap.m.MessageToast.show(aDirty.length + " attendance record(s) saved ✓");
-        } else {
-            sap.m.MessageBox.error(errCount + " record(s) failed to save.");
-        }
     },
 
     /* ── postToTrans ──────────────────────────────────────────── */
@@ -653,6 +778,6 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             if (it[i].key == stat)
                 return it[i];
         }
-    }
+    },
 
 });

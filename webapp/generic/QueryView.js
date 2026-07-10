@@ -1230,6 +1230,9 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     }
                 }
                 if (cc.commandLinkClick != undefined) {
+                    
+                }
+                if (cc.commandLinkClick != undefined) {
                     o.addStyleClass("linkLabel");
                     o.attachBrowserEvent("click", function (oEvent) {
                         var rowno = that.getControl().indexOfRow(this.getParent());
