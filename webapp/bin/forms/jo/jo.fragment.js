@@ -1205,7 +1205,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     }
                     cmdSave.setEnabled(false);
                     var shw = thatForm.commands["cmdStock"].showRecs;
-                    if (!shw && saq <= sqih)
+                    if (!shw )
                         cmdSave.setEnabled(true);
                     showFrm();
                     fetchDataFrm();
