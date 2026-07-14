@@ -82,10 +82,10 @@ public class RepBatch7 {
 				}
 				this.status = UserReports.STATUS_END;
 				if (!this.notified)
-					this.notification_kfld = utils.insertNotify(this.instanceInfo.getmDbc().getDbConnection(),
-							this.instanceInfo.getmLoginUser(), "END_OF_REPORT",
-							this.reportTitle+" report generated in server cache memory.", this.cmd, this.instanceInfo.getmLoginUser(), "Y",
-							"Report is ready to check !", "التقرير جاهز للتحقق! ", this.reportTitle+ "تم إنشاء هذا التقرير في ذاكرة التخزين المؤقت للخادم . ");
+//					this.notification_kfld = utils.insertNotify(this.instanceInfo.getmDbc().getDbConnection(),
+//							this.instanceInfo.getmLoginUser(), "END_OF_REPORT",
+//							this.reportTitle+" report generated in server cache memory.", this.cmd, this.instanceInfo.getmLoginUser(), "Y",
+//							"Report is ready to check !", "التقرير جاهز للتحقق! ", this.reportTitle+ "تم إنشاء هذا التقرير في ذاكرة التخزين المؤقت للخادم . ");
 				this.notified = true;
 				System.out.println("Fetched : , status :" + this.status);
 			} catch (Exception e) {
