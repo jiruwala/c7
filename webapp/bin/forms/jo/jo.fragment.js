@@ -1205,7 +1205,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     }
                     cmdSave.setEnabled(false);
                     var shw = thatForm.commands["cmdStock"].showRecs;
-                    if (!shw )
+                    if (!shw)
                         cmdSave.setEnabled(true);
                     showFrm();
                     fetchDataFrm();
@@ -1302,8 +1302,11 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         var thatForm = this;
         var para = "production";
         var isProdClosed = function () {
-            var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
-            if (Util.nvl(upd, '') != '') return true;
+            // var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
+            // if (Util.nvl(upd, '') != '') return true;
+            var upd = Util.getSQLValue("select ord_flag from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
+            if (Util.nvl(upd, 0) != 2) return true;
+
             return false;
 
         }
@@ -1501,8 +1504,10 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         var vb = new sap.m.VBox();
 
         var isProdClosed = function () {
-            var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
-            if (Util.nvl(upd, '') != '') return true;
+            // var upd = Util.getSQLValue("select jo_prod_user from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
+            // if (Util.nvl(upd, '') != '') return true;
+            var upd = Util.getSQLValue("select ord_flag from pord1 where keyfld=" + thatForm.frm.getFieldValue("qry1.keyfld"));
+            if (Util.nvl(upd, 0) != 2) return true;
             return false;
         }
         var doCreate = function () {
