@@ -352,7 +352,8 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                     // frm.loadData(undefined, FormView.RecordStatus.NEW);
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
-                    thatForm.helperFunc.beforeSaveValidateQry(qry);
+                    if (qry.name == "qry1")
+                        thatForm.helperFunc.beforeSaveValidateQry(qry);
                     if (qry.name == "qry2") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var odt = thatForm.frm.getFieldValue("qry1.invoice_date");
@@ -360,7 +361,7 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                         var rfr = ld.getFieldValue(rowno, "REFER");
                         var pos = ld.getFieldValue(rowno, "ITEMPOS");
                         var dt = Util.execSQLWithData("select packd,unitd,pack,lsprice,get_item_cost(items.reference," +
-                            Util.toOraDateString(odt) + ") ucost from items where reference='" + rfr + "'",
+                            Util.toOraDateString(odt) + "," + kf + " ) ucost from items where reference='" + rfr + "'",
                             "Item # " + rfr + " not a valid !");
                         var sq = ("update invoice2 set packd=':pkd',unitd=':unitd' ,pack=:pack ," +
                             " allqty=(pkqty*:pack)+qty," +
