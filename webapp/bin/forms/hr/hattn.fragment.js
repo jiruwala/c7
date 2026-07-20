@@ -30,6 +30,8 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             { key: "OT", text: "Overtime", icon: "⏰" },
             { key: "HD", text: "Half Day", icon: "🌗" }
         ];
+        that.daysEn = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat'];
+        that.daysAr = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
         /* SplitApp wrapper — same pattern as db.fragment */
         this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
@@ -255,9 +257,9 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         if (dtEmp.ret == "SUCCESS") {
             qv.setJsonStrMetaData("{" + dtEmp.data + "}");
             for (var i = 1; i <= iDays; i++) {
+                var daynm = Util.getLangDescrAR(that.daysEn, that.daysAr)[new Date(iYear, iMonth - 1, i - 1).getDay()];
                 Util.setColProperties(qv, "D" + i, {
-                    "mTitle": ("" + i).padStart(2, "0"),
-                    // "mSummary": "COUNT_UNIQUE",
+                    "mTitle": ("" + i).padStart(2, "0") + "\n" + daynm,
                     "display_width": 55,
                 });
                 qv.mLctb.cols[qv.mLctb.getColPos("D" + i)].commandLinkClick = cmdLink;
@@ -271,6 +273,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             qv.loadData();
             qv.getControl().setFirstVisibleRow(0);
             that.readData();
+            that.setAllWOs();
         }
         setTimeout(() => {
             UtilGen.DBView.autoShowHideMenu(false, that.joApp);
@@ -629,6 +632,10 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                         var timeEntries = [];
                         var in1 = inpIn1.getValue() || "";
                         var out1 = inpOut1.getValue() || "";
+                        if (noOf <= 0) {
+                            UtilGen.errorObj(inpNoOf, 3000);
+                            FormView.err("Working hours cant be zero or negative !");
+                        }
 
                         that._applyPresentWithDetails({
                             dutyHours: duty,
@@ -757,6 +764,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                         "(select nvl(max(keyfld),0)+1 from c7hr_attend) ," +
                         Util.nvl(rec.dutyHours, 0) + " , " + Util.nvl(rec.noOfHours, 0) + " , " + Util.nvl(rec.extraHours, 0) +
                         " ) ; ";
+                    sqlMerge += "delete from c7hr_empinout where emp_code='" + rec.EMP_CODE + "' and att_date=" + sDate + "; ";
                     if (rec.DAY_TYPE == "P" && Util.nvl(rec.timeEntries.inTime1, "") != "") {
                         var sTimeIn1 = "to_date('" + sYear + "-" + sMon + "-"
                             + String(rec.DAY_NO).padStart(2, "0") + " "
@@ -764,8 +772,6 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                         var sTimeOut1 = "to_date('" + sYear + "-" + sMon + "-"
                             + String(rec.DAY_NO).padStart(2, "0") + " "
                             + (rec.timeEntries.outTime1.replaceAll(":", ".") + "','rrrr/mm/dd hh24.mi')");
-
-                        sqlMerge += "delete from c7hr_empinout where emp_code='" + rec.EMP_CODE + "' and att_date=" + sDate + "; ";
                         var tmpsq = "insert into c7hr_empinout (EMP_CODE, ATT_DATE, POSTIME, IN_TIME, OUT_TIME, EXTRA_HOURS, DUTY_IN, DUTY_OUT) " +
                             " values (':EMP_CODE', :ATT_DATE, :POSTIME, :IN_TIME, :OUT_TIME, :EXTRA_HOURS, :DUTY_IN, :DUTY_OUT) ;"
                         tmpsq = tmpsq.replaceAll(":EMP_CODE", rec.EMP_CODE)
@@ -781,7 +787,8 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                     }
                 }
                 else
-                    sqlMerge = "delete from c7hr_attend where emp_code='" + rec.EMP_CODE + "' and att_date=" + sDate + "; "
+                    sqlMerge = "delete from c7hr_attend where emp_code='" + rec.EMP_CODE + "' and att_date=" + sDate + "; " +
+                        "delete from c7hr_empinout where emp_code='" + rec.EMP_CODE + "' and att_date=" + sDate + "; ";
 
                 sqls += sqlMerge;
             }
@@ -926,6 +933,52 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                 return it[i];
         }
     },
+    //info:  after load put all days in month weekly off in the array 
+    setAllWOs: function () {
+        var that = this;
+        var iMonth = parseInt(that._getMonthYearFromInput().month);
+        var iYear = parseInt(that._getMonthYearFromInput().year);
+        var iDays = new Date(iYear, iMonth, 0).getDate();
+        if (that.wos == undefined) that.wos = {}; // info : store all weekly off in array for each branch of employee
+        var dt = Util.execSQLWithData("select e.emp_cd,bw.* from C7HR_EMP e, C7HR_BRANCHWEEK bw" +
+            " where bw.branchno=e.brn_id and isdayoff='Y' order by e.emp_cd,dayx");
+        if (dt.length <= 0) return;
+        var ld = that._qr.mLctb;
+        // that._qr.updateDataToControl();
 
+        that.wos[dt[0].BRANCHNO] = [];
+        var isDayInWO = function (idx, dy) {
+            var empcode = ld.getFieldValue(idx, "EMP_CD");
+            var stfrom = -1;
+            // info : find index in dt which equals empcode
+            for (var d = 0; d < dt.length; d++)
+                if (empcode == dt[d].EMP_CD) { stfrom = d; break; }
+            if (stfrom < 0) return false;
+            // info : find index in dt which equals empcode
+            for (var d = stfrom; d < dt.length; d++) {
+                if (dt[d].DAYX == dy && dt[d].EMP_CD == empcode)
+                    return true;
+                if (empcode != dt[d].EMP_CD)
+                    break;
+            }
+            return false;
+        }
+        for (var ei = 0; ei < ld.rows.length; ei++) {
+            for (var i = 1; i < (iDays + 1); i++) {
+                var dy = new Date(iYear, iMonth - 1, i).getDay();
+                if (Util.nvl(ld.getFieldValue(ei, "D" + i), "-") == "-" && isDayInWO(ei, dy)) {
+                    that._oCellCtx = {
+                        absRow: ei,
+                        colName: "D" + i,
+                        day: i,
+                        empCode: ld.getFieldValue(ei, "EMP_CD"),
+                        empName: ld.getFieldValue(ei, "NAME1"),
+                        currentType: "WO" // (Util.nvl(oRec[sColName], "-") == "-" ? "P" : oRec[sColName])
+                    };
+                    that._applyStatus('WO', { REMARKS: "" })
+                }
+            }
+        }
+    }
 
 });
