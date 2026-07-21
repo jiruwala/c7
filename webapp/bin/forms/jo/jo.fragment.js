@@ -1422,6 +1422,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
                 setTimeout(() => {
                     if (isProdClosed() || getStepsNotDone() > 0) cmdSave.setEnabled(false); else cmdSave.setEnabled(true);
+                    if (isProdClosed()) cmdUnDone.setEnabled(false); else cmdUnDone.setEnabled(true);
 
                 });
 
@@ -1437,6 +1438,19 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
             var dt = Util.execSQL(sqj);
             if (dt.ret = "SUCCESS")
                 FormView.msgSuccess("Production is done !");
+            thatForm.queryCommands();
+            // });
+
+        }
+        var doUnSave = function () {
+            if (isProdClosed()) FormView.err("Check producton may closed ! ");
+            // Util.simpleConfirmDialog(Util.getLangText("You can not change later producton steps if done ,Are you sure to proceed ?"), function (oAction) {
+            var sqj = thatForm.frm.parseString("update pord1 set jo_prod_user='' , " +
+                "jo_prod_time=null " +
+                "where keyfld=:qry1.keyfld ");
+            var dt = Util.execSQL(sqj);
+            if (dt.ret = "SUCCESS")
+                FormView.msgSuccess("Production is Un-done !");
             thatForm.queryCommands();
             // });
 
@@ -1467,7 +1481,16 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 thatForm.queryCommands();
             }
         });
-
+        var cmdUnDone = new sap.m.Button({
+            text: Util.getLangText("Un Done 📌"),
+            // icon: "sap-icon://decline",
+            enabled: false,
+            press: function () {
+                doUnSave();
+                dlg.close();
+                thatForm.queryCommands();
+            }
+        });
 
         var tbHeader = new sap.m.Toolbar();
         pg.setFooter(tbHeader);
@@ -1477,7 +1500,9 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         pg.addContent(new sap.m.VBox({ height: "20px" }));
         pg.addContent(vb);
         tbHeader.addContent(cmdSave);
+        tbHeader.addContent(cmdUnDone);
         tbHeader.addContent(cmdClose);
+
         var tit = Util.getLangText("JO");
         if (cc != "")
             tit = "Job order # " + thatForm.frm.getFieldValue("qry1.ord_no");
