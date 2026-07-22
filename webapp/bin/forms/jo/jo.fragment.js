@@ -486,6 +486,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
                 }
                 var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+                dt.setHours(0, 0, 0, 0);
                 if (Util.nvl(txtStepTime.getDateValue(), null) == null)
                     FormView.err("Cant close without date time !");
 
@@ -707,7 +708,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
                 }
                 var dt = thatForm.frm.getFieldValue("qry1.ord_date");
-
+                dt.setHours(0, 0, 0, 0);
                 if (Util.nvl(txtStepTime.getDateValue(), null) != null &&
                     dt.getTime() > txtStepTime.getDateValue().getTime())
                     FormView.err("Err ! Step date is more than JO date !");
@@ -1220,6 +1221,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
             }
             var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+            dt.setHours(0, 0, 0, 0);
             var kf = thatForm.frm.getFieldValue("qry1.keyfld");
 
             if (dt.getTime() > txtStepTime.getDateValue().getTime())
@@ -1709,7 +1711,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 if (Util.nvl(emp, '') == '') FormView.err("Employee not valid !");
             }
             var dt = thatForm.frm.getFieldValue("qry1.ord_date");
-
+            dt.setHours(0, 0, 0, 0);
             if (Util.nvl(txtStartTime.getDateValue(), undefined) != undefined && dt.getTime() > txtStartTime.getDateValue().getTime())
                 FormView.err("Err ! Step date is more than JO date !");
             if (Util.nvl(txtEndTime.getDateValue(), undefined) != undefined && dt.getTime() > txtEndTime.getDateValue().getTime())
