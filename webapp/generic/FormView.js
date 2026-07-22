@@ -2133,10 +2133,31 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     sqlListChange: "select code,name title from c_ycust where code=:CODE",
                 });
             },
+            getSettingsAccNo: function (pSet) {
+                var thatForm = pSet.thatForm;
+                var ordref = Util.nvl(pSet.ord_ref, "qry1.accno");
+                var ordrefnm = Util.nvl(pSet.ord_refnm, "qry1.acname");
+                return this.getSettingsGeneral({
+                    thatForm: pSet, thatForm,
+                    fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
+                    fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
+                    fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
+                    fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
+                    code: ordref,
+                    name: ordrefnm,
+                    // pListPara: {
+                    //     selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                    //     defaultKey: "ACTIVE",
+                    // },
+                    sqlChange: "select name from acaccount where  accno = ':CODE'",
+                    sqlList: "select accno code,name title,namea from acaccount where flag=1 and actype=0  order by path ",
+                    sqlListChange: "select accno code,name title from acaccount where code=:CODE",
+                });
+            },
             getSettingsOrdRef2: function (pSet) {
                 var thatForm = pSet.thatForm;
                 var ordref = Util.nvl(pSet.ord_ref, "qry1.ord_ref");
-                var ordrefnm = Util.nvl(pSet.ord_ref, "qry1.ord_refnm");
+                var ordrefnm = Util.nvl(pSet.ord_refnm, "qry1.ord_refnm");
                 return this.getSettingsGeneral({
                     thatForm: pSet, thatForm,
                     fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),

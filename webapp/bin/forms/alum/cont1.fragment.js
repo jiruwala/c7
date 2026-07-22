@@ -56,8 +56,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "select O1.*,IT.DESCR,IT.PACKD,IT.PACK,O1.SALE_PRICE*O1.TQTY AMOUNT from C_ORDER1 o1 ,ITEMS IT where " +
-            " IT.REFERENCE=O1.ORD_SHIP AND O1.KEYFLD=':keyfld' and ord_code=" + that.vars.vou_code + " ORDER BY O1.ORD_POS ";
+        var dmlSq = "SELECT O1.*, PRICE*O1.QTY AMOUNT from C7_CONTRACTS1_ITEMS o1 "
+            " WHERE O1.KEYFLD=':keyfld' ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
@@ -86,14 +86,14 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     Util.destroyID("cmdQE" + thatForm.timeInLong, thatForm.view);
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText blinking");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" }));
-                    var cmdQuickEntry = new sap.m.Button(thatForm.view.createId("cmdQE" + thatForm.timeInLong), {
-                        text: "Quick Entry",
-                        press: function () {
-                            thatForm.helperFunc.enterQuckEntry();
-                        }
-                    });
+                    // var cmdQuickEntry = new sap.m.Button(thatForm.view.createId("cmdQE" + thatForm.timeInLong), {
+                    //     text: "Quick Entry",
+                    //     press: function () {
+                    //         thatForm.helperFunc.enterQuckEntry();
+                    //     }
+                    // });
                     var hb = new sap.m.Toolbar({
-                        content: [txt, new sap.m.ToolbarSpacer(), cmdQuickEntry, txtMsg]
+                        content: [txt, new sap.m.ToolbarSpacer(), txtMsg]
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
@@ -116,17 +116,15 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from order1 where ord_code=" + thatForm.vars.vou_code + " and keyfld=:pac",
+                        dml: "select *from C7_CONTRACTS1 where  keyfld=:pac",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['keyfld', 'branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA'],
-                        insert_exclude_fields: ['branchname', 'txt_empname', 'typename', 'txt_balance', 'cmdSOA'],
+                        update_exclude_fields: ['keyfld',],
+                        insert_exclude_fields: [],
                         insert_default_values: {
-                            "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
-                            "ORD_CODE": thatForm.vars.vou_code,
                         },
                         update_default_values: {
                         },
-                        table_name: "ORDER1",
+                        table_name: "C7_CONTRACTS1",
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: false,
@@ -136,41 +134,30 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         type: "query",
                         name: "qry2",
                         showType: FormView.QueryShowType.QUERYVIEW,
-                        applyCol: "C7.BRDLV1",
+                        applyCol: "C7.XCN1",
                         addRowOnEmpty: true,
                         dml: dmlSq,
                         dispRecords: { "S": 5, "M": 7, "L": 10, "XL": 14, "XXL": 18 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
-                        delete_before_update: "delete from c_order1 where keyfld=':keyfld';",
+                        delete_before_update: "delete from C7_CONTRACTS1_ITEMS where keyfld=':keyfld';",
                         where_clause: " keyfld=':keyfld' ",
-                        update_exclude_fields: ['KEYFLD', 'DESCR', 'AMOUNT', 'PACKD', 'PACK'],
-                        insert_exclude_fields: ['DESCR', 'AMOUNT', 'PACKD', 'PACK'],
+                        update_exclude_fields: ['KEYFLD', 'AMOUNT'],
+                        insert_exclude_fields: ['AMOUNT'],
                         insert_default_values: {
-                            "PERIODCODE": sett["CURRENT_PERIOD"],
-                            "LOCATION_CODE": ":qry1.location_code",
-                            "ORD_NO": ":qry1.ord_no",
-                            "ORD_CODE": thatForm.vars.vou_code,
-                            "ORD_REF": ":qry1.ord_ref",
-                            "ORD_REFNM": ":qry1.ord_refnm",
-                            "ORD_DISCAMT": ":qry1.ord_discamt",
-                            "ORD_DATE": ":qry1.ord_date",
-                            "ORD_EMPNO": ":qry1.ord_empno",
                             "KEYFLD": ":qry1.keyfld",
-                            "STRA": ":qry1.stra",
-
                         },
                         update_default_values: {
                         },
-                        table_name: "c_order1",
+                        table_name: "c7_contracts1_items",
                         before_add_table: function (scrollObjs, qrj) {
-                            UtilGen.createDefaultToolbar1(qrj, ["ORD_SHIP", "DESCR"], true);
+                            UtilGen.createDefaultToolbar1(qrj, ["REFER", "DESCR"], true);
                             scrollObjs.push(qrj.showToolbar.toolbar);
                             qrj.eventKey = function (key, rowno, colno, firstVis) {
                                 var totalRows = qrj.getControl().getModel().getData().length;
                                 var visRows = qrj.getControl().getVisibleRowCount();
-                                var cl = UtilGen.getTableColNo(qrj.getControl(), "ORD_SHIP");
+                                var cl = UtilGen.getTableColNo(qrj.getControl(), "REFER");
                                 var vl = qrj.getControl().getRows()[rowno].getCells()[cl].getValue();
                                 if (vl == "") {
                                     qrj.deleteRow(firstVis + rowno);
@@ -185,14 +172,6 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                         },
                         when_validate_field: function (table, currentRowoIndexContext, cx, rowno, colno) {
-                            if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '')
-                                FormView.err(Util.getLangText("msgBRMustEnterOrdType"));
-                            if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_ref"), '') == '')
-                                FormView.err(Util.getLangText("msgBRMustEnterOrdRef"));
-                            if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_discamt"), '') == '')
-                                FormView.err(Util.getLangText("msgBRMustEnterBranch"));
-
-                            thatForm.helperFunc.validity.updateFieldsEditing();
                             return true;
                         },
                         eventCalc: function (qv, cx, rowno, reAmt) {
@@ -264,8 +243,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                     }
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
-                        qry.obj.mLctb.getColByName("ORD_SHIP").beforeSearchEvent = function (sq, ctx, model) {
-                            qry.obj.mLctb.getColByName("ORD_SHIP").btnsx = [new sap.m.Button({
+                        qry.obj.mLctb.getColByName("REFER").beforeSearchEvent = function (sq, ctx, model) {
+                            qry.obj.mLctb.getColByName("REFER").btnsx = [new sap.m.Button({
                                 text: 'Add Item in Contract',
                                 press: function () {
                                     thatForm.helperFunc.addInContract();
@@ -295,17 +274,6 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
-                        // var objOn = thatForm.frm.objs["qry1.location_code"].obj;
-                        // var objKf = thatForm.frm.objs["qry1.keyfld"].obj;
-                        // var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from order1");
-                        // var dt = thatForm.view.today_date.getDateValue();
-
-
-                        // UtilGen.setControlValue(objOn, sett["DEFAULT_LOCATION"], sett["DEFAULT_LOCATION"], true);
-                        // UtilGen.setControlValue(objKf, newKf, newKf, true);
-
-                        // qry.formview.setFieldValue("qry1.ord_date", new Date(dt.toDateString()), new Date(dt.toDateString()), true);
-                        // objOn.fireSelectionChange();
 
                     }
                 },
@@ -426,13 +394,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             //5civil_id,15,35                            tel1,tel2,15,10,10,15
             //6pay_no_1,pay_no_2,15,10,10,15             pay_date,15,35
             //7govt,area,15,10,10,15                     address 15,35
-            //8revenu_ac 15,15,20                        remarks,15,35
+            //8revenue_ac,_racname 15,15,20                        remarks,15,35
 
             return {
                 //1
                 keyfld: FormView.getFactoryFields.getKeyFld("", "15%", "10%"),
                 cont_type: FormView.getFactoryFields.getComboField(
-                    "location_code", "@", "contractType",
+                    "cont_type", "@", "contractType",
                     "10%", "", "15%",
                     {
                         list: "@quot/txtQuotaton,cont/Contract",
@@ -441,7 +409,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     selectionChange: function () {
                         var objOn = thatForm.frm.objs["qry1.cont_type"].obj;
                         var objno = thatForm.frm.objs["qry1.cont_no"].obj;
-                        var newno = Util.getSQLValue("select nvl(max(cont_no),0)+1 from c7_contracts1 where cont_type='" + objOn + "' ");
+                        var newno = Util.getSQLValue("select nvl(max(cont_no),0)+1 from c7_contracts1 where cont_type='" + objOn.getValue() + "' ");
                         UtilGen.setControlValue(objno, newno, newno, true);
                     }
                 }),
@@ -466,17 +434,12 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }, {}),
                 //2
                 parentcust: FormView.getFactoryFields.getGeneralField(
-                    "parentcust", "", "parentTxt", "15%", "violetText", "12%",
+                    "parentcust", "", "parentTxt", "15%", "", "12%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
-                    }, FormView.getFactoryFields.getSettingsOrdRef2({
-                        thatForm: thatForm,
-                        fnAfteUpdate: function () {
-
-                        },
-                    })),
+                    },),
                 _pname: FormView.getFactoryFields.getGeneralField(
                     "_pname", "@", "", "0px", "", "23%",
                     {
@@ -485,19 +448,21 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         insert_allowed: false,
                     }, {}),
                 cust_code: FormView.getFactoryFields.getGeneralField(
-                    "ord_ref", "@", "txtCust", "15%", "violetText", "12%",
+                    "cust_code", "@", "txtCust", "15%", "", "12%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
                     }, FormView.getFactoryFields.getSettingsOrdRef2({
                         thatForm: thatForm,
+                        ord_ref: "qry1.cust_code",
+                        ord_refnm: "qry1.cust_name",
                         fnAfteUpdate: function () {
 
                         },
                     })),
                 cust_name: FormView.getFactoryFields.getGeneralField(
-                    "cust_name", "@", "txtStoreIn", "0px", "", "23%",
+                    "cust_name", "@", "", "0px", "", "23%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -505,7 +470,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }, {}),
                 //3               
                 dlv_no: FormView.getFactoryFields.getGeneralField(
-                    "dlv_no", "", "contractNo", "15%", "", "10%",
+                    "dlv_no", "", "deliveryNo", "15%", "", "10%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -542,7 +507,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }, {}),
                 //4
                 rec_no: FormView.getFactoryFields.getGeneralField(
-                    "rec_no", "", "contractNo", "15%", "", "10%",
+                    "rec_no", "", "recNo", "15%", "", "10%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -554,7 +519,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 unitd: FormView.getFactoryFields.getGeneralField(
-                    "unitd", "@", "contractNo", "15%", "", "10%",
+                    "unitd", "@", "itemUnitD", "15%", "", "10%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -566,13 +531,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 cont_trans_amt: FormView.getFactoryFields.getMoneyField(
-                    "cont_trans_amt", "@", "contractAmt", "15%", "", "10%",
+                    "cont_trans_amt", "@", "contractTransAmt", "15%", "", "35%",
                     {
 
                     }, {}),
                 //5
                 civil_id: FormView.getFactoryFields.getGeneralField(
-                    "civil_id", "", "txtCivilId", "15%", "", "10%",
+                    "civil_id", "", "civilId", "15%", "", "35%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -584,7 +549,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 tel1: FormView.getFactoryFields.getGeneralField(
-                    "civil_id", "", "txtTel", "15%", "", "10%",
+                    "tel1", "@", "txtTel", "15%", "", "10%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -621,7 +586,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 pay_no_2: FormView.getFactoryFields.getGeneralField(
-                    "pay_no_2", "@", "txtPayNo1", "15%", "", "10%",
+                    "pay_no_2", "@", "txtPayNo1", "10%", "", "15%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -633,34 +598,31 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 pay_date: FormView.getFactoryFields.getDateField(
-                    "pay_date", "@", "deliveryDate", "10%", "", "15%",
+                    "pay_date", "@", "payDate", "15%", "", "35%",
                     {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true
                     }, {}),
                 //7
-                govt: FormView.getFactoryFields.getComboField(
-                    "govt", "", "txtGoverner",
-                    "10%", "", "15%",
+                govt: FormView.getFactoryFields.getGeneralField(
+                    "govt", "", "txtGovt", "15%", "", "10%",
                     {
-                        list: "",
-                        require: true
-                    }, {
-                    selectionChange: function () {
-                    }
-                }),
-                area: FormView.getFactoryFields.getComboField(
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.govt", "GOVERNERS")),
+                area: FormView.getFactoryFields.getGeneralField(
                     "area", "@", "txtArea",
                     "10%", "", "15%",
                     {
-                        list: "",
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
                         require: true
-                    }, {
-                    selectionChange: function () {
-                    }
-                }),
-                address:FormView.getFactoryFields.getGeneralField(
+                    }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.area", "AREAS")),
+                address: FormView.getFactoryFields.getGeneralField(
                     "address", "@", "txtAddr", "15%", "", "35%",
                     {
                         require: true,
@@ -673,9 +635,39 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 //8
-                revnnue_ac:,
-                _acname,
-                remarks:,
+                revenue_ac: FormView.getFactoryFields.getGeneralField(
+                    "revenue_ac", "", "revenueAc", "15%", "violetText", "12%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, FormView.getFactoryFields.getSettingsAccNo({
+                        thatForm: thatForm,
+                        ord_ref: "qry1.revenue_ac",
+                        ord_refnm: "qry1._racname",
+                        fnAfteUpdate: function () {
+
+                        },
+                    })),
+                _racname: FormView.getFactoryFields.getGeneralField(
+                    "_racname", "@", "", "0px", "", "23%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                    }, {}),
+                remarks: FormView.getFactoryFields.getGeneralField(
+                    "remarks", "@", "txtRemarks", "15%", "", "35%",
+                    {
+                        require: true,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                        display_style: ""
+                    }, {
+                    change: function () {
+
+                    }
+                }),
             };
         },
         getList: function () {
@@ -842,6 +834,9 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 // if (qty <= 0)
                 //     FormView.err("Save Denied: QTY invalid value !");
             }
+
+        },
+        fetchItem: function () {
 
         }
     }
