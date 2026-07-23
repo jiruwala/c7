@@ -2151,7 +2151,29 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     // },
                     sqlChange: "select name from acaccount where  accno = ':CODE'",
                     sqlList: "select accno code,name title,namea from acaccount where flag=1 and actype=0  order by path ",
-                    sqlListChange: "select accno code,name title from acaccount where code=:CODE",
+                    sqlListChange: "select accno code,name title from acaccount where accno=:CODE",
+                });
+            },
+            getSettingsAccNoChilds: function (pSet) {
+                var thatForm = pSet.thatForm;
+                var ordref = Util.nvl(pSet.ord_ref, "qry1.accno");
+                var ordrefnm = Util.nvl(pSet.ord_refnm, "qry1.acname");
+                return this.getSettingsGeneral({
+                    thatForm: pSet, thatForm,
+                    fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
+                    fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
+                    fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
+                    fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
+                    code: ordref,
+                    name: ordrefnm,
+                    pPoints: pSet.pPoints,
+                    // pListPara: {
+                    //     selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                    //     defaultKey: "ACTIVE",
+                    // },
+                    sqlChange: "select name from acaccount where  accno = ':CODE'",
+                    sqlList: "select accno code,name title,namea from acaccount where flag=1 and actype=0 and childcount=0 order by path ",
+                    sqlListChange: "select accno code,name title from acaccount where accno=:CODE",
                 });
             },
             getSettingsOrdRef2: function (pSet) {

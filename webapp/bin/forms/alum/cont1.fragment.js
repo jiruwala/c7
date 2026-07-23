@@ -57,7 +57,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
         var dmlSq = "SELECT O1.*, PRICE*O1.QTY AMOUNT from C7_CONTRACTS1_ITEMS o1 "
-            " WHERE O1.KEYFLD=':keyfld' ORDER BY O1.ORD_POS ";
+        " WHERE O1.KEYFLD=':keyfld' ORDER BY O1.ORD_POS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
@@ -234,29 +234,11 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                     if (qry.name == "qry1") {
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
-                        UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.ord_empno"].obj, undefined, that.frm.objs["qry1.txt_empname"].obj);
-                        var saleinv = Util.getSQLValue("select saleinv from order1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
-                        if (Util.nvl(saleinv, '') != '') {
-                            var invno = Util.getSQLValue("select max(invoice_no) from  pur1 where keyfld=" + saleinv);
-                            thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("Delivery is POSTED ,INV # " + invno);
-                        }
+                        UtilGen.Search.getLOVSearchField("select name from c_ycust where code = :CODE ", qry.formview.objs["qry1.parent_cust"].obj, undefined, that.frm.objs["qry1._pname"].obj);
+                        UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.revenue_ac"].obj, undefined, that.frm.objs["qry1._racname"].obj);
 
                     }
-                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
-                        qry.obj.mLctb.getColByName("REFER").beforeSearchEvent = function (sq, ctx, model) {
-                            qry.obj.mLctb.getColByName("REFER").btnsx = [new sap.m.Button({
-                                text: 'Add Item in Contract',
-                                press: function () {
-                                    thatForm.helperFunc.addInContract();
-                                }
-                            }
-                            )];
-                            if (Util.nvl(thatForm.frm.getFieldValue("qry1.ord_type"), '') == '')
-                                FormView.err(Util.getLangText("msgBRMustEnterOrdType"));
-                            return thatForm.frm.parseString(sq);
-                        };
-
-
+                    // if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
 
                 },
                 beforeLoadQry: function (qry, sql) {
@@ -275,7 +257,25 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
 
+                        var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_contracts1");
+                        var dt = thatForm.view.today_date.getDateValue();
+                        var dtx = new Date(dt.toDateString());
+                        thatForm.frm.setFieldValue("qry1.cont_type", "cont", "cont");
+                        thatForm.frm.setFieldValue("qry1.qty", 0, 0);
+                        thatForm.frm.setFieldValue("qry1.cont_amt", 0, 0);
+                        thatForm.frm.setFieldValue("qry1.cont_trans_amt", 0, 0);
+
+                        thatForm.frm.setFieldValue("qry1.keyfld", newKf, newKf);
+                        qry.formview.setFieldValue("qry1.cont_date", dtx, dtx, true);
+
+                        thatForm.frm.objs["qry1.cont_type"].obj.fireSelectionChange();
+
                     }
+
+                    if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0) {
+
+                    }
+
                 },
                 afterEditRow(qry, index, ld) {
 
@@ -310,7 +310,6 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     if (qry.name == "qry2") {
 
                     }
-
                 },
                 beforeExeSql: function (frm, sq) {
                     // var kf = frm.getFieldValue("qry1.keyfld");
@@ -386,7 +385,23 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             var codSpan = "XL3 L3 M3 S12";
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
-
+            var getParentCust = function () {
+                var ordref = "qry1.parent_cust";
+                var ordrefnm = "qry1._pname";
+                var pSet = {};
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: pSet, thatForm,
+                    fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
+                    fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
+                    fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
+                    fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
+                    code: ordref,
+                    name: ordrefnm,
+                    sqlChange: "select name from c_ycust where  code = ':CODE'",
+                    sqlList: "select code,name title from c_ycust where flag=1 and childcount>0 and iscust='Y'  order by path ",
+                    sqlListChange: "select code,name title from c_ycust where code=:CODE",
+                });
+            }
             //1keyfid cont_type 15-10,10,15              cont_no,cont_date 15-10,10,15
             //2parent_cust pname 15-10,25                cust_code cust_nmame,15,10,25            
             //3 dlv_no qty 15,10,10,15                   dlv_date , cont_amt 15,35
@@ -433,13 +448,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         insert_allowed: true
                     }, {}),
                 //2
-                parentcust: FormView.getFactoryFields.getGeneralField(
-                    "parentcust", "", "parentTxt", "15%", "", "12%",
+                parent_cust: FormView.getFactoryFields.getGeneralField(
+                    "parent_cust", "", "parentTxt", "15%", "", "12%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
-                    },),
+                    }, getParentCust()),
                 _pname: FormView.getFactoryFields.getGeneralField(
                     "_pname", "@", "", "0px", "", "23%",
                     {
@@ -472,7 +487,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 dlv_no: FormView.getFactoryFields.getGeneralField(
                     "dlv_no", "", "deliveryNo", "15%", "", "10%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -509,7 +524,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 rec_no: FormView.getFactoryFields.getGeneralField(
                     "rec_no", "", "recNo", "15%", "", "10%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -521,7 +536,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 unitd: FormView.getFactoryFields.getGeneralField(
                     "unitd", "@", "itemUnitD", "15%", "", "10%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -539,7 +554,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 civil_id: FormView.getFactoryFields.getGeneralField(
                     "civil_id", "", "civilId", "15%", "", "35%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -551,7 +566,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 tel1: FormView.getFactoryFields.getGeneralField(
                     "tel1", "@", "txtTel", "15%", "", "10%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -563,7 +578,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 tel2: FormView.getFactoryFields.getGeneralField(
                     "tel2", "@", "txtTel", "15%", "", "10%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -576,7 +591,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 pay_no_1: FormView.getFactoryFields.getGeneralField(
                     "pay_no_1", "", "txtPayNo1", "15%", "", "10%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -588,7 +603,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 pay_no_2: FormView.getFactoryFields.getGeneralField(
                     "pay_no_2", "@", "txtPayNo1", "10%", "", "15%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -620,12 +635,11 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         require: false,
                         edit_allowed: true,
                         insert_allowed: true,
-                        require: true
                     }, FormView.getFactoryFields.getListSettings(thatForm, "qry1.area", "AREAS")),
                 address: FormView.getFactoryFields.getGeneralField(
                     "address", "@", "txtAddr", "15%", "", "35%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -641,12 +655,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
-                    }, FormView.getFactoryFields.getSettingsAccNo({
+                    }, FormView.getFactoryFields.getSettingsAccNoChilds({
                         thatForm: thatForm,
                         ord_ref: "qry1.revenue_ac",
                         ord_refnm: "qry1._racname",
+                        pPoints: { pWidth: "600px" },
                         fnAfteUpdate: function () {
-
+                            return true;
                         },
                     })),
                 _racname: FormView.getFactoryFields.getGeneralField(
@@ -659,7 +674,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 remarks: FormView.getFactoryFields.getGeneralField(
                     "remarks", "@", "txtRemarks", "15%", "", "35%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
@@ -677,25 +692,33 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     name: 'list1',
                     title: "List of Orders",
                     list_type: "sql",
+                    list_para: {
+                        selectStr: "@100/Last 100,200/Last 200,1000/Last 1000,-1/All",
+                        defaultKey: "1000",
+                    },
+                    list_type: "sql",
                     cols: [
                         {
-                            colname: "ORD_NO",
+                            colname: "CONT_NO",
                         },
                         {
-                            colname: "ORD_REF",
+                            colname: "CUST_CODE",
                         },
                         {
-                            colname: "ORD_REFNM"
+                            colname: "CUST_NAME"
                         },
                         {
                             colname: 'KEYFLD',
+                            hide: true,
                             return_field: "pac",
                         },
 
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select ord_no,ord_date,ord_ref,ord_refnm,keyfld from order1 o1 where ord_code =" + that2.vars.vou_code +
-                        " order by o1.ord_date desc,ord_no desc",
+                    sql: "select *from (" +
+                        "select cont_no,cont_date,cust_code,cust_name,cont_amt,cont_trans_amt,keyfld " +
+                        " from c7_contracts1 where cont_type=':qry1.cont_type' order by cont_date desc,cont_no desc " +
+                        ")  where (rownum <=^^list_key or ^^list_key=-1) ",
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -805,7 +828,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
 
             }
-            var cod = thatForm.frm.getFieldValue("qry1.ord_ref");
+            var cod = thatForm.frm.getFieldValue("qry1.cust_code");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
             if (sqcnt == 0) FormView.err("Save Denied : Customer is invalid !");
             sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
