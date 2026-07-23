@@ -23,9 +23,9 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             { key: "P", text: "Present", icon: "✅" },
             { key: "A", text: "Absent", icon: "❌" },
             { key: "WO", text: "Weekly Off", icon: "📅" },
-            { key: "PH", text: "Public Holiday", icon: "🎉" },
-            { key: "AL", text: "Annual Leave", icon: "🏖" },
-            { key: "SL", text: "Sick Leave", icon: "🤒" },
+            { key: "PH", text: "Day Off", icon: "⛱️" },
+            { key: "AL", text: "Annual Leave", icon: "✈️" },
+            { key: "SL", text: "Sick Leave", icon: "🤧" },
             { key: "UL", text: "Unpaid Leave", icon: "💰" },
             { key: "OT", text: "Overtime", icon: "⏰" },
             { key: "HD", text: "Half Day", icon: "🌗" }
@@ -248,7 +248,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             colsStr += (colsStr.length > 0 ? " , " : "") + " '-' as D" + i + " ";
 
         var dtEmp = Util.execSQL(
-            "select emp_cd,name1 , " + colsStr +
+            "select emp_cd,name1 , " + colsStr + ",nvl(e.brn_id,'') brn_id " +
             " from c7hr_emp e " +
             "where e.flag=1 " +
             // (sDept != "" ? " and e.department='" + sDept + "'" : "") +
@@ -264,7 +264,11 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                 });
                 qv.mLctb.cols[qv.mLctb.getColPos("D" + i)].commandLinkClick = cmdLink;
 
-            }
+            };
+            Util.setColProperties(qv, "BRN_ID", {
+                "mHideCol": true,
+            });
+
             qv.getControl().attachRowsUpdated(function () {
                 // setTimeout(function () { that._colorDayCells(qv); });
             });
@@ -274,6 +278,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             qv.getControl().setFirstVisibleRow(0);
             that.readData();
             that.setAllWOs();
+            that.setAllDAYOFFs();
         }
         setTimeout(() => {
             UtilGen.DBView.autoShowHideMenu(false, that.joApp);
@@ -979,6 +984,36 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                 }
             }
         }
+    },
+    setAllDAYOFFs: function () {
+        var that = this;
+        var iMonth = parseInt(that._getMonthYearFromInput().month);
+        var iYear = parseInt(that._getMonthYearFromInput().year);
+        var iDays = new Date(iYear, iMonth, 0).getDate();
+        var mnthyr = iYear + "/"
+            + String(iMonth).padStart(2, "0");
+        var dt = Util.execSQLWithData("select d.*,to_char(dateof,'dd') dy from c7hr_dayoffs d  where to_char(dateof,'rrrr/mm')='" + mnthyr + "' order by dateof");
+        if (dt.length <= 0) return;
+        var ld = that._qr.mLctb;
+        for (var di = 0; di < dt.length; di++) {
+            var dy = Util.extractNumber(dt[di].DY);
+            for (var i = 0; i < ld.rows.length; i++) {
+                var brn = ld.getFieldValue(i, "BRN_ID");
+                if ((Util.nvl(dt[di].BRANCHES, "").includes('"' + brn + "'") || Util.nvl(brn, "").length == 0)
+                    && (Util.nvl(ld.getFieldValue(i, "D" + dy), "-") == "-")) {
+                    that._oCellCtx = {
+                        absRow: i,
+                        colName: "D" + dy,
+                        day: dy,
+                        empCode: ld.getFieldValue(i, "EMP_CD"),
+                        empName: ld.getFieldValue(i, "NAME1"),
+                        currentType: "PH" // (Util.nvl(oRec[sColName], "-") == "-" ? "P" : oRec[sColName])
+                    };
+                    that._applyStatus('PH', { REMARKS: "" })
+                }
+            }
+        }
     }
+
 
 });
