@@ -224,10 +224,40 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
             }
 
         };
+        LocalTableData.prototype._parseDate = function (strx) {
+            if (!strx) return null;
+            var str = strx;
+            if (strx.length == 10) {
+                const [d, m, y] = strx.split('/').map(Number);
+                str = String(m).padStart(2, '0') + "/" + String(d).padStart(2, '0') +
+                    "/" + String(y).padStart(2, '0') + " 00:00:00";
+            }
+            if (strx.indexOf("T") > -1) {
+                const d = new Date(strx);
+                const pad = n => String(n).padStart(2, '0');
+                str = String(d.getUTCMonth() + 1).padStart(2, '0') + "/" +
+                    String(d.getUTCDate()).padStart(2, '0') + "/" +
+                    d.getUTCFullYear() + " " + String(0).padStart(2, '0') + ":" +
+                    String(0).padStart(2, '0') + ":00";
+            }
+            let [datePart, timePart] = str.split(' ');
+
+            let [mm, dd, yyyy] = datePart.split('/').map(Number);
+            let h = 0, min = 0, s = 0;
+            if (timePart) {
+                let t = timePart.replace(/\./g, ':'); // hh.mm.ss -> hh:mm:ss
+                [h, min, s] = t.split(':').map(Number);
+            }
+            return new Date(yyyy, mm - 1, dd, h || 0, min || 0, s || 0);
+        };
         LocalTableData.prototype.parse = function (strData, onlyDetails) {
             var sett = sap.ui.getCore().getModel("settings").getData();
             var sfe = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
-            var sft = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " h.mm a");
+            // var sft = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " h.mm a");
+            // var sfx = new simpleDateFormat("MM/dd/yyyy h.mm a");
+
+
+
             if (!Util.nvl(onlyDetails, false))
                 this.parseCol(strData);
             else {
@@ -259,12 +289,12 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                     var cp = this.getColPos(key);
                     if (cp < 0) throw "Column  - " + key + " not found !";
                     if (this.cols[cp].mUIHelper.data_type == "DATE") {
-                        if (this.cols[cp].mColClass == FormView.DATEFIELD) {
-                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sfe.parse(this.dataJson.data[rn][key])) : r.cells[cp].setValue(null))
-                            if (isNaN(r.cells[cp].getValue()))
-                                r.cells[cp].setValue(null)
+                        if (this.cols[cp].mColClass == FormView.ClassTypes.DATEFIELD) {
+                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sfe.format(this._parseDate(this.dataJson.data[rn][key]))) : r.cells[cp].setValue(null))
+                            // if (isNaN(r.cells[cp].getValue()))
+                            //     r.cells[cp].setValue(null)
                         } else
-                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(new Date((this.dataJson.data[rn][key]).replaceAll(".", ":"))) : r.cells[cp].setValue(null))
+                            (this.dataJson.data[rn][key] != null ? r.cells[cp].setValue(sfe.format(this._parseDate(this.dataJson.data[rn][key]))) : r.cells[cp].setValue(null))
 
 
                         // if (this.cols[cp].mUIHelper.display_format == "SHORT_DATE_FORMAT")
@@ -442,6 +472,7 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
             LocalTableData.prototype.format = function () {
                 var sett = sap.ui.getCore().getModel("settings").getData();
                 var sft = new simpleDateFormat("MM/dd/yyyy h.mm a");
+                var sfe = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
 
                 if (this.cols <= 0)
                     return "";
@@ -469,7 +500,9 @@ sap.ui.define("sap/ui/ce/generic/LocalTableData", ["./DataCell", "./Column", "./
                                 this.cols[c].mColName.replace(/\//g, "___") + '":' +
                                 (this.cols[c].mUIHelper.data_type == "NUMBER" ? ((Util.getParsedJsonValue(this.rows[r].cells[c].getValue()) + "").replace(",", "")) :
                                     // this.cols[c].mUIHelper.data_type == "DATE" ? "\"" + Util.nvl(sft.format(this.rows[r].cells[c].getValue()) + "\"", "\"\"") :
-                                    this.cols[c].mUIHelper.data_type == "DATE" ? (Util.nvl(this.rows[r].cells[c].getValue(), "") != "" ? "\"" + sft.format(this.rows[r].cells[c].getValue()) + "\"" : "null") :
+                                    (this.cols[c].mUIHelper.data_type == "DATE" || this.cols[c].mUIHelper.display_format == "SHORT_DATE_FORMAT") ?
+                                        (Util.nvl(this.rows[r].cells[c].getValue(), "") != "" ?
+                                            "\"" + sfe.format(this._parseDate(this.rows[r].cells[c].getValue())) + "\"" : "null") :
                                         ((Util.getParsedJsonValue(this.rows[r].cells[c].getValue()) + "")/*.replace(/\\/g, "\\\\")*/));
                         }
 

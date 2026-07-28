@@ -913,13 +913,21 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             // selectionChange:fnchange
                         }, Util.nvl(cc.getMUIHelper().data_type, "").toLowerCase(), f, undefined, cc.mSearchSQL, undefined);
                         o.setTextAlign(Util.getAlignTable(a));
-                    } else {
+                    } else if (colClass != sap.m.DatePicker) {
                         o = UtilGen.createControl(colClass, this.view, "", {
-
                             // technical   : replacing global "___" with colname for cross tab.
                             "text": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
                             "value": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
-                            "dateValue": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                            // "dateValue": "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                            "dateValue": {
+                                path: "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                                type: new sap.ui.model.type.Date({
+                                    source: { pattern: sett["ENGLISH_DATE_FORMAT"] },
+                                    pattern: sett["ENGLISH_DATE_FORMAT"], //"dd/MM/yyyy",
+                                    // source pattern is same if model has same format
+                                }),
+                            },
+                            "valueFormat": sett["ENGLISH_DATE_FORMAT"],//"MM/dd/yyyy HH:mm:ss",
                             textAlign: Util.getAlignTable(a),
                             textDirection: UtilGen.DBView.sLangu == "AR" ? sap.ui.core.TextDirection.RTL : sap.ui.core.TextDirection.LTR,
                             width: "100%",
@@ -930,6 +938,23 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
                         }, Util.nvl(cc.getMUIHelper().data_type, "").toLowerCase(), f);
                         o.setTextAlign(Util.getAlignTable(a));
+                    } else if (colClass == sap.m.DatePicker) {
+                        o = UtilGen.createControl(colClass, this.view, "", {
+                            value: {
+                                path: this.mLctb.cols[i].mColName.replace(/\//g, "___"),
+                                type: new sap.ui.model.type.Date({
+                                    source: { pattern: sett["ENGLISH_DATE_FORMAT"] },
+                                    pattern: sett["ENGLISH_DATE_FORMAT"], //"dd/MM/yyyy",
+                                    // source pattern is same if model has same format
+                                }),
+                            },
+                            textAlign: Util.getAlignTable(a),
+                            textDirection: UtilGen.DBView.sLangu == "AR" ? sap.ui.core.TextDirection.RTL : sap.ui.core.TextDirection.LTR,
+                            width: "100%",
+                            src: "{" + this.mLctb.cols[i].mColName.replace(/\//g, "___") + "}",
+                            enabled: this.mLctb.cols[i].mEnabled,
+
+                        }, Util.nvl(cc.getMUIHelper().data_type, "").toLowerCase());
                     }
                 }
                 else
@@ -1555,7 +1580,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     grp = o[i][pCol];
                     if (this.mLctb.getColByName(pCol).getMUIHelper().display_format === "SHORT_DATE_FORMAT") {
                         if (Util.nvl(o[i][t], "").length > 0) {
-                            var dt = new Date(o[i][pCol]);
+                            var dt = Util.parseDate(Util.nvl(o[i][pCol], ""), sett["ENGLISH_DATE_FORMAT"]);//new Date(o[i][pCol]);
                             grp = sf.format(dt);
                         }
                     }
@@ -1630,6 +1655,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
             var dfq = new DecimalFormat(sett["FORMAT_QTY_1"]);
             var sf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
             var sft = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"] + " h mm a");
+            var sfx = new simpleDateFormat("MM/dd/yyyy h.mm a");
+
 
             for (var i = 0; i < Util.nvl(o, []).length; i++) {
                 cnt = 0;
@@ -1644,7 +1671,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             grp = o[i][v];
                             if (this.mLctb.getColByName(vv).getMUIHelper().display_format === "SHORT_DATE_FORMAT") {
                                 if (Util.nvl(o[i][v], "").length > 0) {
-                                    var dt = new Date(Util.nvl(o[i][v], "").replaceAll(".", ":"));//o[i][v].replaceAll(".",":") );
+                                    var dt = Util.parseDate(Util.nvl(o[i][v], ""), sett["ENGLISH_DATE_FORMAT"]);//new Date(Util.nvl(o[i][v], "").replaceAll(".", ":"));//o[i][v].replaceAll(".",":") );
                                     grp = sf.format(dt);
                                 }
                             }
@@ -1760,10 +1787,14 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                             this.mLctb.getColByName(vv).getMUIHelper().display_format === "SHORT_DATE_FORMAT") {
                             if (Util.nvl(o[i][v], "").length > 0) {
                                 // var dt = sf.parse(Util.nvl(o[i][v], "").replaceAll(".", ":"));
-                                var dt = new Date(Util.nvl(o[i][v], "").replaceAll(".", ":"));
+                                var dt = Util.parseDate(Util.nvl(o[i][v], ""), sett["ENGLISH_DATE_FORMAT"]);
+                                // new Date(Util.nvl(o[i][v], "").replaceAll(".", ":"));
                                 o[i][v] = sf.format(dt); //dt 
+                                // if (this.mLctb.getColByName(vv).mColClass == FormView.ClassTypes.DATEFIELD)
+                                //     o[i][v] = sf.format(dt).replaceAll(".", ":");
                             } else
                                 o[i][v] = null;
+
                         }
                         if (v != "_rowid" &&
                             this.mLctb.getColByName(vv) != undefined &&
@@ -1812,8 +1843,10 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
                     if (t != undefined && this.mLctb.getColByName(t).getMUIHelper().display_format === "SHORT_DATE_FORMAT") {
                         if (Util.nvl(o[i][t], "").length > 0) {
-                            var dt = new Date(Util.nvl(o[i + 1][t], "").replaceAll(".", ":"));
+                            var dt = Util.parseDate(Util.nvl(o[i + 1][t], ""), sett["ENGLISH_DATE_FORMAT"]); //new Date(Util.nvl(o[i + 1][t], "").replaceAll(".", ":"));
                             nxt = sf.format(dt);
+                            // if (this.mLctb.getColByName(t).mColClass == FormView.DATEFIELD)
+                            //     nxt = dt;
                         }
                     }
                     if (this.mLctb.getColByName(t) != undefined) {
@@ -1969,12 +2002,12 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
                     if (this.mLctb.cols[k].getMUIHelper().data_type == "DATE" &&
                         this.mLctb.cols[k].getMUIHelper().display_format == "SHORT_DATE_FORMAT") {
-                        var dt = new Date(Util.nvl(vl, "").replaceAll(".", ":"));
-                        vl = dt;// sf.format(dt);
+                        var dt = Util.parseDate(Util.nvl(vl, ""), sett["ENGLISH_DATE_FORMAT"]);//new Date(Util.nvl(vl, "").replaceAll(".", ":"));
+                        vl = sf.format(dt);//dt; ;
                     }
                     if (this.mLctb.cols[k].getMUIHelper().data_type != "DATE" &&
                         this.mLctb.cols[k].getMUIHelper().display_format == "SHORT_DATE_FORMAT") {
-                        var dt = new Date(Util.nvl(vl, "").replaceAll(".", ":"));
+                        var dt = Util.parseDate(Util.nvl(vl, ""), sett["ENGLISH_DATE_FORMAT"]); //new Date(Util.nvl(vl, "").replaceAll(".", ":"));
                         vl = sf.format(dt);
                     }
 
@@ -2126,12 +2159,12 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
 
                     if (this.mLctb.cols[k].getMUIHelper().data_type == "DATE" &&
                         this.mLctb.cols[k].getMUIHelper().display_format == "SHORT_DATE_FORMAT") {
-                        var dt = new Date(Util.nvl(vl, "").replaceAll(".", ":"));
-                        vl = dt;// sf.format(dt);
+                        var dt = Util.parseDate(Util.nvl(vl, ""), sett["ENGLISH_DATE_FORMAT"]);//new Date(Util.nvl(vl, "").replaceAll(".", ":"));
+                        vl = sf.format(dt); //dt;
                     }
                     if (this.mLctb.cols[k].getMUIHelper().data_type != "DATE" &&
                         this.mLctb.cols[k].getMUIHelper().display_format == "SHORT_DATE_FORMAT") {
-                        var dt = new Date(Util.nvl(vl, "").replaceAll(".", ":"));
+                        var dt = Util.parseDate(Util.nvl(vl, ""), sett["ENGLISH_DATE_FORMAT"]);//new Date(Util.nvl(vl, "").replaceAll(".", ":"));
                         vl = sf.format(dt);
                     }
 
@@ -3172,7 +3205,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 var grp = oData[v][this.filterCodeCol] + (this.filterNameCol != this.filterCodeCol ? " - " + oData[v][this.filterNameCol] : "")
                 if (rowid >= 0 && this.mLctb.getColByName(this.filterCodeCol).getMUIHelper().display_format === "SHORT_DATE_FORMAT") {
                     if (Util.nvl(oData[v][this.filterCodeCol], "").length > 0) {
-                        var dt = new Date(oData[v][this.filterCodeCol]);
+                        var dt = Util.parseDate(Util.nvl(oData[v][this.filterCodeCol], ""), sett["ENGLISH_DATE_FORMAT"]); //new Date(oData[v][this.filterCodeCol]);
                         grp = sf.format(dt) + (this.filterNameCol != this.filterCodeCol ? " - " + oData[v][this.filterNameCol] : "")
                     }
                 }

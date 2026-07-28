@@ -720,7 +720,9 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
             },
             toOraDateString: function (dt) {
                 var sett = sap.ui.getCore().getModel("settings").getData();
-
+                if (Util.nvl(dt, "") == "") {
+                    return "null";
+                }
                 if (typeof dt == "string") {
                     return "to_date('" + dt + "','" + sett["ENGLISH_DATE_FORMAT_ORA"] + "')";
                 } else if (dt instanceof Date) {
@@ -2102,6 +2104,91 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
 
                 } else vl = sett[vars];
                 return Util.nvl(vl, noVal);
+            },
+            parseDate: function (strx, patternx) {
+                // Token definitions: regex capture groups and their field mapping
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var pattern = Util.nvl(patternx, sett["ENGLISH_DATE_FORMAT"]);
+                if (Util.nvl(strx, "").trim() == "") return null;
+                var str = Util.nvl(strx, "").replaceAll(".", ":");
+                const tokens = {
+                    'yyyy': { regex: '(\\d{4})', field: 'year' },
+                    'yy': { regex: '(\\d{2})', field: 'year2' },
+                    'MM': { regex: '(\\d{2})', field: 'month' },
+                    'M': { regex: '(\\d{1,2})', field: 'month' },
+                    'dd': { regex: '(\\d{2})', field: 'day' },
+                    'd': { regex: '(\\d{1,2})', field: 'day' },
+                    'HH': { regex: '(\\d{2})', field: 'hour24' },
+                    'H': { regex: '(\\d{1,2})', field: 'hour24' },
+                    'hh': { regex: '(\\d{2})', field: 'hour12' },
+                    'h': { regex: '(\\d{1,2})', field: 'hour12' },
+                    'mm': { regex: '(\\d{2})', field: 'minute' },
+                    'm': { regex: '(\\d{1,2})', field: 'minute' },
+                    'ss': { regex: '(\\d{2})', field: 'second' },
+                    's': { regex: '(\\d{1,2})', field: 'second' },
+                    'a': { regex: '([ap]m)', field: 'ampm' },
+                };
+
+                // Sort tokens by length descending to match longest first
+                const sortedTokens = Object.keys(tokens).sort((a, b) => b.length - a.length);
+
+                // Build pattern parts: tokens and literals
+                let parts = [];
+                let i = 0;
+                while (i < pattern.length) {
+                    let matched = false;
+                    for (let token of sortedTokens) {
+                        if (pattern.startsWith(token, i)) {
+                            parts.push({ token, ...tokens[token] });
+                            i += token.length;
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) {
+                        // Escape special regex characters
+                        let ch = pattern[i];
+                        if ('\\^$.|?*+()[{'.includes(ch)) ch = '\\' + ch;
+                        parts.push({ literal: ch });
+                        i++;
+                    }
+                }
+
+                // Build final regex
+                let regexStr = '';
+                for (let p of parts) {
+                    regexStr += p.literal || p.regex;
+                }
+                const regex = new RegExp('^' + regexStr + '$');
+                const match = str.match(regex);
+                if (!match) throw new Error(`String "${str}" does not match pattern "${pattern}"`);
+
+                // Extract fields from capture groups
+                let fields = {};
+                let groupIdx = 1;
+                for (let p of parts) {
+                    if (p.token) {
+                        fields[p.field] = match[groupIdx++];
+                    }
+                }
+
+                // Convert to numbers
+                let year = parseInt(fields.year || fields.year2, 10);
+                if (fields.year2) year = 2000 + year; // adjust as needed
+                let month = parseInt(fields.month, 10) - 1;
+                let day = parseInt(fields.day, 10);
+                let hour = parseInt(fields.hour24 || fields.hour12, 10) || 0;
+                let minute = parseInt(fields.minute, 10) || 0;
+                let second = parseInt(fields.second, 10) || 0;
+
+                // Handle 12-hour clock
+                if (fields.hour12) {
+                    const ampm = fields.ampm && fields.ampm.toLowerCase();
+                    if (ampm === 'pm' && hour < 12) hour += 12;
+                    if (ampm === 'am' && hour === 12) hour = 0;
+                }
+
+                return new Date(year, month, day, hour, minute, second);
             }
         };
 

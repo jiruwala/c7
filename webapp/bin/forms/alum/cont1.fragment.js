@@ -56,15 +56,15 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
         var codSpan = "XL3 L3 M3 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var sumSpan2 = "XL2 L6 M6 S12";
-        var dmlSq = "SELECT O1.*, PRICE*O1.QTY AMOUNT from C7_CONTRACTS1_ITEMS o1 "
-        " WHERE O1.KEYFLD=':keyfld' ORDER BY O1.ORD_POS ";
+        var dmlSq = "SELECT O1.*, PRICE*O1.QTY AMOUNT from C7_CONTRACTS1_ITEMS o1 " +
+            " WHERE O1.KEYFLD=':keyfld' ORDER BY O1.ITEMPOS ";
 
         Util.destroyID("cmdA" + this.timeInLong, this.view);
         UtilGen.clearPage(this.mainPage);
         this.frm;
         var js = {
             form: {
-                title: Util.getLangText("dlvNoteBR"),
+                title: Util.getLangText("custContract"),
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
@@ -137,7 +137,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         applyCol: "C7.XCN1",
                         addRowOnEmpty: true,
                         dml: dmlSq,
-                        dispRecords: { "S": 5, "M": 7, "L": 10, "XL": 14, "XXL": 18 },
+                        dispRecords: 4,//{ "S": 5, "M": 7, "L": 10, "XL": 14, "XXL": 18 },
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: true,
@@ -274,6 +274,9 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
 
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0) {
+                        ld.setFieldValue(idx, "QTY", 1);
+                        ld.setFieldValue(idx, "PRICE", 0);
+                        ld.setFieldValue(idx, "ITEMPOS", idx + 1);
 
                     }
 
@@ -283,26 +286,24 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 },
                 beforeDeleteValidate: function (frm) {
                     var kf = frm.getFieldValue("keyfld");
-                    var dt = Util.execSQL("select saleinv from order1 where keyfld=" + kf);
-                    if (dt.ret == "SUCCESS") {
-                        var dtx = JSON.parse("{" + dt.data + "}").data;
-                        if (dtx.length > 0 && dtx[0].SALEINV != undefined) {
-                            // frm.setFormReadOnly();
-                            FormView.err("This Delivery is posted to invoice !");
-                        }
-                    }
+
                 },
                 beforeDelRow: function (qry, idx, ld, data) {
 
                 },
                 afterDelRow: function (qry, ld, data) {
-
+                    var delAdd = "";
+                    var kf = thatForm.frm.getFieldValue("keyfld");
                     if (qry.name == "qry2" && qry.insert_allowed && ld != undefined && ld.rows.length == 0)
                         qry.obj.addRow();
 
                     if (qry.name == "qry1") {
-                        return "delete from c7_contracts1_steps where keyfld=:pac ;" + delAdd;
+                        delAdd = "C7_CONTRACTS1_POSTJV(" + kf + ",'Y');" +
+                            "delete from c7_contracts1_items where keyfld=:pac;" +
+                            "delete from c7_contracts1_steps where keyfld=:pac ;" + delAdd;
+                        return delAdd;
                     }
+
                 },
                 onCellRender: function (qry, rowno, colno, currentRowContext) {
                 },
@@ -316,9 +317,9 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 },
                 beforeExeSql: function (frm, sq) {
-                    // var kf = frm.getFieldValue("qry1.keyfld");
+                    var kf = frm.getFieldValue("qry1.keyfld");
                     // return sq + "update_dlv_add_amt(" + kf + ");";
-                    return sq;
+                    return sq + "C7_CONTRACTS1_POSTJV(" + kf + ");";
                 },
                 addSqlAfterInsert: function (qry, rn) {
 
@@ -856,7 +857,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             var thatForm = this.thatForm;
             var flg = "";
             if (qry.name == "qry1" && qry.status == FormView.RecordStatus.NEW) {
-
+                flg = " flag=1 and ";
             }
             var cod = thatForm.frm.getFieldValue("qry1.cust_code");
             var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
@@ -897,7 +898,29 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
     ,
     showSteps: function () {
         var that2 = this;
+        var generateCpy = function () {
+            return new sap.m.Button({
+                icon: "sap-icon://copy",
+                press: function () {
+                    if (!(that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
+                        that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
+                        FormView.err("Must Form EDIT or NEW mode to edit and add items ! ");
+                    }
 
+                    var dt = Util.execSQLWithData("select *from c7_steps_info where grp_code='CNT1' order by code");
+                    var ld = that2.qc.mLctb;
+                    ld.removeAllRows();
+                    for (var i = 0; i < dt.length; i++) {
+                        var rn = ld.addRow();
+                        ld.setFieldValue(rn, "POSNO", rn + 1);
+                        ld.setFieldValue(rn, "CODE", dt[i].CODE);
+                        ld.setFieldValue(rn, "DESCR", dt[i].DESCR);
+                        ld.setFieldValue(rn, "PAY_P", dt[i].DEFAULT_P);
+                    }
+                    that2.qc.updateDataToControl();
+                }
+            });
+        };
         if (this.qc == undefined) {
             this.qc = new QueryView("qrRawitems" + that2.timeInLong);
             this.qc.getControl().setEditable(true);
@@ -907,7 +930,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             this.qc.getControl().setFixedBottomRowCount(0);
             this.qc.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Auto);
             UtilGen.createDefaultToolbar1(this.qc, ["REFER", "DESCR"], false);
-            // this.qc.showToolbar.toolbar.addContent(generateCpy());
+            this.qc.showToolbar.toolbar.addContent(generateCpy());
             this.qc.showToolbar.toolbar.addContent(new sap.m.ToolbarSpacer());
             this.qc.insertable = true;
             this.qc.deletable = true;
@@ -1018,13 +1041,15 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 Util.setColProperties(qv, "EXPECTED_DATE", {
                     "mColClass": "sap.m.DatePicker",
                     "mTitle": "expectedDate",
-                    "display_width": 120,
+                    "display_width": 145,
                     "display_format": "SHORT_DATE_FORMAT"
                 });
                 Util.setColProperties(qv, "DONE_DATE", {
-                    "mColClass": "sap.m.DatePicker",
+                    "mColClass": "sap.m.Text",
                     "mTitle": "doneDate",
-                    "display_width": 120,
+                    "display_width": 145,
+                    "insert_allowed": false,
+                    "edit_allowed": false,
                     "display_format": "SHORT_DATE_FORMAT"
                 });
 
@@ -1172,10 +1197,10 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
         if (!that2.fetchCustItems || that2.qc == undefined || that2.qc.mLctb.rows.length == 0)
             return "";
+        that2.qc.updateDataToTable();
         var ld = that2.qc.mLctb;
         var sqls = "";
         var rfr = that2.frm.getFieldValue("qry1.keyfld");
-        var ctg = that2.view.byId("btCtg" + that2.timeInLong).getCustomData()[0].getKey();
         var sq2 = UtilGen.getInsertRowStringByObj(
             "C7_CONTRACTS1_STEPS",
             {
@@ -1209,7 +1234,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 .replaceAll(":XDESCR", ld.getFieldValue(i, "DESCR"))
                 .replaceAll(":XPAY_P", Util.extractNumber(ld.getFieldValue(i, "PAY_P")))
                 .replaceAll(":XPAY_AMT", Util.extractNumber(ld.getFieldValue(i, "PAY_AMT")))
-                .replaceAll(":XEXPECTED_DATE", Util.toOraDateString(ld.getFieldValue(i, "EXTRACT_DATE")))
+                .replaceAll(":XEXPECTED_DATE", Util.toOraDateString(ld.getFieldValue(i, "EXPECTED_DATE")))
                 .replaceAll(":XDONE_DATE", Util.toOraDateString(ld.getFieldValue(i, "DONE_DATE")))
                 .replaceAll(":XREMARKS", ld.getFieldValue(i, "REMARKS"));
             // .replaceAll(":", ld.getFieldValue(i, ""))
