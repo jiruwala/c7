@@ -318,8 +318,11 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 },
                 beforeExeSql: function (frm, sq) {
                     var kf = frm.getFieldValue("qry1.keyfld");
+                    var ct = frm.getFieldValue("qry1.cont_type");
                     // return sq + "update_dlv_add_amt(" + kf + ");";
-                    return sq + "C7_CONTRACTS1_POSTJV(" + kf + ");";
+                    var sql = ""
+                    if (ct == "cont") sql = "C7_CONTRACTS1_POSTJV(" + kf + ");"
+                    return sq + sql;
                 },
                 addSqlAfterInsert: function (qry, rn) {
 
@@ -496,7 +499,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 cust_code: FormView.getFactoryFields.getGeneralField(
                     "cust_code", "@", "txtCust", "15%", "", "12%",
                     {
-                        require: true,
+                        require: false,
                         edit_allowed: true,
                         insert_allowed: true
                     }, FormView.getFactoryFields.getSettingsOrdRef2({
@@ -860,10 +863,20 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 flg = " flag=1 and ";
             }
             var cod = thatForm.frm.getFieldValue("qry1.cust_code");
-            var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
-            if (sqcnt == 0) FormView.err("Save Denied : Customer is invalid !");
-            sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
-            if (sqcnt > 0) FormView.err("Save Denied : Parent customer not allowed !");
+            var pa = thatForm.frm.getFieldValue("qry1.parent_cust");
+            var ct = thatForm.frm.getFieldValue("qry1.cont_type");
+            if (ct != "quot" && Util.nvl(cod, "") == "") FormView.err("Customer code can't be null !");
+            if (ct != "quot" && Util.nvl(pa, "") == "") FormView.err("Parent Customer can't be null !");
+
+            if (Util.nvl(cod, "") != "") {
+                var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
+                if (sqcnt == 0) FormView.err("Save Denied : Customer is invalid !");
+                sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
+                if (sqcnt > 0) FormView.err("Save Denied : Parent customer not allowed !");
+            }
+
+            if (ct == "cont" && !thatForm.helperFunc.canCustParent(pa))
+                FormView.err(thatForm.helperFunc.errStr);
 
 
             // items
@@ -893,7 +906,34 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
         fetchItem: function () {
 
         },
+        generateCustPath: function (pac, ac) {
+            var that = this;
+            var ret = "XXX\\" + ac + "\\";
+            if (pac == "")
+                return ret;
 
+            var pth = Util.getSQLValue("select nvl(max(path),'') from c_ycust where code=" + Util.quoted(pac));
+            if (pth == "")
+                return "";
+            return pth + ac + "\\";
+        },
+        canCustParent: function (pa) {
+            this.errStr = "";
+
+            if (!Util.isNull(pa)) {
+                var n = Util.getSQLValue("select nvl(count(*),0) from acvoucher2 where cust_code=" + Util.quoted(pa));
+                if (n > 0) {
+                    this.errStr = "Err ! , reference in account transaction !";
+                    return false;
+                }
+                n = Util.getSQLValue("select nvl(count(*),0) from pur1 where c_cus_no=" + Util.quoted(pa));
+                if (n > 0) {
+                    this.errStr = "Err ! , reference in sales/purchase transaction !";
+                    return false;
+                }
+            }
+            return true;
+        },
     }
     ,
     showSteps: function () {
