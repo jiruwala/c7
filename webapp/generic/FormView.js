@@ -2229,6 +2229,21 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 });
 
             },
+            getSettingSalesp: function (pSet) {
+                var thatForm = pSet.thatForm;
+                var ordref = Util.nvl(pSet.ord_ref, "qry1.salesp");
+                var ordrefnm = Util.nvl(pSet.ord_ref, "qry1._sname");
+                var typ = Util.nvl(pSet.typ, "S");
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: thatForm,
+                    getBtns: undefined,
+                    code: Util.nvl(ordref),
+                    name: Util.nvl(ordrefnm),
+                    sqlChange: "select name from salesp where no = ':CODE'",
+                    sqlList: "select no code,name title from salesp where type='" + typ + "'  order by no ",
+                    sqlListChange: "select no code,name title from salesp where no=:CODE",
+                });
+            },
             getListSettings: function (thatForm, ordref, lsttype) {
                 return FormView.getFactoryFields.getSettingsGeneral({
                     thatForm: thatForm,

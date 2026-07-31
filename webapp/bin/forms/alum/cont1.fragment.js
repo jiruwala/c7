@@ -237,7 +237,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         UtilGen.Search.getLOVSearchField("select name from c_ycust where code = :CODE ", qry.formview.objs["qry1.parent_cust"].obj, undefined, that.frm.objs["qry1._pname"].obj);
                         UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.revenue_ac"].obj, undefined, that.frm.objs["qry1._racname"].obj);
-
+                        var cmdS = thatForm.frm.objs["qry1._cmdSearch"].obj;
+                        cmdS.setEnabled(false);
                     }
                     // if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
 
@@ -261,15 +262,29 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_contracts1");
                         var dt = thatForm.view.today_date.getDateValue();
                         var dtx = new Date(dt.toDateString());
+                        var cmdS = thatForm.frm.objs["qry1._cmdSearch"].obj;
                         thatForm.frm.setFieldValue("qry1.cont_type", "cont", "cont");
                         thatForm.frm.setFieldValue("qry1.qty", 0, 0);
                         thatForm.frm.setFieldValue("qry1.cont_amt", 0, 0);
                         thatForm.frm.setFieldValue("qry1.cont_trans_amt", 0, 0);
+                        thatForm.frm.setFieldValue("qry1.revenue_ac", sett["CONT_RVN_AC"], sett["CONT_RVN_AC"], true);
 
                         thatForm.frm.setFieldValue("qry1.keyfld", newKf, newKf);
                         qry.formview.setFieldValue("qry1.cont_date", dtx, dtx, true);
 
                         thatForm.frm.objs["qry1.cont_type"].obj.fireSelectionChange();
+
+                        var ctype = thatForm.frm.getFieldValue("qry1.cont_type");
+                        cmdS.setEnabled(true);
+                        cmdS.setText("Quots");
+                        if (ctype == "quot")
+                            cmdS.setEnabled(false);
+                        if (ctype != "cont") {
+                            cmdS.setEnabled(false);
+                            cmdS.setText("");
+                        }
+
+
 
                     }
 
@@ -435,7 +450,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     sqlList: "select code,name title from c_ycust where flag=1 and childcount>0 and iscust='Y'  order by path ",
                     sqlListChange: "select code,name title from c_ycust where code=:CODE",
                 });
-            }
+            };
+
             //1keyfid cont_type 15-10,10,15              cont_no,cont_date 15-10,10,15
             //2parent_cust pname 15-10,25                cust_code cust_nmame,15,10,25            
             //3 dlv_no qty 15,10,10,15                   dlv_date , cont_amt 15,35
@@ -446,6 +462,34 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             //8revenue_ac,_racname 15,15,20                        remarks,15,35
 
             return {
+                reference: FormView.getFactoryFields.getGeneralField(
+                    "reference", "", "", "0px", "boldText", "85%",
+                    {
+                        class_name: FormView.ClassTypes.LABEL,
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        display_style: "boldText"
+                    }, {
+                    change: function () {
+
+                    }
+                }),
+                _cmdSearch: {
+                    colname: "_cmdSearch",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.BUTTON,
+                    title: '@{\"text\":\"\",\"width\":\"0px\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    other_settings: {
+                        text: "List",
+                        width: "15%",
+                        press: function () {
+                            thatForm.helperFunc.showRefList();
+                        }
+                    }
+                },
                 //1
                 keyfld: FormView.getFactoryFields.getKeyFld("", "15%", "10%"),
                 cont_type: FormView.getFactoryFields.getComboField(
@@ -458,8 +502,22 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     selectionChange: function () {
                         var objOn = thatForm.frm.objs["qry1.cont_type"].obj;
                         var objno = thatForm.frm.objs["qry1.cont_no"].obj;
-                        var newno = Util.getSQLValue("select nvl(max(cont_no),0)+1 from c7_contracts1 where cont_type='" + objOn.getValue() + "' ");
+                        var objrfr = thatForm.frm.objs["qry1.reference"].obj;
+                        var newno = Util.getSQLValue("select nvl(max(cont_no),0)+1 from c7_contracts1 where cont_type='" + objOn.getSelectedKey() + "' ");
                         UtilGen.setControlValue(objno, newno, newno, true);
+
+                        var cmdS = thatForm.frm.objs["qry1._cmdSearch"].obj;
+                        UtilGen.setControlValue(objrfr, "", "", true);
+                        var ctype = thatForm.frm.getFieldValue("qry1.cont_type");
+                        cmdS.setEnabled(true);
+                        cmdS.setText("Quots");
+                        if (ctype == "quot")
+                            cmdS.setEnabled(false);
+                        if (ctype != "cont") {
+                            cmdS.setEnabled(false);
+                            cmdS.setText("");
+                        }
+
                     }
                 }),
                 cont_no: FormView.getFactoryFields.getGeneralField(
@@ -545,7 +603,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 cont_amt: FormView.getFactoryFields.getMoneyField(
                     "cont_amt", "@", "contractAmt", "15%", "", "10%",
                     {
-
+                        display_format: "MONEY_FORMAT",
                     }, {}),
                 dlv_date: FormView.getFactoryFields.getDateField(
                     "dlv_date", "@", "deliveryDate", "10%", "", "15%",
@@ -568,7 +626,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 unitd: FormView.getFactoryFields.getGeneralField(
-                    "unitd", "@", "itemUnitD", "15%", "", "10%",
+                    "unitd", "@", "itemUnitD", "10%", "", "15%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -580,13 +638,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 cont_trans_amt: FormView.getFactoryFields.getMoneyField(
-                    "cont_trans_amt", "@", "contractTransAmt", "15%", "", "35%",
+                    "cont_trans_amt", "@", "contractTransAmt", "15%", "", "10%",
                     {
-
+                        display_format: "MONEY_FORMAT",
                     }, {}),
-                //5
+
                 civil_id: FormView.getFactoryFields.getGeneralField(
-                    "civil_id", "", "civilId", "15%", "", "35%",
+                    "civil_id", "@", "civilId", "10%", "", "15%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -597,6 +655,26 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                     }
                 }),
+                //5
+                salesp: FormView.getFactoryFields.getGeneralField(
+                    "salesp", "", "txtSalesPerson", "15%", "", "12%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, FormView.getFactoryFields.getSettingSalesp({
+                        thatForm: thatForm,
+                        ord_ref: "qry1.salesp",
+                        ord_refnm: "qry1._sname",
+                        typ: "S"
+                    })),
+                _sname: FormView.getFactoryFields.getGeneralField(
+                    "_sname", "@", "", "0px", "", "23%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                    }, {}),
                 tel1: FormView.getFactoryFields.getGeneralField(
                     "tel1", "@", "txtTel", "15%", "", "10%",
                     {
@@ -865,6 +943,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             var cod = thatForm.frm.getFieldValue("qry1.cust_code");
             var pa = thatForm.frm.getFieldValue("qry1.parent_cust");
             var ct = thatForm.frm.getFieldValue("qry1.cont_type");
+            var camt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.cont_trans_amt"));
+
             if (ct != "quot" && Util.nvl(cod, "") == "") FormView.err("Customer code can't be null !");
             if (ct != "quot" && Util.nvl(pa, "") == "") FormView.err("Parent Customer can't be null !");
 
@@ -874,10 +954,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
                 if (sqcnt > 0) FormView.err("Save Denied : Parent customer not allowed !");
             }
+            if (camt <= 0) FormView.err("Contract trans amount must have value !");
 
             if (ct == "cont" && !thatForm.helperFunc.canCustParent(pa))
                 FormView.err(thatForm.helperFunc.errStr);
 
+            if (ct == "cont" && (this.qc == undefined || this.qc.mLctb.rows.length == 0))
+                FormView.err("Steps must have atleast 1 record !");
 
             // items
             var dup = {};
@@ -885,8 +968,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             thatForm.frm.objs["qry2"].obj.updateDataToTable();
             for (var i = 0; i < ld.rows.length; i++) {
                 // var rfr = ld.getFieldValue(i, "ORD_SHIP");
-                // var qty = ld.getFieldValue(i, "TQTY");
-                // var pr = ld.getFieldValue(i, "SALE_PRICE");
+                var qty = ld.getFieldValue(i, "QTY");
+                var pr = ld.getFieldValue(i, "PRICE");
                 // if (dup[rfr] != undefined)
                 //     FormView.err("Save Denied : Duplicate item entry # " + rfr);
                 // dup[rfr] = rfr;
@@ -896,10 +979,10 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 // var cnt = Util.getSQLValue("select nvl(count(*),0) cnt from items where " + flg + " reference='" + rfr + "'");
                 // if (cnt == 0)
                 //     FormView.err("Save Denied: Item " + rfr + " is invalid entry !");
-                // if (pr < 0)
-                //     FormView.err("Save Denied: PRICE invalid value !");
-                // if (qty <= 0)
-                //     FormView.err("Save Denied: QTY invalid value !");
+                if (pr < 0)
+                    FormView.err("Save Denied: PRICE invalid value !");
+                if (qty <= 0)
+                    FormView.err("Save Denied: QTY invalid value !");
             }
 
         },
@@ -934,6 +1017,72 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             }
             return true;
         },
+        showRefList: function () {
+            var thatForm = this.thatForm;
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                return;
+            var ctype = thatForm.frm.getFieldValue("qry1.cont_type");
+            if (ctype != "cont") return;
+            var sq = "select cont_no,cont_date,cust_code,cust_name,cont_amt,cont_trans_amt,keyfld " +
+                " from c7_contracts1 where cont_type='quot' order by cont_date desc,cont_no desc ";
+            UtilGen.Search.do_quick_search_simple(sq,
+                ["TRAMS_DESCR"], function (data) {
+                    var kf = data.KEYFLD;
+                    var dtx = Util.execSQLWithData("select * from c7_contracts1 where keyfld=" + kf);
+                    thatForm.frm.setFieldValue("qry1.reference", dtx[0].KEYFLD, dtx[0].KEYFLD, true);
+                    thatForm.frm.setFieldValue("qry1.cust_code", dtx[0].CUST_CODE, dtx[0].CUST_CODE, true);
+                    thatForm.frm.setFieldValue("qry1.cust_name", dtx[0].CUST_NAME, dtx[0].CUST_NAME, true);
+                    thatForm.frm.setFieldValue("qry1.dlv_no", dtx[0].DLV_NO, dtx[0].DLV_NO, true);
+                    thatForm.frm.setFieldValue("qry1.qty", dtx[0].QTY, dtx[0].QTY, true);
+                    thatForm.frm.setFieldValue("qry1.cont_amt", dtx[0].CONT_AMT, dtx[0].CONT_AMT, true);
+                    thatForm.frm.setFieldValue("qry1.dlv_date", dtx[0].DLV_DATE, dtx[0].DLV_DATE, true);
+                    thatForm.frm.setFieldValue("qry1.rec_no", dtx[0].REC_NO, dtx[0].REC_NO, true);
+                    thatForm.frm.setFieldValue("qry1.unitd", dtx[0].UNITD, dtx[0].UNITD, true);
+                    thatForm.frm.setFieldValue("qry1.cont_trans_amt", dtx[0].CONT_TRANS_AMT, dtx[0].CONT_TRANS_AMT, true);
+                    thatForm.frm.setFieldValue("qry1.civil_id", dtx[0].CIVIL_ID, dtx[0].CIVIL_ID, true);
+                    thatForm.frm.setFieldValue("qry1.salesp", dtx[0].SALESP, dtx[0].SALESP, true);
+                    thatForm.frm.setFieldValue("qry1.tel1", dtx[0].TEL1, dtx[0].TEL1, true);
+                    thatForm.frm.setFieldValue("qry1.tel2", dtx[0].TEL2, dtx[0].TEL2, true);
+                    thatForm.frm.setFieldValue("qry1.pay_no_1", dtx[0].PAY_NO_1, dtx[0].PAY_NO_1, true);
+                    thatForm.frm.setFieldValue("qry1.pay_no_2", dtx[0].PAY_NO_2, dtx[0].PAY_NO_2, true);
+                    thatForm.frm.setFieldValue("qry1.pay_date", dtx[0].PAY_DATE, dtx[0].PAY_DATE, true);
+                    thatForm.frm.setFieldValue("qry1.govt", dtx[0].GOVT, dtx[0].GOVT, true);
+                    thatForm.frm.setFieldValue("qry1.area", dtx[0].AREA, dtx[0].AREA, true);
+                    thatForm.frm.setFieldValue("qry1.address", dtx[0].ADDRESS, dtx[0].ADDRESS, true);
+                    thatForm.frm.setFieldValue("qry1.revenue_ac", dtx[0].REVENUE_AC, dtx[0].REVENUE_AC, true);
+                    thatForm.frm.setFieldValue("qry1.remarks", dtx[0].REMARKS, dtx[0].REMARKS, true);
+                    var qvi = thatForm.frm.objs["qry2"].obj;
+                    var ld = qvi.mLctb;
+                    ld.removeAllRows();
+
+                    var dti = Util.execSQLWithData("select *from c7_contracts1_items " +
+                        " where keyfld=" + kf + " order by itempos");
+                    for (var i = 0; i < dti.length; i++) {
+                        var rn = ld.addRow();
+                        ld.setFieldValue(rn, "ITEMPOS", dti[0].ITEMPOS);
+                        ld.setFieldValue(rn, "REFER", dti[0].REFER);
+                        ld.setFieldValue(rn, "DESCR", dti[0].DESCR);
+                        ld.setFieldValue(rn, "SIZE_DESCR", dti[0].SIZE_DESCR);
+                        ld.setFieldValue(rn, "QTY", dti[0].QTY);
+                        ld.setFieldValue(rn, "PRICE", dti[0].PRICE);
+                        ld.setFieldValue(rn, "AMOUNT", (dti[0].PRICE * dti[0].QTY));
+                    }
+
+                    qvi.updateDataToControl();
+                    qvi.eventCalc(qvi, undefined, 0, true);
+
+                    // thatForm.frm.setFieldValue("qry1.", dtx[0]., dtx[0]. , true);
+                }, { pWidth: "80%" }, undefined, undefined, "Quotation List ... ", [
+                {
+                    KEYFLD: {
+                        colname: 'KEYFLD',
+                        hide: true
+                    }
+                },
+
+            ]);
+
+        }
     }
     ,
     showSteps: function () {
@@ -950,12 +1099,15 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     var dt = Util.execSQLWithData("select *from c7_steps_info where grp_code='CNT1' order by code");
                     var ld = that2.qc.mLctb;
                     ld.removeAllRows();
+                    var ca = that2.frm.getFieldValue("qry1.cont_amt");
                     for (var i = 0; i < dt.length; i++) {
                         var rn = ld.addRow();
                         ld.setFieldValue(rn, "POSNO", rn + 1);
                         ld.setFieldValue(rn, "CODE", dt[i].CODE);
                         ld.setFieldValue(rn, "DESCR", dt[i].DESCR);
                         ld.setFieldValue(rn, "PAY_P", dt[i].DEFAULT_P);
+                        var pa = (ca / 100) * dt[i].DEFAULT_P;
+                        ld.setFieldValue(rn, "PAY_AMT", pa);
                     }
                     that2.qc.updateDataToControl();
                 }
@@ -995,14 +1147,14 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
             var ld = qv.mLctb;
             var sumAmt = 0;
-
+            var sump = 0;
             for (var i = 0; i < ld.rows.length; i++) {
-                var pr = Util.extractNumber(ld.getFieldValue(i, "PAY_AMT"));
-                sumAmt += pr;
+                sumAmt += Util.extractNumber(ld.getFieldValue(i, "PAY_AMT"))
+                sump += Util.extractNumber(ld.getFieldValue(i, "PAY_P"));
             }
 
             // thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
-            that2.view.byId("txtRM" + that2.timeInLong).setText("Amount : " + df.format(sumAmt));
+            that2.view.byId("txtRM" + that2.timeInLong).setText(sump + "%,  Amount : " + df.format(sumAmt));
             if (reAmt)
                 qv.updateDataToControl();
 
@@ -1071,6 +1223,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     "display_width": 175,
                 });
 
+                Util.setColProperties(qv, "PAY_P", {
+                    "mColClass": "sap.m.Input",
+                    "mTitle": "payAmt",
+                    "display_width": 120,
+                    "display_format": "QTY_FORMAT",
+                });
+
                 Util.setColProperties(qv, "PAY_AMT", {
                     "mColClass": "sap.m.Input",
                     "mTitle": "payAmt",
@@ -1099,30 +1258,20 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     "display_width": 250,
                     "display_format": ""
                 });
-
-
                 qv.mLctb.cols[qv.mLctb.getColPos("CODE")].eValidateColumn = function (evtx) {
-                    var row = evtx.getSource().getParent();
-                    var column_no = evtx.getSource().getParent().indexOfCell(evtx.getSource());
-                    var columns = evtx.getSource().getParent().getParent().getColumns();
-                    var table = evtx.getSource().getParent().getParent(); // get table control.
-                    var oModel = table.getModel();
-                    var rowStart = table.getFirstVisibleRow(); //starting Row index
-                    var currentRowoIndexContext = table.getContextByIndex(rowStart + table.indexOfRow(row));
-                    var newValue = evtx.getSource().getValue();
+                    var info = UtilGen.getTableFromValidateEvent(evtx);
+                    info.oModel.setProperty(info.currentRowoIndexContext.sPath + '/DESCR', "");
 
-                    oModel.setProperty(currentRowoIndexContext.sPath + '/DESCR', "");
-
-                    var dtxM = Util.execSQLWithData("select descr from c7_steps_info where grp_code='CNT1' and code='" + newValue + "' ")
+                    var dtxM = Util.execSQLWithData("select descr from c7_steps_info where grp_code='CNT1' and code='" + info.newValue + "' ")
                     if (dtxM != undefined && dtxM.length > 0) {
-                        oModel.setProperty(currentRowoIndexContext.sPath + '/DESCR', dtxM[0].DESCR);
+                        info.oModel.setProperty(info.currentRowoIndexContext.sPath + '/DESCR', dtxM[0].DESCR);
                     }
                 };
                 qv.mLctb.cols[qv.mLctb.getColPos("CODE")].mSearchSQL = "select  code,descr title,default_p from C7_STEPS_INFO where grp_code='CNT1' order by descr2";
                 qv.mLctb.cols[qv.mLctb.getColPos("CODE")].eOnSearch = function (evtx) {
                     var input = evtx.getSource();
                     UtilGen.Search.do_quick_search(evtx, input,
-                        "select code,descr title,DEFAULT_P  from C7_STEPS_INFO where grp_code='CNT1' order by descr2 ",
+                        "select code,descr title,DEFAULT_P  from C7_STEPS_INFO where grp_code='CNT1' order by code ",
                         "select  code,descr title from C7_STEPS_INFO  where grp_code='CNT1' and code=:CODE", undefined, function () {
                             input.fireChange();
                         },
@@ -1133,10 +1282,30 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         });
                 }
                 var qtValidate = function (evtx) {
-                    eventCalc(qv, undefined, 0, true);
+                    var info = UtilGen.getTableFromValidateEvent(evtx);
+                    var colnm = info.columns[info.column_no].tableCol.mColName;
 
+                    if (colnm == "PAY_P") {
+                        var ca = that2.frm.getFieldValue("qry1.cont_amt");
+                        var pa = 0;
+                        if (ca > 0)
+                            pa = (ca / 100) * info.newValue;
+                        info.oModel.setProperty(info.currentRowoIndexContext.sPath + '/PAY_AMT', pa);
+                    }
+                    if (colnm == "PAY_AMT") {
+                        var ca = that2.frm.getFieldValue("qry1.cont_amt");
+                        var pp = 0;
+                        if (ca > 0)
+                            pp = ((info.newValue / ca) * 100).toFixed(2);
+                        pp = Util.extractNumber(String(pp));
+                        info.oModel.setProperty(info.currentRowoIndexContext.sPath + '/PAY_P', pp);
+                    }
+                    eventCalc(qv, undefined, 0, true);
                 };
+
                 qv.mLctb.cols[qv.mLctb.getColPos("PAY_AMT")].eValidateColumn = qtValidate;
+                qv.mLctb.cols[qv.mLctb.getColPos("PAY_P")].eValidateColumn = qtValidate;
+
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
                 that2.fetchCustItems = true;
@@ -1257,7 +1426,15 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 "REMARKS": "':XREMARKS'",
             });
         var checkDuplicate = {};
+        var sumP = 0;
+        var sumAmt = 0;
         for (var i = 0; i < ld.rows.length; i++) {
+            var p = Utill.extractNumber(ld.getFieldValue(i, "PAY_P"));
+            var pa = Utill.extractNumber(ld.getFieldValue(i, "PAY_AMT"));
+            if (p > 100 || p < 0) { FormView.err("Invalid Pay % in steps !"); thatForm.showSteps(); }
+            if (pa < 0) { FormView.err("Invalid Pay Amount in steps !"); thatForm.showSteps(); }
+            sumP += p; sumAmt += pa;
+
             if (Util.nvl(ld.getFieldValue(i, "CODE"), "") == "") {
                 that2.showSteps();
                 FormView.err(" REFER MUST ENTER !");
@@ -1280,6 +1457,10 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             // .replaceAll(":", ld.getFieldValue(i, ""))
             sqls += sq + ";";
         }
+
+        if (sumP != 100) { FormView.err("Must 100% PAY in steps !"); thatForm.showSteps(); }
+        // if (sumAmt != ) { FormView.err("Invalid Pay Amount in steps !"); thatForm.showSteps(); }
+
         sqls = "delete from C7_CONTRACTS1_STEPS where keyfld='" + rfr + "';" + sqls;
         return sqls;
     },

@@ -1363,7 +1363,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                                     }
                                     return true;
-                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx,cx.listPara
+                                }, "100%", "100%", undefined, false, undefined, pms, undefined, undefined, undefined, cx.btnsx, cx.listPara
                                 );
 
                             }
@@ -4414,15 +4414,18 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     UtilGen.DashboardWidget.statusBarText(Util.getLangText(msgstr).substr(0, 255), false, undefined, false);
                 // UtilGen.showCustomMessageToast(rfr + "- " + descr + ", " + strStr + " , " + sqdt[0].QIH + " " + sqdt[0].PACKD, 100);
             },
-            getSettingSalesp: function (frag, ordref, ordrefnm, typ) {
-                return FormView.getFactoryFields.getSettingsGeneral({
-                    thatForm: frag,
-                    code: Util.nvl(ordref),
-                    name: Util.nvl(ordrefnm),
-                    sqlChange: "select name from salesp where no = ':CODE'",
-                    sqlList: "select no code,name title from salesp where (type='" + typ + "' or '" + typ + "' is null)   order by no ",
-                    sqlListChange: "select no code,name title from salesp where no=:CODE",
-                });
+            getTableFromValidateEvent: function (evtx) {
+                var info = {};
+                info["row"] = evtx.getSource().getParent();
+                info["column_no"] = evtx.getSource().getParent().indexOfCell(evtx.getSource());
+                info["columns"] = evtx.getSource().getParent().getParent().getColumns();
+                info["table"] = evtx.getSource().getParent().getParent(); // get table control.
+                info["oModel"] = info["table"].getModel();
+                info["rowStart"] = info["table"].getFirstVisibleRow(); //starting Row index
+                info["currentRowoIndexContext"] = info["table"].getContextByIndex(info["rowStart"] + info["table"].indexOfRow(info["row"]));
+                info["newValue"] = evtx.getSource().getValue();
+
+                return info;
             },
             SalesOrderFunc: {
                 initAction: {
@@ -4983,7 +4986,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 }
 
             },
-
 
         };
 
