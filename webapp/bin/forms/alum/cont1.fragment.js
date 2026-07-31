@@ -263,13 +263,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         var dt = thatForm.view.today_date.getDateValue();
                         var dtx = new Date(dt.toDateString());
                         var cmdS = thatForm.frm.objs["qry1._cmdSearch"].obj;
-                        thatForm.frm.setFieldValue("qry1.cont_type", "cont", "cont");
-                        thatForm.frm.setFieldValue("qry1.qty", 0, 0);
-                        thatForm.frm.setFieldValue("qry1.cont_amt", 0, 0);
-                        thatForm.frm.setFieldValue("qry1.cont_trans_amt", 0, 0);
+                        thatForm.frm.setFieldValue("qry1.cont_type", "cont", "cont",true);
+                        thatForm.frm.setFieldValue("qry1.qty", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.cont_amt", 0, 0, true);
+                        thatForm.frm.setFieldValue("qry1.cont_trans_amt", 0, 0, true);
                         thatForm.frm.setFieldValue("qry1.revenue_ac", sett["CONT_RVN_AC"], sett["CONT_RVN_AC"], true);
 
-                        thatForm.frm.setFieldValue("qry1.keyfld", newKf, newKf);
+                        thatForm.frm.setFieldValue("qry1.keyfld", newKf, newKf,true);
                         qry.formview.setFieldValue("qry1.cont_date", dtx, dtx, true);
 
                         thatForm.frm.objs["qry1.cont_type"].obj.fireSelectionChange();
@@ -603,7 +603,6 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 cont_amt: FormView.getFactoryFields.getMoneyField(
                     "cont_amt", "@", "contractAmt", "15%", "greenText", "10%",
                     {
-                        display_format: "MONEY_FORMAT",
                         display_style: "greenText"
                     }, {}),
                 dlv_date: FormView.getFactoryFields.getDateField(
@@ -641,7 +640,6 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 cont_trans_amt: FormView.getFactoryFields.getMoneyField(
                     "cont_trans_amt", "@", "contractTransAmt", "15%", "greenText", "10%",
                     {
-                        display_format: "MONEY_FORMAT",
                         display_style: "greenText"
                     }, {}),
 
