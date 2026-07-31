@@ -1569,11 +1569,13 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 }
                 return fnd;
             },
-            errorObj: function (obj, tm) {
+            errorObj: function (obj, tm, doFocus) {
                 setTimeout(function () {
                     obj.addStyleClass("errBack");
                     setTimeout(function () {
                         obj.removeStyleClass("errBack");
+                        if (doFocus)
+                            obj.focus();
                     }, Util.nvl(tm, 10000));
                 }, 100);
             }

@@ -68,7 +68,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
-                    width: { "S": 500, "M": 650, "L": 750 },
+                    width: { "S": 500, "M": 650, "L": 750, "XL": 850 },
                     cssText: [
                         "padding-left:10px;" +
                         "padding-top:20px;" +
@@ -533,7 +533,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 cont_date: FormView.getFactoryFields.getDateField(
-                    "cont_date", "@", "contractDate", "10%", "", "15%",
+                    "cont_date", "@", "dateTxt", "10%", "", "15%",
                     {
                         require: true,
                         edit_allowed: true,
@@ -601,9 +601,10 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 cont_amt: FormView.getFactoryFields.getMoneyField(
-                    "cont_amt", "@", "contractAmt", "15%", "", "10%",
+                    "cont_amt", "@", "contractAmt", "15%", "greenText", "10%",
                     {
                         display_format: "MONEY_FORMAT",
+                        display_style: "greenText"
                     }, {}),
                 dlv_date: FormView.getFactoryFields.getDateField(
                     "dlv_date", "@", "deliveryDate", "10%", "", "15%",
@@ -638,9 +639,10 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 cont_trans_amt: FormView.getFactoryFields.getMoneyField(
-                    "cont_trans_amt", "@", "contractTransAmt", "15%", "", "10%",
+                    "cont_trans_amt", "@", "contractTransAmt", "15%", "greenText", "10%",
                     {
                         display_format: "MONEY_FORMAT",
+                        display_style: "greenText"
                     }, {}),
 
                 civil_id: FormView.getFactoryFields.getGeneralField(
@@ -784,7 +786,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         insert_allowed: false,
                     }, {}),
                 remarks: FormView.getFactoryFields.getGeneralField(
-                    "remarks", "@", "txtRemarks", "15%", "", "35%",
+                    "remarks", "@", "txtRemark", "15%", "", "35%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -945,21 +947,38 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             var ct = thatForm.frm.getFieldValue("qry1.cont_type");
             var camt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.cont_trans_amt"));
 
-            if (ct != "quot" && Util.nvl(cod, "") == "") FormView.err("Customer code can't be null !");
-            if (ct != "quot" && Util.nvl(pa, "") == "") FormView.err("Parent Customer can't be null !");
+            if (ct != "quot" && Util.nvl(cod, "") == "") {
+                UtilGen.errorObj(thatForm.frm.objs["qry1.cust_code"].obj, undefined, true);
+                FormView.err("Customer code can't be null !");
+            }
+            if (ct != "quot" && Util.nvl(pa, "") == "") {
+                UtilGen.errorObj(thatForm.frm.objs["qry1.parent_cust"].obj, undefined, true);
+                FormView.err("Parent Customer can't be null !");
+            }
 
             if (Util.nvl(cod, "") != "") {
                 var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
-                if (sqcnt == 0) FormView.err("Save Denied : Customer is invalid !");
+                if (sqcnt == 0) {
+                    UtilGen.errorObj(thatForm.frm.objs["qry1.code"].obj, undefined, true);
+                    FormView.err("Save Denied : Customer is invalid !");
+                }
                 sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
-                if (sqcnt > 0) FormView.err("Save Denied : Parent customer not allowed !");
+                if (sqcnt > 0) {
+                    UtilGen.errorObj(thatForm.frm.objs["qry1.parent_cust"].obj, undefined, true);
+                    FormView.err("Save Denied : Parent customer not allowed !");
+                }
             }
-            if (camt <= 0) FormView.err("Contract trans amount must have value !");
+            if (camt <= 0) {
+                UtilGen.errorObj(thatForm.frm.objs["qry1.cont_amt"].obj, undefined, true);
+                FormView.err("Contract trans amount must have value !");
+            }
 
-            if (ct == "cont" && !thatForm.helperFunc.canCustParent(pa))
+            if (ct == "cont" && !thatForm.helperFunc.canCustParent(pa)) {
+                UtilGen.errorObj(thatForm.frm.objs["qry1.parent_cust"].obj, undefined, true);
                 FormView.err(thatForm.helperFunc.errStr);
+            }
 
-            if (ct == "cont" && (this.qc == undefined || this.qc.mLctb.rows.length == 0))
+            if (ct == "cont" && (thatForm.qc == undefined || thatForm.qc.mLctb.rows.length == 0))
                 FormView.err("Steps must have atleast 1 record !");
 
             // items
@@ -1095,11 +1114,17 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
                         FormView.err("Must Form EDIT or NEW mode to edit and add items ! ");
                     }
+                    var ca = Util.extractNumber(that2.frm.getFieldValue("qry1.cont_amt"));
+                    if (ca <= 0) {
+                        FormView.err("Contract Amount must have value !");
+                        dlg.close();
+                        UtilGen.errorObj(that2.frm.objs["qry1.cont_amt"].obj, undefined, true);
+
+                    }
 
                     var dt = Util.execSQLWithData("select *from c7_steps_info where grp_code='CNT1' order by code");
                     var ld = that2.qc.mLctb;
                     ld.removeAllRows();
-                    var ca = that2.frm.getFieldValue("qry1.cont_amt");
                     for (var i = 0; i < dt.length; i++) {
                         var rn = ld.addRow();
                         ld.setFieldValue(rn, "POSNO", rn + 1);
@@ -1429,8 +1454,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
         var sumP = 0;
         var sumAmt = 0;
         for (var i = 0; i < ld.rows.length; i++) {
-            var p = Utill.extractNumber(ld.getFieldValue(i, "PAY_P"));
-            var pa = Utill.extractNumber(ld.getFieldValue(i, "PAY_AMT"));
+            var p = Util.extractNumber(ld.getFieldValue(i, "PAY_P"));
+            var pa = Util.extractNumber(ld.getFieldValue(i, "PAY_AMT"));
             if (p > 100 || p < 0) { FormView.err("Invalid Pay % in steps !"); thatForm.showSteps(); }
             if (pa < 0) { FormView.err("Invalid Pay Amount in steps !"); thatForm.showSteps(); }
             sumP += p; sumAmt += pa;
