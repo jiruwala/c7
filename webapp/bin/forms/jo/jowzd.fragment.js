@@ -357,10 +357,14 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
             var sql = "";
             var sl = qv.getControl().getSelectedIndices();
             if (sl.length > 0) {
-                var odata = qv.getControl().getContextByIndex(sl[0]);
-                var data = (odata.getProperty(odata.getPath()));
-                qrKf = data.KEYFLD;
+
+                for (var si = 0; si < sl.length; si++) {
+                    var odata = qv.getControl().getContextByIndex(sl[si]);
+                    var data = (odata.getProperty(odata.getPath()));
+                    qrKf += (qrKf.length > 0 ? "," : "") + data.KEYFLD;
+                }
             }
+            qrKf = (Util.nvl(qrKf, "").trim() == "" ? "-.00001" : qrKf.trim());
             sql = ("select dlv_ord_no," +
                 " dlv_ord_date," +
                 "  NVL (SUM (0), 0) ADD_AMT," +// chyanged to 0 
@@ -369,7 +373,7 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
                 " 0 NET_AMT, " +
                 " dlv_keyfld keyfld " +
                 " from C7_jO_PORD2_DLV " +
-                " where so_keyfld=':keyfld' and DLV_SALEINV is null and dlv_keyfld is not null  " +
+                " where so_keyfld in (:keyfld) and DLV_SALEINV is null and dlv_keyfld is not null  " +
                 " group by dlv_ord_no,dlv_ord_date,dlv_keyfld order by 1").replaceAll(":keyfld", qrKf);
             return sql;
         }
@@ -445,13 +449,24 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
                 qv.getControl().attachRowSelectionChange(undefined, function () {
                     showDetails();
                 });
+                qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].commandLinkClick = function (obj) {
+                    var tbl = obj.getParent().getParent();
+                    var mdl = tbl.getModel();
+                    var rr = tbl.getRows().indexOf(obj.getParent());
+                    var rowStart = tbl.getFirstVisibleRow();
+                    var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "KEYFLD")].getText());
+
+                    UtilGen.execCmd("bin.forms.jo.jo formTitle=JO formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                        // that.load_detailPage();
+                    });
+                };
 
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
                 setTimeout(() => {
                     qv.loadData();
                     if (qv.mLctb.rows.length > 0) {
-                        qv.getControl().setSelectedIndex(0);
+                        qv.getControl().selectAll();
                         qv.getControl().setFirstVisibleRow(0);
                     }
                 }, 100);
@@ -836,7 +851,7 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
         this.qv = new QueryView("qrDet" + this.timeInLong);
         // this.qv.getControl().addStyleClass("sapUiSizeCondensed");
         this.qv.getControl().setSelectionBehavior(sap.ui.table.SelectionBehavior.RowSelector);
-        this.qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.Single);
+        this.qv.getControl().setSelectionMode(sap.ui.table.SelectionMode.MultiToggle);
         this.qv.getControl().setAlternateRowColors(true);
         this.qv.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         // this.qv.getControl().setRowHeight(26);        
@@ -946,7 +961,19 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
         var selBrName = sodt[0].BRANCHNAME;
         var selDate = that.txtToDate.getDateValue();
         var invdt = UtilGen.getControlValue(this.txtInfoInvDate);
+        var qv = this.qv;
+        var qrKf="";
 
+        var sl = qv.getControl().getSelectedIndices();
+        if (sl.length > 0) {
+
+            for (var si = 0; si < sl.length; si++) {
+                var odata = qv.getControl().getContextByIndex(sl[si]);
+                var data = (odata.getProperty(odata.getPath()));
+                qrKf += (qrKf.length > 0 ? "," : "") + data.KEYFLD;
+            }
+        }
+        qrKf = (Util.nvl(qrKf, "").trim() == "" ? "-.00001" : qrKf.trim());
 
         sqp = "pr:=c7_get_so_price(x.pord1_keyfld,x.pord_pos,'N'); idsc:= (c7_get_so_line_disc(x.pord1_keyfld,x.pord_pos)/(x.tqty/x.pack));";
         that.calcInfoAmt(true);
@@ -983,10 +1010,13 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
             " " +
             " cursor ds is select o.*,it.packd, it.pack,it.unitd,get_item_cost(o.ord_ship,o.ord_date) pkcost,it.prd_dt prd_date,it.exp_dt exp_date from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;" +
             " cursor pu(kfx number) is select *from pur2 where keyfld=kfx order by itempos;" +
+            " cursor kfs is select keyfld from pord1 where ord_code=601 and keyfld in (" + qrKf + ") ; " +
             " " +
             " begin" +
             " select nvl(max(keyfld),0)+1 into kfld from pur1;" +
-            " c7_so_update_all_issue_cost(pSoKfld);" +
+            " for kx in kfs loop " +
+            "   c7_so_update_all_issue_cost(kx.keyfld);" +
+            " end loop; " +
             " for x in ds loop" +
             " " + sqp +
             "     posx:=posx+1;" +

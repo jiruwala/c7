@@ -672,6 +672,11 @@ sap.ui.jsfragment("bin.forms.sl.unpost", {
         if (Util.nvl(pdamt, 0) != 0)
             FormView.err("Found collection on invoice !");
         Util.simpleConfirmDialog("Are you sure , you want to delete Invoice # " + invn + " ? ", function () {
+            var jks = "";
+            var joks = Util.execSQLWithData("select distinct po_keyfld from pur2 where keyfld=" + kfld);
+            for (var ji = 0; ji < joks.length; ji++)
+                jks += (jks.length > 0 ? "," : "") + joks[ji].PO_KEYFLD;
+            jks = (Util.nvl(jks, "").trim() == "" ? "-.00001" : jks.trim());
             var sq = "declare " +
                 " kfld number:=:kfld ;" +
                 " tmpkf number; " +
@@ -679,6 +684,7 @@ sap.ui.jsfragment("bin.forms.sl.unpost", {
                 " cursor p2 is select *from pur2 where keyfld=kfld order by itempos; " +
                 " cursor acdet is select *from acvoucher2 WHERE REFERKEYFLD=KFLD AND REFERCODE=21;" +
                 " cursor ISS_acdet is select *from acvoucher2 WHERE REFERKEYFLD=tmpkf AND REFERCODE=25;" +
+                " cursor joks is select keyfld po_keyfld from pord1 where keyfld in (" + jks + ") order by 1;" +
                 " begin " +
                 "  for x in p2 loop " +
                 "    update c_order1 set saleinv=null, ord_flag=1 where keyfld=x.ordwas; " +
@@ -703,7 +709,9 @@ sap.ui.jsfragment("bin.forms.sl.unpost", {
                 " DELETE FROM ACVOUCHER1 WHERE REFERKEYFLD=tmpkf AND refercode=25;" +
                 " DELETE FROM ACVOUCHER2 WHERE REFERKEYFLD=tmpkf AND refercode=25;" +
                 " delete from invunpaid where keyfld=kfld;" +
-                " c7_so_updatesales(pokf); " +
+                " for jx in joks loop " +
+                " c7_so_updatesales(jx.po_keyfld); " +
+                " end loop; " +
                 " end ;" +
                 " " +
                 " ";
