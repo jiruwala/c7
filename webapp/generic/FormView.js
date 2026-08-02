@@ -2232,7 +2232,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             getSettingSalesp: function (pSet) {
                 var thatForm = pSet.thatForm;
                 var ordref = Util.nvl(pSet.ord_ref, "qry1.salesp");
-                var ordrefnm = Util.nvl(pSet.ord_ref, "qry1._sname");
+                var ordrefnm = Util.nvl(pSet.ord_refnm, "qry1._sname");
                 var typ = Util.nvl(pSet.typ, "S");
                 return FormView.getFactoryFields.getSettingsGeneral({
                     thatForm: thatForm,

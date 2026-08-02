@@ -188,6 +188,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                                 sumAmt += Util.nvl(Util.extractNumber(ld.getFieldValue(i, "AMOUNT"), df), 0);
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
+                            thatForm.frm.setFieldValue('qry1.cont_amt', df.format(sumAmt));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
                                 thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
 
@@ -263,13 +264,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         var dt = thatForm.view.today_date.getDateValue();
                         var dtx = new Date(dt.toDateString());
                         var cmdS = thatForm.frm.objs["qry1._cmdSearch"].obj;
-                        thatForm.frm.setFieldValue("qry1.cont_type", "cont", "cont",true);
+                        thatForm.frm.setFieldValue("qry1.cont_type", "cont", "cont", true);
                         thatForm.frm.setFieldValue("qry1.qty", 0, 0, true);
                         thatForm.frm.setFieldValue("qry1.cont_amt", 0, 0, true);
                         thatForm.frm.setFieldValue("qry1.cont_trans_amt", 0, 0, true);
                         thatForm.frm.setFieldValue("qry1.revenue_ac", sett["CONT_RVN_AC"], sett["CONT_RVN_AC"], true);
 
-                        thatForm.frm.setFieldValue("qry1.keyfld", newKf, newKf,true);
+                        thatForm.frm.setFieldValue("qry1.keyfld", newKf, newKf, true);
                         qry.formview.setFieldValue("qry1.cont_date", dtx, dtx, true);
 
                         thatForm.frm.objs["qry1.cont_type"].obj.fireSelectionChange();
@@ -603,7 +604,9 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 cont_amt: FormView.getFactoryFields.getMoneyField(
                     "cont_amt", "@", "contractAmt", "15%", "greenText", "10%",
                     {
-                        display_style: "greenText"
+                        display_style: "greenText",
+                        edit_allowed: false,
+                        insert_allowed: false,
                     }, {}),
                 dlv_date: FormView.getFactoryFields.getDateField(
                     "dlv_date", "@", "deliveryDate", "10%", "", "15%",
@@ -945,10 +948,11 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             var ct = thatForm.frm.getFieldValue("qry1.cont_type");
             var camt = Util.extractNumber(thatForm.frm.getFieldValue("qry1.cont_trans_amt"));
 
-            if (ct != "quot" && Util.nvl(cod, "") == "") {
-                UtilGen.errorObj(thatForm.frm.objs["qry1.cust_code"].obj, undefined, true);
-                FormView.err("Customer code can't be null !");
-            }
+            // if (ct != "quot" && Util.nvl(cod, "") == "") {
+            //     UtilGen.errorObj(thatForm.frm.objs["qry1.cust_code"].obj, undefined, true);
+            //     FormView.err("Customer code can't be null !");
+            // }
+
             if (ct != "quot" && Util.nvl(pa, "") == "") {
                 UtilGen.errorObj(thatForm.frm.objs["qry1.parent_cust"].obj, undefined, true);
                 FormView.err("Parent Customer can't be null !");
@@ -1133,6 +1137,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         ld.setFieldValue(rn, "PAY_AMT", pa);
                     }
                     that2.qc.updateDataToControl();
+                    eventCalc(that2.qc, undefined, 0, true);
                 }
             });
         };
