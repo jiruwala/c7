@@ -272,6 +272,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                         thatForm.frm.setFieldValue("qry1.keyfld", newKf, newKf, true);
                         qry.formview.setFieldValue("qry1.cont_date", dtx, dtx, true);
+                        qry.formview.setFieldValue("qry1.unitd", 'EA', 'EA', true);
+                        qry.formview.setFieldValue("qry1.qty", 0, 0, true);
 
                         thatForm.frm.objs["qry1.cont_type"].obj.fireSelectionChange();
 
@@ -325,7 +327,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 },
                 beforePrint: function (rptName, params) {
                     var no = that.frm.getFieldValue("qry1.ord_no");
-                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
+                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;                    
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
@@ -589,13 +591,14 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                     }
                 }),
-                qty: FormView.getFactoryFields.getGeneralField(
+                qty: FormView.getFactoryFields.getNumberField(
                     "qty", "@", "txtQty", "10%", "", "15%",
                     {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true,
-                        display_style: ""
+                        display_style: "",
+                        display_format: "#,##0.0"
                     }, {
                     change: function () {
 
@@ -716,7 +719,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 pay_no_2: FormView.getFactoryFields.getGeneralField(
-                    "pay_no_2", "@", "txtPayNo1", "10%", "", "15%",
+                    "pay_no_2", "@", "txtPayNo2", "10%", "", "15%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -1080,13 +1083,13 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         " where keyfld=" + kf + " order by itempos");
                     for (var i = 0; i < dti.length; i++) {
                         var rn = ld.addRow();
-                        ld.setFieldValue(rn, "ITEMPOS", dti[0].ITEMPOS);
-                        ld.setFieldValue(rn, "REFER", dti[0].REFER);
-                        ld.setFieldValue(rn, "DESCR", dti[0].DESCR);
-                        ld.setFieldValue(rn, "SIZE_DESCR", dti[0].SIZE_DESCR);
-                        ld.setFieldValue(rn, "QTY", dti[0].QTY);
-                        ld.setFieldValue(rn, "PRICE", dti[0].PRICE);
-                        ld.setFieldValue(rn, "AMOUNT", (dti[0].PRICE * dti[0].QTY));
+                        ld.setFieldValue(rn, "ITEMPOS", dti[i].ITEMPOS);
+                        ld.setFieldValue(rn, "REFER", dti[i].REFER);
+                        ld.setFieldValue(rn, "DESCR", dti[i].DESCR);
+                        ld.setFieldValue(rn, "SIZE_DESCR", dti[i].SIZE_DESCR);
+                        ld.setFieldValue(rn, "QTY", dti[i].QTY);
+                        ld.setFieldValue(rn, "PRICE", dti[i].PRICE);
+                        ld.setFieldValue(rn, "AMOUNT", (dti[i].PRICE * dti[i].QTY));
                     }
 
                     qvi.updateDataToControl();
