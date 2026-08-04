@@ -325,7 +325,8 @@ sap.ui.jsfragment("bin.forms.jo.jodlv", {
                     // frm.setQueryStatus(undefined, Util.nvl(nxtStatus, FormView.RecordStatus.NEW));
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
-                    thatForm.helperFunc.beforeSaveValidateQry(qry);
+                    if (qry.name == "qry1")
+                        thatForm.helperFunc.beforeSaveValidateQry(qry);
                     if (qry.name == "qry2") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var ld = qry.obj.mLctb;
@@ -1996,7 +1997,7 @@ sap.ui.jsfragment("bin.forms.jo.jodlv", {
             }
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
-                var ds = ld.getFieldValue(i, "DESCR");
+                var ds = ld.getFieldValue(i, "ORD_DESCR");
                 var pk = ld.getFieldValue(i, "PACK");
                 var qty = (Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY")) * pk)
                     + (Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY")));

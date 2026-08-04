@@ -39,9 +39,9 @@ sap.ui.jsfragment("bin.forms.jo.db", {
 
 
         setTimeout(function () {
-            // that.loadData();
-            that.showSecureStep();
+            that.loadData();
 
+            // that.showSecureStep();
             UtilGen.DBView.autoShowHideMenu(false, that.joApp);
 
         }, 100);
@@ -70,7 +70,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         qr.getControl().setFixedBottomRowCount(1);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(recs);
-        var filtercol = ["ORD_NO", "ACTION_STATUS", "STATUS1", "INVOICE_NO", "ORD_DATE", "TYPEDESCR", "ORD_REF", "ORD_REFNM", "ADD_AMT", "DISC_AMT", "ORD_AMT", "NET_AMT", "DISC_AMT"]
+        var filtercol = ["ORD_NO", "ACTION_STATUS", "STATUS1", "INVOICE_NO", "ORD_DATE", "TYPEDESCR", "ORD_REF", "ORD_REFNM", "ADD_AMT", "DISC_AMT", "ORD_AMT", "NET_AMT", "DISC_AMT", "PURP", "DLVP"]
         UtilGen.createDefaultToolbar2(qr, filtercol, false);
         qr.insertable = false;
         qr.deletable = false;
@@ -171,7 +171,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                     template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                     templateShareable: true
                 },
-                width: "25%",
+                width: "20%",
                 value: "0",
                 selectedKey: "0",
                 selectionChange: function (e) {
@@ -204,7 +204,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
 
         var fromdate = UtilGen.addControl(fe, "From Date", sap.m.DatePicker, "fromdate" + this.timeInLong,
             {
-                width: "20%",
+                width: "15%",
                 change: function () {
                     var cbv = Util.extractNumber(that.view.byId("cb1" + that.timeInLong).getValue());
                     if (cbv != -1)
@@ -213,14 +213,21 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             }, "date", undefined, this.view);
         var todate = UtilGen.addControl(fe, "To Date", sap.m.DatePicker, "todate" + this.timeInLong,
             {
-                width: "20%",
+                width: "15%",
                 change: function () {
                     var cbv = Util.extractNumber(that.view.byId("cb1" + that.timeInLong).getValue());
                     if (cbv != -1)
                         that.loadData();
                 }
             }, "date", undefined, this.view);
-
+        var chksold = UtilGen.addControl(fe, "chkSold", sap.m.CheckBox, "chkSold" + this.timeInLong ,
+            {
+                selected: false,
+                select: function () {
+                    that.loadData();
+                }
+            }, "boolean", undefined, this.view);
+        chksold.trueValues = ["Y", "N"];
 
         var cmdNewJO = new sap.m.Button(this.view.createId("cmdNewJo" + this.timeInLong), {
             icon: "sap-icon://document",
@@ -300,12 +307,13 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             Util.getLabelTxt("txtStatus", "10%", ""), stat,
             Util.getLabelTxt("fromDate", "15%", "@"), fromdate,
             Util.getLabelTxt("toDate", "10%", "@"), todate,
+            Util.getLabelTxt("100% Sold", "10%", "@"), chksold,
 
 
         ];
 
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
-            width: { "S": 380, "M": 580, "L": 680, "XL": 780, "XXL": 800 },
+            width: { "S": 380, "M": 580, "L": 900, "XL": 900, "XXL": 1100 },
             cssText: [
                 "padding-left:2px ;" +
                 "padding-top:2px;" +
@@ -395,6 +403,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         var fromdt = UtilGen.getControlValue(this.view.byId("fromdate" + this.timeInLong));
         var todt = UtilGen.getControlValue(this.view.byId("todate" + this.timeInLong));
         var txtCust = this.view.byId("txtCust" + this.timeInLong);
+        var chkSold = this.view.byId("chkSold" + this.timeInLong);
         var stepDes = this.view.byId("cmdStepDes" + this.timeInLong).getPressed();
         var stepDye = this.view.byId("cmdStepDye" + this.timeInLong).getPressed();
         var stepStk = this.view.byId("cmdStepStk" + this.timeInLong).getPressed();
@@ -413,7 +422,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         for (var si in stps)
             sw += (sw.length > 0 ? " and " : "") + stps[si];
 
-
+        var soldclause = (chkSold.getSelected() ? " " : " and purp!='100%'")
         var sql = "select *from (select o1.ord_no,o1.ord_date," +
             "decode(o1.ord_flag,1,'Not-Approved',2,'Approved',3,'Closed') status1, " +
             " (case when jo_active_from is not null and ord_flag=3 then 'Not-Active'  " +
@@ -436,7 +445,8 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             " and  (o1.ord_ref= '" + cst + "' or '" + cst + "' is null ) " +
             " and pur.po_keyfld(+) =o1.keyfld " +
             (sw.length > 0 ? " and " + sw : "") +
-            " order by o1.ord_date desc,o1.ord_no desc ) where (rownum <=^^list_key or ^^list_key=-1) ";
+            " order by o1.ord_date desc,o1.ord_no desc ) " +
+            "where  (rownum <=^^list_key or ^^list_key=-1) " + soldclause;
         sql = sql.replaceAll("^^list_key", dys);
         var dt = Util.execSQL(sql);
         if (dt.ret == "SUCCESS") {
@@ -557,6 +567,9 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             qv.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                 var oModel = this.getControl().getModel();
                 var flg = Util.extractNumber(oModel.getProperty("ORD_FLAG", currentRowContext));
+                var purp = Util.extractNumber(oModel.getProperty("PURP", currentRowContext));
+                var dlvp = Util.extractNumber(oModel.getProperty("DLVP", currentRowContext));
+
                 var dt = Util.extractNumber(oModel.getProperty("JO_ACTIVE_FROM", currentRowContext));
                 var st1 = oModel.getProperty("ACTION_STATUS", currentRowContext);
                 var doRender = function (clr, bkclr) {
@@ -582,6 +595,13 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                     doRender("", "lightgrey");
                 if (flg == 1)
                     doRender("darkblue", "#ffffe0");
+                if (purp > 0)
+                    doRender("lightblue", "#008080");
+                if (purp > 0)
+                    doRender("lightblue", "#008080");
+                if (dlvp > 0 && purp < dlvp)
+                    doRender("lightblue", "#5f9ea0");
+
 
 
             }
@@ -614,6 +634,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             });
             qv.mLctb.parse("{" + dt.data + "}", true);
             qv.loadData();
+            that.showSecureStep();
             qv.getControl().setFirstVisibleRow(0);
             that.view.joListFromDate = fromdt;
             that.view.joListToDate = todt;
@@ -631,7 +652,30 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             cmd.setEnabled(sett);
         }
         var setCounts = function (cmd, str, lbl) {
-            var dt = Util.getSQLValue("select nvl(count(*),0) from pord1 where ord_code=601 and  ord_flag=2 and " + str);
+
+            var qv = that.qr;
+            var cb = that.view.byId("cb1" + that.timeInLong);
+            // var kind = that.view.byId("kind" + that.timeInLong).getSelectedKey();
+            var stat = that.view.byId("stat" + that.timeInLong).getSelectedKey();
+            var fromdt = UtilGen.getControlValue(that.view.byId("fromdate" + that.timeInLong));
+            var todt = UtilGen.getControlValue(that.view.byId("todate" + that.timeInLong));
+            var txtCust = that.view.byId("txtCust" + that.timeInLong);
+            var stepDes = that.view.byId("cmdStepDes" + that.timeInLong).getPressed();
+            var stepDye = that.view.byId("cmdStepDye" + that.timeInLong).getPressed();
+            var stepStk = that.view.byId("cmdStepStk" + that.timeInLong).getPressed();
+            var stepProd = that.view.byId("cmdStepProd" + that.timeInLong).getPressed();
+            var dys = Util.nvl(UtilGen.getControlValue(cb), 15);
+            // var knd = Util.nvl(UtilGen.getControlValue(kind), 21);
+            var cst = txtCust.getValue();
+
+            var dt = Util.getSQLValue("select nvl(count(*),0) from pord1 " +
+                " where ord_code=601 and  ord_flag=2 and " +
+                " ord_code =601 and " +
+                " ord_date>=" + Util.toOraDateString(fromdt) +
+                " and ord_date<=" + Util.toOraDateString(todt) +
+                " and (ord_flag= '" + stat + "' or '" + stat + "'=0 ) " +
+                " and  (ord_ref= '" + cst + "' or '" + cst + "' is null ) and " +
+                str);
             cmd.setText(lbl + " (" + dt + ")");
         }
         if (secCmds != "") {
@@ -648,7 +692,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             if (secCmds.indexOf("\"PROD\"") >= 0) setCmd(stepProd, true);
             if (secCmds.indexOf("\"DES\"") >= 0) setCmd(stepDes, true);
             that.loadData();
-        } else that.loadData();
+        } //else that.loadData();
         setTimeout(() => {
             var stepDes = this.view.byId("cmdStepDes" + this.timeInLong);
             var stepDye = this.view.byId("cmdStepDye" + this.timeInLong);

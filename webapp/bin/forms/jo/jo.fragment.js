@@ -1581,10 +1581,10 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 },
                 valueHelpRequest: function (e) {
                     UtilGen.Search.do_quick_search(e, this,
-                        thatForm.frm.parseString("select descr code,ord_pos from pord2 where keyfld=:qry1.keyfld order by ord_pos "),
+                        thatForm.frm.parseString("select descr code,ord_pkqty,ord_pos from pord2 where keyfld=:qry1.keyfld order by ord_pos "),
                         thatForm.frm.parseString("select descr title from pord2 where keyfld=:qry1.keyfld and descr=:CODE"), txtItemDescr, function (data) {
                             txtItemDescr.fireChange();
-                        }, undefined);
+                        }, { pWidth: "600px" });
                 }
 
             });
