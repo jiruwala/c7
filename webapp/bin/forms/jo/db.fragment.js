@@ -691,7 +691,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             if (secCmds.indexOf("\"STOCK\"") >= 0) setCmd(stepStk, true);
             if (secCmds.indexOf("\"PROD\"") >= 0) setCmd(stepProd, true);
             if (secCmds.indexOf("\"DES\"") >= 0) setCmd(stepDes, true);
-            that.loadData();
+            // that.loadData();
         } //else that.loadData();
         setTimeout(() => {
             var stepDes = this.view.byId("cmdStepDes" + this.timeInLong);
