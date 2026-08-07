@@ -15,15 +15,16 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
     createContent: function (oController) {
         var that = this;
+        that.dtformat = "dd/MM/yyyy";
         this.oController = oController;
         this.view = oController.getView();
         this.timeInLong = (new Date()).getTime();
         that.aMenuItems = [
-            { key: "-", text: "Clear", icon: "-" },
+            { key: "-", text: "Clear", icon: "⬜" },
             { key: "P", text: "Present", icon: "✅" },
             { key: "A", text: "Absent", icon: "❌" },
             { key: "WO", text: "Weekly Off", icon: "📅" },
-            { key: "PH", text: "Day Off", icon: "⛱️" },
+            { key: "PH", text: "Holiday", icon: "⛱️" },
             { key: "AL", text: "Annual Leave", icon: "✈️" },
             { key: "SL", text: "Sick Leave", icon: "🤧" },
             { key: "UL", text: "Unpaid Leave", icon: "💰" },
@@ -166,6 +167,15 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                 that.joApp.backFunction();
             }
         });
+        //
+        Util.destroyID("cmdEdit" + that.timeInLong, that.view);
+        var cmdEdit = new sap.m.ToggleButton(that.view.createId("cmdEdit" + that.timeInLong), {
+            icon: "sap-icon://edit",
+            text: Util.getLangText("editRec"),
+            press: function () {
+                that.editMode = this.getSelected();
+            }
+        });
 
         /* store refs for loadData */
         this.cbDept = cbDept;
@@ -178,6 +188,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             Util.getLabelTxt("Dept", "15%", "@"), cbDept,
             Util.getLabelTxt("", "1%", "@"), btRefresh,
             Util.getLabelTxt("", "1%", "@"), cmdClose,
+            Util.getLabelTxt("", "1%", "@"), cmdEdit,
         ];
 
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
@@ -248,13 +259,34 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             colsStr += (colsStr.length > 0 ? " , " : "") + " '-' as D" + i + " ";
 
         var dtEmp = Util.execSQL(
-            "select emp_cd,name1 , " + colsStr + ",nvl(e.brn_id,'') brn_id " +
+            "select emp_cd,name1 , " + colsStr + ",nvl(e.brn_id,'') brn_id ," +
+            "to_char(nvl(last_close_rec,dt_join-1),'dd/mm/rrrr') LAST_CLOSE_REC, " +
+            "to_char(last_att_rec,'dd/mm/rrrr') last_att_rec, " +
+            "to_char(dt_join,'dd/mm/rrrr') dt_join, to_char(term_dt,'dd/mm/rrrr') term_dt " +
             " from c7hr_emp e " +
             "where e.flag=1 " +
-            // (sDept != "" ? " and e.department='" + sDept + "'" : "") +
             " order by e.emp_cd"
         );
         if (dtEmp.ret == "SUCCESS") {
+            // ---- Build employee validation map ----
+            this.empValidation = {};
+            var dataRows = JSON.parse("{" + dtEmp.data + "}").data;
+            dataRows.forEach(function (row) {
+                var empCode = row.EMP_CD;
+                var dtJoin = Util.parseDate(row.DT_JOIN, that.dtformat);
+                var termDt = Util.parseDate(row.TERM_DT, that.dtformat);
+                var lastAttRec = Util.parseDate(row.LAST_ATT_REC, that.dtformat);
+                var lastCloseRec = Util.parseDate(row.LAST_CLOSE_REC, that.dtformat);
+
+                that.empValidation[empCode] = {
+                    dtJoin: dtJoin,
+                    termDt: termDt,
+                    lastAttRec: lastAttRec,
+                    lastCloseRec: lastCloseRec,
+                    terminated: (termDt !== null && termDt !== undefined)
+                };
+            });
+            // ---- End validation map ----
             qv.setJsonStrMetaData("{" + dtEmp.data + "}");
             for (var i = 1; i <= iDays; i++) {
                 var daynm = Util.getLangDescrAR(that.daysEn, that.daysAr)[new Date(iYear, iMonth - 1, i - 1).getDay()];
@@ -265,9 +297,21 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                 qv.mLctb.cols[qv.mLctb.getColPos("D" + i)].commandLinkClick = cmdLink;
 
             };
-            Util.setColProperties(qv, "BRN_ID", {
-                "mHideCol": true,
+            Util.setColProperties(qv, "EMP_CD", {
+                "display_width": 100,
+                "mTitle": 'txtCode',
             });
+            Util.setColProperties(qv, "NAME1", {
+                "display_width": 200,
+                "mTitle": 'txtName',
+            });
+
+            Util.setColProperties(qv, "EMP_CD", { "display_width": 100 });
+            Util.setColProperties(qv, "BRN_ID", { "mHideCol": true });
+            Util.setColProperties(qv, "LAST_ATT_REC", { "mHideCol": true });
+            Util.setColProperties(qv, "LAST_CLOSE_REC", { "mHideCol": true });
+            Util.setColProperties(qv, "DT_JOIN", { "mHideCol": true });
+            Util.setColProperties(qv, "TERM_DT", { "mHideCol": true });
 
             qv.getControl().attachRowsUpdated(function () {
                 // setTimeout(function () { that._colorDayCells(qv); });
@@ -277,8 +321,9 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             qv.loadData();
             qv.getControl().setFirstVisibleRow(0);
             that.readData();
-            that.setAllWOs();
-            that.setAllDAYOFFs();
+            that.setAllWOsBranches();
+            // that.setAllWOs();
+            // that.setAllDAYOFFs();
         }
         setTimeout(() => {
             UtilGen.DBView.autoShowHideMenu(false, that.joApp);
@@ -290,11 +335,16 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var lctb = qv.mLctb;
         that.empData = {};
         that.empWOdays = {};
+        var sYear = String(that._iYear);
+        var sMon = String(that._iMonth).padStart(2, "0");
+
         var sq = "select at.*,to_number(to_char(att_date,'DD')) day_of_month,e.brn_id " +
             " from c7hr_attend at,c7hr_emp e " +
             " where at.emp_code=e.emp_cd " +
             " and e.flag=1 " +
+            " and to_char(att_date,'rrrr/mm') = '" + sYear + "/" + sMon + "'" +
             " order by e.emp_cd ";
+
         var deptsDays = {};
         var dt = Util.execSQLWithData(sq);
         //  continue reading and setting data to 
@@ -305,12 +355,15 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         }
         for (var i = 0; i < lctb.rows.length; i++) {
             var ec = lctb.getFieldValue(i, "EMP_CD");
-            var dyk = Object.keys(that.empData[ec]);
+            var dyk = Object.keys(Util.nvl(that.empData[ec], []));
             for (var i1 = 0; i1 < dyk.length; i1++) {
                 // var dy = that.empData[ec][dyk[i1]].DAY_OF_MONTH;
                 lctb.setFieldValue(i, "D" + dyk[i1], that.getMenuItem(that.empData[ec][dyk[i1]].DAY_TYPE).icon);
             }
         }
+
+        var sqx = "select emp_code,status,fromdate,todate from c7hr_stats where ";
+
         qv.updateDataToControl();
     },
 
@@ -322,6 +375,45 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         if (!aData || iAbsRow >= aData.length) return;
         this._oCellCtx = undefined;
         var oRec = aData[iAbsRow];
+        var empCode = oRec.EMP_CD;
+
+        // ---- Validation ----
+        var val = this.empValidation[empCode];
+        if (!val) {
+            sap.m.MessageToast.show("Employee validation data not found.");
+            return;
+        }
+        if (val.terminated) {
+            sap.m.MessageBox.alert("Employee is terminated. Attendance cannot be modified.");
+            return;
+        }
+        var clickedDate = new Date(this._iYear, this._iMonth - 1, iDay);
+        var lastCloseRec = val.lastCloseRec;
+        var lastAttRec = (val.lastCloseRec > val.lastAttRec ? lastCloseRec : val.lastAttRec);
+
+        // If lastCloseRec is null, treat as dt_join - 1 (i.e., day before joining)
+        var startDate = lastCloseRec ? new Date(lastCloseRec) : new Date(val.dtJoin);
+        startDate.setDate(startDate.getDate() - 1); // day before last close or day before join
+
+        if (clickedDate <= startDate) {
+            var fmt = new simpleDateFormat("dd/MM/yyyy");
+            sap.m.MessageBox.alert(
+                "Cannot modify days on or before the last closed record.\n" +
+                "Earliest allowed day is: " + fmt.format(new Date(startDate.getTime() + 86400000))
+            );
+            return;
+        }
+
+        // Determine if we are in bulk mode (clicked after last_att_rec)
+        var bulkMode = false;
+        var bulkStart = null, bulkEnd = null;
+        if (lastAttRec && clickedDate > lastAttRec) {
+            bulkMode = true;
+            bulkStart = new Date(lastAttRec);
+            bulkStart.setDate(bulkStart.getDate() + 1);
+            bulkEnd = new Date(clickedDate);
+        }
+        // ---- End validation ----
 
         /* store context for later use */
         this._oCellCtx = {
@@ -330,16 +422,26 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             day: iDay,
             empCode: oRec.EMP_CD,
             empName: oRec.NAME1,
-            currentType: oRec[sColName] // (Util.nvl(oRec[sColName], "-") == "-" ? "P" : oRec[sColName])
+            currentType: oRec[sColName], // (Util.nvl(oRec[sColName], "-") == "-" ? "P" : oRec[sColName])
+            bulkMode: bulkMode,
+            bulkStart: bulkStart,
+            bulkEnd: bulkEnd
+
         };
 
         /* create menu items */
 
         var oMenu = new sap.m.Menu();
         that.aMenuItems.forEach(function (it) {
+            var enbl = true;
+            var objEd = that.view.byId("cmdEdit" + that.timeInLong);
+            if (objEd.getPressed() &&
+                (it.key == '-' || it.key == 'P' || it.key == "A" || it.key == "WO" || it.key == "PH" || it.key == "HD"))
+                enbl = false;
             oMenu.addItem(new sap.m.MenuItem({
                 text: it.icon + " " + it.text,
                 key: it.key,
+                enabled: enbl,
                 press: function (oEv) {
                     var sKey = this.getKey();
                     if (sKey === "P") {
@@ -364,7 +466,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             var aData = oModel.getData();
             var oRec = aData[ctx.absRow];
             if (aDirty.length > 0 && oRec["_rec_" + ctx.day] != undefined)
-                if (getMenuKeyFromIcon(oRec["D" + ctx.day]) != sKey)
+                if (that.getMenuKeyFromIcon(oRec["D" + ctx.day]) != sKey)
                     that._applyStatus("-");
 
             return oRec["_rec_" + ctx.day];
@@ -390,7 +492,11 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             var rec = Util.nvl(getRec(sKey), getDBRec(sKey));
             var rmrk = Util.nvl(rec, { REMARKS: "" }).REMARKS;
             UtilGen.inputDialog(ctx.empCode + " – " + ctx.empName + "  |  Day " + ctx.day + "  (" + sTit + ")", "Reason / Remarks  : ", rmrk, function (str) {
-                that._applyStatus(sKey, { REMARKS: str });
+                if (ctx.bulkMode) {
+                    that._applyBulkStatus(sKey, { REMARKS: str });
+                } else {
+                    that._applyStatus(sKey, { REMARKS: str });
+                }
                 return true;
             }, function () {
                 return true;
@@ -404,11 +510,80 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                 openAbsentPop("Half Day");
                 break;
             case "PH":
-                that._applyStatus(sKey, {});
+                if (ctx.bulkMode) {
+                    that._applyBulkStatus(sKey, {});
+                } else {
+                    that._applyStatus(sKey, {});
+                }
                 break;
             default:
-                that._applyStatus(sKey, {})
+                if (ctx.bulkMode) {
+                    that._applyBulkStatus(sKey, {});
+                } else {
+                    that._applyStatus(sKey, {});
+                }
                 break;
+        }
+    },
+    _applyBulkStatus: function (sStatus, oDetails) {
+        var that = this;
+        var ctx = this._oCellCtx;
+        if (!ctx || !ctx.bulkMode) return;
+
+        var start = new Date(ctx.bulkStart);
+        var end = new Date(ctx.bulkEnd);
+        var current = new Date(start);
+        var sYear = String(that._iYear);
+        var sMon = String(that._iMonth).padStart(2, "0");
+
+        while (current <= end) {
+            var dayNo = current.getDate();
+            var month = current.getMonth() + 1;
+            var year = current.getFullYear();
+            // find row for this employee in the current month view
+            var oTable = that._qr.getControl();
+            var oModel = oTable.getModel();
+            var aData = oModel.getData();
+            var rowIdx = -1;
+            for (var i = 0; i < aData.length; i++) {
+                if (aData[i].EMP_CD === ctx.empCode) {
+                    rowIdx = i;
+                    break;
+                }
+            }
+            if (rowIdx === -1) return;
+            if (sYear != year || sMon != month)
+                FormView.err("current month is not equal of " + month + "/" + year)
+
+            var colName = "D" + dayNo;
+            // we need to ensure the day column exists in the current month
+            if (colName in aData[rowIdx]) {
+                // temporarily set context to this day
+                var tempCtx = {
+                    absRow: rowIdx,
+                    colName: colName,
+                    day: dayNo,
+                    empCode: ctx.empCode,
+                    empName: ctx.empName,
+                    currentType: sStatus,//aData[rowIdx][colName]
+                };
+                if (that.isDayOffEmp(dayNo))
+                    tempCtx = {
+                        absRow: rowIdx,
+                        colName: colName,
+                        day: dayNo,
+                        empCode: ctx.empCode,
+                        empName: ctx.empName,
+                        currentType: "WO"
+                    };
+
+                // store original context
+                var origCtx = that._oCellCtx;
+                that._oCellCtx = tempCtx;
+                that._applyStatus(tempCtx.currentType, oDetails);
+                that._oCellCtx = origCtx;
+            }
+            current.setDate(current.getDate() + 1);
         }
     },
     /* ── _applyStatus (non‑Present) ──────────────────────────── */
@@ -466,6 +641,9 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         this._recalcSummary(oRec);
         oModel.refresh(true);
         this._dirty[ctx.empCode + "_" + ctx.day] = oRec["_rec_" + ctx.day];
+        var current = new Date(that._iYear, (that._iMonth - 1), ctx.day);
+        if (!this.empValidation[ctx.empCode].lastAttRec || (current) > this.empValidation[ctx.empCode].lastAttRec)
+            this.empValidation[ctx.empCode].lastAttRec = new Date(current);
     },
 
     /* ── _openPresentPopup ────────────────────────────────────── */
@@ -641,17 +819,28 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                             UtilGen.errorObj(inpNoOf, 3000);
                             FormView.err("Working hours cant be zero or negative !");
                         }
-
-                        that._applyPresentWithDetails({
-                            dutyHours: duty,
-                            noOfHours: noOf,
-                            extraHours: extra,
-                            totalHours: total,
-                            timeEntries: {
-                                inTime1: in1,
-                                outTime1: out1
-                            }
-                        });
+                        if (ctx.bulkMode) {
+                            that._applyBulkPresentWithDetails({
+                                dutyHours: duty,
+                                noOfHours: noOf,
+                                extraHours: extra,
+                                totalHours: total,
+                                timeEntries: {
+                                    inTime1: in1,
+                                    outTime1: out1
+                                }
+                            });
+                        } else
+                            that._applyPresentWithDetails({
+                                dutyHours: duty,
+                                noOfHours: noOf,
+                                extraHours: extra,
+                                totalHours: total,
+                                timeEntries: {
+                                    inTime1: in1,
+                                    outTime1: out1
+                                }
+                            });
                         oDialog.close();
                     }
                 }),
@@ -673,7 +862,76 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
 
     },
+    _applyBulkPresentWithDetails: function (oDetails) {
+        var that = this;
+        var ctx = this._oCellCtx;
+        if (!ctx || !ctx.bulkMode) return;
 
+        var start = new Date(ctx.bulkStart);
+        var end = new Date(ctx.bulkEnd);
+        var current = new Date(start);
+        var sYear = String(that._iYear);
+        var sMon = String(that._iMonth).padStart(2, "0");
+
+        var oTable = that._qr.getControl();
+        var oModel = oTable.getModel();
+        var aData = oModel.getData();
+
+        while (current <= end) {
+            var dayNo = current.getDate();
+            var month = current.getMonth() + 1;
+            var year = current.getFullYear();
+
+            if (sYear != year || sMon != month)
+                FormView.err("current month is not equal of " + month + "/" + year)
+
+
+            var colName = "D" + dayNo;
+            // we need to ensure the day column exists in the current month
+            if (colName in aData[ctx.absRow]) {
+                var oRec = aData[ctx.absRow];
+                if (!that.isDayOffEmp(dayNo)) {
+                    oRec[colName] = that.getMenuItem("P").icon;
+                    oRec["_rec_" + dayNo] = {
+                        EMP_CODE: ctx.empCode,
+                        DAY_NO: dayNo,
+                        DAY_FRACTION: 1,
+                        DAY_TYPE: "P",
+                        EXTRA_HOURS: 0, //oDetails.EXTRA_HOURS,
+                        OT_HOURS: 0,
+                        REMARKS: '',
+                        dutyHours: oDetails.dutyHours,
+                        noOfHours: oDetails.noOfHours,
+                        extraHours: oDetails.extraHours,
+                        totalHours: oDetails.totalHours,
+                        timeEntries: {
+                            inTime1: oDetails.timeEntries.inTime1,
+                            outTime1: oDetails.timeEntries.outTime1,
+                        }
+                    };
+                }
+                else {
+                    oRec[colName] = that.getMenuItem("WO").icon;
+                    oRec["_rec_" + dayNo] = {
+                        EMP_CODE: ctx.empCode,
+                        DAY_NO: dayNo,
+                        DAY_FRACTION: 0,
+                        DAY_TYPE: "WO",
+                        EXTRA_HOURS: 0, //oDetails.EXTRA_HOURS,
+                        OT_HOURS: 0,
+                        REMARKS: '',
+                    };
+                }
+                this._dirty[ctx.empCode + "_" + dayNo] = oRec["_rec_" + dayNo];
+                if (!this.empValidation[ctx.empCode].lastAttRec || current > this.empValidation[ctx.empCode].lastAttRec)
+                    this.empValidation[ctx.empCode].lastAttRec = new Date(current);
+            }
+            current.setDate(current.getDate() + 1);
+        }
+        this._recalcSummary(oRec);
+        oModel.refresh(true);
+
+    },
     /* ── _applyPresentWithDetails ────────────────────────────── */
     _applyPresentWithDetails: function (oDetails) {
         var that = this;
@@ -709,7 +967,25 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         oModel.refresh(true);
         this._dirty[ctx.empCode + "_" + ctx.day] = oRec["_rec_" + ctx.day];
     },
+    isDayOffEmp: function (dayNo) {
+        var that = this;
+        var ctx = this._oCellCtx;
+        if (!ctx || !ctx.bulkMode) return;
 
+        var sYear = that._iYear;
+        var sMon = that._iMonth;
+
+        var oTable = that._qr.getControl();
+        var oModel = oTable.getModel();
+        var aData = oModel.getData();
+        var bn = aData[ctx.absRow].BRN_ID;
+        var dy = new Date(sYear, sMon - 1, dayNo).getDay();
+        if (that.branchWO[bn] && dy in that.branchWO[bn])
+            return true;
+
+        return false;
+
+    },
     /* ── _recalcSummary ───────────────────────────────────────── */
     _recalcSummary: function (oRec) {
         var iP = 0, iA = 0, iOT = 0;
@@ -937,6 +1213,23 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             if (it[i].icon == stat)
                 return it[i];
         }
+    },
+    setAllWOsBranches: function () {
+        var that = this;
+        var iMonth = parseInt(that._getMonthYearFromInput().month);
+        var iYear = parseInt(that._getMonthYearFromInput().year);
+        var iDays = new Date(iYear, iMonth, 0).getDate();
+        if (that.wos == undefined) that.wos = {}; // info : store all weekly off in array for each branch of employee
+        var dt = Util.execSQLWithData("select e.emp_cd,bw.* from C7HR_EMP e, C7HR_BRANCHWEEK bw" +
+            " where bw.branchno=e.brn_id and isdayoff='Y' order by e.emp_cd,dayx");
+        if (dt.length <= 0) return;
+        var branchWO = {};
+        dt.forEach(function (rec) {
+            var bn = rec.BRANCHNO;
+            if (!branchWO[bn]) branchWO[bn] = [];
+            branchWO[bn].push(parseInt(rec.DAYX));
+        });
+        that.branchWO = branchWO;
     },
     //info:  after load put all days in month weekly off in the array 
     setAllWOs: function () {
