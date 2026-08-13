@@ -20,7 +20,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         this.view = oController.getView();
         this.timeInLong = (new Date()).getTime();
         that.aMenuItems = [
-            { key: "-", text: "Clear", icon: "⬜" },
+            { key: "-", text: "Clear", icon: "-" },
             { key: "P", text: "Present", icon: "✅" },
             { key: "A", text: "Absent", icon: "❌" },
             { key: "WO", text: "Weekly Off", icon: "📅" },
@@ -289,7 +289,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             // ---- End validation map ----
             qv.setJsonStrMetaData("{" + dtEmp.data + "}");
             for (var i = 1; i <= iDays; i++) {
-                var daynm = Util.getLangDescrAR(that.daysEn, that.daysAr)[new Date(iYear, iMonth - 1, i - 1).getDay()];
+                var daynm = Util.getLangDescrAR(that.daysEn, that.daysAr)[(new Date(iYear, iMonth - 1, i).getDay())];
                 Util.setColProperties(qv, "D" + i, {
                     "mTitle": ("" + i).padStart(2, "0") + "\n" + daynm,
                     "display_width": 55,
@@ -595,10 +595,19 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var oModel = oTable.getModel();
         var aData = oModel.getData();
         var oRec = aData[ctx.absRow];
-
         oRec[ctx.colName] = that.getMenuItem(sStatus).icon;
 
-        if (sStatus == "-")
+        // final validation to stop user clear after lastAttRec or startdate, 
+        var val = that.empValidation[ctx.empCode];
+        var lastAttRec = (val.lastCloseRec > val.lastAttRec ? val.lastCloseRec : val.lastAttRec);
+        var startDate = valastCloseRec ? new Date(lastCloseRec) : new Date(val.dtJoin);
+        // startDate.setDate(startDate.getDate() - 1); // day before last close or day before jo
+        var clickedDate = new Date(that._iYear, that._iMonth - 1, ctx.day);
+        if (sStatus == "-" && (clickedDate > startDate || clickedDate > lastAttRec))
+            FormView.err("Cant clear above day # " + (lastAttRec ? lastAttRec : startDate).getDate());
+        
+        if (sStatus == "-") {
+            // if (clickedDate <= lastAttRec && clickedDate > startDate)
             oRec["_rec_" + ctx.day] = {
                 KEYFLD: undefined,
                 EMP_CODE: ctx.empCode,
@@ -617,6 +626,8 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                     outTime1: "",
                 }
             };
+
+        }
         else
             oRec["_rec_" + ctx.day] = {
                 KEYFLD: undefined,
@@ -980,7 +991,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var aData = oModel.getData();
         var bn = aData[ctx.absRow].BRN_ID;
         var dy = new Date(sYear, sMon - 1, dayNo).getDay();
-        if (that.branchWO[bn] && dy in that.branchWO[bn])
+        if (that.branchWO[bn] && that.branchWO[bn].indexOf(dy) > -1)
             return true;
 
         return false;
