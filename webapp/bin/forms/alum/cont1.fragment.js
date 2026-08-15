@@ -64,7 +64,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
         this.frm;
         var js = {
             form: {
-                title: Util.getLangText("custContract"),
+                title: Util.getLangText("locContract"),
                 toolbarBG: "lightgreen",
                 titleStyle: "titleFontWithoutPad2 violetText",
                 formSetting: {
@@ -240,6 +240,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.revenue_ac"].obj, undefined, that.frm.objs["qry1._racname"].obj);
                         var cmdS = thatForm.frm.objs["qry1._cmdSearch"].obj;
                         cmdS.setEnabled(false);
+                        UtilGen.Vouchers.attachLoadQry(thatForm, qry, 'cont1', thatForm.frm.getFieldValue("qry1.keyfld"));
                     }
                     // if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
 
@@ -254,11 +255,15 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     // frm.loadData(undefined, FormView.RecordStatus.NEW);
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
-                    thatForm.helperFunc.beforeSaveValidateQry(qry);
+                    if (qry.name == "qry1") {
+                        thatForm.helperFunc.beforeSaveValidateQry(qry);
+                        UtilGen.Vouchers.attachSaveQry(thatForm, "cont1", thatForm.frm.getFieldValue("qry1.keyfld"));
+                    }
                     return "";
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
+                        thatForm.fileUpload = undefined;
                         thatForm.fetchCustItems = false;
                         var newKf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_contracts1");
                         var dt = thatForm.view.today_date.getDateValue();
@@ -317,6 +322,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                     if (qry.name == "qry1") {
                         delAdd = "C7_CONTRACTS1_POSTJV(" + kf + ",'Y');" +
+                            "delete from c7_attach where kind_of='cont1'and refer=:qry1.keyfld ;" +
                             "delete from c7_contracts1_items where keyfld=:pac;" +
                             "delete from c7_contracts1_steps where keyfld=:pac ;" + delAdd;
                         return delAdd;
@@ -327,7 +333,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 },
                 beforePrint: function (rptName, params) {
                     var no = that.frm.getFieldValue("qry1.ord_no");
-                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;                    
+                    return params + "&_para_pfromno=" + no + "&_para_ptono=" + no;
                 },
                 afterApplyCols: function (qry) {
                     if (qry.name == "qry2") {
@@ -466,7 +472,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
             return {
                 reference: FormView.getFactoryFields.getGeneralField(
-                    "reference", "", "", "0px", "boldText", "85%",
+                    "reference", "", "", "0px", "boldText", "5%",
                     {
                         class_name: FormView.ClassTypes.LABEL,
                         require: false,
@@ -478,6 +484,33 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                     }
                 }),
+                _attachment: {
+                    colname: "_attachment",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"Attachment\",\"width\":\"60%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_BEGIN",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        showValueHelp: true,
+                        editable: false,
+                        width: "15%",
+                        valueHelpRequest: function (e) {
+                            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.EDIT &&
+                                thatForm.frm.objs["qry1"].status != FormView.RecordStatus.NEW)
+                                return;
+                            UtilGen.Vouchers.attachShowUpload(thatForm);
+                        }
+                    },
+
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false
+                },
                 _cmdSearch: {
                     colname: "_cmdSearch",
                     data_type: FormView.DataType.String,
@@ -487,7 +520,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     canvas: "default_canvas",
                     other_settings: {
                         text: "List",
-                        width: "15%",
+                        width: "20%",
                         press: function () {
                             thatForm.helperFunc.showRefList();
                         }
@@ -499,7 +532,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     "cont_type", "@", "contractType",
                     "10%", "", "15%",
                     {
-                        list: "@quot/txtQuotaton,cont/Contract",
+                        list: "@quot/txtQuot,cont/locContract",
                         require: true
                     }, {
                     selectionChange: function () {
@@ -885,7 +918,34 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 {
                     name: "cmdPrint",
                     canvas: "default_canvas",
-                    title: Util.getLangText("printRec")
+                    title: Util.getLangText("printRec"),
+                    onPress: function (e) {
+                        var ms = [];
+                        Util.doAjaxGet("exe?command=get-files-in-folder", "path=reports%2Fdocx%2Fcont1%2F&filetype=.docx", false).done(function (data) {
+                            var dta = JSON.parse(data);
+                            for (var d in dta)
+                                ms.push(dta[d].file)
+                        });
+
+                        var mnus = [];
+                        for (var i in ms)
+                            mnus.push(new sap.m.MenuItem({
+                                text: (ms[i]).replaceAll(".docx", ""),
+                                icon: "sap-icon://doc-attachment",
+                                customData: { key: ms[i] },
+                                press: function () {
+                                    var cd = this.getCustomData()[0].getKey();
+                                    that2.printDoc(cd);
+                                }
+                            }));
+                        new sap.m.Menu({
+                            title: "",
+                            items: mnus
+                        }).openBy(e.getSource());
+
+
+
+                    }
                 },
                 {
                     name: "cmdOther",
@@ -901,14 +961,15 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                                 (that2.frm.objs["qry1"].status == FormView.RecordStatus.EDIT ||
                                     that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW ||
                                     that2.frm.objs["qry1"].status == FormView.RecordStatus.NEW)) {
-                                // mnus.push(new sap.m.MenuItem({
-                                //     icon: "sap-icon://letter",
-                                //     text: Util.getLangText("generateInvoice"),
-                                //     press: function () {
-                                //         that2.helperFunc.generateInvoice(this);
-                                //     }
-                                // }));
+                                mnus.push(new sap.m.MenuItem({
+                                    icon: "sap-icon://pdf-attachment",
+                                    text: "Attachment",
+                                    press: function () {
+                                        UtilGen.Vouchers.attachShowUpload(that2, false);
+                                    }
+                                }));
                             }
+
                             if (bts.length > 0) {
                                 mnus.push(new sap.m.MenuItem({
                                     icon: "sap-icon://indent",
@@ -964,7 +1025,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             if (Util.nvl(cod, "") != "") {
                 var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where " + flg + " code='" + cod + "'");
                 if (sqcnt == 0) {
-                    UtilGen.errorObj(thatForm.frm.objs["qry1.code"].obj, undefined, true);
+                    UtilGen.errorObj(thatForm.frm.objs["qry1.cust_code"].obj, undefined, true);
                     FormView.err("Save Denied : Customer is invalid !");
                 }
                 sqcnt = Util.getSQLValue("select nvl(count(*),0) from c_ycust where parentcustomer='" + cod + "'");
@@ -1107,8 +1168,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             ]);
 
         }
-    }
-    ,
+    },
     showSteps: function () {
         var that2 = this;
         var generateCpy = function () {
@@ -1495,6 +1555,146 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
         sqls = "delete from C7_CONTRACTS1_STEPS where keyfld='" + rfr + "';" + sqls;
         return sqls;
     },
+    printDoc: function (docfile) {
+        var thatForm = this;
+        var qryObj = thatForm.frm.objs["qry1"];
+        if (qryObj.status == FormView.RecordStatus.EDIT || qryObj.status == FormView.RecordStatus.NEW) {
+            thatForm.frm.save_data(undefined, FormView.RecordStatus.VIEW);
+        }
+        if (qryObj.status != FormView.RecordStatus.VIEW)
+            FormView.err("must save data to print !");
+
+        var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+
+        var dt = {};
+        var tmp = Util.execSQLWithData("select *from v_c7_contracts1 where keyfld=" + kf);
+        if (tmp.length > 0) {
+            var dtx = tmp[0];
+            var keys = Object.keys(dtx);
+            for (var d in keys)
+                dt['c76' + keys[d]] = dtx[keys[d]];
+        }
+        thatForm.downloadFilledTemplate(docfile, dt);
+    },
+    downloadFilledTemplate: function (docfile, data) {
+        var that = this;
+
+        // If no data provided, use default (or fetch from form)
+        var replacements = data || {
+            empname: 'yusuf',
+            date: '0101023',
+            company: 'MetaSoft'
+        };
+
+        // Show busy indicator
+        Util.doSpin('Preparing document...');
+
+        // Load libraries, then fetch and process template
+        this._loadDocxLibraries()
+            .then(function () {
+                // 1. Fetch the template from Spring Boot endpoint
+                return new Promise(function (resolve, reject) {
+                    var docpath = "docx%2Fcont1%2F" + docfile;
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', 'template?filename=' + docpath, true);
+                    xhr.responseType = 'arraybuffer';
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            resolve(xhr.response);
+                        } else {
+                            reject(new Error('HTTP ' + xhr.status));
+                        }
+                    };
+                    xhr.onerror = function () { reject(new Error('Network error')); };
+                    xhr.send();
+                });
+            })
+            .then(function (arrayBuffer) {
+                // 2. Create zip and docxtemplater instance
+                var zip = new PizZip(arrayBuffer);
+                var docXml = zip.file('word/document.xml').asText();
+
+                // Replace each placeholder (exact string) with its value
+                for (var key in replacements) {
+                    // Since the placeholder is just the key (no braces), we replace the key itself
+                    var escapedKey = (key.replace(/[.*+?^${}()|[\]\\]/gi, '  \\$&'));
+                    var vl = Util.nvl(replacements[key], " ");
+                    vl = Util.canDate(vl, "yyyy/MM/dd");
+                    // Match both {key} and key (with optional surrounding braces)
+                    var regex = new RegExp(escapedKey, "gi");
+                    docXml = docXml.replace(regex, vl);
+                }
+
+                // Update the zip
+                zip.file('word/document.xml', docXml);
+
+                // 4. Generate blob
+                var outBlob = zip.generate({
+                    type: 'blob',
+                    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                });
+                var cnm = that.frm.getFieldValue("qry1.cust_name");
+                var ct = that.frm.getFieldValue("qry1.cont_type");
+
+                // 5. Trigger download
+                if (window.saveAs) {
+                    window.saveAs(outBlob, ct + "_" + cnm + '.docx');
+                } else {
+                    // Manual fallback (works in modern browsers)
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(outBlob);
+                    link.download = ct + "_" + cnm + '.docx';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                }
+
+                Util.stopSpin();
+                sap.m.MessageToast.show('Document downloaded successfully.');
+            })
+            .catch(function (err) {
+                Util.stopSpin();
+                console.error(err);
+                sap.m.MessageBox.error('Failed to generate document: ' + err.message);
+            });
+    },
+    _loadDocxLibraries: function () {
+        var that = this;
+        return new Promise(function (resolve, reject) {
+            // Already loaded?
+            if (window.PizZip && window.docxtemplater && window.saveAs) {
+                resolve();
+                return;
+            }
+
+            var loadScript = function (src) {
+                return new Promise(function (res, rej) {
+                    var script = document.createElement('script');
+                    script.src = src;
+                    script.onload = res;
+                    script.onerror = function () { rej(new Error('Failed to load ' + src)); };
+                    document.head.appendChild(script);
+                });
+            };
+
+            // Load in sequence: PizZip → docxtemplater → FileSaver
+            loadScript('js/pizzip.min.js')
+                .then(function () {
+                    return loadScript('js/docxtemplater.min.js');
+                })
+                .then(function () {
+                    return loadScript('js/FileSaver.min.js');
+                })
+                .then(function () {
+                    resolve();
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    },
+
     loadData: function () {
         var frag = this;
         if (Util.nvl(frag.oController.keyfld, "") != "") {

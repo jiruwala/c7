@@ -2189,6 +2189,33 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 }
 
                 return new Date(year, month, day, hour, minute, second);
+            },
+            canDate: function (pVl, formatDate) {
+                var sett = sap.ui.getCore().getModel("settings").getData();
+                var sdf = new simpleDateFormat(Util.nvl(formatDate, sett["ENGLISH_DATE_FORMAT"]));
+                var vl = pVl;
+                try {
+                    // 1. Check if the value is a number OR a numeric string (e.g., 42, "1", "3.14")
+                    const isNumericValue =
+                        (typeof vl === 'number' && Number.isFinite(vl)) ||
+                        (typeof vl === 'string' && vl.trim() !== '' && !isNaN(Number(vl)));
+
+                    const isValidInput = vl !== null && vl !== undefined && typeof vl !== 'boolean';
+
+                    // 2. Only proceed if it is NOT numeric
+                    if (!isNumericValue && isValidInput) {
+                        const rawVal = typeof vl === 'string' ? vl.replaceAll('.', ':') : vl;
+                        const dval = rawVal instanceof Date ? rawVal : new Date(rawVal);
+
+                        // 3. Verify it's a valid date before formatting
+                        if (!isNaN(dval.getTime())) {
+                            vl = sdf.format(dval);
+                        }
+                    }
+                } catch (e) {
+                    // Catch any unexpected runtime errors
+                }
+                return vl;
             }
         };
 
