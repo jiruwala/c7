@@ -2216,7 +2216,17 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     // Catch any unexpected runtime errors
                 }
                 return vl;
+            },
+            loadScript: function (src) {
+                return new Promise(function (res, rej) {
+                    var script = document.createElement('script');
+                    script.src = src;
+                    script.onload = res;
+                    script.onerror = function () { rej(new Error('Failed to load ' + src)); };
+                    document.head.appendChild(script);
+                });
             }
+
         };
 
         return Util;

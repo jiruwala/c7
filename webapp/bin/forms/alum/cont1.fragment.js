@@ -1423,7 +1423,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             content: [],
             showFooter: true
         }).addStyleClass("sapUiSizeCompact");
-        var cmdClose = new sap.m.ToggleButton({
+        var cmdClose = new sap.m.Button({
             text: Util.getLangText("cmdDone"),
             icon: "sap-icon://accept",
             pressed: false,

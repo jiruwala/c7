@@ -7,6 +7,7 @@ sap.ui.jsfragment("bin.forms.in.items", {
         this.timeInLong = (new Date()).getTime();
         this.joApp = new sap.m.SplitApp({ mode: sap.m.SplitAppMode.HideMode });
         this.helperFunc.init(this);
+        this.helperFuncBCPrint.init(this);
         this.vars = {
             keyfld: -1,
             flag: 1,  // 1=closed,2 opened,
@@ -962,6 +963,24 @@ sap.ui.jsfragment("bin.forms.in.items", {
                     })
                 },
                 {
+                    name: "cmdPrint",
+                    canvas: "default_canvas",
+                    title: Util.getLangText("printRec") + " " + Util.getLangText("txtBarcode"),
+                    onPress: function (e) {
+                        var itm = that2.frm.getFieldValue("qry1.reference");
+                        var des = that2.frm.getFieldValue("qry1.descr");
+
+                        UtilGen.inputDialog(itm + " " + des, "NO Of Label", "1", function (str) {
+                            var num = Util.extractNumber(str);
+                            if (num < 0 || num > 99)
+                                return false;
+                            that2.helperFuncBCPrint.onPrintLabel(num);
+                            return true;
+                        }, undefined, undefined, undefined, {});
+
+                    }
+                },
+                {
                     name: "cmdClose",
                     canvas: "default_canvas",
                     title: Util.getLangText("cmdClose"),
@@ -1636,6 +1655,220 @@ sap.ui.jsfragment("bin.forms.in.items", {
     ,
     get_emails_sel: function () {
 
+    },
+    helperFuncBCPrint: {
+        init: function (thatForm) {
+            this.thatForm = thatForm;
+        },
+        onPrintLabel: function (num) {
+            var thatForm = this.thatForm;
+            const that = this;
+            const copies = Util.nvl(num, 1);
+            this.itm = thatForm.frm.getFieldValue("qry1.reference");
+            this.des = thatForm.frm.getFieldValue("qry1.descr");
+            this.bc = thatForm.frm.getFieldValue("qry1.barcode");
+            this.pr = thatForm.frm.getFieldValue("qry1.price1");
+
+
+            this._loadJsBarcode()
+                .then(function () {
+                    const labelHTML = that._buildLabelHTML(copies);
+                    that._printLabelHTML(labelHTML);
+                })
+                .catch(function (error) {
+                    sap.m.MessageToast.show("Failed to load barcode: " + error.message);
+                });
+        },
+
+        // ------------------------------------------------------------
+        // Dynamic loader with CDN fallback (jsdelivr works)
+        // ------------------------------------------------------------
+        _loadJsBarcode: function () {
+            const CDN_URLS = [
+                "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js",
+                "https://unpkg.com/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"
+            ];
+
+            return new Promise(function (resolve, reject) {
+                if (typeof window.JsBarcode !== "undefined") {
+                    resolve();
+                    return;
+                }
+
+                let idx = 0;
+
+                function tryNext() {
+                    if (idx >= CDN_URLS.length) {
+                        reject(new Error("All CDNs failed."));
+                        return;
+                    }
+
+                    const script = document.createElement("script");
+                    script.src = CDN_URLS[idx];
+                    script.async = true;
+                    script.onload = function () {
+                        if (typeof window.JsBarcode !== "undefined") {
+                            resolve();
+                        } else {
+                            idx++;
+                            tryNext();
+                        }
+                    };
+                    script.onerror = function () {
+                        idx++;
+                        tryNext();
+                    };
+                    document.head.appendChild(script);
+                }
+
+                tryNext();
+            });
+        },
+
+        // ------------------------------------------------------------
+        // Build HTML with N copies (2" x 1" continuous pages)
+        // ------------------------------------------------------------
+        _buildLabelHTML: function (copies) {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+
+            // 1. Generate barcode image once
+            const canvas = document.createElement("canvas");
+            canvas.width = 280;
+            canvas.height = 70;
+            window.JsBarcode(canvas, this.bc, {
+                format: "CODE128",
+                width: 2,
+                height: 60,
+                displayValue: false,
+                margin: 0,
+                background: "#FFFFFF",
+                lineColor: "#000000"
+            });
+            const barcodeImageSrc = canvas.toDataURL("image/png");
+
+            // 2. Single label template
+            const singleLabel = `
+            <div class="label">                
+                <div class="line2">`+ this.des + `</div>
+                <div class="line3">`+ this.bc + `</div>
+                <img class="barcode-img" src="${barcodeImageSrc}" alt="Barcode" />
+                <div class="line4">Price `+ df.format(this.pr) + `</div>
+            </div>
+            `;
+
+            // 3. Repeat N times with page breaks
+            let labelsHTML = "";
+            for (let i = 0; i < copies; i++) {
+                // Add page break after every label except the last one
+                const pageBreak = (i < copies - 1) ? 'page-break-after: always;' : '';
+                labelsHTML += `<div class="label-container" style="${pageBreak}">${singleLabel}</div>`;
+            }
+
+            // 4. Full HTML page
+            return `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Print ${copies} Labels</title>
+                <style>
+                    /* CRITICAL: Forces the browser to use 2" x 1" pages */
+                    @page {
+                        size:38mm 25mm;
+                        margin: 0;
+                    }
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background: #ffffff;
+                    }
+                    .label-container {
+                        width: 38mm;
+                        height: 25mm;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .label {
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        font-family: Arial, "Segoe UI", sans-serif;
+                        text-align: center;
+                        background: #ffffff;
+                        box-sizing: border-box;
+                        padding: 2px 4px;
+                    }
+                    .label .line1 { font-size: 14pt; font-weight: bold; }
+                    .label .line2 { font-size: 10pt; font-weight: bold; margin-top: 1px; }
+                    .label .line3 { font-size: 9pt; margin-top: 2px; }
+                    .label .barcode-img { width: 80%; height: auto; margin: 2px 0; image-rendering: pixelated; }
+                    .label .line4 { font-size: 9pt; margin-top: 1px; }
+                    .label .line5 { font-size: 9pt; margin-top: 2px; }
+
+                    /* Print overrides */
+                    @media print {
+                        body { background: none; }
+                        .label { border: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${labelsHTML}
+            </body>
+            </html>
+            `;
+        },
+
+        // ------------------------------------------------------------
+        // Open print preview window
+        // ------------------------------------------------------------
+        _printLabelHTML: function (htmlContent) {
+            // 1. Create a hidden iframe
+            const iframe = document.createElement("iframe");
+            iframe.style.position = "absolute";
+            iframe.style.top = "-9999px";
+            iframe.style.left = "-9999px";
+            iframe.style.width = "0";
+            iframe.style.height = "0";
+            iframe.style.border = "none";
+            document.body.appendChild(iframe);
+
+            // 2. Write the label HTML into the iframe
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(htmlContent);
+            doc.close();
+
+            // 3. Trigger print on the iframe's content
+            iframe.onload = function () {
+                iframe.contentWindow.focus();
+                // iframe.contentWindow.print();
+                // Clean up the iframe after printing (optional)
+                setTimeout(function () {
+                    if (iframe.parentNode) {
+                        document.body.removeChild(iframe);
+                    }
+                }, 2000);
+            };
+
+            // Fallback if onload doesn't fire
+            setTimeout(function () {
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } catch (e) {
+                    MessageToast.show("Print failed. Please try again.");
+                }
+            }, 1000);
+        }
     }
 
 });
