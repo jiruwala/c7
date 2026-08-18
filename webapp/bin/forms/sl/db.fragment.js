@@ -5,7 +5,7 @@ sap.ui.jsfragment("bin.forms.sl.db", {
 
     // TODO_TEST do complete cycle with discount and add amount , chceck cost of sales,
     //      revenue , customer balances, inventory.
-   
+
     createContent: function (oController) {
         var that = this;
         this.oController = oController;
@@ -133,12 +133,12 @@ sap.ui.jsfragment("bin.forms.sl.db", {
             }, "string", undefined, this.view, undefined, "@15/15 Last,30/30 Last,-1/All"
         );
         var txtCust = new sap.m.Input(this.view.createId("txtCust" + this.timeInLong), {
-            textAlign: sap.ui.core.TextAlign.Begin, width: "20%", editable: false,
+            textAlign: sap.ui.core.TextAlign.Begin, width: "10%", editable: false,
 
         });
 
         var txtName = new sap.m.Input(this.view.createId("txtName" + this.timeInLong), {
-            textAlign: sap.ui.core.TextAlign.Begin, width: "40%", editable: false,
+            textAlign: sap.ui.core.TextAlign.Begin, width: "15%", editable: false,
 
         });
         var bt1 = new sap.m.Button({
@@ -154,6 +154,12 @@ sap.ui.jsfragment("bin.forms.sl.db", {
                     }, undefined, btns)
             }
         })
+        var txtJo = new sap.m.Input(this.view.createId("txtJONO" + this.timeInLong), {
+            textAlign: sap.ui.core.TextAlign.Begin, width: "25%", editable: true,
+            change: function () {
+                that.loadData();
+            }
+        });
         var bt = new sap.m.Button({
             icon: "sap-icon://refresh",
             width: "10%",
@@ -188,6 +194,7 @@ sap.ui.jsfragment("bin.forms.sl.db", {
             Util.getLabelTxt("", "0px", "@"), txtName,
             Util.getLabelTxt("", "0px", "@"), bt1,
             Util.getLabelTxt("", "0px", "@"), bt,
+            Util.getLabelTxt("JO", "10%", "@"), txtJo,
         ];
 
         var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
@@ -234,34 +241,39 @@ sap.ui.jsfragment("bin.forms.sl.db", {
         var cb = this.view.byId("cb1" + this.timeInLong);
         var kind = this.view.byId("kind" + this.timeInLong);
         var txtCust = this.view.byId("txtCust" + this.timeInLong);
+        var jono = this.view.byId("txtJONO" + this.timeInLong).getValue().trim();
         var dys = Util.nvl(UtilGen.getControlValue(cb), 15);
         var knd = Util.nvl(UtilGen.getControlValue(kind), 21);
         var cst = txtCust.getValue();
 
-        var dt = Util.execSQL("select *from (select p.ord_no,p.ordacc,so_status,INVOICE_NO,TYPEDESCR," +
-            "p.INVOICE_DATE,ord_ref,ord_REFNM, p.INV_AMT,p.DEPTNO ADD_AMT,p.DISC_AMT,(p.INV_AMT+p.DEPTNO)-p.DISC_AMT NET_AMT,p.location_code,l.name location_name, p.pu_keyfld keyfld,po_keyfld FROM c7_pord1_pur1 p,locations l " +
-            " WHERE p.location_code=l.code and p.INVOICE_CODE=" + knd + " order by p.CREATED_TIME desc ) i1  where (rownum<=" +
+        var dt = Util.execSQL("select *from (select p.ord_no,so_status,INVOICE_NO," +
+            "p.INVOICE_DATE,ord_ref,ord_REFNM, inv_amt," +
+            " p.pu_keyfld keyfld,po_keyfld FROM c7_pord1_pur1 p " +
+            " WHERE p.PURQTY>0 and p.INVOICE_CODE=" + knd + "   " +
+            " and (p.ord_no='" + jono + "' or '" + jono + "' is null) " +
+            " order by p.CREATED_TIME desc " +
+            " ) i1  where (rownum<=" +
             dys + " or " + dys + "=-1 ) and (ord_ref='" + cst + "' or '" + cst + "' is null) ");
 
         if (dt.ret == "SUCCESS") {
             qv.setJsonStrMetaData("{" + dt.data + "}");
 
-            qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].mTitle = Util.getLangText("slsOrdN");
+            qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].mTitle = Util.getLangText("JO");
             qv.mLctb.cols[qv.mLctb.getColPos("SO_STATUS")].mTitle = Util.getLangText("txtStatus");
-            qv.mLctb.cols[qv.mLctb.getColPos("ORDACC")].mTitle = Util.getLangText("txtIssueAction");
+            // qv.mLctb.cols[qv.mLctb.getColPos("ORDACC")].mTitle = Util.getLangText("txtIssueAction");
 
-            qv.mLctb.cols[qv.mLctb.getColPos("LOCATION_CODE")].mTitle = Util.getLangText("txtCode");
-            qv.mLctb.cols[qv.mLctb.getColPos("LOCATION_CODE")].mTitle = Util.getLangText("locationTxt");
+            // qv.mLctb.cols[qv.mLctb.getColPos("LOCATION_CODE")].mTitle = Util.getLangText("txtCode");
+            // qv.mLctb.cols[qv.mLctb.getColPos("LOCATION_CODE")].mTitle = Util.getLangText("locationTxt");
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_NO")].mTitle = Util.getLangText("txtInvNo");
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_NO")].mTitle = Util.getLangText("txtInvNo");
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_DATE")].mTitle = Util.getLangText("txtInvDate");
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_REF")].mTitle = Util.getLangText("refCode");
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_REFNM")].mTitle = Util.getLangText("refName");
             qv.mLctb.cols[qv.mLctb.getColPos("INV_AMT")].mTitle = Util.getLangText("txtGrossAmt");
-            qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].mTitle = Util.getLangText("txtAddAmt");
-            qv.mLctb.cols[qv.mLctb.getColPos("DISC_AMT")].mTitle = Util.getLangText("txtDisc");
-            qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].mTitle = Util.getLangText("txtNetAmt");
-            qv.mLctb.cols[qv.mLctb.getColPos("TYPEDESCR")].mTitle = Util.getLangText("vouType");
+            // qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].mTitle = Util.getLangText("txtAddAmt");
+            // qv.mLctb.cols[qv.mLctb.getColPos("DISC_AMT")].mTitle = Util.getLangText("txtDisc");
+            // qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].mTitle = Util.getLangText("txtNetAmt");
+            // qv.mLctb.cols[qv.mLctb.getColPos("TYPEDESCR")].mTitle = Util.getLangText("vouType");
 
 
             qv.mLctb.cols[qv.mLctb.getColPos("KEYFLD")].getMUIHelper().display_width = 0;
@@ -271,21 +283,21 @@ sap.ui.jsfragment("bin.forms.sl.db", {
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_REF")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_REFNM")].getMUIHelper().display_width = 120;
             qv.mLctb.cols[qv.mLctb.getColPos("INV_AMT")].getMUIHelper().display_width = 80;
-            qv.mLctb.cols[qv.mLctb.getColPos("DISC_AMT")].getMUIHelper().display_width = 80;
-            qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].getMUIHelper().display_width = 80;
-            qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].getMUIHelper().display_width = 80;
+            // qv.mLctb.cols[qv.mLctb.getColPos("DISC_AMT")].getMUIHelper().display_width = 80;
+            // qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].getMUIHelper().display_width = 80;
+            // qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_DATE")].getMUIHelper().display_width = 100;
-            qv.mLctb.cols[qv.mLctb.getColPos("TYPEDESCR")].getMUIHelper().display_width = 70;
+            // qv.mLctb.cols[qv.mLctb.getColPos("TYPEDESCR")].getMUIHelper().display_width = 70;
 
             qv.mLctb.cols[qv.mLctb.getColPos("ORD_NO")].getMUIHelper().display_width = 80;
             qv.mLctb.cols[qv.mLctb.getColPos("SO_STATUS")].getMUIHelper().display_width = 100;
-            qv.mLctb.cols[qv.mLctb.getColPos("ORDACC")].getMUIHelper().display_width = 100;
+            // qv.mLctb.cols[qv.mLctb.getColPos("ORDACC")].getMUIHelper().display_width = 100;
 
 
             qv.mLctb.cols[qv.mLctb.getColPos("INV_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
-            qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
-            qv.mLctb.cols[qv.mLctb.getColPos("DISC_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
-            qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
+            // qv.mLctb.cols[qv.mLctb.getColPos("ADD_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
+            // qv.mLctb.cols[qv.mLctb.getColPos("DISC_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
+            // qv.mLctb.cols[qv.mLctb.getColPos("NET_AMT")].getMUIHelper().display_format = "MONEY_FORMAT";
 
             qv.mLctb.cols[qv.mLctb.getColPos("INVOICE_NO")].commandLinkClick = function (obj) {
                 var tbl = obj.getParent().getParent();
@@ -312,8 +324,8 @@ sap.ui.jsfragment("bin.forms.sl.db", {
                 var knd = UtilGen.getControlValue(kind);
                 if (Util.nvl(knd, "") == "") return;
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "PO_KEYFLD")].getText());
-                var frm = knd == 21 ? "bin.forms.sl.so" : "bin.forms.pur.forms.punpost";
-                UtilGen.execCmd(frm + " formTitle=SO formType=page keyfld=" + kfld + " formSize=750px,500px", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                var frm = "bin.forms.jo.jo";
+                UtilGen.execCmd(frm + " formTitle=JO formType=dialog keyfld=" + kfld + " formSize=100%,100%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
                     // sap.m.MessageToast.show("closing...");
                     that.loadData();
                 });
