@@ -21,15 +21,15 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         this.timeInLong = (new Date()).getTime();
         that.aMenuItems = [
             { key: "-", text: "Clear", icon: "-" },
-            { key: "P", text: "Present", icon: "✅" },
-            { key: "A", text: "Absent", icon: "❌" },
-            { key: "WO", text: "Weekly Off", icon: "📅" },
-            { key: "PH", text: "Holiday", icon: "⛱️" },
-            { key: "AL", text: "Annual Leave", icon: "✈️" },
-            { key: "SL", text: "Sick Leave", icon: "🤧" },
-            { key: "UL", text: "Unpaid Leave", icon: "💰" },
-            { key: "OT", text: "Overtime", icon: "⏰" },
-            { key: "HD", text: "Half Day", icon: "🌗" }
+            { key: "P", text: "Present", icon: "🅿️" },
+            { key: "A", text: "Absent", icon: "🅰️" },
+            { key: "WO", text: "Weekly Off", icon: "📅WO" },
+            { key: "PH", text: "Holiday", icon: "🌴PH" },
+            { key: "AL", text: "Annual Leave", icon: "✈️AL" },
+            { key: "CL", text: "Casual Leave", icon: "🎂CL" },
+            { key: "SL", text: "Sick Leave", icon: "🤧SL" },
+            { key: "OT", text: "Overtime", icon: "⏰OT" },
+            { key: "HD", text: "Half Day", icon: "🌗HD" }
         ];
         that.daysEn = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat'];
         that.daysAr = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -172,8 +172,9 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var cmdEdit = new sap.m.ToggleButton(that.view.createId("cmdEdit" + that.timeInLong), {
             icon: "sap-icon://edit",
             text: Util.getLangText("editRec"),
-            press: function () {
-                that.editMode = this.getSelected();
+            press: function (e) {
+                // that.editMode = this.getSelected();
+                that.loadData();
             }
         });
 
@@ -275,8 +276,8 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                 var empCode = row.EMP_CD;
                 var dtJoin = Util.parseDate(row.DT_JOIN, that.dtformat);
                 var termDt = Util.parseDate(row.TERM_DT, that.dtformat);
-                var lastAttRec = Util.parseDate(row.LAST_ATT_REC, that.dtformat);
                 var lastCloseRec = Util.parseDate(row.LAST_CLOSE_REC, that.dtformat);
+                var lastAttRec = Util.parseDate(Util.nvl(row.LAST_ATT_REC, row.LAST_CLOSE_REC), that.dtformat);
 
                 that.empValidation[empCode] = {
                     dtJoin: dtJoin,
@@ -324,6 +325,25 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             that.setAllWOsBranches();
             // that.setAllWOs();
             // that.setAllDAYOFFs();
+
+            // qv.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
+            //     var oModel = qv.getControl().getModel();
+            //     var tbl = qv.getControl();
+            //     var cssColor = function (i, bg, fg) {
+            //         qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "D" + i)].$().css("background-color", bg);
+            //         qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "D" + i)].$().parent().parent().css("background-color", bg);
+            //         qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "D" + i)].$().css("color", fg);
+            //         qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(tbl, "D" + i)].$().parent().parent().css("color", fg);
+            //     }
+            //     for (var i = 1; i <= iDays; i++) {
+            //         var val = oModel.getProperty("D" + i, currentRowContext);
+            //         cssColor(i, "white", "black");
+            //         if (val == "P")
+            //             cssColor(i, "green", "white");
+
+
+            //     }
+            // };
         }
         setTimeout(() => {
             UtilGen.DBView.autoShowHideMenu(false, that.joApp);
@@ -343,7 +363,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             " where at.emp_code=e.emp_cd " +
             " and e.flag=1 " +
             " and to_char(att_date,'rrrr/mm') = '" + sYear + "/" + sMon + "'" +
-            " order by e.emp_cd ";
+            " order by e.emp_cd,att_date";
 
         var deptsDays = {};
         var dt = Util.execSQLWithData(sq);
@@ -353,13 +373,19 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             if (!that.empData[dt[i].EMP_CODE]) that.empData[dt[i].EMP_CODE] = {};
             that.empData[dt[i].EMP_CODE][dt[i].DAY_OF_MONTH] = { ...dt[i] };
         }
+
         for (var i = 0; i < lctb.rows.length; i++) {
+            var ltr = undefined;
             var ec = lctb.getFieldValue(i, "EMP_CD");
             var dyk = Object.keys(Util.nvl(that.empData[ec], []));
             for (var i1 = 0; i1 < dyk.length; i1++) {
                 // var dy = that.empData[ec][dyk[i1]].DAY_OF_MONTH;
                 lctb.setFieldValue(i, "D" + dyk[i1], that.getMenuItem(that.empData[ec][dyk[i1]].DAY_TYPE).icon);
+                var cur = new Date(that._iYear, that._iMonth - 1, dyk[i1]);
+                if (!ltr || cur > ltr)
+                    ltr = new Date(cur);
             }
+            that.empValidation[ec].lastAttRec = Util.nvl(ltr, that.empValidation[ec].lastAttRec);
         }
 
         var sqx = "select emp_code,status,fromdate,todate from c7hr_stats where ";
@@ -384,7 +410,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             return;
         }
         if (val.terminated) {
-            sap.m.MessageBox.alert("Employee is terminated. Attendance cannot be modified.");
+            FormView.err("Employee is terminated. Attendance cannot be modified.");
             return;
         }
         var clickedDate = new Date(this._iYear, this._iMonth - 1, iDay);
@@ -392,12 +418,13 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var lastAttRec = (val.lastCloseRec > val.lastAttRec ? lastCloseRec : val.lastAttRec);
 
         // If lastCloseRec is null, treat as dt_join - 1 (i.e., day before joining)
-        var startDate = lastCloseRec ? new Date(lastCloseRec) : new Date(val.dtJoin);
-        startDate.setDate(startDate.getDate() - 1); // day before last close or day before join
+        var startDate = new Date(val.dtJoin).getTime() - 86400000 > (new Date(lastCloseRec.getTime() /*+ 86400000*/)) ? new Date(val.dtJoin.getTime() - 86400000)
+            : (new Date(lastCloseRec.getTime() /*+ 86400000*/))
+        // startDate.setDate(startDate.getDate() - 1); // day before last close or day before join
 
         if (clickedDate <= startDate) {
             var fmt = new simpleDateFormat("dd/MM/yyyy");
-            sap.m.MessageBox.alert(
+            FormView.err(
                 "Cannot modify days on or before the last closed record.\n" +
                 "Earliest allowed day is: " + fmt.format(new Date(startDate.getTime() + 86400000))
             );
@@ -435,7 +462,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         that.aMenuItems.forEach(function (it) {
             var enbl = true;
             var objEd = that.view.byId("cmdEdit" + that.timeInLong);
-            if (objEd.getPressed() &&
+            if (!objEd.getPressed() &&
                 (it.key == '-' || it.key == 'P' || it.key == "A" || it.key == "WO" || it.key == "PH" || it.key == "HD"))
                 enbl = false;
             oMenu.addItem(new sap.m.MenuItem({
@@ -595,40 +622,59 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var oModel = oTable.getModel();
         var aData = oModel.getData();
         var oRec = aData[ctx.absRow];
-        oRec[ctx.colName] = that.getMenuItem(sStatus).icon;
+
 
         // final validation to stop user clear after lastAttRec or startdate, 
         var val = that.empValidation[ctx.empCode];
         var lastAttRec = (val.lastCloseRec > val.lastAttRec ? val.lastCloseRec : val.lastAttRec);
-        var startDate = valastCloseRec ? new Date(lastCloseRec) : new Date(val.dtJoin);
+
+        var startDate =
+            new Date(val.dtJoin.getTime() - 86400000) > (new Date(val.lastCloseRec.getTime())) ?
+                new Date(val.dtJoin.getTime() - 86400000) : (new Date(val.lastCloseRec.getTime()));
+
         // startDate.setDate(startDate.getDate() - 1); // day before last close or day before jo
         var clickedDate = new Date(that._iYear, that._iMonth - 1, ctx.day);
-        if (sStatus == "-" && (clickedDate > startDate || clickedDate > lastAttRec))
+        if (sStatus == "-" && (clickedDate < startDate || clickedDate > lastAttRec))
             FormView.err("Cant clear above day # " + (lastAttRec ? lastAttRec : startDate).getDate());
-        
+
         if (sStatus == "-") {
             // if (clickedDate <= lastAttRec && clickedDate > startDate)
-            oRec["_rec_" + ctx.day] = {
-                KEYFLD: undefined,
-                EMP_CODE: ctx.empCode,
-                DAY_NO: ctx.day,
-                DAY_TYPE: sStatus,
-                LEAVE_TYPE: "",
-                DAY_FRACTION: 0,
-                OT_HOURS: 0,
-                REMARKS: "",
-                dutyHours: 0,
-                noOfHours: 0,
-                extraHours: 0,
-                totalHours: 0,
-                timeEntries: {
-                    inTime1: "",
-                    outTime1: "",
-                }
-            };
+            var start = new Date(clickedDate);
+            var end = new Date(lastAttRec);
+            var current = new Date(start);
+            while (current <= end) {
+                var dayNo = current.getDate();
+                oRec["D" + dayNo] = that.getMenuItem("-").icon;
+                oRec["_rec_" + dayNo] = {
+                    KEYFLD: undefined,
+                    EMP_CODE: ctx.empCode,
+                    DAY_NO: dayNo,
+                    DAY_TYPE: sStatus,
+                    LEAVE_TYPE: "",
+                    DAY_FRACTION: 0,
+                    OT_HOURS: 0,
+                    REMARKS: "",
+                    dutyHours: 0,
+                    noOfHours: 0,
+                    extraHours: 0,
+                    totalHours: 0,
+                    timeEntries: {
+                        inTime1: "",
+                        outTime1: "",
+                    }
+                };
+                this._dirty[ctx.empCode + "_" + dayNo] = oRec["_rec_" + dayNo];
+                this._recalcSummary(oRec);
+                current.setDate(current.getDate() + 1);
+            }
+
+            oModel.refresh(true);
+            this.empValidation[ctx.empCode].lastAttRec = new Date(start.getTime() - 86400000);
+
 
         }
-        else
+        else {
+            oRec[ctx.colName] = that.getMenuItem(sStatus).icon;
             oRec["_rec_" + ctx.day] = {
                 KEYFLD: undefined,
                 EMP_CODE: ctx.empCode,
@@ -649,12 +695,15 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
                 }
             };
 
-        this._recalcSummary(oRec);
-        oModel.refresh(true);
-        this._dirty[ctx.empCode + "_" + ctx.day] = oRec["_rec_" + ctx.day];
-        var current = new Date(that._iYear, (that._iMonth - 1), ctx.day);
-        if (!this.empValidation[ctx.empCode].lastAttRec || (current) > this.empValidation[ctx.empCode].lastAttRec)
-            this.empValidation[ctx.empCode].lastAttRec = new Date(current);
+            this._recalcSummary(oRec);
+            oModel.refresh(true);
+            this._dirty[ctx.empCode + "_" + ctx.day] = oRec["_rec_" + ctx.day];
+            var current = new Date(that._iYear, (that._iMonth - 1), ctx.day);
+            if (oRec["_rec_" + ctx.day].DAY_TYPE != "-" &&
+                (!this.empValidation[ctx.empCode].lastAttRec ||
+                    (current) > this.empValidation[ctx.empCode].lastAttRec))
+                this.empValidation[ctx.empCode].lastAttRec = new Date(current);
+        }
     },
 
     /* ── _openPresentPopup ────────────────────────────────────── */
