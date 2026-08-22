@@ -2761,7 +2761,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     "ord_ref", "", "txtCust", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true
                     }, FormView.getFactoryFields.getSettingsOrdRef2({
                         thatForm: thatForm,
@@ -2792,7 +2792,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     "ord_branchno", "@", "txtBranch", "15%", "violetText", "12%",
                     {
                         require: true,
-                        edit_allowed: false,
+                        edit_allowed: true,
                         insert_allowed: true,
 
                     }, FormView.getFactoryFields.getSettingsBr({

@@ -344,6 +344,12 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
         var loc = that.txtLocations.getValue();
         var brn = that.txtBranch.getValue();
         var ref = that.txtRef.getValue();
+        if (Util.nvl(ref, "") == "") {
+            // that.joApp.to(that.mainPage, "slide");
+            that.joApp.toDetail(that.mainPage, "show");
+            that.loadData();
+            FormView.err("Must select customer !");
+        }
 
 
 
@@ -386,7 +392,7 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
                 "KEYFLD FROM C7_JO_DLV_NOT_INV1 " +
                 " where ord_date>=" + Util.toOraDateString(fromdt) + " and " +
                 " ord_date<=" + Util.toOraDateString(todt) + " and " +
-                "(':ordref' is null or ord_ref=':ordref' ) and " +
+                "(ord_ref=':ordref' ) and " +
                 locWhere + " and " +
                 branWhere +
                 " order by ord_no ").replaceAll(":ordref", ref);
@@ -585,8 +591,8 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
                 "               AND ( (items.REFERENCE = o.ord_ship))" +
                 " and o.ord_code=9 and " +
                 "  o.pord1_keyfld=" + that.selectedSOKfld + " and " +
-                ordDates +
-                " and " + locWhere +
+                // ordDates +
+                "  " + locWhere +
                 " and ord_ref=" + Util.quoted(refCode) +
                 " and  " + branWhere + " ";
 
@@ -962,7 +968,7 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
         var selDate = that.txtToDate.getDateValue();
         var invdt = UtilGen.getControlValue(this.txtInfoInvDate);
         var qv = this.qv;
-        var qrKf="";
+        var qrKf = "";
 
         var sl = qv.getControl().getSelectedIndices();
         if (sl.length > 0) {

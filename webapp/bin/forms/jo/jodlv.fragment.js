@@ -1997,7 +1997,7 @@ sap.ui.jsfragment("bin.forms.jo.jodlv", {
             }
             for (var i = 0; i < ld.rows.length; i++) {
                 var rfr = ld.getFieldValue(i, "ORD_SHIP");
-                var ds = ld.getFieldValue(i, "ORD_DESCR");
+                var ds = ld.getFieldValue(i, "DESCR");
                 var pk = ld.getFieldValue(i, "PACK");
                 var qty = (Util.extractNumber(ld.getFieldValue(i, "ORD_PKQTY")) * pk)
                     + (Util.extractNumber(ld.getFieldValue(i, "ORD_UNQTY")));
