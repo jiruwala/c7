@@ -149,6 +149,7 @@ area:-webkit-any-link {
     padding-bottom: 2px;
     min-height: 26px;
 }
+
 .rpForm {
     display: block;
     padding-left: 10px;
@@ -162,6 +163,7 @@ area:-webkit-any-link {
     border-width: thin;
     background-color: #dcdcdc;
 }
+
 .poForm {
     display: block;
     padding-left: 5px;
@@ -203,6 +205,7 @@ area:-webkit-any-link {
     background-color: #ffffe0;
     border-width: thin;
 }
+
 .soDlvForm {
     display: block;
     padding-left: 5px;
@@ -216,6 +219,7 @@ area:-webkit-any-link {
     background-color: khaki;
     border-width: thin;
 }
+
 .srrForm {
     display: block;
     padding-left: 5px;
@@ -226,9 +230,10 @@ area:-webkit-any-link {
     border-radius: 5px;
     margin: 2px;
     border-color: darkgrey;
-    background-color:#dcd0ff;
+    background-color: #dcd0ff;
     border-width: thin;
 }
+
 .jvForm {
     display: block;
     padding-left: 10px;
@@ -245,6 +250,7 @@ area:-webkit-any-link {
 .jvForm2 {
     padding-bottom: 10px;
 }
+
 .strTvForm {
     display: block;
     padding-left: 5px;
@@ -255,9 +261,10 @@ area:-webkit-any-link {
     border-radius: 5px;
     margin: 2px;
     border-color: darkgrey;
-    background-color:#ffebcd;
+    background-color: #ffebcd;
     border-width: thin;
 }
+
 .strIssForm {
     display: block;
     padding-left: 5px;
@@ -268,9 +275,10 @@ area:-webkit-any-link {
     border-radius: 5px;
     margin: 2px;
     border-color: darkgrey;
-    background-color:#ffcc99;
+    background-color: #ffcc99;
     border-width: thin;
 }
+
 .alignMiddle25Top {
     position: absolute;
     top: 25%;
@@ -1016,6 +1024,11 @@ th {
 
 .redTextBtn .sapMBtnInner {
     color: red;
+}
+
+.yellowButton .sapMBtnInner {
+    background: yellow;
+    color: black;
 }
 
 .blueButton .sapMBtnInner {

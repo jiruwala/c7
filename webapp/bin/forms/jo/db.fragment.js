@@ -220,7 +220,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                         that.loadData();
                 }
             }, "date", undefined, this.view);
-        var chksold = UtilGen.addControl(fe, "chkSold", sap.m.CheckBox, "chkSold" + this.timeInLong ,
+        var chksold = UtilGen.addControl(fe, "chkSold", sap.m.CheckBox, "chkSold" + this.timeInLong,
             {
                 selected: false,
                 select: function () {
@@ -239,6 +239,44 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 });
             }
         });
+        var cmdOpenJo = new sap.m.Button(this.view.createId("cmdOpenJo" + this.timeInLong), {
+            // icon: "sap-icon://open",
+            text: Util.getLangText("Open JO 📂"),
+            press: function () {
+                UtilGen.inputDialog("Open JO # ",
+                    "Enter JO NO # ", "", function (str) {
+                        var qt = Util.extractNumber(str);
+                        var kf = Util.getSQLValue("select nvl(max(keyfld),'') from pord1 where ord_code=601 and ord_no=" + str);
+                        if (Util.nvl(kf, "") == "")
+                            FormView.err("JO is not existed !");
+                        var frm = "bin.forms.jo.jo";
+                        UtilGen.execCmd(frm + " formTitle=JO formType=dialog formSize=80%,80% status=view keyfld=" + kf, UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                            // that.loadData();
+                        });
+
+
+                    }, undefined, undefined, undefined, {});
+            }
+        });
+        var cmdStatJO = new sap.m.ToggleButton(this.view.createId("cmdStatJO" + this.timeInLong), {
+            pressed: false,
+            text: "◴ Pending",
+            press: function (e) {
+                var cmd = that.view.byId("cmdStatJO" + that.timeInLong);
+                if (cmd.getPressed())
+                    cmd.setText("☑️ Finished")
+                else
+                    cmd.setText("◴ Pending");
+                // that.view.byId("cmdStatJO" + that.timeInLong).setPressed(false);
+                that.view.byId("cmdStepDes" + that.timeInLong).setPressed(false);
+                that.view.byId("cmdStepDye" + that.timeInLong).setPressed(false);
+                that.view.byId("cmdStepStk" + that.timeInLong).setPressed(false);
+                that.view.byId("cmdStepProd" + that.timeInLong).setPressed(false);
+
+                clickStep();
+                that.showSecureStep();
+            }
+        }).addStyleClass("yellowButton");
         var cmdStepDes = new sap.m.ToggleButton(this.view.createId("cmdStepDes" + this.timeInLong), {
             icon: "sap-icon://step",
             pressed: false,
@@ -346,7 +384,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         });
         var tb = new sap.m.Toolbar({
             content: [
-                cmdNewJO, cmdRefresh, new sap.m.ToolbarSpacer(), cmdStepDes, cmdStepDye, cmdStepStk, cmdStepProd,
+                cmdNewJO, cmdOpenJo, cmdRefresh, new sap.m.ToolbarSpacer(), cmdStatJO, cmdStepDes, cmdStepDye, cmdStepStk, cmdStepProd,
                 (that.oController.showClose == 'Y' ? cmdClose : new sap.m.Text())
             ]
         }).addStyleClass("toolBarBackgroundColor1");
@@ -404,6 +442,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         var todt = UtilGen.getControlValue(this.view.byId("todate" + this.timeInLong));
         var txtCust = this.view.byId("txtCust" + this.timeInLong);
         var chkSold = this.view.byId("chkSold" + this.timeInLong);
+        var stepStatJO = this.view.byId("cmdStatJO" + this.timeInLong).getPressed();
         var stepDes = this.view.byId("cmdStepDes" + this.timeInLong).getPressed();
         var stepDye = this.view.byId("cmdStepDye" + this.timeInLong).getPressed();
         var stepStk = this.view.byId("cmdStepStk" + this.timeInLong).getPressed();
@@ -413,11 +452,11 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         var cst = txtCust.getValue();
         var stps = [];
         var sw = "";
-
-        stepDes ? stps.push(" JO_DESIGN_USER is  null ") : "";
-        stepDye ? stps.push(" JO_DYE_USER is null ") : "";
-        stepStk ? stps.push(" JO_STOCK_USER is null ") : "";
-        stepProd ? stps.push(" JO_PROD_USER is null and jo_active_from is not null ") : "";
+        var stTxt = stepStatJO ? " NOT " : "";
+        stepDes ? stps.push(" JO_DESIGN_USER is " + stTxt + " null ") : "";
+        stepDye ? stps.push(" JO_DYE_USER is " + stTxt + " null ") : "";
+        stepStk ? stps.push(" JO_STOCK_USER is " + stTxt + " null ") : "";
+        stepProd ? stps.push(" JO_PROD_USER is " + stTxt + "null and jo_active_from is not null ") : "";
 
         for (var si in stps)
             sw += (sw.length > 0 ? " and " : "") + stps[si];
@@ -497,6 +536,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 "mTitle": "referenceNo",
                 "display_width": 100,
                 "mSummary": "COUNT",
+                "count_unique_label": "# "
             });
 
             Util.setColProperties(qv, "ORD_DATE", {
@@ -543,15 +583,21 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             });
             Util.setColProperties(qv, "JO_DESIGN_USER", {
                 "mTitle": "Design",
-                "display_width": 60,
+                "display_width": 75,
+                "mSummary": "COUNT",
+                "count_unique_label": "# "
             });
             Util.setColProperties(qv, "JO_DYE_USER", {
                 "mTitle": "PLATE",
-                "display_width": 60,
+                "display_width": 75,
+                "mSummary": "COUNT",
+                "count_unique_label": "# "
             });
             Util.setColProperties(qv, "JO_STOCK_USER", {
                 "mTitle": "Stock",
-                "display_width": 60,
+                "display_width": 75,
+                "mSummary": "COUNT",
+                "count_unique_label": "# "
             });
             Util.setColProperties(qv, "DUEDATE", {
                 "mTitle": "Due Date",
@@ -559,8 +605,10 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             });
 
             Util.setColProperties(qv, "JO_PROD_USER", {
-                "mTitle": "Productio",
-                "display_width": 70,
+                "mTitle": "Production",
+                "display_width": 75,
+                "mSummary": "COUNT",
+                "count_unique_label": "# "
             });
 
 
@@ -664,9 +712,11 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             var stepDye = that.view.byId("cmdStepDye" + that.timeInLong).getPressed();
             var stepStk = that.view.byId("cmdStepStk" + that.timeInLong).getPressed();
             var stepProd = that.view.byId("cmdStepProd" + that.timeInLong).getPressed();
+            var chkSold = that.view.byId("chkSold" + that.timeInLong);
             var dys = Util.nvl(UtilGen.getControlValue(cb), 15);
             // var knd = Util.nvl(UtilGen.getControlValue(kind), 21);
             var cst = txtCust.getValue();
+            var soldclause = (chkSold.getSelected() ? " " : " and PURQTY<DELIVEREDQTY ")
 
             var dt = Util.getSQLValue("select nvl(count(*),0) from pord1 " +
                 " where ord_code=601 and  ord_flag=2 and " +
@@ -674,6 +724,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 " ord_date>=" + Util.toOraDateString(fromdt) +
                 " and ord_date<=" + Util.toOraDateString(todt) +
                 " and (ord_flag= '" + stat + "' or '" + stat + "'=0 ) " +
+                // soldclause +
                 " and  (ord_ref= '" + cst + "' or '" + cst + "' is null ) and " +
                 str);
             cmd.setText(lbl + " (" + dt + ")");
@@ -694,14 +745,17 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             that.loadData();
         } //else that.loadData();
         setTimeout(() => {
+            var stepStatJO = this.view.byId("cmdStatJO" + this.timeInLong).getPressed();
             var stepDes = this.view.byId("cmdStepDes" + this.timeInLong);
             var stepDye = this.view.byId("cmdStepDye" + this.timeInLong);
             var stepStk = this.view.byId("cmdStepStk" + this.timeInLong);
             var stepProd = this.view.byId("cmdStepProd" + this.timeInLong);
-            setCounts(stepDes, " JO_DESIGN_USER is null ", "Design ");
-            setCounts(stepDye, " JO_DYE_USER is null ", "Plates/Dye ");
-            setCounts(stepStk, " JO_STOCK_USER is null ", "Stocks ");
-            setCounts(stepProd, " JO_PROD_USER is null and jo_active_from is not null ", "Production ");
+            var stJo = stepStatJO ? " NOT " : "";
+
+            setCounts(stepDes, " JO_DESIGN_USER is  " + stJo + " null ", "Design ");
+            setCounts(stepDye, " JO_DYE_USER is  " + stJo + " null ", "Plates/Dye ");
+            setCounts(stepStk, " JO_STOCK_USER is  " + stJo + " null ", "Stocks ");
+            setCounts(stepProd, " JO_PROD_USER is  " + stJo + " null and jo_active_from is not null ", "Production ");
         }, 1000);
     },
     updateStepsDone: function () {
