@@ -768,7 +768,7 @@ sap.ui.jsfragment("bin.forms.rp.pl", {
             }, false).done(function (data) {
             });
             var ez = thatForm.frm.getFieldValue("parameter.exclzero");
-            var fld =Util.getLangDescrAR("nvl(acaccount.namea,field2) name ", "field2 name");
+            var fld = "field2 name";
             sq = "select field1 accno, " + fld + ",field19 parentacc,field17 path," +
                 " to_number(field5) bdeb,to_number(field6) bcrd," +
                 " to_number(field7) tdeb, to_number(field8) tcrd, " +
