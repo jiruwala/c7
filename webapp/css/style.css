@@ -34,7 +34,8 @@ iframe {
 
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
-.noTabClose  .sapMTSItemCloseBtnCnt {
+
+.noTabClose .sapMTSItemCloseBtnCnt {
     display: none !important;
 }
 
@@ -44,6 +45,81 @@ iframe {
 
 .sapMGTHdrContent {
     background-color: lightyellow;
+}
+
+/* Card */
+.gaugeCard {
+    background: var(--sapTile_Background, #ffffff);
+    border-radius: 0.5rem;
+    padding: 0.75rem 0.5rem 0.5rem 0.5rem;
+    box-shadow: var(--sapTile_BoxShadow, 0 1px 4px rgba(0, 0, 0, 0.08));
+    height: auto;
+    min-height: 220px;
+    border: 1px solid var(--sapTile_BorderColor, #e5e5e5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Title */
+.gaugeTitle {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #00827f;
+    /* color: var(--sapTile_TitleTextColor, #333); */
+}
+
+/* Target */
+.gaugeTarget {
+    font-size: 0.85rem;
+    color: var(--sapContent_LabelColor, #666);
+    margin-top: 0.25rem;
+}
+
+/* Gauge canvas wrapper */
+.gaugeCanvasWrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 150px;
+    margin: 0.25rem auto;
+}
+
+.gaugeCanvasWrapper canvas {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1/1;
+}
+
+/* Main value */
+.gaugeMainValue {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #4169e1;
+    margin: 0.25rem 0;
+}
+
+/* Last Month */
+.gaugeLastMonth {
+    font-size: 0.9rem;
+    color: var(--sapContent_LabelColor, #666);
+    margin-top: 0.25rem;
+}
+
+/* Difference */
+.gaugeDifference {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.gaugePositive {
+    color: var(--sapPositiveColor, #2e7d32);
+}
+
+.gaugeNegative {
+    color: var(--sapNegativeColor, #c62828);
 }
 
 .guagePanel {
@@ -232,7 +308,7 @@ area:-webkit-any-link {
     padding-top: 10px;
     padding-bottom: 10px;
     border-style: groove;
-    border-radius: 15px;    
+    border-radius: 15px;
     border-color: darkblue;
     border-width: thin;
     background-color: #ebf5fe;

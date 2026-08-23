@@ -1890,8 +1890,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                         sp.onWndClose();
                                     if (pOnWndClose != undefined)
                                         pOnWndClose();
-    
-                                    view.destroyPage(pgx);                                    
+
+                                    view.destroyPage(pgx);
                                     sap.m.MessageToast.show("Removing this page..");
                                     sp.destroy();
                                     view.app.toDetail(view.pg, "show");
@@ -4976,155 +4976,193 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     }, undefined, undefined, {});
                 },
                 getGauge: function (kf, pHeight, pnlClass, pnlClassTit, fnOnMenuClick) {
-                    var gj;
-                    var gjPnl;
-                    var timlong = UtilGen.DBView.timeInLong;
                     var that = this;
-                    var dt = UtilGen.DBView.today_date.getDateValue();
-                    var sq = {
-                        status: "NONE",
-                        sql: "select *from C6_DB_GAUGES where keyfld='" + kf + "'",
-                        data: null
-                    };
+                    var timlong = UtilGen.DBView.timeInLong;
                     var sett = sap.ui.getCore().getModel("settings").getData();
                     var df = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
-                    var ps = /*"_para_fromdate=@" + df.format((that.byId("fromdate").getDateValue())) +*/
-                        "_para_todate=@" + df.format((dt))
-                        ;
+                    var dt = UtilGen.DBView.today_date.getDateValue();
+                    var ps = "_para_todate=@" + df.format(dt);
+
+                    // --- Placeholder card (shows busy indicator) ---
+                    var oPlaceholder = new sap.m.VBox({
+                        width: "100%",
+                        height: Util.nvl(pHeight, "auto"),
+                        alignItems: sap.m.FlexAlignItems.Center,
+                        justifyContent: "Center",
+                        items: [new sap.m.BusyIndicator({ size: "2rem" })]
+                    }).addStyleClass("gaugeCard");
+
+                    // --- Fetch data ---
                     Util.doAjaxGet("gaugedata2?" + ps, "&_keyfld='" + kf + "'", false).done(function (data) {
                         var gjData = JSON.parse(data).data[0];
-                        var gg;
-                        gj = that.createGauge("gauge_" + kf + "_" + timlong, gjData,
-                            { CELL_HEIGHT: "auto", CELL_WIDTH: "1" });
+                        if (!gjData) {
+                            oPlaceholder.removeAllItems();
+                            oPlaceholder.addItem(new sap.m.Text({ text: "No data" }));
+                            return;
+                        }
 
-                        gjPnl = new sap.m.Panel({
-                            height: Util.nvl(pHeight, "180px"),
-                            backgroundDesign: "Solid",
-                            headerToolbar: new sap.m.Toolbar({
-                                content: new sap.m.HBox({
-                                    alignItems: sap.m.FlexAlignItems.Center,
-                                    items: [
-                                        new sap.m.Text({ text: Util.getLangText(gjData.TITLE1) }).addStyleClass(Util.nvl(pnlClassTit, "guageTitle")),
-                                        new sap.m.Button({
-                                            icon: "sap-icon://drop-down-list", press: function () {
-                                                if (fnOnMenuClick == undefined)
-                                                    UtilGen.DashboardWidget.inputGuageTarget(kf, Util.getLangText(gjData.TITLE1), "Enter Target Value");
-                                                else
-                                                    fnOnMenuClick(kf, gjData);
-                                            }
-                                        })
-                                    ]
-                                })
-                            }).addStyleClass(Util.nvl(pnlClass, "guagePanel")),
-                            content: [
-                                gj
-                            ]
-                        }).addStyleClass(Util.nvl(pnlClass, "guagePanel"));
-                        gjPnl.addEventDelegate({
-                            onAfterRendering: function () {
-                                setTimeout(function () {
-                                    var gc = UtilGen.DBView.byId("gauge_" + kf + "_" + timlong + "_parent");
-                                    if (gc.initRendered) {
-                                        gc.initRendered = false;
-                                        return;
-                                    }
-                                    gc.gauge.render();
-                                    gc.gauge.redraw(gjData.SQL_VAL);
-                                }, 500);
+                        // Build the final gauge card
+                        var oCard = that.createGauge("gauge_" + kf + "_" + timlong, gjData, {
+                            CELL_HEIGHT: Util.nvl(pHeight, "auto"),
+                            CELL_WIDTH: "100%"
+                        }, fnOnMenuClick, kf);
 
-                            }
-                        });
+                        // Replace placeholder content with the card
+                        oPlaceholder.removeAllItems();
+                        oPlaceholder.addItem(oCard);
+
+                        // Apply optional classes
+                        if (pnlClass) {
+                            oPlaceholder.addStyleClass(pnlClass);
+                        }
                     });
-                    return gjPnl;
+
+                    return oPlaceholder;
                 }
                 ,
-                createGauge: function (name, gg, rep) {
+                createGauge: function (name, gg, rep, fnOnMenuClick, kf) {
                     var that = UtilGen.DBView;
-                    var label = gg.TITLE1, min = gg.MIN_VAL, max = gg.MAX_VAL, vl = gg.SQL_VAL;
-                    var df = new DecimalFormat(gg.VALUE_FORMAT);
-
-
-                    var config =
-                    {
+                    var df = new DecimalFormat(gg.VALUE_FORMAT || "#,##0");
+                    var min = parseFloat(gg.MIN_VAL) || 0;
+                    var max = parseFloat(gg.MAX_VAL) || 100;
+                    var value = parseFloat(gg.SQL_VAL) || 0;
+                
+                    // --- Gauge config ---
+                    var range = max - min;
+                    var config = {
                         size: 60,
-                        min: undefined != min ? min : 0,
-                        max: undefined != max ? max : 100,
-                        value: 50,
+                        min: min,
+                        max: max,
+                        value: value,
                         minorTicks: 5,
-                    }
-
-                    var range = config.max - config.min;
-                    config.greenZones = [{ from: config.min, to: config.min + range * 0.75 }];
-                    config.yellowZones = [{ from: config.min + range * 0.75, to: config.min + range * 0.9 }];
-                    config.redZones = [{ from: config.min + range * 0.9, to: config.max }];
-                    // labels inside gauges
-                    var lbls = [];
-                    if (max > 1)
-                        lbls.push(new sap.m.Label({ text: Util.getLangText("txtTarget") + " : " + df.format(max) }));
-                    lbls.push(new sap.m.Label({ text: "" + df.format(vl) }).addStyleClass("guageValNumber"));
-                    if (gg.PRIOR_FUNC_VAL != undefined && gg.PRIOR_FUNC_VAL + "".length > 0) {
-                        var l = Util.nvl(Util.getLangText(gg.PRIOR_LABEL), "Last value") + ": ";
-                        lbls.push(new sap.m.Label({ text: l + df.format(gg.PRIOR_FUNC_VAL) }));
-                        var v = vl - gg.PRIOR_FUNC_VAL;
-                        var ss = String.fromCharCode(11015);
-                        if (v >= 0)
-                            ss = String.fromCharCode(11014);
-                        var lx = new sap.m.Label({ text: ss + " " + df.format(v) });
-                        if (v < 0)
-                            setTimeout(function () {
-                                lx.$().css("color", "red")
-                            }, 500);
-                        else
-                            setTimeout(function () {
-                                lx.$().css("color", "green")
-                            }, 500);
-                        lbls.push(lx);
-
-
-                    }
-                    if (Util.nvl(gg.SUMMARY_VAL, "") != "") {
-                        var l = Util.nvl(Util.getLangText(gg.SUMMARY_LABEL), "Total") + ": ";
-                        var dt = UtilGen.DBView.today_date.getDateValue();
-                        var vl = Util.getSQLValue(gg.SUMMARY_VAL.replaceAll(":TODATE", Util.toOraDateString(dt)).replaceAll(":todate", Util.toOraDateString(dt)));
-                        if (Util.extractNumber(vl) != 0)
-                            lbls.push(new sap.m.Label({ text: l + df.format(vl) }));
-                    }
-
+                        greenZones: [{ from: min, to: min + range * 0.75 }],
+                        yellowZones: [{ from: min + range * 0.75, to: min + range * 0.9 }],
+                        redZones: [{ from: min + range * 0.9, to: max }]
+                    };
+                
+                    // --- Destroy old controls ---
                     Util.destroyID(name, that);
                     Util.destroyID(name + "_flex", that);
                     Util.destroyID(name + "_parent", that);
-                    var oc = new sap.m.Label({
-                        id: that.createId(name),
-                        hAlign: "Right",
-                        layoutData: new sap.ui.layout.GridData({
-                            span: "L2 M6 S10"
-                        })
-                    });
-
-                    var oc2 = new sap.m.FlexBox({
-                        id: that.createId(name + "_flex"),
-                        items: [oc,
-                            new sap.m.VBox({
-                                items: lbls
-                            })]
-                    });
-                    var oGCell1 = new sap.m.FlexBox({
-                        id: that.createId(name + "_parent"),
-                        height: rep.CELL_HEIGHT,
+                
+                    // --- 1. Header: Title + Settings button ---
+                    var oHeader = new sap.m.HBox({
+                        width: "100%",
+                        alignItems: "Center",
+                        justifyContent: "SpaceBetween",
                         items: [
-                            oc2
-                        ],
-                        customData: [{ key: oc2.getId(), value: gg }]
+                            new sap.m.Text({
+                                text: Util.getLangText(gg.TITLE1),
+                                textAlign: sap.ui.core.TextAlign.Start,
+                            }).addStyleClass("gaugeTitle"),
+                            new sap.m.Button({
+                                icon: "sap-icon://settings",
+                                tooltip: "Set target",
+                                press: function () {
+                                    if (fnOnMenuClick) {
+                                        fnOnMenuClick(kf, gg);
+                                    } else {
+                                        UtilGen.DashboardWidget.inputGuageTarget(kf, Util.getLangText(gg.TITLE1), "Enter Target Value");
+                                    }
+                                }
+                            }).addStyleClass("sapUiTinyMarginBegin")
+                        ]
                     });
-
-                    var g = new Gauge(that.createId(name), config);
-                    setTimeout(function () {
-                        g.render();
-                        g.redraw(vl);
-                        oGCell1.initRendered = true;
-                    }, 300);
-                    oGCell1.gauge = g;
-                    return oGCell1;
+                
+                    // --- 2. Target line ---
+                    var oTarget = new sap.m.Text({
+                        text: "Target : " + df.format(max),
+                        textAlign: "Center",
+                        width: "100%"
+                    }).addStyleClass("gaugeTarget");
+                
+                    // --- 3. Gauge canvas placeholder ---
+                    var oGaugePlaceholder = new sap.m.Label({
+                        id: that.createId(name),
+                        text: "",
+                        width: "100%",
+                        height: "100%"
+                    }).addStyleClass("gaugeCanvasWrapper");
+                
+                    // --- 4. Main value (large, bold) ---
+                    var oMainValue = new sap.m.Text({
+                        text: df.format(value) + (gg.UNIT ? " " + gg.UNIT : ""),
+                        textAlign: "Center",
+                        width: "100%"
+                    }).addStyleClass("gaugeMainValue");
+                
+                    // --- 5. Last Month (if prior exists) ---
+                    var oLastMonth = null;
+                    var oDifference = null;
+                    if (gg.PRIOR_FUNC_VAL != undefined && gg.PRIOR_FUNC_VAL.toString().length > 0) {
+                        var prior = parseFloat(gg.PRIOR_FUNC_VAL);
+                        var diff = value - prior;
+                        var isPositive = diff >= 0;
+                        var diffText = df.format(Math.abs(diff));
+                        var sign = isPositive ? "+" : "-";
+                        var colorClass = isPositive ? "gaugePositive" : "gaugeNegative";
+                        var arrow = isPositive ? "▲" : "▼";
+                
+                        oLastMonth = new sap.m.Text({
+                            text: (Util.getLangText(gg.PRIOR_LABEL) || "Last Month") + ": " + df.format(prior),
+                            textAlign: "Center",
+                            width: "100%"
+                        }).addStyleClass("gaugeLastMonth");
+                
+                        oDifference = new sap.m.Text({
+                            text: sign + diffText + (gg.UNIT ? " " + gg.UNIT : ""),
+                            textAlign: "Center",
+                            width: "100%"
+                        }).addStyleClass("gaugeDifference " + colorClass);
+                    }
+                
+                    // --- 6. Summary (optional) ---
+                    var oSummary = null;
+                    if (gg.SUMMARY_VAL && gg.SUMMARY_VAL.trim() !== "") {
+                        var dt = UtilGen.DBView.today_date.getDateValue();
+                        var summaryValue = Util.getSQLValue(
+                            gg.SUMMARY_VAL.replaceAll(":TODATE", Util.toOraDateString(dt))
+                                .replaceAll(":todate", Util.toOraDateString(dt))
+                        );
+                        if (Util.extractNumber(summaryValue) != 0) {
+                            oSummary = new sap.m.Text({
+                                text: (Util.getLangText(gg.SUMMARY_LABEL) || "Total") + ": " + df.format(summaryValue),
+                                textAlign: "Center",
+                                width: "100%"
+                            }).addStyleClass("sapUiSmallMarginTop");
+                        }
+                    }
+                
+                    // --- Build the final card (VBox) ---
+                    var oCard = new sap.m.VBox({
+                        width: "100%",
+                        alignItems: "Center",
+                        items: [
+                            oHeader,
+                            oTarget,
+                            oGaugePlaceholder,
+                            oMainValue,
+                            oLastMonth,
+                            oDifference,
+                            oSummary
+                        ].filter(item => item !== null)
+                    }).addStyleClass("gaugeCard");
+                
+                    // --- Create gauge and attach event ---
+                    var oGauge = new Gauge(that.createId(name), config);
+                    oCard._gauge = oGauge;
+                    oCard._value = value;
+                
+                    oCard.addEventDelegate({
+                        onAfterRendering: function () {
+                            if (this._gauge) {
+                                this._gauge.render();
+                                this._gauge.redraw(this._value);
+                            }
+                        }
+                    }, oCard);
+                
+                    return oCard;
                 }
                 ,
                 statusBarText: function (msg, blink, blinkTime, showtoast) {

@@ -114,13 +114,14 @@ sap.ui.jsview('bin.Dashboard', {
             })
         }).addStyleClass("sapFShellBar");
 
-        this.txtExeCmd = new sap.m.TextArea({ height: "25px", width: "100%" });
+        this.txtExeCmd = new sap.m.TextArea({ height: "25px", width: "35%" });
         this.txtExeCmd.attachBrowserEvent("dblclick", function (e) {
             that.showPopCmd();
         });
         this.cmdExe = new sap.m.Button(
             {
                 text: "Execute",
+                width: "5%",
                 icon: "sap-icon://process",
                 press: function (e) {
                     UtilGen.execCmd(that.txtExeCmd.getValue(), that, that.txtExeCmd, that.newPage);
@@ -221,9 +222,11 @@ sap.ui.jsview('bin.Dashboard', {
             footer: [
                 new sap.m.Toolbar({
                     content: [
-                        new sap.m.Text({ text: "Pages :", width: "80px" }), this.lstPgs, nxt, this.txtExeCmd, that.cmdExe
+                        /*new sap.m.Text({ text: "Pages :", width: "80px" }),*this.lstPgs, nxt,*/
+                        this.txtStatus,
+                        this.txtExeCmd, that.cmdExe
                     ]
-                })
+                }).addStyleClass("reportMainPageToolbar")
             ]
 
         });
@@ -539,7 +542,7 @@ sap.ui.jsview('bin.Dashboard', {
         var al = new sap.m.CheckBox(this.createId("chkAuto"), {
             width: "100%",
             selected: false,
-            text: " Save credentials"
+            text: "Full screen"
         }).addStyleClass("");
 
         var fnInitChange = function (ev) {
@@ -675,12 +678,15 @@ sap.ui.jsview('bin.Dashboard', {
                 icon: "sap-icon://initiative",
                 press: function () {
                     if (that.loginPress()) {
+
                         sap.m.MessageToast.show(Util.getLangText("loginMsg1"));
                         that.loadData_main();
                         that.show_main_menus();
                         dlg.close();
                         setTimeout(function () {
                             that.exeParams();
+                            if (al.getSelected())
+                                Util.goFullscreen();
                         }, 1000);
                     }
 
@@ -940,116 +946,121 @@ sap.ui.jsview('bin.Dashboard', {
         if (that.standAlonMode) return;
 
         this.app.toDetail(this.pg);
+        var loadWidgets = function () {
+            var sq = "select v_secs.*  " +
+                " from v_secs where menu_group='" + that.current_profile + "' and menu_id=1 order by ms_id,ss_id,tile_id";
+            var dt = Util.execSQL(sq);
 
+            if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+                var dtxM = JSON.parse("{" + dt.data + "}").data;
 
-        var sq = "select v_secs.*  from v_secs where menu_group='" + that.current_profile + "' and menu_id=1 order by ms_id,ss_id,tile_id";
-        var dt = Util.execSQL(sq);
+                Util.destroyID("ObjectPageLayout");
+                var oObjectPage = new sap.uxap.ObjectPageLayout("ObjectPageLayout", {
+                    subSectionLayout: sap.uxap.ObjectPageSubSectionLayout.TitleOnTop,
+                    // showHeaderContent: false,
+                    height: "80%"
+                });
+                // var sc = new sap.m.ScrollContainer({content: [oObjectPage], height: "100%", vertical: true});
+                that.pg.addContent(oObjectPage);
 
-        if (dt.ret == "SUCCESS" && dt.data.length > 0) {
-            var dtxM = JSON.parse("{" + dt.data + "}").data;
-
-            Util.destroyID("ObjectPageLayout");
-            var oObjectPage = new sap.uxap.ObjectPageLayout("ObjectPageLayout", {
-                subSectionLayout: sap.uxap.ObjectPageSubSectionLayout.TitleOnTop,
-                // showHeaderContent: false,
-                height: "80%"
-            });
-            // var sc = new sap.m.ScrollContainer({content: [oObjectPage], height: "100%", vertical: true});
-            this.pg.addContent(oObjectPage);
-
-            var oHeaderTitle = new sap.uxap.ObjectPageHeader();
-            // oHeaderTitle.setObjectTitle(cmp);
-            // oObjectPage.setHeaderTitle(new sap.m.Toolbar());
-            oObjectPage.setShowAnchorBar(true);
-            // setTimeout(function () {
-            //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "color:blue!important;font-size:12px!important;");
-            //     $(".sapUxAPObjectPageHeaderTitleText").addClass("redMiniText");
-            //     $(".sapUxAPObjectPageHeaderTitleText").addClass("blinking");
-            //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "");
-            // }, 1200);
-            this.txt.setText(cmp);
-            that.sp.setTitle(cmp);
-            for (var i in dtxM) {
-                if (!secs.hasOwnProperty(dtxM[i].MS_ID)) {
-                    secs[dtxM[i].MS_ID] = {
-                        "title": dtxM[i].MS_TITLE_1, ss: {}, msObj: new sap.uxap.ObjectPageSection({
-                            title: dtxM[i].MS_TITLE_1, showTitle: false, titleUppercase: false
-                        })
-                    };
-                    oObjectPage.addSection(secs[dtxM[i].MS_ID].msObj);
-                }
-                if (!secs[dtxM[i].MS_ID].ss.hasOwnProperty(dtxM[i].SS_ID)) {
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID] = {
-                        "title": dtxM[i].SS_TITLE_1,
-                        tiles: {},
-                        ssObj: new sap.uxap.ObjectPageSubSection({
-                            title: (dtxM[i].SS_TITLE_1 == "ALL" ? "" : dtxM[i].SS_TITLE_1),
-                            titleUppercase: false,
-                            showTitle: true,
-                        }),
-                        hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
-                        // hbox: new sap.ui.layout.Grid({
-                        //     vSpacing: 1,
-                        //     hSpacing: 1,
-                        //     width: "100%",
-                        //     defaultSpan: "XL2 L3 M3 S12"
-                        // })
+                var oHeaderTitle = new sap.uxap.ObjectPageHeader();
+                // oHeaderTitle.setObjectTitle(cmp);
+                // oObjectPage.setHeaderTitle(new sap.m.Toolbar());
+                oObjectPage.setShowAnchorBar(true);
+                // setTimeout(function () {
+                //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "color:blue!important;font-size:12px!important;");
+                //     $(".sapUxAPObjectPageHeaderTitleText").addClass("redMiniText");
+                //     $(".sapUxAPObjectPageHeaderTitleText").addClass("blinking");
+                //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "");
+                // }, 1200);
+                that.txt.setText(cmp);
+                that.sp.setTitle(cmp);
+                for (var i in dtxM) {
+                    if (!secs.hasOwnProperty(dtxM[i].MS_ID)) {
+                        secs[dtxM[i].MS_ID] = {
+                            "title": dtxM[i].MS_TITLE_1, ss: {}, msObj: new sap.uxap.ObjectPageSection({
+                                title: dtxM[i].MS_TITLE_1, showTitle: false, titleUppercase: false
+                            })
+                        };
+                        oObjectPage.addSection(secs[dtxM[i].MS_ID].msObj);
                     }
-                        ;
-                    secs[dtxM[i].MS_ID].msObj.addSubSection(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj);
-                }
-
-                if (!secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles.hasOwnProperty(dtxM[dtxM[i].TILE_ID])) {
-                    var fv = "";
-                    var tileC = new sap.m.TileContent({});
-                    if (Util.nvl(dtxM[i].FOOTER_SQL, "").length > 0)
-                        fv = Util.getSQLValue(dtxM[i].FOOTER_SQL);
-
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID] = {
-                        "title": dtxM[i].TILE_TITLE_1,
-                        "FORM_NAME": dtxM[i].EXEC_LINE,
-                        "EXEC_TYPE": dtxM[i].EXEC_TYPE,
-                        "tileObj": Util.nvl(dtxM[i].CUSTOM_OBJ, "") != "" ?
-                            dtxM[i].CUSTOM_OBJ.startsWith("#") ? eval(Util.getSQLValue("select custom_obj from c7_secs_tiles " +
-                                " where tile_id=" + dtxM[i].CUSTOM_OBJ.substring(1)))
-                                : eval(dtxM[i].CUSTOM_OBJ) :
-                            new sap.m.GenericTile({
-                                frameType: Util.nvl(dtxM[i].TILE_SIZE, "OneByHalf"),
-                                header: dtxM[i].TILE_TITLE_1,
-                                tileContent: tileC,
-                                press: function (ev) {
-                                    that.tileExe(this);
-                                }
-                            }).addStyleClass("sapUiTinyMarginBegin sapUiTinyMarginTop")
-                    };
-
-                    if (Util.nvl(dtxM[i].CONTENT_JS, "").length > 0)
-                        try {
-                            eval(dtxM[i].CONTENT_JS);
-                        } catch (ex) {
-                            console.log(ex);
+                    if (!secs[dtxM[i].MS_ID].ss.hasOwnProperty(dtxM[i].SS_ID)) {
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID] = {
+                            "title": dtxM[i].SS_TITLE_1,
+                            tiles: {},
+                            ssObj: new sap.uxap.ObjectPageSubSection({
+                                title: (dtxM[i].SS_TITLE_1 == "ALL" ? "" : dtxM[i].SS_TITLE_1),
+                                titleUppercase: false,
+                                showTitle: true,
+                            }),
+                            // hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
+                            hbox: new sap.m.HBox({ wrap: sap.m.FlexWrap.Wrap,  gap: "1rem",    alignItems: "Start" }).addStyleClass("paddingTinyBot")
+                            // hbox: new sap.ui.layout.Grid({
+                            //     vSpacing: 1,
+                            //     hSpacing: 1,
+                            //     width: "100%",
+                            //     defaultSpan: "XL2 L3 M3 S12"
+                            // })
                         }
-                    ;
+                            ;
+                        secs[dtxM[i].MS_ID].msObj.addSubSection(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj);
+                    }
 
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj["dtx"] = dtxM[i];
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj.addStyleClass("mytilex");
-                    if (secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.getContent() == 0)
-                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj.addBlock(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox);
+                    if (!secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles.hasOwnProperty(dtxM[dtxM[i].TILE_ID])) {
+                        var fv = "";
+                        var tileC = new sap.m.TileContent({});
+                        if (Util.nvl(dtxM[i].FOOTER_SQL, "").length > 0)
+                            fv = Util.getSQLValue(dtxM[i].FOOTER_SQL);
 
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.addContent(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj);
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID] = {
+                            "title": dtxM[i].TILE_TITLE_1,
+                            "FORM_NAME": dtxM[i].EXEC_LINE,
+                            "EXEC_TYPE": dtxM[i].EXEC_TYPE,
+                            "tileObj": Util.nvl(dtxM[i].CUSTOM_OBJ, "") != "" ?
+                                dtxM[i].CUSTOM_OBJ.startsWith("#") ? eval(Util.getSQLValue("select custom_obj from c7_secs_tiles " +
+                                    " where tile_id=" + dtxM[i].CUSTOM_OBJ.substring(1)))
+                                    : eval(dtxM[i].CUSTOM_OBJ) :
+                                new sap.m.GenericTile({
+                                    frameType: Util.nvl(dtxM[i].TILE_SIZE, "OneByHalf"),
+                                    header: dtxM[i].TILE_TITLE_1,
+                                    tileContent: tileC,
+                                    press: function (ev) {
+                                        that.tileExe(that);
+                                    }
+                                }).addStyleClass("sapUiTinyMarginBegin sapUiTinyMarginTop")
+                        };
+
+                        if (Util.nvl(dtxM[i].CONTENT_JS, "").length > 0)
+                            try {
+                                eval(dtxM[i].CONTENT_JS);
+                            } catch (ex) {
+                                console.log(ex);
+                            }
+                        ;
+
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj["dtx"] = dtxM[i];
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj.addStyleClass("mytilex");
+                        if (secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.getItems().length == 0)
+                            secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj.addBlock(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox);
+
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.addItem(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj);
+                    }
+
                 }
-
             }
         }
+        setTimeout(() => {
+            loadWidgets();
+            console.log(secs);
+            that.cmdData = undefined;
+            var sq = "select KEYFLD, COMMAND, DESCR, PROFILES, FLAG, EXEC_LINE from c7_commands order by keyfld";
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+                that.cmdData = JSON.parse("{" + dt.data + "}").data;
+            }
+        }, 500);
 
-        console.log(secs);
         // loading all c7_commands table data
-        this.cmdData = undefined;
-        var sq = "select KEYFLD, COMMAND, DESCR, PROFILES, FLAG, EXEC_LINE from c7_commands order by keyfld";
-        var dt = Util.execSQL(sq);
-        if (dt.ret == "SUCCESS" && dt.data.length > 0) {
-            this.cmdData = JSON.parse("{" + dt.data + "}").data;
-        }
 
     }
     ,
@@ -1199,6 +1210,24 @@ sap.ui.jsview('bin.Dashboard', {
                                 that.mv.getControl().collapseAll();
                             }
                         });
+                        var m41 = new sap.m.MenuItem({
+                            icon: "sap-icon://sap-icon://enablement",
+                            text: Util.getLangText("menuDashboardSetup"),
+                            items: [
+                                new sap.m.MenuItem({
+                                    text: "Add new item..",
+                                    press: function () {
+                                        that.addDashboardTile();
+                                    }
+                                }),
+                                new sap.m.MenuItem({
+                                    text: "Delete item..",
+                                    press: function () {
+                                        that.delDashboardTile();
+                                    }
+                                })
+                            ]
+                        });
                         var m5 = new sap.m.MenuItem({
                             icon: "sap-icon://add",
                             text: Util.getLangText("Add Menu Group"),
@@ -1213,8 +1242,10 @@ sap.ui.jsview('bin.Dashboard', {
                             mnu.addItem(m2);
                         mnu.addItem(m3);
                         mnu.addItem(m4);
-                        if (sett["PROFILENO"] == 0)
+                        if (sett["PROFILENO"] == 0) {
+                            mnu.addItem(m41);
                             mnu.addItem(m5);
+                        }
                         mnu.openBy(this);
                     }
                 }),
@@ -1393,6 +1424,44 @@ sap.ui.jsview('bin.Dashboard', {
             that.showShortcuts();
 
         });
+    },
+    addDashboardTile: function () {
+        var thatForm = this;
+        var addTile = function (code) {
+            var sq = Util.getSQLValue("select custom_obj from c7_secs_tiles where TILE_ID='99990.1'");
+            sq = "declare" +
+                " cp varchar2(500):='" + thatForm.current_profile + "'; " +
+                " cpy_cod varchar2(500):='" + code + "';" + sq;
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS") {
+                thatForm.loadData(false, false);
+                FormView.msgSuccess(Util.getLangText("msgSaved"));
+            }
+        }
+        var sq = "SELECT TILE_ID CODE, tile_title_1 name , tile_title_2 name2 from c7_secs_tiles where tile_id like '899%' order by tile_id";
+        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+            addTile(data.CODE);
+            return true;
+        }, "600px", undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+    },
+    delDashboardTile: function () {
+        var thatForm = this;
+        var delTile = function (code) {
+            var sq = "begin " +
+                " delete from c7_secs where tile_id='" + code + "';" +
+                " delete from c7_secs_tiles where tile_id='" + code + "'; end ;";
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS") {
+                FormView.msgCustom(Util.getLangText("msgDeleted"), "maroon");
+                thatForm.loadData(false, false);
+            }
+        };
+        var cd = thatForm.current_profile;
+        var sq = "SELECT TILE_ID CODE, tile_title_1 name,menu_group from v_secs where menu_group='" + cd + "' order by tile_id";
+        Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
+            delTile(data.CODE);
+            return true;
+        }, "600px", undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     },
     copyMenus: function (mc) {
         var that = this;
@@ -2234,33 +2303,35 @@ sap.ui.jsview('bin.Dashboard', {
                 UtilGen.execCmd('bin.forms.pur.po status=view formType=page keyfld=' + selPokf + ' formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
 
         },
-        openship: function () {
+        openship: function (poKld, pFormType, fncallback) {
             var thatView = this.thatView;
-            var selPokf = thatView.puOrdKeyfld;
+            var formtype = Util.nvl(pFormType, "page");
+            var selPokf = Util.nvl(poKld, thatView.puOrdKeyfld);
             if (Util.nvl(selPokf, -1) == -1)
-                UtilGen.execCmd('bin.forms.pur.poship status=new formType=page formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                UtilGen.execCmd('bin.forms.pur.poship status=new formType=' + formtype + ' formTitle=Purchase_order', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
             else
-                UtilGen.execCmd('bin.forms.pur.poship status=new formType=page poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                UtilGen.execCmd('bin.forms.pur.poship status=new formType=' + formtype + ' poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
 
         },
-        openPoWzd: function () {
+        openPoWzd: function (poKld, fncallback) {
             var thatView = this.thatView;
-            var selPokf = thatView.puOrdKeyfld;
+            var selPokf = Util.nvl(poKld, thatView.puOrdKeyfld);
             if (Util.nvl(selPokf, -1) == -1)
-                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
             else
-                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                UtilGen.execCmd('bin.forms.pur.powzd formType=dialog formSize=905px,500px poKeyFld=' + selPokf + ' formTitle=Shipping_info', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
 
         },
-        openPoGr: function () {
+        openPoGr: function (poKld, pFormType, fncallback) {
             var thatView = this.thatView;
-            var selPokf = thatView.puOrdKeyfld;
+            var formtype = Util.nvl(pFormType, "page");
+            var selPokf = Util.nvl(poKld, thatView.puOrdKeyfld);
             var sett = sap.ui.getCore().getModel("settings").getData();
             var callPoGr = function (kf) {
                 if (kf != undefined)
-                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=page shipKF=' + kf + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=' + formtype + ' shipKF=' + kf + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
                 else
-                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=page formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage);
+                    UtilGen.execCmd('bin.forms.pur.podlv status=new formType=' + formtype + ' formTitle=PO_GoodsRecipt', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, fncallback);
             };
             var genDefaultShip = function () {
                 var kf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from c7_purship ");
@@ -2312,6 +2383,9 @@ sap.ui.jsview('bin.Dashboard', {
         openPoCls: function () {
 
         }
+
+    },
+    SOManageFunc: {
 
     }
 });
