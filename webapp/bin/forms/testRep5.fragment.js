@@ -94,14 +94,19 @@ sap.ui.jsfragment("bin.forms.testRep5", {
             var typd = (tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "TYPE_DESCR")].getText());
             // var  = tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "")].getText();
 
-            var dtx = Util.execSQLWithData("select vou_code,type,refercode,refertype from acvoucher1 where keyfld=" + kfld, "No data found ..");
+            var dtx = Util.execSQLWithData("select vou_code,type,refercode,refertype,referkeyfld from acvoucher1 where keyfld=" + kfld, "No data found ..");
 
             if (dtx.length > 0) {
                 var vcd = dtx[0].VOU_CODE;
                 var typ = dtx[0].TYPE;
+                var rkld = dtx[0].REFERKEYFLD;
+                var rfcode = dtx[0].REFERCODE;
+                var rftype = dtx[0].REFERTYPE;
 
                 if (vcd == 1 && typ == 1) {
                     UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                } else if (vcd == 1 && typ == 3) {
+                    UtilGen.execCmd("bin.forms.sl.unpost readonly=true formType=dialog formSize=70%,70% status=view keyfld=" + rkld, thatForm.view, obj, undefined);
                 } else if (vcd == 3 && (typ == 1 || typ == 6)) {
                     UtilGen.execCmd("gl.pv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
                 } else if (vcd == 2 && (typ == 1 || typ == 6)) {
@@ -111,7 +116,22 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                 } else if (vcd == 3 && (typ == 2 || typ == 7)) {
                     UtilGen.execCmd("gl.pvc readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
                 } else if (vcd == 1) {
-                    UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                    if (rfcode == 25 && Util.nvl(rkld, -1) != -1)
+                        Util.simpleConfirmDialog(Util.getLangText("msgDoYouWantToOpenIssVou") + ",\n " + Util.getLangText("msgOktoIssueVou") + " \n " + Util.getLangText("msgCancelToOpenJv"), function (oAction) {
+                            UtilGen.execCmd("bin.forms.in.siv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + rkld, thatForm.view, obj, undefined);
+                        }, function () {
+                            UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                        },
+                            undefined, "OK");
+                    else if (rfcode == 13 && Util.nvl(rkld, -1) != -1)
+                        Util.simpleConfirmDialog(Util.getLangText("msgDoYouWantToOpenRcptVou") + ",\n " + Util.getLangText("msgOktoReceiptVou") + " \n " + Util.getLangText("msgCancelToOpenJv"), function (oAction) {
+                            UtilGen.execCmd("bin.forms.in.srv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + rkld, thatForm.view, obj, undefined);
+                        }, function () {
+                            UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
+                        },
+                            undefined, "OK");
+                    else
+                        UtilGen.execCmd("gl.jv readonly=true formType=dialog formSize=100%,80% status=view keyfld=" + kfld + " jvpos=" + jvpos, thatForm.view, obj, undefined);
                 }
 
                 else {
@@ -119,9 +139,9 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                 }
             } else {  // if dtx.length>0 
                 if (typd == "dlv" && vername == "KHA")
-                    UtilGen.execCmd("bin.forms.br.kha.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
+                    UtilGen.execCmd("bin.forms.rm.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
                 if (typd == "dlv" && vername == "BR")
-                    UtilGen.execCmd("bin.forms.br.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
+                    UtilGen.execCmd("bin.forms.rm.forms.dlv readonly=true formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, undefined);
 
             }
         }
@@ -201,7 +221,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                default_value: "$FIRSTDATEOFYEAR",
+                                default_value: "$FIRSTDATEOFMONTH",
                                 other_settings: { width: "35%" },
                                 list: undefined,
                                 edit_allowed: true,
@@ -251,10 +271,16 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA001@parameter.paccno", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select accno,name from acaccount order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SOA001@parameter.paccno", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.paccno"));
-                                        });
+                                        // Util.showSearchList("select accno,name from acaccount order by path", "NAME", "ACCNO", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("SOA001@parameter.paccno", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.paccno"));
+                                        // });
+                                        var sq = "select accno,name,namea from acaccount where actype=0 order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA001@parameter.paccno", data.ACCNO, data.ACCNO, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
                                     },
                                     change: function (event) {
                                         var vl = event.oSource.getValue();
@@ -291,11 +317,16 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA001@parameter.pcc", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select code,title name from accostcent1 order by path", "NAME", "CODE", function (valx, val) {
-                                            // UtilGen.setControlValue(obj, val, valx, true);
-                                            thatForm.frm.setFieldValue("SOA001@parameter.pcc", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.pcc"));
-                                        });
+                                        // Util.showSearchList("select code,title name from accostcent1 order by path", "NAME", "CODE", function (valx, val) {
+                                        //     // UtilGen.setControlValue(obj, val, valx, true);
+                                        //     thatForm.frm.setFieldValue("SOA001@parameter.pcc", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.pcc"));
+                                        // });
+                                        var sq = "select code,title name from accostcent1 order by path";
+                                        Util.show_list(sq, ["CODE", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA001@parameter.pcc", data.CODE, data.CODE, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
                                     },
                                     change: function (event) {
@@ -333,10 +364,18 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA001@parameter.pref", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select code,name from c_ycust order by path", "NAME", "CODE", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SOA001@parameter.pref", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.pref"));
-                                        });
+                                        // Util.showSearchList("select code,name from c_ycust order by path", "NAME", "CODE", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("SOA001@parameter.pref", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA001@parameter.pref"));
+                                        // });
+                                        var sq = "select code,name,namea from c_ycust where childcount=0 and (mov_type='^^list_key' or    '^^list_key'='ALL') order by path";
+                                        Util.show_list(sq, ["CODE", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA001@parameter.pref", data.CODE, data.CODE, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, {
+                                            selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                                            defaultKey: "ACTIVE",
+                                        }, "Customers");
 
                                     },
                                     change: function (event) {
@@ -407,6 +446,24 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 display_format: "",
                                 default_value: "N",
                                 other_settings: { selected: false, width: "10%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
+                            showCheque: {
+                                colname: "showCheque",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"showChequeNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
                                 edit_allowed: true,
                                 insert_allowed: true,
                                 require: false,
@@ -559,7 +616,21 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                     // }, false).done(function (data) {
                                     // });
                                     thatForm.save_soa();
-                                    return "select *from C6_GL2 where 1=1 and usernm=c6_session.get_user_session order by pos";
+                                    var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");
+                                    var sq = "select *from C6_GL2 where 1=1 and usernm=c6_session.get_user_session order by pos"
+                                    if (ch == "Y")
+                                        sq = "select C6_GL2.*,v1.chequeno from C6_GL2,acvoucher1 v1  where v1.keyfld=C6_GL2.keyfld and 1=1 and C6_GL2.usernm=c6_session.get_user_session order by C6_GL2.pos";
+                                    return sq;
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qry2") {
+
+                                        var iq = Util.nvl(thatForm.frm.getFieldValue("parameter.pref"), "");
+                                        var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("TQTY")].mHideCol = (iq == "");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CHEQUENO")].mHideCol = (ch == "N");
+
+                                    }
                                 },
                                 fields: {
                                     vou_date: {
@@ -648,7 +719,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         other_settings: {},
                                     },
                                     vou_no: {
-                                        colname: "VOU_NO",
+                                        colname: "vou_no",
                                         data_type: FormView.DataType.Number,
                                         class_name: FormView.ClassTypes.LABEL,
                                         title: "Vou No",
@@ -663,6 +734,39 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         display_type: "NONE",
                                         other_settings: {},
                                         commandLinkClick: cmdLink
+                                    },
+                                    chequeno: {
+                                        colname: "chequeno",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Cheque",
+                                        title2: "",
+                                        parentTitle: undefined,
+                                        parentSpan: 1,
+                                        display_width: "70",
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        display_type: "NONE",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    tqty: {
+                                        colname: "tqty",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "m3Qty",
+                                        title2: "",
+                                        parentTitle: undefined,
+                                        parentSpan: 1,
+                                        display_width: "80",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "QTY_FORMAT",
+                                        default_value: "",
+                                        display_type: "NONE",
+                                        other_settings: {},
                                     },
                                     accno: {
                                         colname: "ACCNO",
@@ -955,7 +1059,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                default_value: "$FIRSTDATEOFYEAR",
+                                default_value: "$FIRSTDATEOFMONTH",
                                 other_settings: { width: "35%" },
                                 list: undefined,
                                 edit_allowed: true,
@@ -1005,10 +1109,17 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA002@parameter.fromacc", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select accno,name from acaccount where childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SOA002@parameter.fromacc", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA002@parameter.fromacc"));
-                                        });
+                                        var sq = "select accno,name,namea from acaccount where  childcount=0 and actype=0 order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA002@parameter.fromacc", data.ACCNO, data.ACCNO, true);
+                                            // thatForm.frm.setFieldValue(repCode + "@parameter.acname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+                                        // Util.showSearchList("select accno,name from acaccount where childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("SOA002@parameter.fromacc", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA002@parameter.fromacc"));
+                                        // });
                                     },
                                     change: function (event) {
                                         var vl = event.oSource.getValue();
@@ -1046,10 +1157,16 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             thatForm.frm.setFieldValue("SOA002@parameter.toacc", "", "", true);
                                             return;
                                         }
-                                        Util.showSearchList("select accno,name from acaccount where childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
-                                            thatForm.frm.setFieldValue("SOA002@parameter.toacc", valx, val, true);
-                                            sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA002@parameter.toacc"));
-                                        });
+                                        // Util.showSearchList("select accno,name from acaccount where childcount=0 order by path", "NAME", "ACCNO", function (valx, val) {
+                                        //     thatForm.frm.setFieldValue("SOA002@parameter.toacc", valx, val, true);
+                                        //     sap.m.MessageToast.show(thatForm.frm.getFieldValue("SOA002@parameter.toacc"));
+                                        // });
+                                        var sq = "select accno,name,namea from acaccount where  childcount=0 and actype=0 order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue("SOA002@parameter.toacc", data.ACCNO, data.ACCNO, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
                                     },
                                     change: function (event) {
                                         var vl = event.oSource.getValue();
@@ -1068,6 +1185,24 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.CHECKBOX,
                                 title: '{\"text\":\"paraInclUnpost\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "Y",
+                                other_settings: { selected: true, width: "20%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
+                            showCheque: {
+                                colname: "showCheque",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"showChequeNo\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
                                 title2: "",
                                 display_width: colSpan,
                                 display_align: "ALIGN_LEFT",
@@ -1183,7 +1318,20 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                     });
                                     */
                                     thatForm.save_soa_acc();
-                                    return "select *from c7_gl_ac2 where 1=1 and usernm=c6_session.get_user_session order by accno,pos";
+                                    var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");
+                                    var sq = "select *from c7_gl_ac2 where 1=1 and usernm=c6_session.get_user_session order by accno,pos"
+                                    if (ch == "Y")
+                                        sq = "select c7_gl_ac2.* , v1.chequeno from c7_gl_ac2, acvoucher1 v1 where v1.keyfld(+)=c7_gl_ac2.keyfld and c7_gl_ac2.usernm=c6_session.get_user_session order by c7_gl_ac2.accno,c7_gl_ac2.pos";
+                                    //"select C6_GL2.*,v1.chequeno from C6_GL2,acvoucher1 v1  where v1.keyfld=C6_GL2.keyfld and 1=1 and C6_GL2.usernm=c6_session.get_user_session order by C6_GL2.pos";
+
+                                    return sq;
+                                },
+                                afterApplyCols: function (qryObj) {
+                                    if (qryObj.name == "qryAc2") {
+                                        var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CHEQUENO")].mHideCol = (ch == "N");
+
+                                    }
                                 },
                                 fields: {
                                     balance: {
@@ -1273,6 +1421,23 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         default_value: "",
                                         other_settings: {},
                                     },
+                                    chequeno: {
+                                        colname: "chequeno",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "Cheque",
+                                        title2: "",
+                                        parentTitle: undefined,
+                                        parentSpan: 1,
+                                        display_width: "70",
+                                        display_align: "ALIGN_CENTER",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        display_type: "NONE",
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
                                     vou_no: {
                                         colname: "VOU_NO",
                                         data_type: FormView.DataType.Number,
@@ -1361,6 +1526,21 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                         parentTitle: "",
                                         parentSpan: 1,
                                         display_width: "80",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "",
+                                        display_format: "",
+                                        default_value: "",
+                                        other_settings: {},
+                                    },
+                                    cust_code: {
+                                        colname: "cust_code",
+                                        data_type: FormView.DataType.String,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "referenceNo",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "90",
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
                                         display_format: "",
@@ -1570,6 +1750,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
         var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
         var incUnpostDlv = thatForm.frm.getFieldValue("parameter.inclUnpostDlv");
+        var qtySql = " max((select NVL(sum(allqty),0) from :PUR2 where keyfld=v.REFERKEYFLD)) tqty  ";
         var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
         // if (bk.length > 0) {
         var plsql = "declare ";
@@ -1586,7 +1767,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         var sqxAx2 = "select SUM(DEBIT) CRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
             " A.ACCNO=V.ACCNO AND  " +
             " V.VOU_DATE<=TODATE :KEYFLD_CONDITION ";
-        var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO,0 tqty FROM :ACVOUCHER2 V, ACACCOUNT A " +
+        var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO," + qtySql + " FROM :ACVOUCHER2 V, ACACCOUNT A " +
             " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT " +
             " AND V.ACCNO=A.ACCNO AND (V.COSTCENT=CC or cc is null) " + vflg +
             " AND (CUST_CODE=PCUST OR PCUST IS NULL)  :KEYFLD_CONDITION " +
@@ -1595,7 +1776,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         //     " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
         //     " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
         //     " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
-        var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+        var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":PUR2", "PUR2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs1 = [sqxAB.replaceAll(":V_STATMENT_1", "V_STATMENT_1").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs2 = [sqxAx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
         var sqs3 = [sqxAx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
@@ -1603,6 +1784,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         for (var bi in bk) {
             sqs.push(sqx.
                 replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
+                replaceAll(":PUR2", bk[bi].fiscal_schema).
                 replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
             sqs1.push(sqxAB.
                 replaceAll(":V_STATMENT_1", bk[bi].fiscal_schema + ".V_STATMENT_1").

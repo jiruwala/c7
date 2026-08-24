@@ -352,6 +352,19 @@ sap.ui.jsfragment("bin.forms.sl.unpost", {
             that.loadData_details(reload);
             this.qc_change = {};
         }
+        setTimeout(() => {
+            that.secureInit();
+        }, 300);
+
+    },
+        secureInit: function () {
+        var that = this;
+        if (!UtilGen.Security.canEdit("formsec_all", "", true) ||
+            that.oController.readonly == "true") {
+            // that.cmdUpdatePrice.setEnabled(false);
+            that.view.byId("cmdUpd" + that.timeInLong).setEnabled(false);
+            that.view.byId("cmdDel" + that.timeInLong).setEnabled(false);
+        }
 
 
     },
