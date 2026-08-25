@@ -47,18 +47,20 @@ iframe {
     background-color: lightyellow;
 }
 
+.dbTileMargin {
+    margin: 0rem 0.5rem 1rem 0.5rem ;
+}
 /* Card */
 .gaugeCard {
     background: var(--sapTile_Background, #ffffff);
     border-radius: 0.5rem;
-    padding: 0.75rem 0.5rem 0.5rem 0.5rem;
-    box-shadow: var(--sapTile_BoxShadow, 0 1px 4px rgba(0, 0, 0, 0.08));
-    height: auto;
-    min-height: 220px;
+    padding: 0;
+    box-shadow: var(--sapTile_BoxShadow, 0 1px 4px rgba(0,0,0,0.08));
     border: 1px solid var(--sapTile_BorderColor, #e5e5e5);
-    display: flex;
-    flex-direction: column;
+    box-sizing: border-box;
     align-items: center;
+    vertical-align: top;
+    height: auto !important;  /* force auto height */
 }
 
 /* Title */
@@ -120,6 +122,89 @@ iframe {
 
 .gaugeNegative {
     color: var(--sapNegativeColor, #c62828);
+}
+
+
+
+.cardHeaderBar {
+    background: var(--sapObjectHeader_Background, lightblue);
+    padding: 0.25rem 0.75rem;
+    border-bottom: 1px solid var(--sapObjectHeader_BorderColor, #cccccc);
+    border-radius: 0.5rem 0.5rem 0 0;
+    width: 100%;
+    min-height: 2.5rem;
+}
+
+.cardTitle {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--sapTile_TitleTextColor, #333);
+}
+
+/* Rest of styles remain the same */
+.columnItem {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    margin: 2px;
+    background: var(--sapTile_Background, #ffffff);
+    box-sizing: border-box;
+}
+
+.comparisonLabel {
+    font-size: 0.9rem;
+    color: var(--sapContent_LabelColor, #666);
+}
+.comparisonValue {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--sapTextColor, #000);
+}
+
+.rowTitle {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--sapTile_TextColor, #333);
+    margin: 0.5rem 0 0.25rem 0;
+}
+
+.summarySeparator {
+    margin: 0.5rem 0;
+    border-top: 1px solid #e0e0e0;
+    width: 100%;
+}
+
+.summaryFooter {
+    background: #f9f9f9;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    margin-top: 0.25rem;
+    border-top: 1px solid #e0e0e0;
+    width: 100%;
+}
+
+.summaryLabel {
+    font-size: 0.9rem;
+    color: var(--sapContent_LabelColor, #666);
+}
+.summaryValue {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--sapTextColor, #000);
+}
+
+/* Clickable columns */
+.clickableColumn {
+    cursor: pointer;
+}
+
+.chartCard {
+    min-height: 100px; /* adjust as needed */
+}
+.chartWrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 250px; /* ensures chart has room */
 }
 
 .guagePanel {

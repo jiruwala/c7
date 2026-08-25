@@ -4987,9 +4987,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var oPlaceholder = new sap.m.VBox({
                         width: "100%",
                         height: Util.nvl(pHeight, "auto"),
-                        alignItems: sap.m.FlexAlignItems.Center,
-                        justifyContent: "Center",
-                        items: [new sap.m.BusyIndicator({ size: "2rem" })]
+                        alignItems: sap.ui.core.TextAlign.Center,
+                        justifyContent: sap.m.FlexAlignItems.Start,
+                        items: [new sap.m.BusyIndicator({ size: ".5rem" })]
                     }).addStyleClass("gaugeCard");
 
                     // --- Fetch data ---
@@ -5026,7 +5026,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var min = parseFloat(gg.MIN_VAL) || 0;
                     var max = parseFloat(gg.MAX_VAL) || 100;
                     var value = parseFloat(gg.SQL_VAL) || 0;
-                
+
                     // --- Gauge config ---
                     var range = max - min;
                     var config = {
@@ -5039,22 +5039,22 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         yellowZones: [{ from: min + range * 0.75, to: min + range * 0.9 }],
                         redZones: [{ from: min + range * 0.9, to: max }]
                     };
-                
+
                     // --- Destroy old controls ---
                     Util.destroyID(name, that);
                     Util.destroyID(name + "_flex", that);
                     Util.destroyID(name + "_parent", that);
-                
+
                     // --- 1. Header: Title + Settings button ---
                     var oHeader = new sap.m.HBox({
                         width: "100%",
-                        alignItems: "Center",
+                        alignItems: sap.ui.core.TextAlign.Start,
                         justifyContent: "SpaceBetween",
                         items: [
                             new sap.m.Text({
                                 text: Util.getLangText(gg.TITLE1),
-                                textAlign: sap.ui.core.TextAlign.Start,
-                            }).addStyleClass("gaugeTitle"),
+                                textAlign: "Center",
+                            }).addStyleClass("sapUiTinyMargin gaugeTitle"),
                             new sap.m.Button({
                                 icon: "sap-icon://settings",
                                 tooltip: "Set target",
@@ -5067,15 +5067,15 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 }
                             }).addStyleClass("sapUiTinyMarginBegin")
                         ]
-                    });
-                
+                    }).addStyleClass("cardHeaderBar");
+
                     // --- 2. Target line ---
                     var oTarget = new sap.m.Text({
                         text: "Target : " + df.format(max),
                         textAlign: "Center",
                         width: "100%"
                     }).addStyleClass("gaugeTarget");
-                
+
                     // --- 3. Gauge canvas placeholder ---
                     var oGaugePlaceholder = new sap.m.Label({
                         id: that.createId(name),
@@ -5083,14 +5083,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         width: "100%",
                         height: "100%"
                     }).addStyleClass("gaugeCanvasWrapper");
-                
+
                     // --- 4. Main value (large, bold) ---
                     var oMainValue = new sap.m.Text({
                         text: df.format(value) + (gg.UNIT ? " " + gg.UNIT : ""),
                         textAlign: "Center",
                         width: "100%"
                     }).addStyleClass("gaugeMainValue");
-                
+
                     // --- 5. Last Month (if prior exists) ---
                     var oLastMonth = null;
                     var oDifference = null;
@@ -5102,20 +5102,20 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var sign = isPositive ? "+" : "-";
                         var colorClass = isPositive ? "gaugePositive" : "gaugeNegative";
                         var arrow = isPositive ? "▲" : "▼";
-                
+
                         oLastMonth = new sap.m.Text({
                             text: (Util.getLangText(gg.PRIOR_LABEL) || "Last Month") + ": " + df.format(prior),
                             textAlign: "Center",
                             width: "100%"
                         }).addStyleClass("gaugeLastMonth");
-                
+
                         oDifference = new sap.m.Text({
-                            text: sign + diffText + (gg.UNIT ? " " + gg.UNIT : ""),
+                            text: arrow + " " + sign + diffText + (gg.UNIT ? " " + gg.UNIT : ""),
                             textAlign: "Center",
                             width: "100%"
                         }).addStyleClass("gaugeDifference " + colorClass);
                     }
-                
+
                     // --- 6. Summary (optional) ---
                     var oSummary = null;
                     if (gg.SUMMARY_VAL && gg.SUMMARY_VAL.trim() !== "") {
@@ -5132,11 +5132,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             }).addStyleClass("sapUiSmallMarginTop");
                         }
                     }
-                
+
                     // --- Build the final card (VBox) ---
                     var oCard = new sap.m.VBox({
                         width: "100%",
-                        alignItems: "Center",
+                        alignItems: sap.ui.core.TextAlign.Center,
                         items: [
                             oHeader,
                             oTarget,
@@ -5147,12 +5147,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             oSummary
                         ].filter(item => item !== null)
                     }).addStyleClass("gaugeCard");
-                
+
                     // --- Create gauge and attach event ---
                     var oGauge = new Gauge(that.createId(name), config);
                     oCard._gauge = oGauge;
                     oCard._value = value;
-                
+
                     oCard.addEventDelegate({
                         onAfterRendering: function () {
                             if (this._gauge) {
@@ -5161,10 +5161,578 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             }
                         }
                     }, oCard);
-                
+
                     return oCard;
-                }
-                ,
+                },
+                /**
+                 * Creates a card with a grid of labeled values, supports lazy loading, row titles, and summary.
+                 * 
+                 * @param {string} name - unique ID prefix
+                 * @param {object} config - configuration object:
+                 *   - title (string): card title
+                 *   - rows (array): array of row definitions, each with:
+                 *       - title (string, optional): row header
+                 *       - columns (array): column objects { label, value, unit?, width?, style?, color?, onClick? }
+                 *   - summary (array, optional): column objects for the summary row (displayed after a separator)
+                 *   - loadData (function, optional): async function that returns a Promise resolving to { rows, summary }.
+                 *        If provided, data is loaded lazily (busy indicator shown initially).
+                 *   - settings (object): { colsPerRow, VALUE_FORMAT, UNIT, showSettings, onSettings }
+                 * @returns {sap.m.VBox} the card with update methods
+                 */
+                createColumnCard: function (name, config) {
+                    var that = UtilGen.DBView;
+                    var sett = config.settings || {};
+                    var title = config.title || "";
+                    var loadData = config.loadData || null;
+                    var initialRows = config.rows || [];
+                    var initialSummary = config.summary || null;
+                    var cardWidth = sett.width || "100%";
+                    var cardHeight = sett.height || "auto";  // auto‑fit by default
+                    var df = new DecimalFormat(sett.VALUE_FORMAT || "#,##0");
+                    // --- Internal state ---
+                    var currentRows = initialRows.slice();
+                    var currentSummary = initialSummary;
+                    var currentSettings = {
+                        colsPerRow: sett.colsPerRow || 2,
+                        VALUE_FORMAT: sett.VALUE_FORMAT || "#,##0",
+                        UNIT: sett.UNIT || "",
+                        showSettings: sett.showSettings !== undefined ? sett.showSettings : true,
+                        onSettings: sett.onSettings || null,
+                        width: cardWidth,
+                        height: cardHeight
+                    };
+                    var isLoading = false;
+
+                    // --- Helper: build grid from rows and summary ---
+                    function buildGrid(rows, summary) {
+                        var oGrid = new sap.m.VBox({
+                            width: "100%",
+                            alignItems: "Center",
+                            items: []
+                        });
+
+                        var colsPerRow = currentSettings.colsPerRow;
+
+                        function createRowItems(columns, isSummary) {
+                            var rowItems = [];
+                            for (var i = 0; i < columns.length; i += colsPerRow) {
+                                var chunk = columns.slice(i, i + colsPerRow);
+                                var oRow = new sap.m.HBox({
+                                    width: "100%",
+                                    justifyContent: "SpaceAround",
+                                    alignItems: "Center"
+                                });
+
+                                chunk.forEach(function (col) {
+                                    var width = col.width || (100 / colsPerRow) + "%";
+                                    var widthStyle = (typeof width === "number") ? width + "%" : width;
+
+                                    var oLabel = new sap.m.Text({
+                                        text: col.label,
+                                        textAlign: "Center"
+                                    }).addStyleClass(isSummary ? "summaryLabel" : "comparisonLabel");
+
+                                    var unit = col.unit || currentSettings.UNIT;
+                                    var valueText = col.value + (unit ? " " + unit : "");
+                                    var oValue = new sap.m.Text({
+                                        text: valueText,
+                                        textAlign: "Center"
+                                    }).addStyleClass(isSummary ? "summaryValue" : "comparisonValue");
+                                    if (col.style) oValue.addStyleClass(col.style);
+                                    if (col.color) oValue.$().css("color", col.color);
+
+                                    var oColumn = new sap.m.VBox({
+                                        alignItems: "Center",
+                                        width: widthStyle,
+                                        items: [oLabel, oValue]
+                                    }).addStyleClass("columnItem");
+
+                                    if (typeof col.onClick === "function") {
+                                        oColumn.addEventDelegate({
+                                            onPress: function () { col.onClick(col); },
+                                            onTap: function () { col.onClick(col); }
+                                        });
+                                        oColumn.addStyleClass("clickableColumn");
+                                    }
+
+                                    oRow.addItem(oColumn);
+                                });
+                                rowItems.push(oRow);
+                            }
+                            return rowItems;
+                        }
+
+                        rows.forEach(function (rowDef) {
+                            if (rowDef.title) {
+                                var oTitle = new sap.m.Text({
+                                    text: rowDef.title,
+                                    textAlign: sap.ui.core.TextAlign.Start,
+                                    width: "100%"
+                                }).addStyleClass("rowTitle sapUiTinyMarginBegin");
+                                oGrid.addItem(new sap.m.VBox({
+                                    width: "100%",
+                                    items:
+                                        oTitle
+                                }));
+                            }
+                            var rowColumns = rowDef.columns || [];
+                            var rowItems = createRowItems(rowColumns, false);
+                            rowItems.forEach(function (item) {
+                                oGrid.addItem(item);
+                            });
+                        });
+
+                        if (summary && summary.length > 0) {
+                            var oSeparator = new sap.m.HBox({
+                                width: "100%",
+                                justifyContent: "Center",
+                                items: [new sap.m.Text({ text: "" })]
+                            }).addStyleClass("summarySeparator");
+                            oGrid.addItem(oSeparator);
+
+                            var summaryItems = createRowItems(summary, true);
+                            summaryItems.forEach(function (item) {
+                                var oFooterContainer = new sap.m.VBox({
+                                    width: "100%",
+                                    alignItems: "Center",
+                                    items: [item]
+                                }).addStyleClass("summaryFooter");
+                                oGrid.addItem(oFooterContainer);
+                            });
+                        }
+
+                        return oGrid;
+                    }
+
+                    // --- Build header bar (title with Fiori‑style background) ---
+                    function buildHeader() {
+                        var oHeader = new sap.m.HBox({
+                            width: "100%",
+                            alignItems: "Center",
+                            justifyContent: "SpaceBetween",
+                            items: [
+                                new sap.m.Text({ text: Util.getLangText(title) }).addStyleClass("cardTitle"),
+                                currentSettings.showSettings ? new sap.m.Button({
+                                    icon: "sap-icon://settings",
+                                    tooltip: "Change parameters",
+                                    press: function () {
+                                        if (typeof currentSettings.onSettings === "function") {
+                                            currentSettings.onSettings(oCard, currentRows, currentSummary, currentSettings);
+                                        } else {
+                                            sap.m.MessageToast.show("No settings handler defined.");
+                                        }
+                                    }
+                                }).addStyleClass("sapUiTinyMarginBegin") : null
+                            ].filter(item => item !== null)
+                        }).addStyleClass("cardHeaderBar");  // <-- header bar style
+
+                        return oHeader;
+                    }
+
+                    // --- Initial construction ---
+                    var oHeader = buildHeader();
+                    var oGrid = new sap.m.VBox({ width: "100%", alignItems: "Center", items: [] });
+
+                    if (typeof loadData === "function") {
+                        isLoading = true;
+                        oGrid.addItem(new sap.m.BusyIndicator({ size: "1rem" }));
+                        setTimeout(function () {
+                            loadData().then(function (result) {
+                                if (result.rows) currentRows = result.rows.slice();
+                                if (result.summary) currentSummary = result.summary;
+                                isLoading = false;
+                                var newGrid = buildGrid(currentRows, currentSummary);
+                                oGrid.destroyItems();
+                                newGrid.getItems().forEach(function (item) {
+                                    oGrid.addItem(item);
+                                });
+                            }).catch(function (err) {
+                                sap.m.MessageToast.show("Error loading data: " + err.message);
+                                oGrid.destroyItems();
+                                oGrid.addItem(new sap.m.Text({ text: "Error loading data" }));
+                            });
+                        }, 100);
+                    } else {
+                        var grid = buildGrid(currentRows, currentSummary);
+                        grid.getItems().forEach(function (item) {
+                            oGrid.addItem(item);
+                        });
+                    }
+
+                    var oCard = new sap.m.VBox({
+                        width: currentSettings.width,
+                        height: currentSettings.height,  // auto by default
+                        alignItems: "Center",
+                        items: [oHeader, oGrid]
+                    }).addStyleClass("gaugeCard");
+
+                    // --- Update methods (unchanged) ---
+                    oCard.updateData = function (newRows, newSummary) {
+                        if (newRows) currentRows = newRows.slice();
+                        if (newSummary !== undefined) currentSummary = newSummary;
+                        var oldGrid = oCard.getContent()[1];
+                        var newGrid = buildGrid(currentRows, currentSummary);
+                        oCard.removeContent(oldGrid);
+                        oCard.addContent(newGrid);
+                        oldGrid.destroy();
+                    };
+
+                    oCard.updateSettings = function (newSettings) {
+                        for (var key in newSettings) {
+                            if (newSettings.hasOwnProperty(key)) {
+                                currentSettings[key] = newSettings[key];
+                            }
+                        }
+                        var oldHeader = oCard.getContent()[0];
+                        var oldGrid = oCard.getContent()[1];
+                        var newHeader = buildHeader();
+                        var newGrid = buildGrid(currentRows, currentSummary);
+                        oCard.removeContent(oldHeader);
+                        oCard.removeContent(oldGrid);
+                        oCard.addContent(newHeader);
+                        oCard.addContent(newGrid);
+                        oldHeader.destroy();
+                        oldGrid.destroy();
+                    };
+
+                    oCard.updateCard = function (newRows, newSummary, newSettings) {
+                        if (newRows) currentRows = newRows.slice();
+                        if (newSummary !== undefined) currentSummary = newSummary;
+                        if (newSettings) {
+                            for (var key in newSettings) {
+                                if (newSettings.hasOwnProperty(key)) {
+                                    currentSettings[key] = newSettings[key];
+                                }
+                            }
+                        }
+                        var oldHeader = oCard.getContent()[0];
+                        var oldGrid = oCard.getContent()[1];
+                        var newHeader = buildHeader();
+                        var newGrid = buildGrid(currentRows, currentSummary);
+                        oCard.removeContent(oldHeader);
+                        oCard.removeContent(oldGrid);
+                        oCard.addContent(newHeader);
+                        oCard.addContent(newGrid);
+                        oldHeader.destroy();
+                        oldGrid.destroy();
+                    };
+
+                    oCard.getRows = function () { return currentRows; };
+                    oCard.getSummary = function () { return currentSummary; };
+                    oCard.getSettings = function () { return currentSettings; };
+                    oCard.isLoading = function () { return isLoading; };
+
+                    return oCard;
+                },
+                // Counter for unique canvas IDs
+
+
+                createChartCard: function (name, config) {
+                    var _chartIdCounter = 0;
+                    var sett = config.settings || {};
+                    var title = config.title || "Chart";
+                    var chartType = config.chartType || "bar";
+                    var categoryAxis = config.categoryAxis || "category";
+                    var valueAxis = config.valueAxis || "value";
+                    var colors = config.colors || ["#0070c0", "#ed7d31", "#70ad47", "#ffc000", "#4472c4"];
+                    var clickHandler = config.clickHandler || null;
+                    var loadData = config.loadData || null;
+                    var initialData = config.data || [];
+                    var cardWidth = sett.width || "100%";
+                    var cardHeight = sett.height || "auto";
+
+                    // --- Internal state ---
+                    var currentData = initialData.slice();
+                    var currentSettings = {
+                        width: cardWidth,
+                        height: cardHeight,
+                        showSettings: sett.showSettings !== undefined ? sett.showSettings : true,
+                        onSettings: sett.onSettings || null
+                    };
+                    var isLoading = false;
+                    var chartInstance = null;
+                    var canvasId = "chartCanvas_" + name + "_" + (++_chartIdCounter) + "_" + Date.now();
+
+                    // --- Load Chart.js dynamically ---
+                    function loadChartJSLibrary() {
+                        return new Promise(function (resolve, reject) {
+                            if (typeof Chart !== 'undefined') {
+                                resolve();
+                                return;
+                            }
+                            var script = document.createElement('script');
+                            script.src = "https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js";
+                            script.onload = function () { resolve(); };
+                            script.onerror = function () { reject(new Error("Failed to load Chart.js")); };
+                            document.head.appendChild(script);
+                        });
+                    }
+
+                    // --- Build chart data for Chart.js ---
+                    function buildChartData(data) {
+                        var categories = data.map(function (item) { return item[categoryAxis]; });
+                        var values = data.map(function (item) { return item[valueAxis]; });
+                        var dataset = {
+                            label: "Value",
+                            data: values,
+                            backgroundColor: colors.slice(0, values.length),
+                            borderColor: colors.slice(0, values.length),
+                            borderWidth: 1
+                        };
+                        if (chartType === "pie" || chartType === "doughnut" || chartType === "polarArea") {
+                            dataset.backgroundColor = colors.slice(0, values.length);
+                            dataset.borderColor = "#ffffff";
+                            dataset.borderWidth = 2;
+                        }
+                        return {
+                            labels: categories,
+                            datasets: [dataset]
+                        };
+                    }
+
+                    // --- Render chart with dual click handling ---
+                    function renderChart(canvasEl, data) {
+                        if (chartInstance) {
+                            chartInstance.destroy();
+                            chartInstance = null;
+                        }
+                        if (!canvasEl) return;
+
+                        // Remove old native listener if any
+                        if (canvasEl._clickListener) {
+                            canvasEl.removeEventListener('click', canvasEl._clickListener);
+                            canvasEl._clickListener = null;
+                        }
+
+                        var ctx = canvasEl.getContext('2d');
+                        var chartData = buildChartData(data);
+                        var configChart = {
+                            type: chartType,
+                            data: chartData,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: (chartType === "pie" || chartType === "doughnut") ? undefined : {
+                                    x: { grid: { display: false } },
+                                    y: { beginAtZero: true, grid: { color: "#e0e0e0" } }
+                                }
+                            }
+                        };
+
+                        chartInstance = new Chart(ctx, configChart);
+
+                        // --- Method 1: Native click listener (most reliable) ---
+                        if (typeof clickHandler === "function") {
+                            var clickListener = function (event) {
+                                if (!chartInstance) return;
+                                // Get elements at click position
+                                var elements = chartInstance.getElementsAtEventForMode(
+                                    event,
+                                    'index',
+                                    { intersect: true }
+                                );
+                                if (elements.length > 0) {
+                                    var index = elements[0]._index;
+                                    if (data && data[index]) {
+                                        clickHandler(data[index], event);
+                                    }
+                                }
+                            };
+                            canvasEl.addEventListener('click', clickListener);
+                            canvasEl._clickListener = clickListener;
+
+                            // --- Method 2: Chart.js built-in onClick (fallback) ---
+                            chartInstance.options.onClick = function (event, elements) {
+                                if (elements.length > 0) {
+                                    var index = elements[0].index;
+                                    if (data && data[index]) {
+                                        clickHandler(data[index], event);
+                                    }
+                                }
+                            };
+                            chartInstance.update(); // apply the new onClick option
+                        }
+                    }
+
+                    // --- Build header bar ---
+                    function buildHeader() {
+                        var oHeader = new sap.m.HBox({
+                            width: "100%",
+                            alignItems: "Center",
+                            justifyContent: "SpaceBetween",
+                            items: [
+                                new sap.m.Text({ text: Util.getLangText(title) }).addStyleClass("cardTitle"),
+                                currentSettings.showSettings ? new sap.m.Button({
+                                    icon: "sap-icon://settings",
+                                    tooltip: "Change parameters",
+                                    press: function () {
+                                        if (typeof currentSettings.onSettings === "function") {
+                                            currentSettings.onSettings(oCard, currentData, currentSettings);
+                                        } else {
+                                            sap.m.MessageToast.show("No settings handler defined.");
+                                        }
+                                    }
+                                }).addStyleClass("sapUiTinyMarginBegin") : null
+                            ].filter(item => item !== null)
+                        }).addStyleClass("cardHeaderBar");
+                        return oHeader;
+                    }
+
+                    // --- Build chart container (VBox with canvas) ---
+                    function buildChartContainer(data) {
+                        var oContainer = new sap.m.VBox({
+                            width: "100%",
+                            height: "100%",
+                            alignItems: "Center",
+                            justifyContent: "Center"
+                        });
+
+                        if (isLoading) {
+                            oContainer.addItem(new sap.m.BusyIndicator({ size: "2rem" }));
+                            return oContainer;
+                        }
+
+                        // IMPORTANT: pointer-events:auto ensures the canvas receives clicks
+                        var oCanvas = new sap.ui.core.HTML({
+                            content: '<canvas id="' + canvasId + '" style="width:100%;height:100%;pointer-events:auto;cursor:pointer;"></canvas>',
+                            width: "100%",
+                            height: "100%"
+                        });
+                        oContainer.addItem(oCanvas);
+                        oContainer._canvasId = canvasId;
+                        oContainer._data = data;
+
+                        return oContainer;
+                    }
+
+                    // --- Initial construction ---
+                    var oHeader = buildHeader();
+                    var oChartContainer = new sap.m.VBox({ width: "100%", height: "100%" });
+
+                    // Load Chart.js, then build chart
+                    loadChartJSLibrary().then(function () {
+                        if (typeof loadData === "function") {
+                            isLoading = true;
+                            oChartContainer.addItem(new sap.m.BusyIndicator({ size: "2rem" }));
+                            loadData().then(function (data) {
+                                currentData = data.slice();
+                                isLoading = false;
+                                var oldContainer = oCard.getItems()[1];
+                                var newContainer = buildChartContainer(currentData);
+                                oCard.removeItem(oldContainer);
+                                oCard.addItem(newContainer);
+                                oldContainer.destroy();
+                                setTimeout(function () {
+                                    var canvasEl = document.getElementById(canvasId);
+                                    if (canvasEl) renderChart(canvasEl, currentData);
+                                }, 200);
+                            }).catch(function (err) {
+                                sap.m.MessageToast.show("Error loading chart data: " + err.message);
+                                oChartContainer.destroyItems();
+                                oChartContainer.addItem(new sap.m.Text({ text: "Error loading data" }));
+                            });
+                        } else {
+                            var container = buildChartContainer(currentData);
+                            oChartContainer.addItem(container);
+                            setTimeout(function () {
+                                var canvasEl = document.getElementById(canvasId);
+                                if (canvasEl) renderChart(canvasEl, currentData);
+                            }, 200);
+                        }
+                    }).catch(function (err) {
+                        sap.m.MessageToast.show("Failed to load Chart.js: " + err.message);
+                        oChartContainer.addItem(new sap.m.Text({ text: "Chart library not loaded" }));
+                    });
+
+                    var oCard = new sap.m.VBox({
+                        width: currentSettings.width,
+                        height: currentSettings.height,
+                        alignItems: "Center",
+                        items: [oHeader, oChartContainer]
+                    }).addStyleClass("gaugeCard chartCard");
+
+                    // --- Update methods ---
+                    oCard.updateData = function (newData) {
+                        if (newData) currentData = newData.slice();
+                        var oldContainer = oCard.getItems()[1];
+                        var newContainer = buildChartContainer(currentData);
+                        oCard.removeItem(oldContainer);
+                        oCard.addItem(newContainer);
+                        oldContainer.destroy();
+                        setTimeout(function () {
+                            var canvasEl = document.getElementById(canvasId);
+                            if (canvasEl) renderChart(canvasEl, currentData);
+                        }, 200);
+                    };
+
+                    oCard.updateSettings = function (newSettings) {
+                        for (var key in newSettings) {
+                            if (newSettings.hasOwnProperty(key)) {
+                                currentSettings[key] = newSettings[key];
+                            }
+                        }
+                        var oldHeader = oCard.getItems()[0];
+                        var oldContainer = oCard.getItems()[1];
+                        var newHeader = buildHeader();
+                        var newContainer = buildChartContainer(currentData);
+                        oCard.removeItem(oldHeader);
+                        oCard.removeItem(oldContainer);
+                        oCard.addItem(newHeader);
+                        oCard.addItem(newContainer);
+                        oldHeader.destroy();
+                        oldContainer.destroy();
+                        setTimeout(function () {
+                            var canvasEl = document.getElementById(canvasId);
+                            if (canvasEl) renderChart(canvasEl, currentData);
+                        }, 200);
+                    };
+
+                    oCard.updateCard = function (newData, newSettings) {
+                        if (newData) currentData = newData.slice();
+                        if (newSettings) {
+                            for (var key in newSettings) {
+                                if (newSettings.hasOwnProperty(key)) {
+                                    currentSettings[key] = newSettings[key];
+                                }
+                            }
+                        }
+                        var oldHeader = oCard.getItems()[0];
+                        var oldContainer = oCard.getItems()[1];
+                        var newHeader = buildHeader();
+                        var newContainer = buildChartContainer(currentData);
+                        oCard.removeItem(oldHeader);
+                        oCard.removeItem(oldContainer);
+                        oCard.addItem(newHeader);
+                        oCard.addItem(newContainer);
+                        oldHeader.destroy();
+                        oldContainer.destroy();
+                        setTimeout(function () {
+                            var canvasEl = document.getElementById(canvasId);
+                            if (canvasEl) renderChart(canvasEl, currentData);
+                        }, 200);
+                    };
+
+                    oCard.getData = function () { return currentData; };
+                    oCard.getSettings = function () { return currentSettings; };
+                    oCard.isLoading = function () { return isLoading; };
+
+                    // Auto-render after rendering
+                    oCard.addEventDelegate({
+                        onAfterRendering: function () {
+                            setTimeout(function () {
+                                var canvasEl = document.getElementById(canvasId);
+                                if (canvasEl && !chartInstance) {
+                                    renderChart(canvasEl, currentData);
+                                }
+                            }, 400);
+                        }
+                    });
+
+                    return oCard;
+                },
                 statusBarText: function (msg, blink, blinkTime, showtoast) {
 
                     if (Util.nvl(msg, "") != "")

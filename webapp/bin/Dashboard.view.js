@@ -994,7 +994,13 @@ sap.ui.jsview('bin.Dashboard', {
                                 showTitle: true,
                             }),
                             // hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
-                            hbox: new sap.m.HBox({ wrap: sap.m.FlexWrap.Wrap,  gap: "1rem",    alignItems: "Start" }).addStyleClass("paddingTinyBot")
+                            hbox: new sap.m.HBox({
+                                wrap: sap.m.FlexWrap.Wrap,
+                                width: "100%",
+                                justifyContent: sap.m.FlexJustifyContent.SpaceAround,
+                                alignItems: sap.ui.core.TextAlign.Center
+                            }).addStyleClass("paddingTinyBot")
+                            // hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
                             // hbox: new sap.ui.layout.Grid({
                             //     vSpacing: 1,
                             //     hSpacing: 1,
@@ -1027,7 +1033,7 @@ sap.ui.jsview('bin.Dashboard', {
                                     press: function (ev) {
                                         that.tileExe(that);
                                     }
-                                }).addStyleClass("sapUiTinyMarginBegin sapUiTinyMarginTop")
+                                })
                         };
 
                         if (Util.nvl(dtxM[i].CONTENT_JS, "").length > 0)
@@ -1039,7 +1045,7 @@ sap.ui.jsview('bin.Dashboard', {
                         ;
 
                         secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj["dtx"] = dtxM[i];
-                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj.addStyleClass("mytilex");
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj.addStyleClass("dbTileMargin");
                         if (secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.getItems().length == 0)
                             secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj.addBlock(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox);
 
