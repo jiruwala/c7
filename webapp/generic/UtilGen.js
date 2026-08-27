@@ -5335,7 +5335,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                     if (typeof loadData === "function") {
                         isLoading = true;
-                        oGrid.addItem(new sap.m.BusyIndicator({ size: "1rem" }));
+                        oGrid.addItem(new sap.m.BusyIndicator({ size: ".5rem" }));
                         setTimeout(function () {
                             loadData().then(function (result) {
                                 if (result.rows) currentRows = result.rows.slice();
@@ -5440,20 +5440,23 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var initialData = config.data || [];
                     var cardWidth = sett.width || "100%";
                     var cardHeight = sett.height || "auto";
+                    var minHeight = sett.minHeight || "200px";
 
                     // --- Internal state ---
                     var currentData = initialData.slice();
                     var currentSettings = {
                         width: cardWidth,
                         height: cardHeight,
+                        minHeight: minHeight,
                         showSettings: sett.showSettings !== undefined ? sett.showSettings : true,
                         onSettings: sett.onSettings || null
                     };
                     var isLoading = false;
                     var chartInstance = null;
                     var canvasId = "chartCanvas_" + name + "_" + (++_chartIdCounter) + "_" + Date.now();
+                    var resizeHandlerId = null;
 
-                    // --- Load Chart.js dynamically ---
+                    // --- Load Chart.js ---
                     function loadChartJSLibrary() {
                         return new Promise(function (resolve, reject) {
                             if (typeof Chart !== 'undefined') {
@@ -5468,7 +5471,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         });
                     }
 
-                    // --- Build chart data for Chart.js ---
+                    // --- Build chart data ---
                     function buildChartData(data) {
                         var categories = data.map(function (item) { return item[categoryAxis]; });
                         var values = data.map(function (item) { return item[valueAxis]; });
@@ -5490,7 +5493,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         };
                     }
 
-                    // --- Render chart with dual click handling ---
+                    // --- Render chart ---
                     function renderChart(canvasEl, data) {
                         if (chartInstance) {
                             chartInstance.destroy();
@@ -5498,7 +5501,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }
                         if (!canvasEl) return;
 
-                        // Remove old native listener if any
+                        // Remove old click listener
                         if (canvasEl._clickListener) {
                             canvasEl.removeEventListener('click', canvasEl._clickListener);
                             canvasEl._clickListener = null;
@@ -5524,18 +5527,17 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                         chartInstance = new Chart(ctx, configChart);
 
-                        // --- Method 1: Native click listener (most reliable) ---
+                        // Click handler
                         if (typeof clickHandler === "function") {
                             var clickListener = function (event) {
                                 if (!chartInstance) return;
-                                // Get elements at click position
                                 var elements = chartInstance.getElementsAtEventForMode(
                                     event,
                                     'index',
                                     { intersect: true }
                                 );
                                 if (elements.length > 0) {
-                                    var index = elements[0]._index;
+                                    var index = elements[0].index;
                                     if (data && data[index]) {
                                         clickHandler(data[index], event);
                                     }
@@ -5544,7 +5546,6 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             canvasEl.addEventListener('click', clickListener);
                             canvasEl._clickListener = clickListener;
 
-                            // --- Method 2: Chart.js built-in onClick (fallback) ---
                             chartInstance.options.onClick = function (event, elements) {
                                 if (elements.length > 0) {
                                     var index = elements[0].index;
@@ -5553,11 +5554,32 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     }
                                 }
                             };
-                            chartInstance.update(); // apply the new onClick option
+                            chartInstance.update();
+                        }
+
+                        // Force resize after a short delay to adapt to container size
+                        setTimeout(function () {
+                            if (chartInstance) {
+                                chartInstance.resize();
+                            }
+                        }, 150);
+                    }
+
+                    // --- Resize chart – always re-render ---
+                    function resizeChart() {
+                        if (!chartInstance) return;
+                        var data = currentData;
+                        if (data && data.length > 0) {
+                            chartInstance.destroy();
+                            chartInstance = null;
+                            var canvasEl = document.getElementById(canvasId);
+                            if (canvasEl) {
+                                renderChart(canvasEl, data);
+                            }
                         }
                     }
 
-                    // --- Build header bar ---
+                    // --- Build header ---
                     function buildHeader() {
                         var oHeader = new sap.m.HBox({
                             width: "100%",
@@ -5578,14 +5600,18 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 }).addStyleClass("sapUiTinyMarginBegin") : null
                             ].filter(item => item !== null)
                         }).addStyleClass("cardHeaderBar");
+                        // Header should not grow
+                        oHeader.setLayoutData(new sap.m.FlexItemData({
+                            growFactor: 0
+                        }));
                         return oHeader;
                     }
 
-                    // --- Build chart container (VBox with canvas) ---
+                    // --- Build chart container (VBox that holds the canvas) ---
                     function buildChartContainer(data) {
                         var oContainer = new sap.m.VBox({
                             width: "100%",
-                            height: "100%",
+                            height: "100%",          // fill the remaining space
                             alignItems: "Center",
                             justifyContent: "Center"
                         });
@@ -5595,9 +5621,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             return oContainer;
                         }
 
-                        // IMPORTANT: pointer-events:auto ensures the canvas receives clicks
+                        // If height is "auto", use minHeight; else let container fill
+                        var canvasStyle = 'width:100%;height:100%;pointer-events:auto;cursor:pointer;';
+                        if (currentSettings.height === "auto" || currentSettings.height === "") {
+                            canvasStyle += 'min-height:' + currentSettings.minHeight + ';';
+                        }
+
                         var oCanvas = new sap.ui.core.HTML({
-                            content: '<canvas id="' + canvasId + '" style="width:100%;height:100%;pointer-events:auto;cursor:pointer;"></canvas>',
+                            content: '<canvas id="' + canvasId + '" style="' + canvasStyle + '"></canvas>',
                             width: "100%",
                             height: "100%"
                         });
@@ -5605,38 +5636,65 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         oContainer._canvasId = canvasId;
                         oContainer._data = data;
 
+                        // Container should grow to fill available space
+                        oContainer.setLayoutData(new sap.m.FlexItemData({
+                            growFactor: 1
+                        }));
+
                         return oContainer;
                     }
 
                     // --- Initial construction ---
                     var oHeader = buildHeader();
                     var oChartContainer = new sap.m.VBox({ width: "100%", height: "100%" });
+                    oChartContainer.setLayoutData(new sap.m.FlexItemData({ growFactor: 1 }));
 
-                    // Load Chart.js, then build chart
+                    var oCard = new sap.m.VBox({
+                        width: currentSettings.width,
+                        height: currentSettings.height,   // fixed height or "auto"
+                        alignItems: "Stretch",
+                        items: [oHeader, oChartContainer]
+                    }).addStyleClass("gaugeCard chartCard");
+
+                    // Load Chart.js and data
                     loadChartJSLibrary().then(function () {
                         if (typeof loadData === "function") {
                             isLoading = true;
-                            oChartContainer.addItem(new sap.m.BusyIndicator({ size: "2rem" }));
+                            var busyContainer = new sap.m.VBox({
+                                width: "100%",
+                                height: "100%",
+                                alignItems: "Center",
+                                justifyContent: "Center",
+                                items: [new sap.m.BusyIndicator({ size: "2rem" })]
+                            });
+                            busyContainer.setLayoutData(new sap.m.FlexItemData({ growFactor: 1 }));
+                            oCard.removeItem(oChartContainer);
+                            oCard.addItem(busyContainer);
+                            oChartContainer = busyContainer;
+
                             loadData().then(function (data) {
                                 currentData = data.slice();
                                 isLoading = false;
-                                var oldContainer = oCard.getItems()[1];
                                 var newContainer = buildChartContainer(currentData);
-                                oCard.removeItem(oldContainer);
+                                oCard.removeItem(busyContainer);
                                 oCard.addItem(newContainer);
-                                oldContainer.destroy();
+                                oChartContainer = newContainer;
                                 setTimeout(function () {
                                     var canvasEl = document.getElementById(canvasId);
                                     if (canvasEl) renderChart(canvasEl, currentData);
                                 }, 200);
                             }).catch(function (err) {
                                 sap.m.MessageToast.show("Error loading chart data: " + err.message);
-                                oChartContainer.destroyItems();
-                                oChartContainer.addItem(new sap.m.Text({ text: "Error loading data" }));
+                                oCard.removeItem(oChartContainer);
+                                var errText = new sap.m.Text({ text: "Error loading data" });
+                                errText.setLayoutData(new sap.m.FlexItemData({ growFactor: 1 }));
+                                oCard.addItem(errText);
                             });
                         } else {
                             var container = buildChartContainer(currentData);
-                            oChartContainer.addItem(container);
+                            oCard.removeItem(oChartContainer);
+                            oCard.addItem(container);
+                            oChartContainer = container;
                             setTimeout(function () {
                                 var canvasEl = document.getElementById(canvasId);
                                 if (canvasEl) renderChart(canvasEl, currentData);
@@ -5644,15 +5702,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         }
                     }).catch(function (err) {
                         sap.m.MessageToast.show("Failed to load Chart.js: " + err.message);
-                        oChartContainer.addItem(new sap.m.Text({ text: "Chart library not loaded" }));
+                        oCard.removeItem(oChartContainer);
+                        var errText = new sap.m.Text({ text: "Chart library not loaded" });
+                        errText.setLayoutData(new sap.m.FlexItemData({ growFactor: 1 }));
+                        oCard.addItem(errText);
                     });
-
-                    var oCard = new sap.m.VBox({
-                        width: currentSettings.width,
-                        height: currentSettings.height,
-                        alignItems: "Center",
-                        items: [oHeader, oChartContainer]
-                    }).addStyleClass("gaugeCard chartCard");
 
                     // --- Update methods ---
                     oCard.updateData = function (newData) {
@@ -5674,6 +5728,9 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 currentSettings[key] = newSettings[key];
                             }
                         }
+                        // Apply new width/height immediately
+                        oCard.setWidth(currentSettings.width);
+                        oCard.setHeight(currentSettings.height);
                         var oldHeader = oCard.getItems()[0];
                         var oldContainer = oCard.getItems()[1];
                         var newHeader = buildHeader();
@@ -5699,6 +5756,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 }
                             }
                         }
+                        oCard.setWidth(currentSettings.width);
+                        oCard.setHeight(currentSettings.height);
                         var oldHeader = oCard.getItems()[0];
                         var oldContainer = oCard.getItems()[1];
                         var newHeader = buildHeader();
@@ -5719,18 +5778,409 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     oCard.getSettings = function () { return currentSettings; };
                     oCard.isLoading = function () { return isLoading; };
 
-                    // Auto-render after rendering
+                    // --- Lifecycle events ---
                     oCard.addEventDelegate({
                         onAfterRendering: function () {
                             setTimeout(function () {
                                 var canvasEl = document.getElementById(canvasId);
-                                if (canvasEl && !chartInstance) {
-                                    renderChart(canvasEl, currentData);
+                                if (canvasEl) {
+                                    if (chartInstance) {
+                                        resizeChart();
+                                    } else if (currentData && currentData.length > 0) {
+                                        renderChart(canvasEl, currentData);
+                                    }
                                 }
-                            }, 400);
+                            }, 300);
+                        },
+                        onExit: function () {
+                            if (resizeHandlerId) {
+                                sap.ui.core.ResizeHandler.deregister(resizeHandlerId);
+                                resizeHandlerId = null;
+                            }
+                            var canvasEl = document.getElementById(canvasId);
+                            if (canvasEl && canvasEl._clickListener) {
+                                canvasEl.removeEventListener('click', canvasEl._clickListener);
+                            }
+                            if (chartInstance) {
+                                chartInstance.destroy();
+                                chartInstance = null;
+                            }
                         }
                     });
 
+                    // --- Resize handler on the card's DOM element ---
+                    oCard.addEventDelegate({
+                        onAfterRendering: function () {
+                            var domRef = oCard.getDomRef();
+                            if (domRef && sap.ui.core.ResizeHandler) {
+                                if (resizeHandlerId) {
+                                    sap.ui.core.ResizeHandler.deregister(resizeHandlerId);
+                                }
+                                resizeHandlerId = sap.ui.core.ResizeHandler.register(domRef, function () {
+                                    clearTimeout(this._resizeTimer);
+                                    this._resizeTimer = setTimeout(function () {
+                                        resizeChart();
+                                    }, 100);
+                                }.bind(this));
+                            }
+                        }
+                    });
+
+                    return oCard;
+                },
+                createTableCard: function (config) {
+                    var sett = config.settings || {};
+                    var title = config.title || "Table";
+                    var queryView = config.queryView || null;
+                    var loadData = config.loadData || null;
+                    var columnWidths = config.columnWidths || {};
+                    var wrapText = config.wrapText || false;
+                    var rowClickHandler = config.rowClickHandler || null;
+                    var cardWidth = sett.width || "100%";
+                    var cardHeight = sett.height || "auto";
+                    var minHeight = sett.minHeight || "200px";
+                    var maxHeight = sett.maxHeight || "400px";
+                
+                    // --- Internal state ---
+                    var currentData = null;
+                    var currentSettings = {
+                        width: cardWidth,
+                        height: cardHeight,
+                        minHeight: minHeight,
+                        maxHeight: maxHeight,
+                        showSettings: sett.showSettings !== undefined ? sett.showSettings : true,
+                        onSettings: sett.onSettings || null
+                    };
+                    var isLoading = false;
+                    var tableContainerId = "tableContainer_" + (Date.now()) + "_" + Math.random().toString(36).substr(2, 6);
+                
+                    // --- Helper: Format a cell value based on column properties ---
+                    function formatCellValue(value, col) {
+                        if (value === null || value === undefined) return "";
+                        var fmt = col.mUIHelper.display_format;
+                        var dataType = col.mUIHelper.data_type;
+                        var sett = sap.ui.getCore().getModel("settings").getData();
+                
+                        if (dataType === "NUMBER") {
+                            if (fmt === "MONEY_FORMAT") {
+                                var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
+                                return df.format(value);
+                            } else if (fmt === "QTY_FORMAT") {
+                                var df = new DecimalFormat(sett["FORMAT_QTY_1"]);
+                                return df.format(value);
+                            } else if (fmt && fmt !== "NONE") {
+                                try {
+                                    var df = new DecimalFormat(fmt);
+                                    return df.format(value);
+                                } catch (e) { /* ignore */ }
+                            }
+                            return value.toString();
+                        } else if (dataType === "DATE") {
+                            if (fmt === "SHORT_DATE_FORMAT") {
+                                var sdf = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+                                if (value instanceof Date) return sdf.format(value);
+                                try { return sdf.format(new Date(value)); } catch (e) { return value; }
+                            } else if (fmt) {
+                                try {
+                                    var sdf = new simpleDateFormat(fmt);
+                                    if (value instanceof Date) return sdf.format(value);
+                                    try { return sdf.format(new Date(value)); } catch (e) { return value; }
+                                } catch (e) { /* ignore */ }
+                            }
+                            return value.toString();
+                        } else {
+                            return value;
+                        }
+                    }
+                
+                    // --- Helper: Build table HTML from LocalTableData ---
+                    function buildTableHTML(lctb) {
+                        if (!lctb || lctb.cols.length === 0 || lctb.rows.length === 0) {
+                            return "<p>No data</p>";
+                        }
+                
+                        // Start table with fixed layout to enforce column widths
+                        var html = '<table class="tableCardTable" style="width:100%;table-layout:fixed;border-collapse:collapse;">';
+                        // Header
+                        html += '<thead><tr>';
+                        lctb.cols.forEach(function(col) {
+                            if (col.mHideCol) return;
+                            var width = columnWidths[col.mColName] || col.mUIHelper.display_width || "auto";
+                            if (typeof width === "number") width = width + "%";
+                            // If width is a string like "10%", keep it; else if it's a number, we already appended "%"
+                            var title = Util.getLangCaption(col.mTitle) || col.mColName;
+                            var align = col.mUIHelper.display_align || "left";
+                            html += '<th style="width:' + width + ';min-width:' + width + ';max-width:' + width + ';text-align:' + align + ';overflow:hidden;text-overflow:ellipsis;" title="' + title + '">' + title + '</th>';
+                        });
+                        html += '</tr></thead>';
+                
+                        // Body
+                        html += '<tbody>';
+                        lctb.rows.forEach(function(row, rowIndex) {
+                            html += '<tr data-row="' + rowIndex + '">';
+                            lctb.cols.forEach(function(col) {
+                                if (col.mHideCol) return;
+                                var value = row.cells[lctb.getColPos(col.mColName)].getValue();
+                                var displayValue = formatCellValue(value, col);
+                                var align = col.mUIHelper.display_align || "left";
+                                var shouldWrap = (columnWidths[col.mColName] && columnWidths[col.mColName].wrap) || wrapText;
+                                var style = 'text-align:' + align + ';';
+                                if (!shouldWrap) {
+                                    style += 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                                } else {
+                                    style += 'white-space:normal;word-wrap:break-word;';
+                                }
+                                // Also set width on td to match th
+                                var width = columnWidths[col.mColName] || col.mUIHelper.display_width || "auto";
+                                if (typeof width === "number") width = width + "%";
+                                style += 'width:' + width + ';min-width:' + width + ';max-width:' + width + ';';
+                                var titleAttr = '';
+                                if (!shouldWrap && displayValue.length > 50) {
+                                    titleAttr = ' title="' + Util.htmlEntities(displayValue) + '"';
+                                }
+                                html += '<td style="' + style + '"' + titleAttr + '>' + Util.htmlEntities(displayValue) + '</td>';
+                            });
+                            html += '</tr>';
+                        });
+                        html += '</tbody>';
+                
+                        // --- Summary row (if any column has mSummary === "SUM") ---
+                        var hasSummary = false;
+                        lctb.cols.forEach(function(col) {
+                            if (col.mSummary === "SUM" && !col.mHideCol) hasSummary = true;
+                        });
+                        if (hasSummary) {
+                            html += '<tfoot><tr>';
+                            lctb.cols.forEach(function(col, idx) {
+                                if (col.mHideCol) return;
+                                if (col.mSummary === "SUM") {
+                                    var sum = 0;
+                                    lctb.rows.forEach(function(row) {
+                                        var val = row.cells[idx].getValue();
+                                        if (typeof val === "number") sum += val;
+                                    });
+                                    var displaySum = formatCellValue(sum, col);
+                                    var align = col.mUIHelper.display_align || "left";
+                                    var width = columnWidths[col.mColName] || col.mUIHelper.display_width || "auto";
+                                    if (typeof width === "number") width = width + "%";
+                                    html += '<td style="text-align:' + align + ';font-weight:bold;border-top:2px solid #ccc;width:' + width + ';min-width:' + width + ';max-width:' + width + ';">' + Util.htmlEntities(displaySum) + '</td>';
+                                } else {
+                                    var width = columnWidths[col.mColName] || col.mUIHelper.display_width || "auto";
+                                    if (typeof width === "number") width = width + "%";
+                                    html += '<td style="width:' + width + ';min-width:' + width + ';max-width:' + width + ';"></td>';
+                                }
+                            });
+                            html += '</tr></tfoot>';
+                        }
+                
+                        html += '</table>';
+                        return html;
+                    }
+                
+                    // --- Render table into ScrollContainer ---
+                    function renderTable(container, lctb) {
+                        container.destroyContent();
+                        var htmlContent = buildTableHTML(lctb);
+                        var oHTML = new sap.ui.core.HTML({
+                            content: htmlContent,
+                            width: "100%",
+                            height: "100%"
+                        });
+                        oHTML.addStyleClass("tableCardHTML");
+                        container.addContent(oHTML);
+                        attachRowClick(container);
+                    }
+                
+                    // --- Attach row click handler ---
+                    function attachRowClick(container) {
+                        if (typeof rowClickHandler !== "function") return;
+                        setTimeout(function() {
+                            var domRef = container.getDomRef();
+                            if (!domRef) return;
+                            var $table = $(domRef).find("table");
+                            if ($table.length === 0) return;
+                            $table.off("click", "tr").on("click", "tr", function(e) {
+                                var $row = $(this);
+                                var rowIndex = $row.data("row");
+                                if (rowIndex === undefined) return;
+                                var rowData = {};
+                                var lctb = container._lctb;
+                                if (lctb) {
+                                    lctb.cols.forEach(function(col) {
+                                        if (col.mHideCol) return;
+                                        rowData[col.mColName] = lctb.getFieldValue(rowIndex, col.mColName);
+                                    });
+                                }
+                                rowClickHandler(rowData, e, rowIndex);
+                            });
+                        }, 100);
+                    }
+                
+                    // --- Build header ---
+                    function buildHeader() {
+                        var oHeader = new sap.m.HBox({
+                            width: "100%",
+                            alignItems: "Center",
+                            justifyContent: "SpaceBetween",
+                            items: [
+                                new sap.m.Text({ text: Util.getLangText(title) }).addStyleClass("cardTitle"),
+                                currentSettings.showSettings ? new sap.m.Button({
+                                    icon: "sap-icon://settings",
+                                    tooltip: "Change parameters",
+                                    press: function () {
+                                        if (typeof currentSettings.onSettings === "function") {
+                                            currentSettings.onSettings(oCard, currentData, currentSettings);
+                                        } else {
+                                            sap.m.MessageToast.show("No settings handler defined.");
+                                        }
+                                    }
+                                }).addStyleClass("sapUiTinyMarginBegin") : null
+                            ].filter(item => item !== null)
+                        }).addStyleClass("cardHeaderBar");
+                        oHeader.setLayoutData(new sap.m.FlexItemData({ growFactor: 0 }));
+                        return oHeader;
+                    }
+                
+                    // --- Build table container (ScrollContainer) ---
+                    function buildTableContainer(lctb) {
+                        var oContainer = new sap.m.ScrollContainer({
+                            width: "100%",
+                            height: "100%",
+                            vertical: true,
+                            horizontal: false
+                        });
+                        oContainer.setLayoutData(new sap.m.FlexItemData({ growFactor: 1 }));
+                        oContainer._lctb = lctb;
+                        return oContainer;
+                    }
+                
+                    // --- Initial construction ---
+                    var oHeader = buildHeader();
+                    var oTableContainer = buildTableContainer(null);
+                
+                    var oCard = new sap.m.VBox({
+                        width: currentSettings.width,
+                        height: currentSettings.height,
+                        alignItems: "Stretch",
+                        items: [oHeader, oTableContainer]
+                    }).addStyleClass("gaugeCard tableCard");
+                
+                    // --- Load data ---
+                    function loadTableData() {
+                        if (typeof loadData === "function") {
+                            isLoading = true;
+                            oTableContainer.destroyContent();
+                            oTableContainer.addContent(new sap.m.BusyIndicator({ size: ".25rem" }));
+                            loadData().then(function(result) {
+                                isLoading = false;
+                                var lctb = null;
+                                if (result instanceof QueryView) {
+                                    lctb = result.mLctb;
+                                } else if (result instanceof LocalTableData) {
+                                    lctb = result;
+                                } else {
+                                    throw new Error("loadData must return QueryView or LocalTableData");
+                                }
+                                currentData = lctb;
+                                oTableContainer._lctb = lctb;
+                                renderTable(oTableContainer, lctb);
+                            }).catch(function(err) {
+                                sap.m.MessageToast.show("Error loading table: " + err.message);
+                                oTableContainer.destroyContent();
+                                oTableContainer.addContent(new sap.m.Text({ text: "Error loading data" }));
+                            });
+                        } else if (queryView) {
+                            var lctb = queryView.mLctb;
+                            currentData = lctb;
+                            oTableContainer._lctb = lctb;
+                            renderTable(oTableContainer, lctb);
+                        } else {
+                            oTableContainer.destroyContent();
+                            oTableContainer.addContent(new sap.m.Text({ text: "No data provided" }));
+                        }
+                    }
+                
+                    loadTableData();
+                
+                    // --- Update methods ---
+                    oCard.updateData = function(newQVorLCTB) {
+                        var lctb = null;
+                        if (newQVorLCTB instanceof QueryView) {
+                            lctb = newQVorLCTB.mLctb;
+                        } else if (newQVorLCTB instanceof LocalTableData) {
+                            lctb = newQVorLCTB;
+                        } else {
+                            return;
+                        }
+                        currentData = lctb;
+                        oTableContainer._lctb = lctb;
+                        renderTable(oTableContainer, lctb);
+                    };
+                
+                    oCard.updateSettings = function(newSettings) {
+                        for (var key in newSettings) {
+                            if (newSettings.hasOwnProperty(key)) {
+                                currentSettings[key] = newSettings[key];
+                            }
+                        }
+                        oCard.setWidth(currentSettings.width);
+                        oCard.setHeight(currentSettings.height);
+                        var oldHeader = oCard.getItems()[0];
+                        var oldContainer = oCard.getItems()[1];
+                        var newHeader = buildHeader();
+                        var newContainer = buildTableContainer(currentData);
+                        oCard.removeItem(oldHeader);
+                        oCard.removeItem(oldContainer);
+                        oCard.addItem(newHeader);
+                        oCard.addItem(newContainer);
+                        oldHeader.destroy();
+                        oldContainer.destroy();
+                        if (currentData) {
+                            renderTable(newContainer, currentData);
+                        }
+                    };
+                
+                    oCard.updateCard = function(newQVorLCTB, newSettings) {
+                        if (newQVorLCTB) {
+                            var lctb = null;
+                            if (newQVorLCTB instanceof QueryView) {
+                                lctb = newQVorLCTB.mLctb;
+                            } else if (newQVorLCTB instanceof LocalTableData) {
+                                lctb = newQVorLCTB;
+                            }
+                            if (lctb) {
+                                currentData = lctb;
+                                oTableContainer._lctb = lctb;
+                            }
+                        }
+                        if (newSettings) {
+                            for (var key in newSettings) {
+                                if (newSettings.hasOwnProperty(key)) {
+                                    currentSettings[key] = newSettings[key];
+                                }
+                            }
+                        }
+                        oCard.setWidth(currentSettings.width);
+                        oCard.setHeight(currentSettings.height);
+                        var oldHeader = oCard.getItems()[0];
+                        var oldContainer = oCard.getItems()[1];
+                        var newHeader = buildHeader();
+                        var newContainer = buildTableContainer(currentData);
+                        oCard.removeItem(oldHeader);
+                        oCard.removeItem(oldContainer);
+                        oCard.addItem(newHeader);
+                        oCard.addItem(newContainer);
+                        oldHeader.destroy();
+                        oldContainer.destroy();
+                        if (currentData) {
+                            renderTable(newContainer, currentData);
+                        }
+                    };
+                
+                    oCard.getData = function() { return currentData; };
+                    oCard.getSettings = function() { return currentSettings; };
+                    oCard.isLoading = function() { return isLoading; };
+                
                     return oCard;
                 },
                 statusBarText: function (msg, blink, blinkTime, showtoast) {

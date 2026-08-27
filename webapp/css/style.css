@@ -206,7 +206,46 @@ iframe {
     height: 100%;
     min-height: 250px; /* ensures chart has room */
 }
-
+.tableCard {
+    /* Inherits .gaugeCard styles */
+    overflow: hidden;
+}
+.tableCard .sapUiHTML {
+    overflow: auto;
+    height: 100%;
+}
+.tableCard table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9rem;
+    border: none;
+}
+.tableCard table th,
+.tableCard table td {
+    border: none;
+    padding: 4px 8px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0; /* allows ellipsis */
+}
+.tableCard table th {
+    background-color: #0a6ed1;
+    color:lightyellow;
+    border-bottom: 1px solid #ddd;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.tableCard table tbody tr:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+.tableCard table tbody tr td {
+    border-bottom: 1px solid #f0f0f0;
+}
 .guagePanel {
     border-radius: 5px;
     text-align: center;
