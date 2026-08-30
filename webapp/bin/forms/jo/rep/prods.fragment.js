@@ -153,7 +153,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                                             qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
                                             // var r = UtilGen.dispTblRecsByDevice({ "S": 10, "M": 17, "L": 22, "XL": 30 });
                                             qr.getControl().setVisibleRowCount(10);
-                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 70, "M": 50, "L": 60, "XL": 30 });
+                                            qr.setAutoDispRecords(thatForm.mainPage, { "S": 45, "M": 55, "L": 60, "XL": 50 });
                                             qr.getControl().setRowHeight(18);
                                             qr.getControl().attachColumnResize(undefined, function (e) { e.preventDefault(); });
                                             qr.filterCols = [];
@@ -397,6 +397,23 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     require: false,
                     dispInPara: true,
                 },
+                showDetails: {
+                    colname: "showDetails",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"Show Details\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { selected: true, width: "5%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
             };
 
             return para;
@@ -408,6 +425,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
             var rt = thatForm.frm.getFieldValue("parameter.reptype");
+            var showDetails = thatForm.frm.getFieldValue("parameter.showDetails");
             var pStepType = thatForm.frm.objs["JOPROD1@parameter.pStepType"].obj;
             var reptype = thatForm.frm.getFieldValue("parameter.reptype");
             var pJoNO = thatForm.frm.getFieldValue("parameter.pJoNo");
@@ -434,10 +452,25 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                 FROM C7_V_PRODS where ord_flag!=3 :pJoNO  :repType :stepClause
                  and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate 
                     ORDER BY STEP_CODE,ORD_NO`;
+            if (showDetails == 'Y') {
+                sq = `SELECT ORD_REF,ORD_REFNM,ORD_NO,ORD_DATE,ITEM_DESCR,QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
+                        STEP_START,STEP_END,
+                        case when dlvp>='100%' and purp<'100%' then 'Ready' 
+                             when purp='100%' then 'Invoiced'
+                             when dlvp<'100%' and purp<'100%' then 'Process'
+                        end rec_stat,
+                        PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
+                            FROM C7_JO_PRODS where ord_flag!=3 :pJoNO  :repType :stepClause
+                             and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate 
+                                ORDER BY STEP_CODE,ORD_NO`;
+            }
+
             sq = sq.replaceAll(":pJoNO", pJoNOClause)
                 .replaceAll(":repType", repTypeClause)
                 .replaceAll(":stepClause", stepsclause);
             sq = thatForm.frm.parseString(sq);
+
+
             Util.doAjaxJson("bat7addQry?" + ps, {
                 sql: sq,
                 ret: "",
@@ -460,9 +493,17 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             var thatForm = this.thatForm;
             var that = this;
             var sett = sap.ui.getCore().getModel("settings").getData();
-            var stats = { 0: "-", 1: "◴", 2: "▶️", 3: "✔" }
+            var stats = { 0: "-", 1: "⚠️", 2: "⏰", 3: "✅" }
             var stepstats = {};
+            var showDetails = thatForm.frm.getFieldValue("parameter.showDetails");
             that.ld = undefined;
+            function moveElement(arr, fromIndex, toIndex) {
+                // Remove the element from its current position
+                const [element] = arr.splice(fromIndex, 1);
+                // Insert it into the new position
+                arr.splice(toIndex, 0, element);
+                return arr;
+            }
             Util.doAjaxJson("bat7getData", {
                 sql: "",
                 ret: "",
@@ -508,30 +549,20 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
 
                     ld.cols[ld.getColPos("STAT")].ct_val = "Y";
 
-                    /*
-                    ld.cols[ld.getColPos("CODE")].mTitle = Util.getLangText("txtCode");
-                    ld.cols[ld.getColPos("NAME")].ct_row = "Y";
-                    ld.cols[ld.getColPos("CODE")].mHideCol = true;
-                    ld.cols[ld.getColPos("NAME")].mTitle = Util.getLangText("titleTxt");
-                    ld.cols[ld.getColPos("PARENTACC")].ct_row = "Y";
-                    ld.cols[ld.getColPos("LEVELNO")].ct_row = "Y";
-                    ld.cols[ld.getColPos("CHILDCOUNT")].ct_row = "Y";
-
-                    ld.cols[ld.getColPos("MNTH_BAL")].ct_col = "Y";
-                    ld.cols[ld.getColPos("MNTH_BAL")].ct_col = "Y";
-
-                    ld.cols[ld.getColPos("AMOUNT")].ct_val = "Y";
-                    ld.cols[ld.getColPos("AMOUNT")].mSummary = "SUM";
-                    ld.cols[ld.getColPos("AMOUNT")].data_type = "number";
-                    ld.cols[ld.getColPos("AMOUNT")].mUIHelper.display_format = "MONEY_FORMAT";
-                    ld.cols[ld.getColPos("AMOUNT")].mUIHelper.display_width = "200";
-
-                    ld.cols[ld.getColPos("PARENTACC")].mHideCol = true;
-                    ld.cols[ld.getColPos("LEVELNO")].mHideCol = true;
-                    ld.cols[ld.getColPos("CHILDCOUNT")].mHideCol = true;
-                    */
-
-                    // ld.cols[ld.getColPos("CODE")].mUIHelper.display_width = "180";        
+                    //ITEM_DESCR,MATERIAL,PAYTERM,DLVP,PURP
+                    if (showDetails == 'Y') {
+                        ld.cols[ld.getColPos("ITEM_DESCR")].ct_row = "Y";
+                        ld.cols[ld.getColPos("PAYTERM")].ct_row = "Y";
+                        ld.cols[ld.getColPos("DLVP")].ct_row = "Y";
+                        ld.cols[ld.getColPos("PURP")].ct_row = "Y";
+                        ld.cols[ld.getColPos("EMP_NAME")].ct_row = "Y";
+                        ld.cols[ld.getColPos("QTY")].ct_row = "Y";
+                        ld.cols[ld.getColPos("REC_STAT")].ct_row = "Y";
+                        // ld.cols[ld.getColPos("STEP")].ct_row = "Y";
+                        ld.cols[ld.getColPos("MATERIAL")].ct_row = "Y";
+                        ld.cols[ld.getColPos("STEP_START")].ct_row = "Y";
+                        ld.cols[ld.getColPos("STEP_END")].ct_row = "Y";
+                    }
 
                     ld.parse("{" + dt.data + "}", true);
                     // mapping counts of steps
@@ -554,7 +585,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     var ld2 = qr.mLctb;
                     var itms = {};
                     var colsStat = [];
-                    var ditm = Util.execSQLWithData("select code,code||' '||descr descr from PORD_JO_STEPS_INFO order by code");
+                    var ditm = Util.execSQLWithData("select code,descr||' '||code descr from PORD_JO_STEPS_INFO order by code");
                     for (var di in ditm)
                         itms[ditm[di].CODE] = ditm[di].DESCR;
                     var fltcols = ["ORD_REF", "ORD_REFNM", "ORD_NO"];
@@ -562,7 +593,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         if (ld2.cols[li].mColName.endsWith("__STAT")) {
                             var cn = (ld2.cols[li].mColName).replaceAll("__STAT", "");
                             ld2.cols[li].mTitle = itms[cn];
-                            ld2.cols[li].mUIHelper.display_width = "70";
+                            ld2.cols[li].mUIHelper.display_width = showDetails == 'Y' ? 140 : "75";
                             ld2.cols[li].mUIHelper.display_align = "ALIGN_CENTER";
                             fltcols.push(ld2.cols[li].mColName);
                             colsStat.push(ld2.cols[li].mColName);
@@ -574,6 +605,43 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     ld2.cols[ld2.getColPos("ORD_NO")].mUIHelper.display_width = "75";
                     ld2.cols[ld2.getColPos("ORD_DATE")].mUIHelper.display_width = "90";
                     ld2.cols[ld2.getColPos("ORD_DATE")].mUIHelper.display_format = "SHORT_DATE_FORMAT";
+
+                    ld2.cols[ld2.getColPos("ORD_REF")].mTitle = Util.getLangText("txtCode");
+                    ld2.cols[ld2.getColPos("ORD_REFNM")].mTitle = Util.getLangText("txtName");
+                    ld2.cols[ld2.getColPos("ORD_DATE")].mTitle = Util.getLangText("ordDate");
+
+                    if (showDetails == "Y") {
+                        ld2.cols[ld2.getColPos("STEP_START")].mHideCol = true;
+                        ld2.cols[ld2.getColPos("STEP_END")].mHideCol = true;
+
+                        ld2.cols[ld.getColPos("ITEM_DESCR")].mUIHelper.display_width = "120";
+                        ld2.cols[ld.getColPos("PAYTERM")].mUIHelper.display_width = "100";
+                        ld2.cols[ld.getColPos("DLVP")].mUIHelper.display_width = "60";
+                        ld2.cols[ld.getColPos("PURP")].mUIHelper.display_width = "60";
+                        ld2.cols[ld.getColPos("MATERIAL")].mUIHelper.display_width = "90";
+                        ld2.cols[ld.getColPos("REC_STAT")].mUIHelper.display_width = "90";
+
+                        ld2.cols[ld.getColPos("ITEM_DESCR")].mTitle = Util.getLangText("descrTxt");
+                        ld2.cols[ld.getColPos("PAYTERM")].mTitle = Util.getLangText("Section");
+                        ld2.cols[ld.getColPos("DLVP")].mTitle = Util.getLangText("Dlv %");
+                        ld2.cols[ld.getColPos("PURP")].mTitle = Util.getLangText("Sold %");
+                        ld2.cols[ld.getColPos("MATERIAL")].mTitle = Util.getLangText("Material");
+
+                        ld2.cols[ld2.getColPos("QTY")].mUIHelper.display_width = "75";
+                        ld2.cols[ld2.getColPos("QTY")].mUIHelper.display_format = "QTY_FORMAT";
+
+                        ld2.cols[ld2.getColPos("EMP_NAME")].mUIHelper.display_width = "60";
+                        ld2.cols[ld2.getColPos("EMP_NAME")].mTitle = Util.getLangText("Emp");
+                        ld2.cols[ld2.getColPos("REC_STAT")].mTitle = Util.getLangText("Status");
+
+                        moveElement(ld2.cols, ld2.getColPos("EMP_NAME"), ld2.cols.length - 1);
+                        moveElement(ld2.cols, ld2.getColPos("DLVP"), ld2.cols.length - 1);
+                        moveElement(ld2.cols, ld2.getColPos("PURP"), ld2.cols.length - 1);
+                        moveElement(ld2.cols, ld2.getColPos("REC_STAT"), ld2.cols.length - 1);
+                        colsStat.push("DLVP");
+                        colsStat.push("PURP");
+
+                    }
                     ld2.cols[ld2.getColPos("ORD_NO")].commandLinkClick = function (obj) {
                         var tbl = obj.getParent().getParent();
                         var mdl = tbl.getModel();
@@ -590,7 +658,9 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
 
                     // following will replace status numbers with legends
 
-
+                    fltcols = [];
+                    for (var li = 0; li < ld2.cols.length; li++)
+                        fltcols.push(ld2.cols[li].mColName)
                     thatForm.frm.objs["JOPROD1@qry2"].filterCols = fltcols;
                     qr.showToolbar.filterCols = fltcols;
                     qr.mLctb.parse(dt2, true);
@@ -602,13 +672,34 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                             var cn = colsStat[ci].replaceAll("__STAT", "");;
                             var jostep = ld3.getFieldValue(li, "ORD_NO") + "-" + cn;
                             var vl = String(Util.nvl(stepstats[jostep], ""));
-                            if (Util.nvl(vl, "") != "") {
-                                vl = vl.replaceAll("0", "-")
-                                    .replaceAll("1", stats[1])
-                                    .replaceAll("2", stats[2])
-                                    .replaceAll("3", stats[3]);
-                            } else vl = "";
-                            ld3.setFieldValue(li, cn + "__STAT", vl);
+                            if ((cn == "DLVP" || cn == "PURP"))
+                                vl = ld3.getFieldValue(li, cn);
+                            if (showDetails != 'Y')
+                                if (Util.nvl(vl, "") != "") {
+                                    vl = vl.replaceAll("0", "-")
+                                        .replaceAll("1", "" + stats[1])
+                                        .replaceAll("2", "" + stats[2])
+                                        .replaceAll("3", "" + stats[3]);
+                                } else vl = ""; // if (Util.nvl(vl, "") != "") {
+                            else { //if (showDetails != 'Y')
+                                if ((cn == "DLVP" || cn == "PURP"))
+                                    vl = vl.trim() == "100%" ? stats[3] : vl;
+                                if (!(cn == "DLVP" || cn == "PURP")) { //if ((cn == "DLVP" || ....
+                                    var sdf = new simpleDateFormat("dd \(h:m");
+                                    var sdf2 = new simpleDateFormat("h:m )");
+                                    var std = "", etd = "";
+                                    if (Util.nvl(ld3.getFieldValue(li, "STEP_START"), "") != "")
+                                        std = sdf.format(new Date(ld3.getFieldValue(li, "STEP_START").replaceAll(".", ":")));
+                                    if (Util.nvl(ld3.getFieldValue(li, "STEP_END"), "") != "")
+                                        etd = sdf2.format(new Date(ld3.getFieldValue(li, "STEP_END").replaceAll(".", ":")));
+                                    else etd = stats[2] + ")";
+                                    vl = std + "-" + etd;
+                                }
+                            }
+                            if (!(cn == "DLVP" || cn == "PURP"))
+                                ld3.setFieldValue(li, cn + "__STAT", vl);
+                            else
+                                ld3.setFieldValue(li, cn, vl);
                         }
 
                     qr.loadData();
