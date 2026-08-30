@@ -5537,7 +5537,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                     { intersect: true }
                                 );
                                 if (elements.length > 0) {
-                                    var index = elements[0].index;
+                                    var index = elements[0]._index;
                                     if (data && data[index]) {
                                         clickHandler(data[index], event);
                                     }
@@ -6007,7 +6007,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 var lctb = container._lctb;
                                 if (lctb) {
                                     lctb.cols.forEach(function(col) {
-                                        if (col.mHideCol) return;
+                                        // if (col.mHideCol) return;
                                         rowData[col.mColName] = lctb.getFieldValue(rowIndex, col.mColName);
                                     });
                                 }
