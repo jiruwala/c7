@@ -238,6 +238,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         UtilGen.Search.getLOVSearchField("select name from c_ycust where code = :CODE ", qry.formview.objs["qry1.parent_cust"].obj, undefined, that.frm.objs["qry1._pname"].obj);
                         UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.revenue_ac"].obj, undefined, that.frm.objs["qry1._racname"].obj);
+                        UtilGen.Search.getLOVSearchField("select title name from accostcent1 where code = :CODE ", qry.formview.objs["qry1.costcent"].obj, undefined, that.frm.objs["qry1._ccname"].obj);
                         var cmdS = thatForm.frm.objs["qry1._cmdSearch"].obj;
                         cmdS.setEnabled(false);
                         UtilGen.Vouchers.attachLoadQry(thatForm, qry, 'cont1', thatForm.frm.getFieldValue("qry1.keyfld"));
@@ -740,7 +741,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 }),
                 //6
                 pay_no_1: FormView.getFactoryFields.getGeneralField(
-                    "pay_no_1", "", "txtPayNo1", "15%", "", "10%",
+                    "pay_no_1", "", "txtPayNo1", "15%", "", "13%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -752,7 +753,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     }
                 }),
                 pay_no_2: FormView.getFactoryFields.getGeneralField(
-                    "pay_no_2", "@", "txtPayNo2", "10%", "", "15%",
+                    "pay_no_2", "@", "txtPayNo2", "10%", "", "12%",
                     {
                         require: false,
                         edit_allowed: true,
@@ -834,6 +835,29 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                     }
                 }),
+                costcent: FormView.getFactoryFields.getGeneralField(
+                    "costcent", "", "costCent", "65%", "", "12%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true
+                    }, FormView.getFactoryFields.getSettingsGeneral({
+                        thatForm: thatForm,
+                        code: Util.nvl("qry1.costcent"),
+                        name: Util.nvl("qry1._ccname"),
+                        sqlChange: "select title name from accostcent1 where  code = ':CODE'",
+                        sqlList: "select code,title from accostcent1 order by code ",
+                        sqlListChange: "select code,title from accostcent1 where code=:CODE",
+                    })),
+                _ccname: FormView.getFactoryFields.getGeneralField(
+                    "_ccname", "@", "", "0px", "", "23%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: false,
+                        keyboardFocus: false,
+                    }, {}),
+
             };
         },
         getList: function () {
