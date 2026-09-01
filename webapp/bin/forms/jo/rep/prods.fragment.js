@@ -429,6 +429,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             var pStepType = thatForm.frm.objs["JOPROD1@parameter.pStepType"].obj;
             var reptype = thatForm.frm.getFieldValue("parameter.reptype");
             var pJoNO = thatForm.frm.getFieldValue("parameter.pJoNo");
+            var sett = sap.ui.getCore().getModel("settings").getData();
             // "@all/Open JOs,pending/Only Pending Production,started_steps/Started Prods",
             var repCond = {
                 "all": "",
@@ -454,7 +455,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     ORDER BY STEP_CODE,ORD_NO`;
             if (showDetails == 'Y') {
                 sq = `SELECT ORD_REF,ORD_REFNM,ORD_NO,ORD_DATE,ITEM_DESCR,QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
-                        STEP_START,STEP_END,
+                        STEP_START,STEP_END,ord_shpdt,
                         case when dlvp>='100%' and purp<'100%' then 'Ready' 
                              when purp='100%' then 'Invoiced'
                              when dlvp<'100%' and purp<'100%' then 'Process'
@@ -562,6 +563,9 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         ld.cols[ld.getColPos("MATERIAL")].ct_row = "Y";
                         ld.cols[ld.getColPos("STEP_START")].ct_row = "Y";
                         ld.cols[ld.getColPos("STEP_END")].ct_row = "Y";
+                        ld.cols[ld.getColPos("ORD_SHPDT")].ct_row = "Y";
+
+
                     }
 
                     ld.parse("{" + dt.data + "}", true);
@@ -633,7 +637,12 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         ld2.cols[ld2.getColPos("EMP_NAME")].mUIHelper.display_width = "60";
                         ld2.cols[ld2.getColPos("EMP_NAME")].mTitle = Util.getLangText("Emp");
                         ld2.cols[ld2.getColPos("REC_STAT")].mTitle = Util.getLangText("Status");
+                        ld2.cols[ld2.getColPos("ORD_SHPDT")].mUIHelper.display_width = "90";
 
+                        ld2.cols[ld2.getColPos("ORD_SHPDT")].mUIHelper.display_format = "SHORT_DATE_FORMAT";
+                        ld2.cols[ld2.getColPos("ORD_SHPDT")].mTitle = Util.getLangText("dueDate");
+
+                        moveElement(ld2.cols, ld2.getColPos("ORD_SHPDT"), ld2.cols.length - 1);
                         moveElement(ld2.cols, ld2.getColPos("EMP_NAME"), ld2.cols.length - 1);
                         moveElement(ld2.cols, ld2.getColPos("DLVP"), ld2.cols.length - 1);
                         moveElement(ld2.cols, ld2.getColPos("PURP"), ld2.cols.length - 1);
@@ -654,8 +663,37 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         });
                     };
 
+                    qr.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
+                        var oModel = this.getControl().getModel();
+                        var dd = showDetails == 'Y' ? oModel.getProperty("ORD_SHPDT", currentRowContext) : undefined;
+                        var todt = thatForm.frm.getFieldValue("parameter.todate");
+                        var purp = Util.extractNumber(oModel.getProperty("PURP", currentRowContext));
+                        var dlvp = Util.extractNumber(oModel.getProperty("DLVP", currentRowContext));
+                        var flg = Util.extractNumber(oModel.getProperty("ORD_FLAG", currentRowContext));
+                        var doRender = function (clr, bkclr) {
+                            for (var i = startCell; i < endCell; i++) {
+                                if (clr != "") {
+                                    qr.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", clr);
+                                    qr.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("color", clr);
+                                }
+                                if (bkclr != "") {
+                                    qr.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("background-color", bkclr);
+                                    qr.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", bkclr);
+                                }
 
+                            }
 
+                        }
+                        if (!dd) return;
+                        var dd2 = Util.parseDate(dd, sett["ENGLISH_DATE_FORMAT"]);
+                        if (purp < 100) {
+                            if (todt.getTime() >= dd2.getTime())
+                                doRender("white", "red");
+                            else if (todt.getTime() > (dd2.getTime() - 86400000))
+                                doRender("white", "orange");
+                        } else
+                            doRender("green", "white");
+                    };
                     // following will replace status numbers with legends
 
                     fltcols = [];

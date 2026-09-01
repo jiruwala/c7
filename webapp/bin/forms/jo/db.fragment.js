@@ -617,8 +617,9 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 var flg = Util.extractNumber(oModel.getProperty("ORD_FLAG", currentRowContext));
                 var purp = Util.extractNumber(oModel.getProperty("PURP", currentRowContext));
                 var dlvp = Util.extractNumber(oModel.getProperty("DLVP", currentRowContext));
-
-                var dt = Util.extractNumber(oModel.getProperty("JO_ACTIVE_FROM", currentRowContext));
+                var dd = oModel.getProperty("DUEDATE", currentRowContext);
+                var dt = oModel.getProperty("JO_ACTIVE_FROM", currentRowContext);
+                var todt = UtilGen.DBView.today_date.getDateValue();
                 var st1 = oModel.getProperty("ACTION_STATUS", currentRowContext);
                 var doRender = function (clr, bkclr) {
                     for (var i = startCell; i < endCell; i++) {
@@ -634,6 +635,10 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                     }
 
                 }
+                // if (!dd) return;
+
+                var dd2 = Util.parseDate(dd, "dd/MM/yy");
+
                 if (flg == 2 && Util.nvl(st1, "") != "Pending")
                     doRender("darkblue", "lightgreen");
                 if (flg == 2 && Util.nvl(st1, "") == "Pending")
@@ -649,6 +654,11 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                     doRender("lightblue", "#008080");
                 if (dlvp > 0 && purp < dlvp)
                     doRender("lightblue", "#5f9ea0");
+
+                if (purp < 100 && flg == 2 && (todt.getTime() >= (dd2.getTime() - 86400000)))
+                    doRender("white", "orange");
+                if (purp < 100 && flg == 2 && (todt.getTime() >= dd2.getTime()))
+                    doRender("white", "red");
 
 
 
