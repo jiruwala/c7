@@ -454,8 +454,8 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                  and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate 
                     ORDER BY STEP_CODE,ORD_NO`;
             if (showDetails == 'Y') {
-                sq = `SELECT ORD_REF,ORD_REFNM,ORD_NO,ORD_DATE,ITEM_DESCR,QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
-                        STEP_START,STEP_END,ord_shpdt,
+                sq = `SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
+                        STEP_START,STEP_END,
                         case when dlvp>='100%' and purp<'100%' then 'Ready' 
                              when purp='100%' then 'Invoiced'
                              when dlvp<'100%' and purp<'100%' then 'Process'
@@ -642,7 +642,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         ld2.cols[ld2.getColPos("ORD_SHPDT")].mUIHelper.display_format = "SHORT_DATE_FORMAT";
                         ld2.cols[ld2.getColPos("ORD_SHPDT")].mTitle = Util.getLangText("dueDate");
 
-                        moveElement(ld2.cols, ld2.getColPos("ORD_SHPDT"), ld2.cols.length - 1);
+                        // moveElement(ld2.cols, ld2.getColPos("ORD_SHPDT"), ld2.cols.length - 1);
                         moveElement(ld2.cols, ld2.getColPos("EMP_NAME"), ld2.cols.length - 1);
                         moveElement(ld2.cols, ld2.getColPos("DLVP"), ld2.cols.length - 1);
                         moveElement(ld2.cols, ld2.getColPos("PURP"), ld2.cols.length - 1);
@@ -670,29 +670,44 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         var purp = Util.extractNumber(oModel.getProperty("PURP", currentRowContext));
                         var dlvp = Util.extractNumber(oModel.getProperty("DLVP", currentRowContext));
                         var flg = Util.extractNumber(oModel.getProperty("ORD_FLAG", currentRowContext));
-                        var doRender = function (clr, bkclr) {
-                            for (var i = startCell; i < endCell; i++) {
-                                if (clr != "") {
-                                    qr.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", clr);
-                                    qr.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("color", clr);
-                                }
-                                if (bkclr != "") {
-                                    qr.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("background-color", bkclr);
-                                    qr.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", bkclr);
-                                }
-
-                            }
-
+                var doRender = function (clr, bkclr, colname, tbl) {
+                    if (colname && tbl) {
+                        if (clr) {
+                            UtilGen.getTableColNo(tbl, "KEYFLD")
+                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().css("color", clr);
+                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().parent().parent().css("color", clr);
                         }
+                        if (bkclr) {
+                            UtilGen.getTableColNo(tbl, "KEYFLD")
+                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().css("background-color", bkclr);
+                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().parent().parent().css("background-color", bkclr);
+                        }
+
+                        return;
+                    }
+
+                    for (var i = startCell; i < endCell; i++) {
+                        if (clr != "") {
+                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", clr);
+                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("color", clr);
+                        }
+                        if (bkclr != "") {
+                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("background-color", bkclr);
+                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", bkclr);
+                        }
+
+                    }
+
+                }
                         if (!dd) return;
                         var dd2 = Util.parseDate(dd, sett["ENGLISH_DATE_FORMAT"]);
                         if (purp < 100) {
                             if (todt.getTime() >= dd2.getTime())
-                                doRender("white", "red");
+                                doRender("white", "red","ORD_SHPDT",qv.getControl());
                             else if (todt.getTime() > (dd2.getTime() - 86400000))
-                                doRender("white", "orange");
+                                doRender("white", "red","ORD_SHPDT",qv.getControl());
                         } else
-                            doRender("green", "white");
+                            doRender("white", "green");
                     };
                     // following will replace status numbers with legends
 

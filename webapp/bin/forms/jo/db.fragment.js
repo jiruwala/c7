@@ -70,6 +70,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         qr.getControl().setFixedBottomRowCount(1);
         qr.getControl().setVisibleRowCountMode(sap.ui.table.VisibleRowCountMode.Fixed);
         qr.getControl().setVisibleRowCount(recs);
+        qr.getControl().setFixedColumnCount(3);
         var filtercol = ["ORD_NO", "ACTION_STATUS", "STATUS1", "INVOICE_NO", "ORD_DATE", "TYPEDESCR", "ORD_REF", "ORD_REFNM", "ADD_AMT", "DISC_AMT", "ORD_AMT", "NET_AMT", "DISC_AMT", "PURP", "DLVP"]
         UtilGen.createDefaultToolbar2(qr, filtercol, false);
         qr.insertable = false;
@@ -463,12 +464,13 @@ sap.ui.jsfragment("bin.forms.jo.db", {
 
         var soldclause = (chkSold.getSelected() ? " " : " and purp!='100%'")
         var sql = "select *from (select o1.ord_no,o1.ord_date," +
-            "decode(o1.ord_flag,1,'Not-Approved',2,'Approved',3,'Closed') status1, " +
+            " to_char(o1.ord_shpdt,'dd/mm/rr') duedate ," +
+            " decode(o1.ord_flag,1,'Not-Approved',2,'Approved',3,'Closed') status1, " +
             " (case when jo_active_from is not null and ord_flag=3 then 'Not-Active'  " +
             " when jo_active_from is not null and ord_flag!=3 then 'Active'  " +
             " else 'Pending' end ) action_status ,usernm,approved_by, " +
             " to_char(o1.JO_ACTIVE_FROM,'dd/mm HH24.MI') jo_active_from ," +
-            " to_char(o1.ord_shpdt,'dd/mm/rr') duedate ," +
+            " " +
             // " UNISTR('\\2714') steps_done , " +
             " pur.invoice_no,o1.ord_ref,o1.ord_refnm," +
             "(case when ORDERDQTY>0 then (round((100 / ORDERDQTY) * purqty, 2)) else 0 end)||'%' purp ," +
@@ -614,6 +616,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
 
             qv.onRowRender = function (qv, dispRow, rowno, currentRowContext, startCell, endCell) {
                 var oModel = this.getControl().getModel();
+                var tbl=this.getControl();
                 var flg = Util.extractNumber(oModel.getProperty("ORD_FLAG", currentRowContext));
                 var purp = Util.extractNumber(oModel.getProperty("PURP", currentRowContext));
                 var dlvp = Util.extractNumber(oModel.getProperty("DLVP", currentRowContext));
@@ -621,7 +624,22 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 var dt = oModel.getProperty("JO_ACTIVE_FROM", currentRowContext);
                 var todt = UtilGen.DBView.today_date.getDateValue();
                 var st1 = oModel.getProperty("ACTION_STATUS", currentRowContext);
-                var doRender = function (clr, bkclr) {
+                var doRender = function (clr, bkclr, colname, tbl) {
+                    if (colname && tbl) {
+                        if (clr) {
+                            UtilGen.getTableColNo(tbl, "KEYFLD")
+                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().css("color", clr);
+                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().parent().parent().css("color", clr);
+                        }
+                        if (bkclr) {
+                            UtilGen.getTableColNo(tbl, "KEYFLD")
+                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().css("background-color", bkclr);
+                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().parent().parent().css("background-color", bkclr);
+                        }
+
+                        return;
+                    }
+
                     for (var i = startCell; i < endCell; i++) {
                         if (clr != "") {
                             qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", clr);
@@ -656,9 +674,9 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                     doRender("lightblue", "#5f9ea0");
 
                 if (purp < 100 && flg == 2 && (todt.getTime() >= (dd2.getTime() - 86400000)))
-                    doRender("white", "orange");
+                    doRender("white","orange","DUEDATE", tbl);
                 if (purp < 100 && flg == 2 && (todt.getTime() >= dd2.getTime()))
-                    doRender("white", "red");
+                    doRender("white","red" ,"DUEDATE", tbl);
 
 
 
