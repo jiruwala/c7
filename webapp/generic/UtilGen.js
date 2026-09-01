@@ -5442,6 +5442,10 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var cardHeight = sett.height || "auto";
                     var minHeight = sett.minHeight || "200px";
 
+                    var positiveColor = config.positiveColor || colors[0] || "#0070c0";
+                    var negativeColor = config.negativeColor || "#dc3912";
+                    var colorByValue = config.colorByValue !== undefined ? config.colorByValue : true;
+
                     // --- Internal state ---
                     var currentData = initialData.slice();
                     var currentSettings = {
@@ -5475,18 +5479,39 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     function buildChartData(data) {
                         var categories = data.map(function (item) { return item[categoryAxis]; });
                         var values = data.map(function (item) { return item[valueAxis]; });
+                
+                        // Determine background colors per data point
+                        var backgroundColors;
+                        if (colorByValue && (chartType === "bar" || chartType === "column")) {
+                            // For bar/column: color each bar based on value
+                            backgroundColors = values.map(function (val) {
+                                if (typeof val === 'number') {
+                                    return val >= 0 ? positiveColor : negativeColor;
+                                }
+                                return positiveColor; // fallback
+                            });
+                        } else {
+                            // Use the default color palette for other chart types or when colorByValue is false
+                            backgroundColors = colors.slice(0, values.length);
+                        }
+                
                         var dataset = {
                             label: "Value",
                             data: values,
-                            backgroundColor: colors.slice(0, values.length),
-                            borderColor: colors.slice(0, values.length),
+                            backgroundColor: backgroundColors,
+                            borderColor: backgroundColors.map(function () { return "#ffffff"; }), // optional border
+                            barThickness: 30,
+                            minBarLength:5,
                             borderWidth: 1
                         };
+                
                         if (chartType === "pie" || chartType === "doughnut" || chartType === "polarArea") {
-                            dataset.backgroundColor = colors.slice(0, values.length);
+                            // For pie/donut, use the full palette (or conditional if needed)
+                            dataset.backgroundColor = backgroundColors;
                             dataset.borderColor = "#ffffff";
                             dataset.borderWidth = 2;
                         }
+                
                         return {
                             labels: categories,
                             datasets: [dataset]
@@ -5534,7 +5559,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 var elements = chartInstance.getElementsAtEventForMode(
                                     event,
                                     'index',
-                                    { intersect: true }
+                                    { intersect: true ,radius: 20}
                                 );
                                 if (elements.length > 0) {
                                     var index = elements[0]._index;
@@ -5612,8 +5637,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var oContainer = new sap.m.VBox({
                             width: "100%",
                             height: "100%",          // fill the remaining space
-                            alignItems: "Center",
-                            justifyContent: "Center"
+                            alignItems: sap.m.FlexAlignItems.Stretch,
+                            justifyContent: sap.m.FlexJustifyContent.Stretch
                         });
 
                         if (isLoading) {
@@ -5623,6 +5648,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                         // If height is "auto", use minHeight; else let container fill
                         var canvasStyle = 'width:100%;height:100%;pointer-events:auto;cursor:pointer;';
+                        canvasStyle += 'max-height:' + currentSettings.height + ';';
                         if (currentSettings.height === "auto" || currentSettings.height === "") {
                             canvasStyle += 'min-height:' + currentSettings.minHeight + ';';
                         }
@@ -5654,8 +5680,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         height: currentSettings.height,   // fixed height or "auto"
                         alignItems: "Stretch",
                         items: [oHeader, oChartContainer]
-                    }).addStyleClass("gaugeCard chartCard");
-
+                    }).addStyleClass("gaugeCard chartCard tableCard");
+                    oCard.addStyleClass("heightStrict");
                     // Load Chart.js and data
                     loadChartJSLibrary().then(function () {
                         if (typeof loadData === "function") {
@@ -5840,7 +5866,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     var cardHeight = sett.height || "auto";
                     var minHeight = sett.minHeight || "200px";
                     var maxHeight = sett.maxHeight || "400px";
-                
+
                     // --- Internal state ---
                     var currentData = null;
                     var currentSettings = {
@@ -5853,14 +5879,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     };
                     var isLoading = false;
                     var tableContainerId = "tableContainer_" + (Date.now()) + "_" + Math.random().toString(36).substr(2, 6);
-                
+
                     // --- Helper: Format a cell value based on column properties ---
                     function formatCellValue(value, col) {
                         if (value === null || value === undefined) return "";
                         var fmt = col.mUIHelper.display_format;
                         var dataType = col.mUIHelper.data_type;
                         var sett = sap.ui.getCore().getModel("settings").getData();
-                
+
                         if (dataType === "NUMBER") {
                             if (fmt === "MONEY_FORMAT") {
                                 var df = new DecimalFormat(sett["FORMAT_MONEY_1"]);
@@ -5892,18 +5918,18 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             return value;
                         }
                     }
-                
+
                     // --- Helper: Build table HTML from LocalTableData ---
                     function buildTableHTML(lctb) {
                         if (!lctb || lctb.cols.length === 0 || lctb.rows.length === 0) {
                             return "<p>No data</p>";
                         }
-                
+
                         // Start table with fixed layout to enforce column widths
                         var html = '<table class="tableCardTable" style="width:100%;table-layout:fixed;border-collapse:collapse;">';
                         // Header
                         html += '<thead><tr>';
-                        lctb.cols.forEach(function(col) {
+                        lctb.cols.forEach(function (col) {
                             if (col.mHideCol) return;
                             var width = columnWidths[col.mColName] || col.mUIHelper.display_width || "auto";
                             if (typeof width === "number") width = width + "%";
@@ -5913,12 +5939,12 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             html += '<th style="width:' + width + ';min-width:' + width + ';max-width:' + width + ';text-align:' + align + ';overflow:hidden;text-overflow:ellipsis;" title="' + title + '">' + title + '</th>';
                         });
                         html += '</tr></thead>';
-                
+
                         // Body
                         html += '<tbody>';
-                        lctb.rows.forEach(function(row, rowIndex) {
+                        lctb.rows.forEach(function (row, rowIndex) {
                             html += '<tr data-row="' + rowIndex + '">';
-                            lctb.cols.forEach(function(col) {
+                            lctb.cols.forEach(function (col) {
                                 if (col.mHideCol) return;
                                 var value = row.cells[lctb.getColPos(col.mColName)].getValue();
                                 var displayValue = formatCellValue(value, col);
@@ -5943,19 +5969,19 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             html += '</tr>';
                         });
                         html += '</tbody>';
-                
+
                         // --- Summary row (if any column has mSummary === "SUM") ---
                         var hasSummary = false;
-                        lctb.cols.forEach(function(col) {
+                        lctb.cols.forEach(function (col) {
                             if (col.mSummary === "SUM" && !col.mHideCol) hasSummary = true;
                         });
                         if (hasSummary) {
                             html += '<tfoot><tr>';
-                            lctb.cols.forEach(function(col, idx) {
+                            lctb.cols.forEach(function (col, idx) {
                                 if (col.mHideCol) return;
                                 if (col.mSummary === "SUM") {
                                     var sum = 0;
-                                    lctb.rows.forEach(function(row) {
+                                    lctb.rows.forEach(function (row) {
                                         var val = row.cells[idx].getValue();
                                         if (typeof val === "number") sum += val;
                                     });
@@ -5972,11 +5998,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             });
                             html += '</tr></tfoot>';
                         }
-                
+
                         html += '</table>';
                         return html;
                     }
-                
+
                     // --- Render table into ScrollContainer ---
                     function renderTable(container, lctb) {
                         container.destroyContent();
@@ -5990,23 +6016,23 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         container.addContent(oHTML);
                         attachRowClick(container);
                     }
-                
+
                     // --- Attach row click handler ---
                     function attachRowClick(container) {
                         if (typeof rowClickHandler !== "function") return;
-                        setTimeout(function() {
+                        setTimeout(function () {
                             var domRef = container.getDomRef();
                             if (!domRef) return;
                             var $table = $(domRef).find("table");
                             if ($table.length === 0) return;
-                            $table.off("click", "tr").on("click", "tr", function(e) {
+                            $table.off("click", "tr").on("click", "tr", function (e) {
                                 var $row = $(this);
                                 var rowIndex = $row.data("row");
                                 if (rowIndex === undefined) return;
                                 var rowData = {};
                                 var lctb = container._lctb;
                                 if (lctb) {
-                                    lctb.cols.forEach(function(col) {
+                                    lctb.cols.forEach(function (col) {
                                         // if (col.mHideCol) return;
                                         rowData[col.mColName] = lctb.getFieldValue(rowIndex, col.mColName);
                                     });
@@ -6015,7 +6041,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             });
                         }, 100);
                     }
-                
+
                     // --- Build header ---
                     function buildHeader() {
                         var oHeader = new sap.m.HBox({
@@ -6040,7 +6066,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         oHeader.setLayoutData(new sap.m.FlexItemData({ growFactor: 0 }));
                         return oHeader;
                     }
-                
+
                     // --- Build table container (ScrollContainer) ---
                     function buildTableContainer(lctb) {
                         var oContainer = new sap.m.ScrollContainer({
@@ -6053,25 +6079,25 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         oContainer._lctb = lctb;
                         return oContainer;
                     }
-                
+
                     // --- Initial construction ---
                     var oHeader = buildHeader();
                     var oTableContainer = buildTableContainer(null);
-                
+
                     var oCard = new sap.m.VBox({
                         width: currentSettings.width,
                         height: currentSettings.height,
                         alignItems: "Stretch",
                         items: [oHeader, oTableContainer]
                     }).addStyleClass("gaugeCard tableCard");
-                
+
                     // --- Load data ---
                     function loadTableData() {
                         if (typeof loadData === "function") {
                             isLoading = true;
                             oTableContainer.destroyContent();
                             oTableContainer.addContent(new sap.m.BusyIndicator({ size: ".25rem" }));
-                            loadData().then(function(result) {
+                            loadData().then(function (result) {
                                 isLoading = false;
                                 var lctb = null;
                                 if (result instanceof QueryView) {
@@ -6084,7 +6110,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 currentData = lctb;
                                 oTableContainer._lctb = lctb;
                                 renderTable(oTableContainer, lctb);
-                            }).catch(function(err) {
+                            }).catch(function (err) {
                                 sap.m.MessageToast.show("Error loading table: " + err.message);
                                 oTableContainer.destroyContent();
                                 oTableContainer.addContent(new sap.m.Text({ text: "Error loading data" }));
@@ -6099,11 +6125,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             oTableContainer.addContent(new sap.m.Text({ text: "No data provided" }));
                         }
                     }
-                
+
                     loadTableData();
-                
+
                     // --- Update methods ---
-                    oCard.updateData = function(newQVorLCTB) {
+                    oCard.updateData = function (newQVorLCTB) {
                         var lctb = null;
                         if (newQVorLCTB instanceof QueryView) {
                             lctb = newQVorLCTB.mLctb;
@@ -6116,8 +6142,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         oTableContainer._lctb = lctb;
                         renderTable(oTableContainer, lctb);
                     };
-                
-                    oCard.updateSettings = function(newSettings) {
+
+                    oCard.updateSettings = function (newSettings) {
                         for (var key in newSettings) {
                             if (newSettings.hasOwnProperty(key)) {
                                 currentSettings[key] = newSettings[key];
@@ -6139,8 +6165,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             renderTable(newContainer, currentData);
                         }
                     };
-                
-                    oCard.updateCard = function(newQVorLCTB, newSettings) {
+
+                    oCard.updateCard = function (newQVorLCTB, newSettings) {
                         if (newQVorLCTB) {
                             var lctb = null;
                             if (newQVorLCTB instanceof QueryView) {
@@ -6176,11 +6202,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             renderTable(newContainer, currentData);
                         }
                     };
-                
-                    oCard.getData = function() { return currentData; };
-                    oCard.getSettings = function() { return currentSettings; };
-                    oCard.isLoading = function() { return isLoading; };
-                
+
+                    oCard.getData = function () { return currentData; };
+                    oCard.getSettings = function () { return currentSettings; };
+                    oCard.isLoading = function () { return isLoading; };
+
                     return oCard;
                 },
                 statusBarText: function (msg, blink, blinkTime, showtoast) {
