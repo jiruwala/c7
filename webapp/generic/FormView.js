@@ -1108,6 +1108,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             var dt = Util.execSQL(sql);
             if (dt.ret == "SUCCESS" && dt.data.length > 0) {
                 var dtx = JSON.parse("{" + dt.data + "}").data;
+                qryObj.dtx = dtx;
                 this._loadDataFromJson(qryObj, dtx[0], false);
             }
 

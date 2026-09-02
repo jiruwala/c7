@@ -87,7 +87,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText blinking");
                     var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "" }));
                     var cmdQuickEntry = new sap.m.Button(thatForm.view.createId("cmdQE" + thatForm.timeInLong), {
-                        text: "Steps",
+                        text: Util.getLangText("txtSteps"),
                         press: function () {
                             thatForm.showSteps();
                         }
@@ -97,6 +97,9 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
+                    var hb2 = new sap.m.HBox(thatForm.view.createId("stepsCmds" + thatForm.timeInLong));
+                    vbHeader.addItem(hb2);
+
                 },
                 print_templates: [
                     {
@@ -189,8 +192,12 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                             thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
                             thatForm.frm.setFieldValue('qry1.cont_amt', df.format(sumAmt));
-                            if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
-                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
+                            if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined) {
+                                var comp = "";
+                                if (thatForm.frm.objs["qry1"].dtx)
+                                    comp = Util.getLangText("paymentCompleted") + " , " + thatForm.frm.objs["qry1"].dtx[0].STEPS_COMPLETED + " %......./.... "
+                                thatForm.view.byId("numtxt" + thatForm.timeInLong).setText(comp + Util.getLangText("amountTxt") + " : " + df.format(sumAmt));
+                            }
 
                         },
                         summary: thatForm.helperFunc.getSummary()
@@ -242,6 +249,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         var cmdS = thatForm.frm.objs["qry1._cmdSearch"].obj;
                         cmdS.setEnabled(false);
                         UtilGen.Vouchers.attachLoadQry(thatForm, qry, 'cont1', thatForm.frm.getFieldValue("qry1.keyfld"));
+                        thatForm.helperFunc.showStepsCommands();
+
                     }
                     // if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
 
@@ -293,7 +302,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                             cmdS.setText("");
                         }
 
-
+                        thatForm.helperFunc.showStepsCommands();
 
                     }
 
@@ -883,6 +892,10 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                             colname: "CUST_NAME"
                         },
                         {
+                            colname: "STEPS_COMPLETED"
+                        },
+
+                        {
                             colname: 'KEYFLD',
                             hide: true,
                             return_field: "pac",
@@ -891,7 +904,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
                     sql: "select *from (" +
-                        "select cont_no,cont_date,cust_code,cust_name,cont_amt,cont_trans_amt,keyfld " +
+                        "select cont_no,cont_date,cust_code,cust_name,cont_amt,cont_trans_amt,steps_completed||' %' steps_completed,keyfld " +
                         " from c7_contracts1 where cont_type=':qry1.cont_type' order by cont_date desc,cont_no desc " +
                         ")  where (rownum <=^^list_key or ^^list_key=-1) ",
                     afterSelect: function (data) {
@@ -1190,6 +1203,87 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 },
 
             ]);
+
+        },
+        showStepsCommands: function () {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+
+            var hb = thatForm.view.byId("stepsCmds" + thatForm.timeInLong);
+            var rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-right");
+            var acceptIcon = "sap-icon://accept";
+            hb.destroyItems();
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW)
+                return;
+            var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+            var dt = Util.execSQLWithData("select descr,code,flag from c7_contracts1_steps where keyfld=" + kf + " order by posno");
+            for (var di = 0; di < dt.length; di++)
+                hb.addItem(new sap.m.Button({
+                    icon: (dt[di].FLAG == 2 ? acceptIcon : rectangleIcon),
+                    text: dt[di].DESCR,
+                    enabled: (dt[di].FLAG == 2 ? false : true),
+                    customData: { key: dt[di].CODE },
+                    press: function () {
+                        var stepCode = this.getCustomData()[0].getKey();
+                        var txtDate = new sap.m.DatePicker({ width: "75%" });
+                        var txtRemarks = new sap.m.TextArea({ width: "75%" });
+                        txtDate.setValueFormat(sett["ENGLISH_DATE_FORMAT"]);
+                        txtDate.setDisplayFormat(sett["ENGLISH_DATE_FORMAT"]);
+                        txtDate.setDateValue(new Date());
+                        var fe = [
+                            Util.getLabelTxt("Complete Date", "25%", ""), txtDate,
+                            Util.getLabelTxt("Remarks", "25%", ""), txtRemarks,
+                        ];
+
+                        var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, { width: "380px" }, "sapUiSizeCompact", "");
+
+                        var dlg = new sap.m.Dialog({
+                            title: Util.getLangText("changeFiscalYear"),
+                            contentWidth: "400px",
+                            contentHeight: "150px",
+                            content: [cnt],
+                            buttons: [
+                                new sap.m.Button({
+                                    text: Util.getLangText("cmdDone"),
+                                    icon: acceptIcon,
+                                    press: function () {
+                                        Util.simpleConfirmDialog("Do you want Done this Step ? ", function (oAction) {
+                                            var sq = `declare t1 number; begin
+                                                        update c7_contracts1_steps 
+                                                            set done_date=:done_date, flag=2 ,remarks=':remarks'
+                                                            where keyfld=:keyfld and code=':code';
+                                                        select nvl(sum(pay_p),0) into t1 from c7_contracts1_steps where keyfld=:keyfld and flag=2; 
+                                                        update c7_contracts1 set steps_completed=t1,last_step_completed=':code' where keyfld=:keyfld;
+                                                        end; `;
+                                            sq = sq.replaceAll(":keyfld", kf)
+                                                .replaceAll(":code", stepCode)
+                                                .replaceAll(":remarks", txtRemarks.getValue())
+                                                .replaceAll(":done_date", Util.toOraDateString(txtDate.getDateValue()));
+                                            var dt = Util.execSQL(sq);
+                                            if (dt.ret == "SUCCESS") {
+                                                FormView.msgSuccess(Util.getLangText("msgSaved"));
+                                                thatForm.frm.loadData(undefined, FormView.RecordStatus.VIEW);
+                                                dlg.close();
+                                            }
+
+                                        });
+
+                                    }
+                                }),
+                                new sap.m.Button({
+                                    text: Util.getLangText("closeTxt"),
+                                    icon: "sap-icon://decline",
+                                    press: function () {
+                                        dlg.close();
+                                    }
+                                })
+
+                            ]
+                        });
+                        dlg.open();
+                    }
+                }));
+
 
         }
     },
