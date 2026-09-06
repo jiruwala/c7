@@ -397,6 +397,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 cnv.formSetting = Util.nvl(cnvs[i].formSetting, undefined);
                 cnv.container = Util.nvl(cnvs[i].container, undefined);
                 cnv.classType = Util.nvl(cnvs[i].classType, sap.m.ScrollContainer);
+                cnv.after_add_canvas = Util.nvl(cnvs[i].after_add_canvas, undefined);
                 this.form.canvases.push(cnv);
 
                 this.objs[cnvs[i].name] = cnv;
