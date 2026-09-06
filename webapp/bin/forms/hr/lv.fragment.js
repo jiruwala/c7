@@ -8,6 +8,12 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
         this.timeInLong = (new Date()).getTime();
         that.helperFunc.init(this);
         this.isDialog = false;
+        this.statusDescr = {
+            "REQUEST": "Request",
+            "APPROVED": "APPROVED",
+            "ACTIVEE": "ACTIVE",
+            "RETURNED": "RETURNED"
+        };
         try {
             that.isDialog = (that.oController.getForm().getParent() instanceof sap.m.Dialog);
         } catch (e) { };
@@ -105,17 +111,21 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                     {
                         type: "query",
                         name: "qry1",
-                        dml: "select *from C7HR_SPONSOR where spn_no=':pac'",
-                        where_clause: " spn_no=':spn_no'",
-                        update_exclude_fields: ["spn_no", "attachment", "vehiclename"],
-                        insert_exclude_fields: ["attachment", "vehiclename"],
+                        dml: "select *from c7hr_req_leave where keyfld=':pac'",
+                        where_clause: " keyfld=':keyfld'",
+                        update_exclude_fields: ["keyfld",],
+                        insert_exclude_fields: [],
                         insert_default_values: {
-                            // "CREATDT": "sysdate",
-                            // "USERNM": Util.quoted(sett["LOGON_USER"]),
+                            "MODIFIED_TIME": "sysdate",
+                            "MODIFIED_USER": Util.quoted(sett["LOGON_USER"]),
+                            "FLAG": 1,
+                            "STATUS": "'REQUEST'"
                             // "TYPE": 3
                         },
-                        update_default_values: {},
-                        table_name: "c7hr_sponsor",
+                        update_default_values: {
+
+                        },
+                        table_name: "c7hr_req_leave",
                         edit_allowed: true,
                         insert_allowed: true,
                         delete_allowed: false,
@@ -192,7 +202,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                     // thatForm.frm.setFieldValue("pac", thatForm.frm.getFieldValue("qry1.code"));
                 },
                 afterLoadQry: function (qry) {
-                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("spn_no"));
+                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                     if (qry.name == "qry1") {
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         // UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.expense_ac"].obj, undefined, that.frm.objs["qry1.expensename"].obj);
@@ -207,7 +217,8 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                 afterSaveForm: function (frm, nxtStatus) {
                 },
                 beforeSaveQry: function (qry, sqlRow, rowNo) {
-                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("spn_no"));
+                    qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
+                    thatForm.helperFunc.beforeSaveValidateQry(qry);
                     // if (qry.name == "qry1") {
                     //     var par = that.frm.getFieldValue("qry1.parentcostcent");
                     //     var ac = that.frm.getFieldValue("qry1.code");
@@ -220,7 +231,19 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
+                        var dt = (new Date()).setHours(0, 0, 0, 0);
                         that.frm.setFieldValue("pac", "", "", true);
+                        that.frm.setFieldValue("qry1.lv_type", "CL", "CL", true);
+                        var kf = Util.getSQLValue("select nvl(max(keyfld),0)+1 from C7HR_REQ_LEAVE");
+                        that.frm.setFieldValue("qry1.lv_days", 0, 0, true);
+                        that.frm.setFieldValue("qry1.tot_wo", 0, 0, true);
+                        that.frm.setFieldValue("qry1._tot_ph", 0, 0, true);
+                        that.frm.setFieldValue("qry1._req_days", 0, 0, true);
+                        that.frm.setFieldValue("qry1.request_days", 0, 0, true);
+                        that.frm.setFieldValue("qry1.start_date", dt, dt, true);
+                        that.frm.setFieldValue("qry1.keyfld", kf, kf, true);
+                        that.frm.setFieldValue("qry1._status", that.statusDescr["REQUEST"], that.statusDescr["REQUEST"], true);
+
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         that.view.byId("numtxt" + thatForm.timeInLong).setText("");
                     }
@@ -230,7 +253,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                     if (qry.name == "qry1" && (qry.status == FormView.RecordStatus.EDIT) ||
                         (qry.status == FormView.RecordStatus.VIEW)) {
                         var valx = that.frm.getFieldValue("pac");
-                        var no = that.frm.getFieldValue("qry1.spn_no");
+                        var no = that.frm.getFieldValue("qry1.keyfld");
                         var vldtt = Util.getSQLValue(
                             "select nvl(max(emp_cd),-1) from c7hr_emp where (" +
                             " sponsor_id=" + no + " ) "
@@ -258,6 +281,20 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
             var codSpan = "XL3 L3 M3 S12";
             var that = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
+            function getEmpCode(cod, nm) {
+                var ordref = cod || "qry1.emp_code";
+                var ordrefnm = nm || "qry1._pname";
+
+                return FormView.getFactoryFields.getSettingsGeneral({
+                    thatForm: that,
+                    code: ordref,
+                    name: ordrefnm,
+                    sqlChange: "select name1 name from c7hr_emp where flag=1 and emp_cd = ':CODE'",
+                    sqlList: "select emp_cd code,name1 title,name2 from c7hr_emp where  flag=1 order by emp_cd ",
+                    sqlListChange: "select emp_cd code,name1 title from c7hr_emp where emp_cd=:CODE and flag=1",
+                });
+            }
+
             // keyfld,status,15,10,10,15            attachment,15,35
             // lv_type,15,35                        request_days,15,35
             // start_date,15,35                     end_date,15,35
@@ -304,10 +341,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: "redText boldText"
-                    }, {
-                    change: function () {
-                    }
-                }),
+                    }, getEmpCode()),
                 _pname: FormView.getFactoryFields.getGeneralField(
                     "_pname", "@", "", "0px", "", "50%",
                     {
@@ -320,7 +354,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                     "lv_type", "", "lvType",
                     "15%", "", "35%",
                     {
-                        list: "@AL/Annual Leave,CL/Casual LeaveSL/Sick Leave",
+                        list: "@AL/Annual Leave,CL/Casual Leave,SL/Sick Leave",
                         require: true
                     }, {
                     selectionChange: function () {
@@ -336,6 +370,14 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         display_format: "#,##0"
                     }, {
                     change: function () {
+                        var val = Util.extractNumber(this.getValue());
+                        that.frm.setFieldValue("qry1._req_days", val, val, true);
+                        var startdt = that.frm.getFieldValue("qry1.start_date");
+                        that.frm.setFieldValue("qr1.end_date", null, null, true);
+                        if (startdt) {
+                            var endt = new Date(startdt.getTime() + (val * 86400000));
+                            that.frm.setFieldValue("qry1.end_date", endt, endt, true);
+                        }
 
                     }
                 })
@@ -347,14 +389,23 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         require: true,
                         edit_allowed: true,
                         insert_allowed: true
-                    }, {})
+                    }, {
+                    change: function () {
+                        var startdt = that.frm.getFieldValue("qry1.start_date");
+                        if (startdt) {
+                            var val = Util.extractNumber(that.frm.getFieldValue("qry1.request_days"));
+                            var endt = new Date(startdt.getTime() + (val * 86400000));
+                            that.frm.setFieldValue("qry1.end_date", endt, endt, true);
+                        }
+                    }
+                })
                 ,
                 end_date: FormView.getFactoryFields.getDateField(
                     "end_date", "@", "toDate", "15%", "", "35%",
                     {
                         require: true,
-                        edit_allowed: true,
-                        insert_allowed: true
+                        edit_allowed: false,
+                        insert_allowed: false
                     }, {})
                 ,
                 //5
@@ -382,10 +433,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
-                    }, {
-                    change: function () {
-                    }
-                })
+                    }, getEmpCode("qry1.contact_emp", "qry1._cname"))
                 ,
                 _cname: FormView.getFactoryFields.getGeneralField(
                     "_cname", "@", "", "0px", "", "25%",
@@ -402,10 +450,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         edit_allowed: true,
                         insert_allowed: true,
                         display_style: ""
-                    }, {
-                    change: function () {
-                    }
-                })
+                    }, getEmpCode("qry1.supervisor_emp", "qry1._sname"))
                 ,
                 _sname: FormView.getFactoryFields.getGeneralField(
                     "_sname", "@", "", "0px", "", "25%",
@@ -581,18 +626,15 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                     list_type: "sql",
                     cols: [
                         {
-                            colname: 'SPN_NO',
+                            colname: 'KEYFLD',
                             return_field: "pac",
                         },
                         {
-                            colname: "TITLE",
+                            colname: "NAME1",
                         },
-                        {
-                            colname: "TITLE2",
-                        },
-
                     ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                    sql: "select spn_no,comp_name title,comp_name2 title2 from C7HR_SPONSOR order by spn_no",
+                    sql: `select l.keyfld,l.emp_code,e.name1,l.status,l.request_days,l.start_date,l.remarks 
+                        from c7hr_req_leave l,c7hr_emp e where e.emp_cd=l.emp_code order by l.keyfld desc`,
                     afterSelect: function (data) {
                         that2.frm.loadData(undefined, "view");
                         return true;
@@ -600,7 +642,54 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                 }
             ]
 
-        }
+        },
+        beforeSaveValidateQry: function (qry) {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var dtfmt = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
+            var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+            var errObj = function (msg, obj) {
+                var o = thatForm.frm.objs[obj].obj;
+                UtilGen.errorObj(o, 3500);
+                if (o instanceof sap.m.InputBase)
+                    o.focus();
+                FormView.err(msg);
+
+            };
+            var validateEmp = function (fldAcc, pFlg) {
+                var flg = Util.nvl(flg, "");
+                var cod = thatForm.frm.getFieldValue(fldAcc);
+                var sqcnt = Util.getSQLValue("select nvl(count(*),0) from c7hr_emp where " + flg + " emp_cd='" + cod + "'");
+                if (sqcnt == 0) errObj("Save Denied : EMPLOYEE  is invalid OR NOT PRESENT !", fldAcc);
+            }
+
+            validateEmp("qry1.emp_code", " flag=1 ");
+            if (thatForm.frm.getFieldValue("qry1.contact_emp"))
+                validateEmp("qry1.contact_emp", " flag>0 ");
+            if (thatForm.frm.getFieldValue("qry1.supervisor_emp", " flag>0 "))
+                validateEmp("qry1.supervisor_emp");
+
+            var rd = Util.extractNumber(thatForm.frm.getFieldValue("qry1.request_days"));
+            if (rd <= 0) errObj("Err! Invalid Days ! ", "qry1.request_days");
+
+            // allowing only start date to be after attend date or join date
+            var last_dt = Util.getSQLValue(("select c7hr_get_last_date_trans(':emp_code') " +
+                "from dual ").replaceAll(":emp_code", thatForm.frm.getFieldValue("qry1.emp_code")));
+            if (!last_dt) FormView.err("Err ! , no last day of attend or Join date found for this employee !")
+            last_dt = new Date(last_dt.replaceAll(".", ":"));
+            var sd = thatForm.frm.getFieldValue("qry1.start_date");
+            if (!sd) FormView.err("Start Date must have value !");
+            if (sd.getTime() <= last_dt)
+                errObj("start date cant be less than attend or " +
+                    " join day for this employee # " + dtfmt.format(last_dt), "qry1.start_date");
+
+            //check if employee have previous request but not returned.
+            var cntExistBefore = Util.getSQLValue(`select nvl(count(*),0) from 
+                c7hr_req_leave where  status not in ('RETURNED') and keyfld!=:keyfld and emp_code=':emp' `
+                .replaceAll(":keyfld", kf)
+                .replaceAll(":emp", thatForm.frm.getFieldValue("qry1.emp_code")));
+            if (cntExistBefore > 0) FormView.err("Err ! , this employee have alredy request before and may have not returned");
+        },
     }
 
 });

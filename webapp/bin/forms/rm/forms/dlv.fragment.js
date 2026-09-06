@@ -225,7 +225,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.dlv", {
                         UtilGen.Search.getLOVSearchField("select name from salesp where no = ':CODE' ", qry.formview.objs["qry1.op_no"].obj, undefined, that.frm.objs["qry1.opname"].obj);
                         UtilGen.Search.getLOVSearchField("select name from salesp where no = ':CODE' ", qry.formview.objs["qry1.salesp"].obj, undefined, that.frm.objs["qry1.salesname"].obj);
                         UtilGen.Search.getLOVSearchField("select descr from items where reference = ':CODE' ", qry.formview.objs["qry1.ord_ship"].obj, undefined, that.frm.objs["qry1.itemname"].obj);
-                        UtilGen.Search.getLOVSearchField("select descr from c7_vehicles where no = ':CODE' ", qry.formview.objs["qry1.typofcem"].obj, undefined, that.frm.objs["qry1.vehiclenm"].obj);
+                        // UtilGen.Search.getLOVSearchField("select descr from c7_vehicles where no = ':CODE' ", qry.formview.objs["qry1.typofcem"].obj, undefined, that.frm.objs["qry1.vehiclenm"].obj);
 
                         thatForm.helperFunc.setTotToday();
                         var saleinv = Util.getSQLValue("select saleinv from order1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
