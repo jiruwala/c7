@@ -178,13 +178,13 @@ ORDER BY   POS ASC]]>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box>
-					<topPen lineWidth="1.0"/>
-					<leftPen lineWidth="1.0"/>
-					<bottomPen lineWidth="1.0"/>
-					<rightPen lineWidth="1.0"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
 				</box>
 				<staticText>
-					<reportElement stretchType="ContainerHeight" mode="Opaque" x="211" y="1" width="120" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="ea1f100d-e482-4bd5-9e00-986d0fcb44a3">
+					<reportElement stretchType="ContainerHeight" mode="Opaque" x="211" y="0" width="120" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="ea1f100d-e482-4bd5-9e00-986d0fcb44a3">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -198,7 +198,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Descr
 المواصفات]]></text>
@@ -218,7 +218,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou No
 الرقم المرجعي]]></text>
@@ -237,7 +237,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Credit
 الدائن]]></text>
@@ -257,7 +257,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.25"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Balance
 الرصيد]]></text>
@@ -277,7 +277,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Debit
 المدين]]></text>
@@ -297,7 +297,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou Type
  نوع المعاملة]]></text>
@@ -317,7 +317,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.25"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou Date
 تاريخ المعاملة]]></text>
@@ -336,12 +336,12 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Site]]></text>
 				</staticText>
 				<staticText>
-					<reportElement stretchType="ContainerHeight" mode="Opaque" x="180" y="1" width="30" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="6211f733-bc37-4a0c-b154-dffafd2f7b3b">
+					<reportElement stretchType="ContainerHeight" mode="Opaque" x="180" y="0" width="30" height="36" backcolor="rgba(45, 127, 237, 0.0)" uuid="6211f733-bc37-4a0c-b154-dffafd2f7b3b">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -355,7 +355,7 @@ ORDER BY   POS ASC]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="true"/>
 					</textElement>
 					<text><![CDATA[M3]]></text>
 				</staticText>
@@ -366,14 +366,17 @@ ORDER BY   POS ASC]]>
 		<band height="16" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="530" y="0" width="40" height="15" uuid="ebcb1df9-5fb1-457e-9a36-eda6c000829c">
+				<reportElement style="strDetails" stretchType="RelativeToTallestObject" mode="Opaque" x="530" y="0" width="40" height="15" backcolor="#FFFFFF" uuid="ebcb1df9-5fb1-457e-9a36-eda6c000829c">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
+					<pen lineWidth="0.25"/>
 					<leftPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Center">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -389,7 +392,8 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Center">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -405,7 +409,8 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -421,7 +426,8 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans"/>
@@ -436,8 +442,9 @@ ORDER BY   POS ASC]]>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
-					<leftPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans"/>
@@ -452,7 +459,8 @@ ORDER BY   POS ASC]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans"/>
@@ -468,8 +476,9 @@ ORDER BY   POS ASC]]>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
-					<leftPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0" lineColor="#808080"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Center">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -483,8 +492,9 @@ ORDER BY   POS ASC]]>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
-					<leftPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -499,8 +509,10 @@ ORDER BY   POS ASC]]>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
+					<pen lineWidth="0.25"/>
 					<leftPen lineWidth="0.0"/>
-					<rightPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
+					<rightPen lineWidth="0.25" lineColor="#808080"/>
 				</box>
 				<textElement textAlignment="Center">
 					<font fontName="DejaVu Sans" size="8"/>

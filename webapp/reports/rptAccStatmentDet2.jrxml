@@ -21,6 +21,7 @@
 	<parameter name="SESSION_ID" class="java.lang.String"/>
 	<parameter name="PACPAT" class="java.lang.String"/>
 	<parameter name="CURRENCY_FORMAT" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="CP_USER" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[select
 FIELD3 ACCNO,
@@ -48,6 +49,7 @@ TO_NUMBER(DECODE(field23,'null',0,FIELD23)) FC_RATE
 FROM TEMPORARY
 WHERE FIELD1='SOA002-1-1'
 AND FIELD3=$P{PACCNO}
+AND usernm=$P{CP_USER}
 ORDER BY TO_NUMBER(FIELD2)]]>
 	</queryString>
 	<field name="ACCNO" class="java.lang.String"/>
@@ -108,7 +110,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Descr
 المواصفات]]></text>
@@ -127,7 +129,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou No
 الرقم المرجعي]]></text>
@@ -146,7 +148,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Credit
 الدائن]]></text>
@@ -166,7 +168,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 						<rightPen lineWidth="0.25"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Balance
 الرصيد]]></text>
@@ -185,7 +187,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Debit
 المدين]]></text>
@@ -204,7 +206,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 						<rightPen lineWidth="0.0"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="8" isBold="true"/>
+						<font fontName="Arial2" size="8" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou Type
  نوع المعاملة]]></text>
@@ -222,7 +224,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 						<rightPen lineWidth="0.25"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+						<font fontName="Arial2" size="10" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Vou Date
 تاريخ المعاملة]]></text>
@@ -237,10 +239,11 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="0" y="0" width="82" height="13" uuid="f2ab9fdd-9578-4e10-b6b5-f03b9ed0046d"/>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement>
-					<font fontName="DejaVu Sans" size="8"/>
+					<font fontName="Arial2" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{VOU_DATE}]]></textFieldExpression>
 			</textField>
@@ -250,10 +253,11 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="DejaVu Sans" size="8"/>
+					<font fontName="Arial2" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{TYPE_DESCR}]]></textFieldExpression>
 			</textField>
@@ -261,10 +265,11 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="134" y="0" width="58" height="13" uuid="47be768a-9641-40b8-adc3-ef28cffe3eb4"/>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="DejaVu Sans" size="8"/>
+					<font fontName="Arial2" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{VOU_NO}]]></textFieldExpression>
 			</textField>
@@ -275,14 +280,15 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement>
-					<font fontName="DejaVu Sans" size="8"/>
+					<font fontName="Arial2" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
 			</textField>
-			<textField pattern="" isBlankWhenNull="true">
+			<textField textAdjust="ScaleFont" pattern="" isBlankWhenNull="true">
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="342" y="0" width="75" height="13" uuid="98a4fe8f-d314-44b6-b7c1-6c52f70c53ce">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -290,41 +296,45 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
-					<font fontName="DejaVu Sans"/>
+					<font fontName="Arial2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{DEBIT}==0?null:$F{DEBIT})]]></textFieldExpression>
 				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
 			</textField>
-			<textField pattern="" isBlankWhenNull="true">
+			<textField textAdjust="ScaleFont" pattern="" isBlankWhenNull="true">
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="417" y="0" width="75" height="13" uuid="f3cf49f9-1f2f-4383-bc13-75c171e47f6b">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25" lineColor="#808080"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Right">
-					<font fontName="DejaVu Sans"/>
+					<font fontName="Arial2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{CREDIT}==0?null:$F{CREDIT})]]></textFieldExpression>
 				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
 			</textField>
-			<textField pattern="" isBlankWhenNull="true">
+			<textField textAdjust="ScaleFont" pattern="" isBlankWhenNull="true">
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="492" y="0" width="76" height="13" uuid="32e9f0bf-e473-4c85-96fa-f35c5a56478c">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
+					<pen lineWidth="0.25" lineColor="#808080"/>
 					<leftPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right">
-					<font fontName="DejaVu Sans"/>
+					<font fontName="Arial2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{BALANCE}]]></textFieldExpression>
 				<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>
@@ -333,7 +343,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 	</detail>
 	<summary>
 		<band height="34" splitType="Stretch">
-			<textField pattern="#,##0.000;-#,##0.000" isBlankWhenNull="true">
+			<textField textAdjust="ScaleFont" pattern="#,##0.000;-#,##0.000" isBlankWhenNull="true">
 				<reportElement mode="Opaque" x="492" y="1" width="76" height="13" backcolor="#FFFF00" uuid="b96ca05a-d05c-4c9e-abe2-86383fdded35">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
@@ -345,11 +355,11 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial" size="9" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{BALANCE}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.000;-#,##0.000" isBlankWhenNull="true">
+			<textField textAdjust="ScaleFont" pattern="#,##0.000;-#,##0.000" isBlankWhenNull="true">
 				<reportElement style="Row_lvl" mode="Opaque" x="417" y="1" width="75" height="13" backcolor="#FFFF00" uuid="6067d4dc-3e12-4380-a9fe-e2ebd38bd776">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
@@ -361,11 +371,11 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial" size="9" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{SUMCR}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.000;-#,##0.000">
+			<textField textAdjust="ScaleFont" pattern="#,##0.000;-#,##0.000">
 				<reportElement mode="Opaque" x="342" y="1" width="75" height="13" backcolor="#FFFF00" uuid="049ac924-c8aa-4779-8693-44191ca7b5eb"/>
 				<box>
 					<pen lineWidth="0.25"/>
@@ -375,7 +385,7 @@ ORDER BY TO_NUMBER(FIELD2)]]>
 					<rightPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Arial" size="7" isBold="true"/>
+					<font fontName="Arial" size="9" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{SUMDR}]]></textFieldExpression>
 			</textField>
