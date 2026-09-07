@@ -102,7 +102,9 @@ iframe {
 .gaugeNegative {
     color: var(--sapNegativeColor, #c62828);
 }
-
+.gaugeClickable {
+    cursor: pointer !important;
+}
 
 
 .cardHeaderBar {

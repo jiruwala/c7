@@ -4948,7 +4948,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         return true;
                     }, undefined, undefined, {});
                 },
-                getGauge: function (kf, pHeight, pnlClass, pnlClassTit, fnOnMenuClick) {
+                getGauge: function (kf, pHeight, pnlClass, pnlClassTit, fnOnMenuClick, fnClick) {
                     var that = this;
                     var timlong = UtilGen.DBView.timeInLong;
                     var sett = sap.ui.getCore().getModel("settings").getData();
@@ -4978,7 +4978,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var oCard = that.createGauge("gauge_" + kf + "_" + timlong, gjData, {
                             CELL_HEIGHT: Util.nvl(pHeight, "auto"),
                             CELL_WIDTH: "100%"
-                        }, fnOnMenuClick, kf);
+                        }, fnOnMenuClick, kf, fnClick);
 
                         // Replace placeholder content with the card
                         oPlaceholder.removeAllItems();
@@ -4993,7 +4993,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     return oPlaceholder;
                 }
                 ,
-                createGauge: function (name, gg, rep, fnOnMenuClick, kf) {
+                createGauge: function (name, gg, rep, fnOnMenuClick, kf, clickHandler) {
                     var that = UtilGen.DBView;
                     var df = new DecimalFormat(gg.VALUE_FORMAT || "#,##0");
                     var min = parseFloat(gg.MIN_VAL) || 0;
@@ -5121,10 +5121,14 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         ].filter(item => item !== null)
                     }).addStyleClass("gaugeCard");
 
+                    if (typeof clickHandler == "function")
+                        oGaugePlaceholder.addStyleClass("gaugeClickable");
+
                     // --- Create gauge and attach event ---
                     var oGauge = new Gauge(that.createId(name), config);
                     oCard._gauge = oGauge;
                     oCard._value = value;
+
 
                     oCard.addEventDelegate({
                         onAfterRendering: function () {
@@ -5134,7 +5138,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             }
                         }
                     }, oCard);
-
+                    setTimeout(() => {
+                        oGaugePlaceholder.$().on("click", function () {
+                            clickHandler(kf, gg);
+                        });
+                    }, 0);
                     return oCard;
                 },
                 /**
@@ -5441,7 +5449,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 return;
                             }
                             var script = document.createElement('script');
-                            script.src = "https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js";
+                            script.src = "js/chart.min.js";
                             script.onload = function () { resolve(); };
                             script.onerror = function () { reject(new Error("Failed to load Chart.js")); };
                             document.head.appendChild(script);
@@ -5452,7 +5460,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     function buildChartData(data) {
                         var categories = data.map(function (item) { return item[categoryAxis]; });
                         var values = data.map(function (item) { return item[valueAxis]; });
-                
+
                         // Determine background colors per data point
                         var backgroundColors;
                         if (colorByValue && (chartType === "bar" || chartType === "column")) {
@@ -5467,24 +5475,24 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             // Use the default color palette for other chart types or when colorByValue is false
                             backgroundColors = colors.slice(0, values.length);
                         }
-                
+
                         var dataset = {
                             label: "Value",
                             data: values,
                             backgroundColor: backgroundColors,
                             borderColor: backgroundColors.map(function () { return "#ffffff"; }), // optional border
                             barThickness: 30,
-                            minBarLength:5,
+                            minBarLength: 5,
                             borderWidth: 1
                         };
-                
+
                         if (chartType === "pie" || chartType === "doughnut" || chartType === "polarArea") {
                             // For pie/donut, use the full palette (or conditional if needed)
                             dataset.backgroundColor = backgroundColors;
                             dataset.borderColor = "#ffffff";
                             dataset.borderWidth = 2;
                         }
-                
+
                         return {
                             labels: categories,
                             datasets: [dataset]
@@ -5532,7 +5540,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 var elements = chartInstance.getElementsAtEventForMode(
                                     event,
                                     'index',
-                                    { intersect: true ,radius: 20}
+                                    { intersect: true, radius: 20 }
                                 );
                                 if (elements.length > 0) {
                                     var index = elements[0]._index;
