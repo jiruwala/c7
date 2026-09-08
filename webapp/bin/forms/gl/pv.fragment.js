@@ -91,20 +91,20 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                 print_templates: [
                     {
                         title: "Print Voucher",
-                        reportFile: "vouchers/pv",
+                        reportFile: "vouchers/pv_rng1",
                     },
-                    {
-                        title: "Cheque - Gulf",
-                        reportFile: "vouchers/chqgulf",
-                    },
-                    {
-                        title: "Cheque - KFH",
-                        reportFile: "vouchers/chqkfh",
-                    },
-                    {
-                        title: "Cheque - NBK",
-                        reportFile: "vouchers/chqnbk",
-                    }
+                    // {
+                    //     title: "Cheque - Gulf",
+                    //     reportFile: "vouchers/chqgulf",
+                    // },
+                    // {
+                    //     title: "Cheque - KFH",
+                    //     reportFile: "vouchers/chqkfh",
+                    // },
+                    // {
+                    //     title: "Cheque - NBK",
+                    //     reportFile: "vouchers/chqnbk",
+                    // }
 
 
                 ],
@@ -256,6 +256,10 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                             }
                         }
 
+                    },
+                    beforePrint: function (rptName, params) {
+                        var no = that.frm.getFieldValue("qry1.no");
+                        return params + "&_para_pfromno=" + no + "&_para_ptono=" + no + "&_para_vouType=" + thatForm.vars.type;
                     },
                     beforeExeSql: function (frm, sq) {
                         var sql = sq;

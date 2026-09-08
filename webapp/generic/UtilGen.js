@@ -2217,6 +2217,11 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 validateTotDrTotCr: function (qry, sqlRow, rn) {
                     var totcr = qry.formview.getFieldValue("totalcredit");
                     var totdr = qry.formview.getFieldValue("totaldebit");
+                    if (totcr != undefined && typeof totcr == "number" && totcr.toString().includes('e'))
+                        totcr = parseFloat(totcr.toFixed(5));
+                    if (totdr != undefined && typeof totdr == "number" && totdr.toString().includes('e'))
+                        totdr = parseFloat(totdr.toFixed(5));
+
                     if (totcr != undefined && totcr < 0)
                         FormView.err("Total CREDIT cant be less than zero !");
                     if (totcr != undefined && totcr == 0)
@@ -5479,7 +5484,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     function buildChartData(data) {
                         var categories = data.map(function (item) { return item[categoryAxis]; });
                         var values = data.map(function (item) { return item[valueAxis]; });
-                
+
                         // Determine background colors per data point
                         var backgroundColors;
                         if (colorByValue && (chartType === "bar" || chartType === "column")) {
@@ -5494,24 +5499,24 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             // Use the default color palette for other chart types or when colorByValue is false
                             backgroundColors = colors.slice(0, values.length);
                         }
-                
+
                         var dataset = {
                             label: "Value",
                             data: values,
                             backgroundColor: backgroundColors,
                             borderColor: backgroundColors.map(function () { return "#ffffff"; }), // optional border
                             barThickness: 30,
-                            minBarLength:5,
+                            minBarLength: 5,
                             borderWidth: 1
                         };
-                
+
                         if (chartType === "pie" || chartType === "doughnut" || chartType === "polarArea") {
                             // For pie/donut, use the full palette (or conditional if needed)
                             dataset.backgroundColor = backgroundColors;
                             dataset.borderColor = "#ffffff";
                             dataset.borderWidth = 2;
                         }
-                
+
                         return {
                             labels: categories,
                             datasets: [dataset]
@@ -5559,7 +5564,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 var elements = chartInstance.getElementsAtEventForMode(
                                     event,
                                     'index',
-                                    { intersect: true ,radius: 20}
+                                    { intersect: true, radius: 20 }
                                 );
                                 if (elements.length > 0) {
                                     var index = elements[0]._index;

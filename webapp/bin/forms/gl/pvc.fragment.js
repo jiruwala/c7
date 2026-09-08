@@ -94,7 +94,7 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "vouchers/pvc",
+                        reportFile: "vouchers/pv_rng2",
                     }
                 ],
                 events: {
@@ -242,6 +242,10 @@ sap.ui.jsfragment("bin.forms.gl.pvc", {
                             }
                         }
 
+                    },
+                    beforePrint: function (rptName, params) {
+                        var no = that.frm.getFieldValue("qry1.no");
+                        return params + "&_para_pfromno=" + no + "&_para_ptono=" + no + "&_para_vouType=" + thatForm.vars.type;
                     },
                     beforeExeSql: function (frm, sq) {
                         var sql = sq;

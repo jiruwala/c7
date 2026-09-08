@@ -89,7 +89,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                 print_templates: [
                     {
                         title: "Print",
-                        reportFile: "vouchers/jv",
+                        reportFile: "vouchers/jv_rng",
                     }
                 ],
                 events: {
@@ -166,6 +166,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                             thatForm.qryAccs[ld.getFieldValue(i, "ACCNO")] = ld.getFieldValue(i, "ACNAME");
 
                     },
+
                     beforeSaveQry: function (qry, sqlRow, rowno) {
                         UtilGen.Vouchers.getNewKF(qry, sqlRow, rowno);
                         UtilGen.Vouchers.validateDetails(qry, sqlRow, rowno);
@@ -253,8 +254,10 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                         return sq + sqLog;
                     },
                     beforePrint: function (rptName, params) {
-                        return params + "&_para_VOU_TITLE=Journal Voucher";
-                    }
+                        var no = that.frm.getFieldValue("qry1.no");
+                        "&_para_VOU_TITLE=Journal Voucher";
+                        return params + "&_para_pfromno=" + no + "&_para_ptono=" + no + "&_para_vouType=" + thatForm.vars.type;
+                    },
 
                 },
                 parameters: [
@@ -490,7 +493,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                             }
                             thatForm.frm.setFieldValue('totaldebit', df.format(sumDr));
                             thatForm.frm.setFieldValue('totalcredit', df.format(sumCr));
-                            thatForm.frm.setFieldValue('totDiff', df.format(sumDr - sumCr));
+                            thatForm.frm.setFieldValue('totDiff', df.format((sumDr - sumCr).toFixed(5)));
                             if (thatForm.view.byId("numtxt" + thatForm.timeInLong) != undefined)
                                 thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("Amount : " + df.format(sumDr));
                         },
