@@ -264,6 +264,24 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
+                            lastPayDeb: {
+                                colname: "lastPayDeb",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"Last Pay=DEBIT? \",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "N",
+                                other_settings: { selected: false, width: "5%", trueValues: ["Y", "N"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["Y", "N"]
+                            },
                         },
                         print_templates: [
                         ],
@@ -289,6 +307,7 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                 canvasType: ReportView.CanvasType.VBOX,
                                 beforeLoadQry: function (sql) {
                                     var iq = thatForm.frm.getFieldValue("parameter.pref");
+                                    var lpd = thatForm.frm.getFieldValue("parameter.lastPayDeb");
                                     var replc = "iscust='Y'";
                                     if (iq != "") replc = '1=1';
 
@@ -316,11 +335,11 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                                                         OVER (PARTITION BY cust_code 
                                                                                 ORDER BY vou_date DESC, keyfld DESC) AS rn
                                                                 FROM acvoucher2
-                                                                WHERE credit > 0
+                                                                WHERE credit > 0  
                                                                     AND vou_date <= :parameter.todate )
                                                         WHERE rn = 1) last_pay 
                                                     ON last_pay.cust_code = c_ycust.code
-                                            WHERE (':parameter.pstatus' is null or c_ycust.mov_type = ':parameter.pstatus')   -- your original condition simplified
+                                            WHERE (':parameter.pstatus'='ALL' or c_ycust.mov_type = ':parameter.pstatus')   -- your original condition simplified
                                             AND c_ycust.path LIKE (SELECT NVL(MAX(c.path), '') || '%'
                                                                         FROM c_ycust c
                                                                     WHERE c.code = ':parameter.cust_code')
@@ -334,6 +353,7 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                                     last_pay.vou_date,
                                                     last_pay.credit
                                             ORDER BY c_ycust.code`;
+                                    // sqQr = lpd == "N" ? sqQr.replaceAll(':cred_cond ', "credit > 0") : sqQr.replaceAll(':cred_cond ', " debit > 0");
                                     return sqQr;
                                     // sqQr=sqQr.replaceAll(':TODATE',Util.toOraDateString(:))
 
