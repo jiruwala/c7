@@ -205,6 +205,32 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             var colSpan = "XL2 L2 M2 S12";
             var sumSpan = "XL2 L2 M2 S12";
             var para = {
+                periodFrom: {
+                    colname: "periodFrom",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.COMBOBOX,
+                    title: '{\"text\":\"Period From\",\"width\":\"15%\","textAlign":"End"}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "jo",
+                    other_settings: {
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        selectedKey: "jo",
+                    },
+                    list: "@jo/Period from JO Date,prod/Period from Production start date",
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: true,
+                    dispInPara: true,
+                },
                 fromdate: {
                     colname: "fromdate",
                     data_type: FormView.DataType.Date,
@@ -425,11 +451,13 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             var fromdt = thatForm.frm.getFieldValue("parameter.fromdate");
             var todt = thatForm.frm.getFieldValue("parameter.todate");
             var rt = thatForm.frm.getFieldValue("parameter.reptype");
+            var periodFrom = thatForm.frm.getFieldValue("parameter.periodFrom");
             var showDetails = thatForm.frm.getFieldValue("parameter.showDetails");
             var pStepType = thatForm.frm.objs["JOPROD1@parameter.pStepType"].obj;
             var reptype = thatForm.frm.getFieldValue("parameter.reptype");
             var pJoNO = thatForm.frm.getFieldValue("parameter.pJoNo");
             var sett = sap.ui.getCore().getModel("settings").getData();
+            var periodFromWhere = periodFrom == "prod" ? "STEP_START" : "ORD_DATE";
             // "@all/Open JOs,pending/Only Pending Production,started_steps/Started Prods",
             var repCond = {
                 "all": "",
@@ -448,14 +476,15 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                 if (stepsclause.length > 0) stepsclause = " and step_code in (" + stepsclause + ")";
             }
 
-            var sq = `SELECT ORD_REF,ORD_REFNM,ORD_NO,ORD_DATE,STEP_CODE STEP,
+            var sq = (`SELECT ORD_REF,ORD_REFNM,ORD_NO,ORD_DATE,STEP_CODE STEP,
             PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
                 FROM C7_V_PRODS where ord_flag!=3 :pJoNO  :repType :stepClause
-                 and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate 
-                    ORDER BY STEP_CODE,ORD_NO`;
+                 and trunc(:ord_date)>=:parameter.fromdate and trunc(:ord_date)<=:parameter.todate 
+                    ORDER BY STEP_CODE,ORD_NO`)
+                .replaceAll(":ord_date", periodFromWhere);
             if (showDetails == 'Y') {
 
-                sq = `SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,ord_allqty QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
+                sq = (`SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,ord_allqty QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
                         STEP_START,STEP_END,
                         case when to_number(replace(dlvp,'%',''))>=100 and to_number(replace(purp,'%',''))<100 then 'Ready' 
                              when to_number(replace(purp,'%',''))=100 then 'Invoiced'
@@ -463,8 +492,9 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         end rec_stat,
                         PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
                             FROM C7_JO_PRODS where ord_flag!=3 :pJoNO  :repType :stepClause
-                             and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate 
-                                ORDER BY STEP_CODE,ORD_NO`;
+                             and trunc(:ord_date)>=:parameter.fromdate and trunc(:ord_date)<=:parameter.todate 
+                                ORDER BY STEP_CODE,ORD_NO`)
+                    .replaceAll(":ord_date", periodFromWhere);
                 //prod_status -> 2=step started but step_end is null,  3 is finished, 
             }
 
