@@ -454,16 +454,18 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                  and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate 
                     ORDER BY STEP_CODE,ORD_NO`;
             if (showDetails == 'Y') {
-                sq = `SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
+
+                sq = `SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,ord_allqty QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
                         STEP_START,STEP_END,
-                        case when dlvp>='100%' and purp<'100%' then 'Ready' 
-                             when purp='100%' then 'Invoiced'
-                             when dlvp<'100%' and purp<'100%' then 'Process'
+                        case when to_number(replace(dlvp,'%',''))>=100 and to_number(replace(purp,'%',''))<100 then 'Ready' 
+                             when to_number(replace(purp,'%',''))=100 then 'Invoiced'
+                             when to_number(replace(dlvp,'%',''))<100 and to_number(replace(purp,'%',''))<100 then 'Process'
                         end rec_stat,
                         PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
                             FROM C7_JO_PRODS where ord_flag!=3 :pJoNO  :repType :stepClause
                              and ord_date>=:parameter.fromdate and ord_date<=:parameter.todate 
                                 ORDER BY STEP_CODE,ORD_NO`;
+                //prod_status -> 2=step started but step_end is null,  3 is finished, 
             }
 
             sq = sq.replaceAll(":pJoNO", pJoNOClause)
@@ -496,6 +498,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             var sett = sap.ui.getCore().getModel("settings").getData();
             var stats = { 0: "-", 1: "⚠️", 2: "⏰", 3: "✅" }
             var stepstats = {};
+            var stepsdetails = {};
             var showDetails = thatForm.frm.getFieldValue("parameter.showDetails");
             that.ld = undefined;
             function moveElement(arr, fromIndex, toIndex) {
@@ -561,8 +564,8 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         ld.cols[ld.getColPos("REC_STAT")].ct_row = "Y";
                         // ld.cols[ld.getColPos("STEP")].ct_row = "Y";
                         ld.cols[ld.getColPos("MATERIAL")].ct_row = "Y";
-                        ld.cols[ld.getColPos("STEP_START")].ct_row = "Y";
-                        ld.cols[ld.getColPos("STEP_END")].ct_row = "Y";
+                        // ld.cols[ld.getColPos("STEP_START")].ct_row = "Y";
+                        // ld.cols[ld.getColPos("STEP_END")].ct_row = "Y";
                         ld.cols[ld.getColPos("ORD_SHPDT")].ct_row = "Y";
 
 
@@ -570,11 +573,19 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
 
                     ld.parse("{" + dt.data + "}", true);
                     // mapping counts of steps
-                    for (var li = 0; li < ld.rows.length; li++)
+                    for (var li = 0; li < ld.rows.length; li++) {
                         if (Util.nvl(ld.getFieldValue(li, "STEP"), 0) != 0)
                             stepstats[ld.getFieldValue(li, "ORD_NO") + "-" + ld.getFieldValue(li, "STEP")]
                                 = Util.nvl(stepstats[ld.getFieldValue(li, "ORD_NO") + "-" + ld.getFieldValue(li, "STEP")], "")
                                 + String(ld.getFieldValue(li, "STAT"));
+                        if (showDetails == 'Y') {
+                            stepsdetails[ld.getFieldValue(li, "ORD_NO") + "-" + ld.getFieldValue(li, "ITEM_DESCR") + "-" + ld.getFieldValue(li, "STEP")] =
+                                Util.nvl(ld.getFieldValue(li, "STEP_START"), "") + "," + Util.nvl(ld.getFieldValue(li, "STEP_END"), "");
+                        }
+                    }
+                    ld.deleteCol(ld.getColPos("STEP_END")); // step_end and step start should remove so it wil not duplicate
+                    ld.deleteCol(ld.getColPos("STEP_START")); // step_end and step start should remove so it wil not duplicate
+
                     ld.do_cross_tab();
 
                     if (ld.cols.length == 0 || ld.rows.length == 0) {
@@ -582,7 +593,6 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         qr.reset();
                         return;
                     }
-
                     var dt2 = ld.format();
                     // qr.mLctb.parseCol(dt2);
                     qr.setJsonStrMetaData(dt2);
@@ -599,8 +609,10 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                             ld2.cols[li].mTitle = itms[cn];
                             ld2.cols[li].mUIHelper.display_width = showDetails == 'Y' ? 140 : "75";
                             ld2.cols[li].mUIHelper.display_align = "ALIGN_CENTER";
+                            ld2.cols[li].mSummary = "COUNT";
                             fltcols.push(ld2.cols[li].mColName);
                             colsStat.push(ld2.cols[li].mColName);
+
                         }
                     ld2.cols[ld2.getColPos("KEYFLD")].mUIHelper.display_width = 0;
                     ld2.cols[ld2.getColPos("tot__STAT")].mHideCol = true;
@@ -610,13 +622,14 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     ld2.cols[ld2.getColPos("ORD_DATE")].mUIHelper.display_width = "90";
                     ld2.cols[ld2.getColPos("ORD_DATE")].mUIHelper.display_format = "SHORT_DATE_FORMAT";
 
+                    ld2.cols[ld2.getColPos("ORD_NO")].mSummary = "COUNT_UNIQUE";
                     ld2.cols[ld2.getColPos("ORD_REF")].mTitle = Util.getLangText("txtCode");
                     ld2.cols[ld2.getColPos("ORD_REFNM")].mTitle = Util.getLangText("txtName");
                     ld2.cols[ld2.getColPos("ORD_DATE")].mTitle = Util.getLangText("ordDate");
 
                     if (showDetails == "Y") {
-                        ld2.cols[ld2.getColPos("STEP_START")].mHideCol = true;
-                        ld2.cols[ld2.getColPos("STEP_END")].mHideCol = true;
+                        // ld2.cols[ld2.getColPos("STEP_START")].mHideCol = true;
+                        // ld2.cols[ld2.getColPos("STEP_END")].mHideCol = true;
 
                         ld2.cols[ld.getColPos("ITEM_DESCR")].mUIHelper.display_width = "120";
                         ld2.cols[ld.getColPos("PAYTERM")].mUIHelper.display_width = "100";
@@ -670,42 +683,42 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         var purp = Util.extractNumber(oModel.getProperty("PURP", currentRowContext));
                         var dlvp = Util.extractNumber(oModel.getProperty("DLVP", currentRowContext));
                         var flg = Util.extractNumber(oModel.getProperty("ORD_FLAG", currentRowContext));
-                var doRender = function (clr, bkclr, colname, tbl) {
-                    if (colname && tbl) {
-                        if (clr) {
-                            UtilGen.getTableColNo(tbl, "KEYFLD")
-                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().css("color", clr);
-                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().parent().parent().css("color", clr);
-                        }
-                        if (bkclr) {
-                            UtilGen.getTableColNo(tbl, "KEYFLD")
-                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().css("background-color", bkclr);
-                            qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().parent().parent().css("background-color", bkclr);
-                        }
+                        var doRender = function (clr, bkclr, colname, tbl) {
+                            if (colname && tbl) {
+                                if (clr) {
+                                    UtilGen.getTableColNo(tbl, "KEYFLD")
+                                    qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().css("color", clr);
+                                    qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().parent().parent().css("color", clr);
+                                }
+                                if (bkclr) {
+                                    UtilGen.getTableColNo(tbl, "KEYFLD")
+                                    qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().css("background-color", bkclr);
+                                    qv.getControl().getRows()[dispRow].getCells()[UtilGen.getTableColNo(qv.getControl(), colname)].$().parent().parent().css("background-color", bkclr);
+                                }
 
-                        return;
-                    }
+                                return;
+                            }
 
-                    for (var i = startCell; i < endCell; i++) {
-                        if (clr != "") {
-                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", clr);
-                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("color", clr);
+                            for (var i = startCell; i < endCell; i++) {
+                                if (clr != "") {
+                                    qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("color", clr);
+                                    qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("color", clr);
+                                }
+                                if (bkclr != "") {
+                                    qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("background-color", bkclr);
+                                    qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", bkclr);
+                                }
+
+                            }
+
                         }
-                        if (bkclr != "") {
-                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().css("background-color", bkclr);
-                            qv.getControl().getRows()[dispRow].getCells()[i - startCell].$().parent().parent().css("background-color", bkclr);
-                        }
-
-                    }
-
-                }
                         if (!dd) return;
                         var dd2 = Util.parseDate(dd, sett["ENGLISH_DATE_FORMAT"]);
                         if (purp < 100) {
                             if (todt.getTime() >= dd2.getTime())
-                                doRender("white", "red","ORD_SHPDT",qv.getControl());
+                                doRender("white", "red", "ORD_SHPDT", qv.getControl());
                             else if (todt.getTime() > (dd2.getTime() - 86400000))
-                                doRender("white", "red","ORD_SHPDT",qv.getControl());
+                                doRender("white", "red", "ORD_SHPDT", qv.getControl());
                         } else
                             doRender("white", "green");
                     };
@@ -719,7 +732,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     qr.mLctb.parse(dt2, true);
 
                     var ld3 = qr.mLctb;
-
+                    var doneSteps = {}; // check if once step is located no need again.
                     for (var li = 0; li < ld3.rows.length; li++)
                         for (var ci in colsStat) {
                             var cn = colsStat[ci].replaceAll("__STAT", "");;
@@ -740,13 +753,19 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                                 if (!(cn == "DLVP" || cn == "PURP")) { //if ((cn == "DLVP" || ....
                                     var sdf = new simpleDateFormat("dd \(h:m");
                                     var sdf2 = new simpleDateFormat("h:m )");
-                                    var std = "", etd = "";
-                                    if (Util.nvl(ld3.getFieldValue(li, "STEP_START"), "") != "")
-                                        std = sdf.format(new Date(ld3.getFieldValue(li, "STEP_START").replaceAll(".", ":")));
-                                    if (Util.nvl(ld3.getFieldValue(li, "STEP_END"), "") != "")
-                                        etd = sdf2.format(new Date(ld3.getFieldValue(li, "STEP_END").replaceAll(".", ":")));
-                                    else etd = stats[2] + ")";
-                                    vl = std + "-" + etd;
+                                    var jostep = ld3.getFieldValue(li, "ORD_NO") + "-" + ld3.getFieldValue(li, "ITEM_DESCR") + "-" + cn;
+                                    if (!doneSteps[jostep]) {
+                                        vl = String(Util.nvl(stepsdetails[jostep], ""));
+                                        doneSteps[jostep] = vl;
+                                        var vls = vl.split(",");
+                                        var std = "", etd = "";
+                                        if (Util.nvl(vls[0], "") != "")
+                                            std = sdf.format(new Date(vls[0].replaceAll(".", ":")));
+                                        if (Util.nvl(vls[1], "") != "" && Util.nvl(vls[0], "") != "")
+                                            etd = sdf2.format(new Date(vls[1].replaceAll(".", ":")));
+                                        else if (Util.nvl(vls[0], "") != "") etd = stats[2] + ")";
+                                        vl = (std + (Util.nvl(std, "") == "" ? "" : "-") + etd).trim();
+                                    } else vl = "";
                                 }
                             }
                             if (!(cn == "DLVP" || cn == "PURP"))
@@ -754,6 +773,23 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                             else
                                 ld3.setFieldValue(li, cn, vl);
                         }
+                    //deleting duplicate records
+                    var duprec = {}
+                    var delrec = [];
+                    for (var li = 0; li < ld3.rows.length; li++) {
+                        var recstr = "";
+                        for (var ci = 0; ci < ld3.cols.length; ci++)
+                            // if (ld3.cols[ci].mColName != 'QTY')
+                            recstr = recstr + "," + Util.nvl(ld3.getFieldValue(li, ld3.cols[ci].mColName), "");
+                        if (!duprec[recstr])
+                            duprec[recstr] = 1;
+                        else
+                            delrec.push(li);
+                    }
+                    for (var k = delrec.length - 1; k >= 0; k--)
+                        ld3.deleteRow(delrec[k]);
+
+                    ld3.sortCol(ld3.getColPos("ORD_NO"), true);
 
                     qr.loadData();
                     qr.getControl().setFirstVisibleRow(0);
