@@ -440,6 +440,23 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     dispInPara: true,
                     trueValues: ["Y", "N"]
                 },
+                exclSold: {
+                    colname: "exclSold",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"Exclude Sold 100%\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: { selected: true, width: "5%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
             };
 
             return para;
@@ -453,6 +470,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             var rt = thatForm.frm.getFieldValue("parameter.reptype");
             var periodFrom = thatForm.frm.getFieldValue("parameter.periodFrom");
             var showDetails = thatForm.frm.getFieldValue("parameter.showDetails");
+            var exclSold = thatForm.frm.getFieldValue("parameter.exclSold");
             var pStepType = thatForm.frm.objs["JOPROD1@parameter.pStepType"].obj;
             var reptype = thatForm.frm.getFieldValue("parameter.reptype");
             var pJoNO = thatForm.frm.getFieldValue("parameter.pJoNo");
@@ -461,7 +479,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             // "@all/Open JOs,pending/Only Pending Production,started_steps/Started Prods",
             var repCond = {
                 "all": "",
-                "pending": " and JO_PROD_USER is null ",
+                "pending": "",//" and JO_PROD_USER is null ",
                 "pending_steps": " and PROD_STATUS = 1 ",
                 "started_steps": " and PROD_STATUS= 2 "
             }
@@ -469,7 +487,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             if (Util.nvl(pJoNO, "") != "")
                 pJoNOClause = " and ORD_NO=" + pJoNO + " ";
             else {
-                repTypeClause = Util.nvl(repCond[reptype], "and JO_PROD_USER is null ");
+                repTypeClause = Util.nvl(repCond[reptype], " ");//"and JO_PROD_USER is null ");
                 var kys = pStepType.getSelectedKeys();
                 for (k in kys)
                     stepsclause += (stepsclause.length > 0 ? "," : "") + kys[k];
@@ -486,12 +504,12 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
 
                 sq = (`SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,ord_allqty QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
                         STEP_START,STEP_END,
-                        case when to_number(replace(dlvp,'%',''))>=100 and to_number(replace(purp,'%',''))<100 then 'Ready' 
+                        case when (to_number(replace(dlvp,'%',''))>=100 and to_number(replace(purp,'%',''))<100) or (JO_PROD_USER is not null) then 'Ready' 
                              when to_number(replace(purp,'%',''))=100 then 'Invoiced'
                              when to_number(replace(dlvp,'%',''))<100 and to_number(replace(purp,'%',''))<100 then 'Process'
                         end rec_stat,
                         PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
-                            FROM C7_JO_PRODS where ord_flag!=3 :pJoNO  :repType :stepClause
+                            FROM C7_JO_PRODS where ord_flag!=3  :pJoNO  :repType :stepClause :exclSold
                              and trunc(:ord_date)>=:parameter.fromdate and trunc(:ord_date)<=:parameter.todate 
                                 ORDER BY STEP_CODE,ORD_NO`)
                     .replaceAll(":ord_date", periodFromWhere);
@@ -500,7 +518,8 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
 
             sq = sq.replaceAll(":pJoNO", pJoNOClause)
                 .replaceAll(":repType", repTypeClause)
-                .replaceAll(":stepClause", stepsclause);
+                .replaceAll(":stepClause", stepsclause)
+                .replaceAll(":exclSold", exclSold == 'Y' ? " and purp!='100%' " : " ");
             sq = thatForm.frm.parseString(sq);
 
 
