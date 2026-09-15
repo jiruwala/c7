@@ -1243,7 +1243,7 @@ sap.ui.jsfragment("bin.forms.jo.jowzd", {
         this.infoPage.removeAllHeaderContent();
         this.infoPage.addHeaderContent(new sap.m.Title({ text: Util.getLangText("titSalWzd") + " / " + refName + " / " + bName }).addStyleClass("redText boldText"));
 
-        var loc = UtilGen.getControlValue(that.txtLocations);
+        var loc = sett["DEFAULT_LOCATION"]; ///UtilGen.getControlValue(that.txtLocations);
         UtilGen.setControlValue(that.txtInfoLocations, "-", "-", true);
         UtilGen.setControlValue(that.txtInfoLocations, loc, loc, true);
         that.txtInfoLocations.fireSelectionChange();
