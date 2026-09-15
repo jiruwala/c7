@@ -114,7 +114,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                     var oy = thatForm.frm.getFieldValue("RPDLV1@parameter.ordby");
                                     var ordby = oy == "ord_no" ? " ORDER BY JOINED_CORDER.ord_date,JOINED_CORDER.ord_no " : " order by JOINED_CORDER." + oy;
                                     var sq = "SELECT ORD_REF, ORD_REFNM," +
-                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
+                                        " ORD_DATE,to_char(tmplantleave,'hh24.mi') ord_tm, ORD_SHIP,  ORD_DISCAMT,saleinv," +
                                         " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT," +
                                         " SUM(((price_x))*(qty_x))/ SUM(qty_x) PRICEX,ITEM_DESCR, ITEM_DESCR ITEM_DESCR2 ,BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
                                         " JOINED_CORDER.ORD_NO," +
@@ -146,7 +146,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS," +
                                         " DRIVER_NAME ,TEL,TRUCKNO," +
-                                        " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,cast_type, " +
+                                        " ORD_DATE,to_char(tmplantleave,'hh24.mi') , ORD_SHIP,  ORD_DISCAMT,cast_type, " +
                                         " PRICE_X,item_descr, BRANCH_NAME , saleinv ,PACKD_X ,INVOICE1.invoice_no " +
                                         ordby;
                                     // " ORDER BY ord_date,ord_no ";
@@ -546,6 +546,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDlvs", {
                     other_settings: {},
                     summary: "COUNT_UNIQUE",
                     count_unique_label: "txtCountDate",
+
+                },
+                ord_tm: {
+                    colname: "ord_tm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "Time",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "60",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
 
                 },
                 location_code: {

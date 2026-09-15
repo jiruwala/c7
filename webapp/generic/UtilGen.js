@@ -2292,6 +2292,25 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         var kfld = Util.getSQLValue("select nvl(max(keyfld),0)+1 from acvoucher1");
                         qry.formview.setFieldValue("qry1.keyfld", kfld, kfld, true);
                         qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
+                        var thatForm = qry.formview.frag;
+                        if (thatForm) {
+                            var no = thatForm.frm.getFieldValue("qry1.no");
+                            var vusr = Util.getSQLValue("select nvl(max(usernm),'') " +
+                                " from acvoucher1 where vou_code=" + thatForm.vars.vou_code + " and " +
+                                " type=" + thatForm.vars.type + " and no='" + no + "'");
+                            if (vusr) {
+                                var vno = Util.getSQLValue("select nvl(max(no),0)+1 " +
+                                    " from acvoucher1 where vou_code=" + thatForm.vars.vou_code + " and " +
+                                    " type=" + thatForm.vars.type);
+                                sap.m.MessageToast.show(vusr + " have entered # " + no + " , new # " + vno, {
+                                    my: sap.ui.core.Popup.Dock.RightBottom,
+                                    at: sap.ui.core.Popup.Dock.RightBottom,
+                                    duraiton: 10000
+                                })
+                                qry.formview.setFieldValue("qry1.no", vno, vno, true);
+                            }
+                        }
+
                     }
                 },
                 validateDetails: function (qry, sqlRow, rowno) {

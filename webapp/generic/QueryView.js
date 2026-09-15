@@ -251,8 +251,8 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                 text: "",
                 press: function () {
                     var x = {
-                        colData: {parameters:{}},
-                        reportsData : {
+                        colData: { parameters: {} },
+                        reportsData: {
                             report_info: { report_name: "" }
                         }
                     }
@@ -1082,7 +1082,35 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                         if (evt.key == "Escape") {
                             that.getControl().focus();
                         }
+                        if (this.getEditable() && evt.key == 'F3') {
+                            evt.preventDefault();
+                            var clno = this.getParent().indexOfCell(this);
+                            var cls = this.getParent().getParent().getColumns();
+                            var tm = -1;
+                            var clx = -1;
+                            var rowno = that.getControl().indexOfRow(this.getParent());
+                            var firstVis = that.getControl().getFirstVisibleRow();
 
+                            for (clx in cls) {
+                                if (cls[clx].getVisible()) tm++;
+                                if (tm == clno) {
+                                    break;
+                                }
+                            }
+                            if (clx < 0) return;
+                            var rn = firstVis + rowno;
+                            var cx = cls[clx].tableCol;
+                            if (rn - 1 >= 0) {
+                                var currentRowContext = that.getControl().getRows()[rowno].getBindingContext();
+                                var vl = that.mLctb.getFieldValue(rn - 1, cx.mColName);
+                                if (this instanceof sap.m.Input) {
+                                    this.setValue(vl);
+                                    this.fireChange();
+                                }
+                                // that.getControl().getModel().setProperty(currentRowContext.sPath + "/" + cx.mColName, vl);
+                            }
+
+                        }
                         if (evt.key == "ArrowDown") {
                             var rowno = that.getControl().indexOfRow(this.getParent());
                             var colno = this.getParent().indexOfCell(this);
@@ -1230,7 +1258,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     }
                 }
                 if (cc.commandLinkClick != undefined) {
-                    
+
                 }
                 if (cc.commandLinkClick != undefined) {
                     o.addStyleClass("linkLabel");
@@ -1309,6 +1337,7 @@ sap.ui.define("sap/ui/ce/generic/QueryView", ["./LocalTableData", "./DataFilter"
                     o.cc = cc;
                     o.attachBrowserEvent("keydown", function (oEvent) {
                         if (this.getEditable() && oEvent.key == 'F9') {
+                            oEvent.preventDefault();
                             var clno = this.getParent().indexOfCell(this);
                             var cls = this.getParent().getParent().getColumns();
                             var tm = -1;

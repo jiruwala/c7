@@ -354,10 +354,15 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
                                 display_align: "ALIGN_RIGHT",
                                 display_style: "",
                                 display_format: "",
-                                other_settings: { width: "20%" },
+                                other_settings: {
+                                    width: "20%",
+                                    change: function () {
+                                        UtilGen.Vouchers.fetchVoucherByNo(false, thatForm);
+                                    }
+                                },
                                 edit_allowed: false,
                                 insert_allowed: true,
-                                require: true
+                                require: true,
                             },
                             vou_date: {
                                 colname: "vou_date",
@@ -720,6 +725,7 @@ sap.ui.jsfragment("bin.forms.gl.jv", {
             ;
         this.frm = new FormView(this.mainPage);
         this.frm.view = view;
+        this.frm.frag = this;
         this.frm.pg = this.mainPage;
         this.frm.parseForm(js);
         this.frm.createView();

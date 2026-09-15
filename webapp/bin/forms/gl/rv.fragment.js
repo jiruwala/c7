@@ -1055,22 +1055,27 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
                             {
                                 colname: 'NO',
                             },
+                            
                             {
                                 colname: "VOU_DATE",
                             },
                             {
                                 colname: 'KEYFLD',
+                                display_width: 0,
                                 return_field: "pac",
                             },
                             {
-                                colname: 'DR_AMOUNT'
+                                colname: 'MANUAL_NO'
+                            },
+                            {
+                                colname: 'CHEQUENO',
                             },
                             {
                                 colname: 'DESCR'
                             },
 
                         ],  // [{colname:'code',width:'100',return_field:'pac' }]
-                        sql: "select no,TO_CHAR(vou_date,'DD/MM/RRRR') VOU_DATE ,descr,keyfld ,DEBAMT DEBAMT" +
+                        sql: "select no,TO_CHAR(vou_date,'DD/MM/RRRR') VOU_DATE ,descr,bookserialno MANUAL_NO,chequeno,DEBAMT, keyfld " +
                             " from acvoucher1 where vou_code=" + that2.vars.vou_code +
                             " and type=" + that2.vars.type + " order by acvoucher1.vou_date desc,no desc",
                         afterSelect: function (data) {
@@ -1085,6 +1090,7 @@ sap.ui.jsfragment("bin.forms.gl.rv", {
             ;
         this.frm = new FormView(this.mainPage);
         this.frm.view = view;
+        this.frm.frag = this;
         this.frm.pg = this.mainPage;
         this.frm.parseForm(js);
         this.frm.createView();
