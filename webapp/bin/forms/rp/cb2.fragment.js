@@ -320,15 +320,20 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                                 NVL(SUM(v.debit - v.credit), 0) AS balance,   -- total up to the cutoff date
                                                 0 AS drbal,
                                                 0 AS crbal,
+                                                max(ubal.unposted_balance) unposted_balance,
                                                 0 AS overcredit,
                                                 last_pay.no AS last_pay_no,                   -- your 3 columns
                                                 last_pay.vou_date AS last_pay_date,
-                                                last_pay.credit AS last_pay_amt
+                                                last_pay.credit AS last_pay_amt                                                
                                             FROM c_ycust
                                             LEFT JOIN salesp sl ON sl.no = c_ycust.salesp
                                             LEFT JOIN acvoucher2 v 
                                                     ON v.cust_code = c_ycust.code
                                                     AND v.vou_date <= :parameter.todate
+                                            LEFT JOIN (select ord_ref,sum(sale_price*tqty) unposted_balance from c_order1 where saleinv is null
+                                                        and ord_code=9 and ord_date <= :parameter.todate
+                                                        group by ord_ref) ubal 
+                                                    on ubal.ord_ref=c_ycust.code
                                             LEFT JOIN (SELECT no, vou_date, credit, cust_code
                                                         FROM (SELECT no, vou_date, credit, cust_code,
                                                                         ROW_NUMBER() 
@@ -528,6 +533,24 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                         display_width: "100",
                                         display_align: "ALIGN_RIGHT",
                                         display_style: "",
+                                        display_format: "MONEY_FORMAT",
+                                        default_value: "",
+                                        summary: "SUM",
+                                        valOnZero: '',
+                                        other_settings: {},
+                                        commandLinkClick: cmdLink
+                                    },
+                                    unposted_balance: {
+                                        colname: "unposted_balance",
+                                        data_type: FormView.DataType.Number,
+                                        class_name: FormView.ClassTypes.LABEL,
+                                        title: "unpostedBal",
+                                        title2: "",
+                                        parentTitle: "",
+                                        parentSpan: 1,
+                                        display_width: "100",
+                                        display_align: "ALIGN_RIGHT",
+                                        display_style: "background-color: lightyellow;",
                                         display_format: "MONEY_FORMAT",
                                         default_value: "",
                                         summary: "SUM",

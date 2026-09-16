@@ -101,8 +101,6 @@ sap.ui.jsfragment("bin.forms.rm.forms.unpost", {
         UtilGen.clearPage(this.mainPage);
         this.createViewHeader();
         this.createDetails();
-
-
         this.loadData();
     },
     createDetails: function () {
@@ -450,13 +448,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.unpost", {
                 var rowStart = tbl.getFirstVisibleRow();
                 var kfld = parseFloat(tbl.getRows()[rr].getCells()[UtilGen.getTableColNo(tbl, "ORDWAS")].getText());
 
-                UtilGen.execCmd("bin.forms.br.forms.dlv formTitle=DELIVERY formType=dialog keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+                UtilGen.execCmd("bin.forms.rm.forms.dlv formTitle=DELIVERY formType=dialog status=view keyfld=" + kfld + " formSize=80%,70%", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
                     that.loadData_details(true, true, true);
 
                 });
             };
-
-
             that.qc.mLctb.parse("{" + dt.data + "}", true);
             that.qc.loadData();
             that.recalcGross(true, Util.nvl(changeAmt, false), Util.nvl(changeAmtAsk, false));

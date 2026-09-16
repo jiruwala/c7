@@ -619,7 +619,8 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                     var ch = Util.nvl(thatForm.frm.getFieldValue("parameter.showCheque"), "N");
                                     var sq = "select *from C6_GL2 where 1=1 and usernm=c6_session.get_user_session order by pos"
                                     if (ch == "Y")
-                                        sq = "select C6_GL2.*,v1.chequeno from C6_GL2,acvoucher1 v1  where v1.keyfld=C6_GL2.keyfld and 1=1 and C6_GL2.usernm=c6_session.get_user_session order by C6_GL2.pos";
+                                        sq = "select *from C6_GL2 where 1=1 and usernm=c6_session.get_user_session order by pos"
+                                    // sq = "select C6_GL2.*,v1.chequeno from C6_GL2,acvoucher1 v1  where v1.keyfld=C6_GL2.keyfld and 1=1 and C6_GL2.usernm=c6_session.get_user_session order by C6_GL2.pos";
                                     return sq;
                                 },
                                 afterApplyCols: function (qryObj) {
