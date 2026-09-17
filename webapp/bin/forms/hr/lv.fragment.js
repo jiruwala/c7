@@ -97,6 +97,8 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                     });
                     txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
+                    var hb2 = new sap.m.HBox(thatForm.view.createId("stepsCmds" + thatForm.timeInLong));
+                    vbHeader.addItem(hb2);
                 },
                 print_templates: [],
                 events: thatForm.helperFunc.getEvents(),
@@ -207,6 +209,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         // UtilGen.Search.getLOVSearchField("select name from acaccount where accno = :CODE ", qry.formview.objs["qry1.expense_ac"].obj, undefined, that.frm.objs["qry1.expensename"].obj);
                         // UtilGen.Search.getLOVSearchField("select max(title) from accostcent1 where code = :CODE ", qry.formview.objs["qry1.costcent"].obj, undefined, that.frm.objs["qry1.costcentname"].obj);
+                        thatForm.helperFunc.showStepsCommands();
                     }
                 },
                 beforeLoadQry: function (qry, sql) {
@@ -246,6 +249,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
 
                         that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         that.view.byId("numtxt" + thatForm.timeInLong).setText("");
+                        thatForm.helperFunc.showStepsCommands();
                     }
                 },
                 beforeDeleteValidate: function (frm) {
@@ -690,6 +694,45 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                 .replaceAll(":emp", thatForm.frm.getFieldValue("qry1.emp_code")));
             if (cntExistBefore > 0) FormView.err("Err ! , this employee have alredy request before and may have not returned");
         },
+        getEmpStatus: function (ec, showErrOnNotFlag) {
+            var thatForm = this.thatForm;
+            var flg = Util.getSQLValue("select flag from emp_cd where emp_cd='" + ec + "'");
+            if (showErrOnNotFlag && flg != showErrOnNotFlag)
+                FormView.err("Err ! , Employee status is not present !");
+            return flg;
+
+        },
+        queryStepsCommands: function () {
+
+        },
+        showStepsCommands: function () {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+
+            var hb = thatForm.view.byId("stepsCmds" + thatForm.timeInLong);
+            var rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-right");
+            var acceptIcon = "sap-icon://accept";
+            hb.destroyItems();
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW)
+                return;
+            var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+            var stepPress = function (e) {
+                var cmd = e.getSource();
+                var stp = cmd.getCustomData()[0].getKey();
+                if (stp == "cmdApprove") {
+                    thatForm.helperFunc.getEmpStatus()
+                }
+            };
+            hb.addIem(new sap.m.Button(thatForm.view.createId("cmdStepApprove" + thatForm.timeInLong,
+                {
+                    icon: (dt[di].FLAG == 2 ? acceptIcon : rectangleIcon),
+                    text: Util.getLangText("poApprove"),
+                    press: stepPress,
+                    // enabled: (dt[di].FLAG == 2 ? false : true),
+                    customData: { key: "cmdApprove" },
+                })
+            ));
+        }
     }
 
 });
