@@ -3417,7 +3417,8 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                 if (dat.ret == "SUCCESS" && dat.data.length > 0) {
                     var dtx = JSON.parse("{" + dat.data + "}").data;
                     var tot = 0;
-                    var dtstr = (dt != undefined ? " and vou_date<=" + Util.toOraDateString(dt) : " and vou_date<=" + Util.toOraDateString(UtilGen.DBView.today_date.getDateValue()));
+                    var dtstr = (dt != undefined ? " and vou_date<=" + Util.toOraDateString(dt) :
+                        " and vou_date<=" + Util.toOraDateString(UtilGen.DBView.today_date.getDateValue()));
                     for (var i in dtx)
                         tot += Util.getSQLValue("select nvl(sum(debit-credit),0) from acc_transaction_up where path like '" + dtx[i].PATH + "%' " + dtstr);
                     return tot;
@@ -5623,7 +5624,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         });
 
                         if (isLoading) {
-                            oContainer.addItem(new sap.m.BusyIndicator({ size: "2rem" }));
+                            oContainer.addItem(new sap.m.BusyIndicator({ size: ".5rem" }));
                             return oContainer;
                         }
 
@@ -5672,7 +5673,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                                 height: "100%",
                                 alignItems: "Center",
                                 justifyContent: "Center",
-                                items: [new sap.m.BusyIndicator({ size: "2rem" })]
+                                items: [new sap.m.BusyIndicator({ size: ".5rem" })]
                             });
                             busyContainer.setLayoutData(new sap.m.FlexItemData({ growFactor: 1 }));
                             oCard.removeItem(oChartContainer);
@@ -6187,6 +6188,649 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                     oCard.getData = function () { return currentData; };
                     oCard.getSettings = function () { return currentSettings; };
                     oCard.isLoading = function () { return isLoading; };
+
+                    return oCard;
+                },
+                createCustomCard: function (name, config) {
+                    var sett = config.settings || {};
+                    var title = config.title || "";
+                    var items = config.items || [];
+                    var rowClickHandler = config.rowClickHandler || null;
+                    var loadData = config.loadData || null;
+                    var ratioBase = config.ratioBase || null;
+                    var cardWidth = sett.width || "100%";
+                    var minHeight = sett.minHeight || "0";
+                    var showSettings = sett.showSettings !== undefined ? sett.showSettings : true;
+                    var onSettings = sett.onSettings || null;
+                    var rowHeight = sett.rowHeight || 26;
+                    var headerHeight = sett.headerHeight || 32;
+                    var padding = sett.padding || 10;
+
+                    var currentItems = items.slice();
+                    var currentItemsCache = [];
+                    var isLoading = false;
+                    var oCard = null;
+                    var oCanvas = null;
+                    var canvasId = "customCanvas_" + name + "_" + Date.now();
+                    var canvasEl = null;
+                    var resizeHandlerId = null;
+                    var rowHitMap = [];
+                    var hoveredItem = null;
+
+                    // Spinner state
+                    var spinnerFrame = 0;
+                    var spinnerTimer = null;
+
+                    // ---------------------------------------------------------------
+                    // Parse "px" string or number
+                    // ---------------------------------------------------------------
+                    function toNumberPx(v, def) {
+                        if (v === null || v === undefined || v === "") return def;
+                        if (typeof v === "number") return v;
+                        var s = String(v).replace("px", "").trim();
+                        var n = parseFloat(s);
+                        return isNaN(n) ? def : n;
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Format a number
+                    // ---------------------------------------------------------------
+                    function formatNumber(val, format) {
+                        var sett2 = sap.ui.getCore().getModel("settings").getData();
+                        if (val === null || val === undefined || val === "") return "";
+                        if (format === "MONEY_FORMAT") {
+                            return new DecimalFormat(sett2["FORMAT_MONEY_1"]).format(val);
+                        }
+                        if (format === "QTY_FORMAT") {
+                            return new DecimalFormat(sett2["FORMAT_QTY_1"]).format(val);
+                        }
+                        if (format) {
+                            try { return new DecimalFormat(format).format(val); } catch (e) { }
+                        }
+                        if (typeof val === "number" && !isNaN(val)) return val.toLocaleString();
+                        return val.toString();
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Resolve per-item style into a font/color object
+                    // ---------------------------------------------------------------
+                    function resolveStyle(itemStyle, defaults, themeColors) {
+                        var s = itemStyle || {};
+                        var bold = (s.bold !== undefined) ? s.bold : defaults.bold;
+                        var italic = (s.italic !== undefined) ? s.italic : (defaults.italic || false);
+                        var fontSize = (s.fontSize !== undefined) ? s.fontSize : defaults.fontSize;
+                        var color = s.color || defaults.color || themeColors.textColor;
+                        return { bold: bold, italic: italic, fontSize: fontSize, color: color };
+                    }
+
+                    function makeFont(fontFamily, style) {
+                        var w = style.bold ? "bold" : "normal";
+                        var st = style.italic ? "italic" : "normal";
+                        return st + " " + w + " " + style.fontSize + "px " + fontFamily;
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Compute content height (enforces minHeight during loading)
+                    // ---------------------------------------------------------------
+                    function computeContentHeight(items) {
+                        var h = 0;
+                        items.forEach(function (item) {
+                            var type = item.type || "row";
+                            if (type === "header") h += headerHeight;
+                            else if (type === "divider") h += 10;
+                            else if (type === "spacer") h += parseInt(item.height || 10);
+                            else if (type === "text") h += rowHeight;
+                            else if (type === "total") h += rowHeight + 8;
+                            else h += rowHeight;
+                        });
+                        h += padding * 2;
+
+                        var minH = toNumberPx(minHeight, 0);
+                        if (items.length === 0 && minH > 0) return minH;
+                        return Math.max(h, minH);
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Spinner
+                    // ---------------------------------------------------------------
+                    function drawSpinner(ctx, cssWidth, cssHeight, colors) {
+                        var cx = cssWidth / 2;
+                        var cy = cssHeight / 2;
+                        var r = 14;
+                        var arcs = 12;
+                        var arcLen = (Math.PI * 2) / arcs;
+
+                        ctx.save();
+                        ctx.translate(cx, cy);
+                        ctx.rotate(spinnerFrame * (Math.PI * 2) / arcs);
+                        for (var i = 0; i < arcs; i++) {
+                            var alpha = (i + 1) / arcs;
+                            ctx.beginPath();
+                            ctx.strokeStyle = colors.labelColor;
+                            ctx.globalAlpha = alpha;
+                            ctx.lineWidth = 3;
+                            ctx.arc(0, 0, r, i * arcLen, (i + 1) * arcLen - 0.05);
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+                        ctx.globalAlpha = 1;
+
+                        if (!spinnerTimer && isLoading) {
+                            spinnerTimer = setInterval(function () {
+                                spinnerFrame++;
+                                if (!isLoading || !canvasEl) {
+                                    clearInterval(spinnerTimer);
+                                    spinnerTimer = null;
+                                    return;
+                                }
+                                drawContent();
+                            }, 80);
+                        }
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Draw content
+                    // ---------------------------------------------------------------
+                    function drawContent() {
+                        if (!canvasEl) return;
+
+                        var dpr = window.devicePixelRatio || 1;
+                        var cssWidth = canvasEl.clientWidth || canvasEl.parentNode.clientWidth || 300;
+                        var contentItems = currentItemsCache;
+                        var cssHeight = computeContentHeight(contentItems);
+
+                        // Resize canvas for HiDPI
+                        canvasEl.width = Math.round(cssWidth * dpr);
+                        canvasEl.height = Math.round(cssHeight * dpr);
+                        canvasEl.style.width = cssWidth + "px";
+                        canvasEl.style.height = cssHeight + "px";
+
+                        var ctx = canvasEl.getContext("2d");
+                        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                        ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+                        // ---- Theme ----
+                        var cs = getComputedStyle(document.documentElement);
+                        var themeColors = {
+                            textColor: cs.getPropertyValue("--sapTextColor").trim() || "#000",
+                            labelColor: cs.getPropertyValue("--sapContent_LabelColor").trim() || "#666",
+                            borderColor: cs.getPropertyValue("--sapList_BorderColor").trim() || "#ccc",
+                            hoverBg: cs.getPropertyValue("--sapList_Hover_Background").trim() || "#f0f0f0",
+                            hoverText: cs.getPropertyValue("--sapActiveColor").trim() || "#0066cc",
+                            lineColor: "darkgrey"
+                        };
+                        var fontFamily = cs.getPropertyValue("--sapFontFamily").trim() || "'72', Arial, sans-serif";
+
+                        // ---- Loading state ----
+                        if (contentItems.length === 0 && isLoading) {
+                            drawSpinner(ctx, cssWidth, cssHeight, themeColors);
+                            rowHitMap = [];
+                            return;
+                        }
+
+                        var leftPad = padding;
+                        var rightPad = padding;
+                        var usableW = cssWidth - leftPad - rightPad;
+
+                        var labelW = usableW * 0.65;
+                        var opW = usableW * 0.10;
+                        var valueW = usableW * 0.25;
+                        var lovLabelW = usableW * 0.50;
+                        var lovValueW = usableW * 0.30;
+
+                        // ---- Hover background (before text) ----
+                        if (hoveredItem && typeof rowClickHandler === "function") {
+                            for (var hi = 0; hi < rowHitMap.length; hi++) {
+                                if (rowHitMap[hi].item === hoveredItem) {
+                                    var hv = rowHitMap[hi];
+                                    ctx.fillStyle = themeColors.hoverBg;
+                                    ctx.fillRect(0, hv.y1, cssWidth, hv.y2 - hv.y1);
+                                    break;
+                                }
+                            }
+                        }
+
+                        var y = padding;
+                        rowHitMap = [];
+
+                        // Ratio total for LOV (auto-compute if not provided)
+                        var ratioTotal = ratioBase;
+                        if (!ratioTotal) {
+                            var sum = 0;
+                            contentItems.forEach(function (it) {
+                                if (it.type === "lov" && it.includeInRatio !== false)
+                                    sum += parseFloat(it.value) || 0;
+                            });
+                            ratioTotal = sum;
+                        }
+
+                        var runningTotal = 0;
+                        var lastFormat = null;
+                        var firstInGroup = true;
+
+                        function colorFor(item, baseColor) {
+                            if (rowClickHandler && item === hoveredItem) return themeColors.hoverText;
+                            return baseColor;
+                        }
+
+                        contentItems.forEach(function (item, index) {
+                            var type = item.type || "row";
+
+                            if (type === "row" && item.format) lastFormat = item.format;
+
+                            // Running total uses `op` (row only)
+                            if (type === "row") {
+                                var op0 = item.op || "+";
+                                var val0 = parseFloat(item.value) || 0;
+                                if (op0 === "+") runningTotal += val0;
+                                else if (op0 === "-") runningTotal -= val0;
+                            }
+
+                            // ---- HEADER ----
+                            if (type === "header") {
+                                var styleH = resolveStyle(item.style, { bold: true, fontSize: 14 }, themeColors);
+                                ctx.font = makeFont(fontFamily, styleH);
+                                ctx.fillStyle = colorFor(item, styleH.color);
+                                ctx.textAlign = "left";
+                                ctx.textBaseline = "middle";
+                                ctx.fillText(Util.getLangText(item.label || ""), leftPad, y + headerHeight / 2);
+
+                                rowHitMap.push({ y1: y, y2: y + headerHeight, item: item, index: index });
+                                y += headerHeight;
+                            }
+
+                            // ---- DIVIDER ----
+                            else if (type === "divider") {
+                                ctx.beginPath();
+                                ctx.strokeStyle = themeColors.lineColor;
+                                ctx.lineWidth = 1;
+                                ctx.moveTo(leftPad, y + 3);
+                                ctx.lineTo(cssWidth - rightPad, y + 3);
+                                ctx.stroke();
+                                y += 10;
+                            }
+
+                            // ---- SPACER ----
+                            else if (type === "spacer") {
+                                y += parseInt(item.height || 10);
+                            }
+
+                            // ---- TEXT ----
+                            else if (type === "text") {
+                                var styleT = resolveStyle(item.style, { bold: false, fontSize: 13 }, themeColors);
+                                ctx.font = makeFont(fontFamily, styleT);
+                                ctx.fillStyle = colorFor(item, styleT.color);
+                                ctx.textAlign = "left";
+                                ctx.textBaseline = "middle";
+                                ctx.fillText(Util.getLangText(item.text || ""), leftPad, y + rowHeight / 2);
+
+                                rowHitMap.push({ y1: y, y2: y + rowHeight, item: item, index: index });
+                                y += rowHeight;
+                            }
+
+                            // ---- LOV (with per-cell style customization) ----
+                            else if (type === "lov") {
+                                var lovValue = parseFloat(item.value) || 0;
+
+                                // Ratio: show only if explicitly provided AND > 0
+                                var showRatio = false;
+                                var ratioNum = 0;
+                                if (item.ratio !== undefined && item.ratio !== null &&
+                                    item.ratio !== "" && item.ratio !== 0 && item.ratio !== "0") {
+                                    ratioNum = parseFloat(item.ratio);
+                                    if (!isNaN(ratioNum) && ratioNum > 0) showRatio = true;
+                                }
+
+                                // Base style – applies to all 3 cells (label, value, ratio)
+                                var baseStyle = item.style || {};
+
+                                // Per-cell merged styles: base + specific overrides
+                                var mergedL = Object.assign({}, baseStyle, item.styleLabel || {});
+                                var mergedV = Object.assign({}, baseStyle, item.styleValue || {});
+                                var mergedR = Object.assign({}, baseStyle, item.styleRatio || {});
+
+                                var styleL = resolveStyle(mergedL, { bold: false, fontSize: 13 }, themeColors);
+                                var styleV = resolveStyle(mergedV, { bold: false, fontSize: 13 }, themeColors);
+                                var styleR = resolveStyle(mergedR, { bold: false, fontSize: 12, color: themeColors.labelColor }, themeColors);
+
+                                ctx.textBaseline = "middle";
+
+                                // Label
+                                ctx.font = makeFont(fontFamily, styleL);
+                                ctx.fillStyle = colorFor(item, styleL.color);
+                                ctx.textAlign = "left";
+                                ctx.fillText(Util.getLangText(item.label || ""), leftPad, y + rowHeight / 2);
+
+                                // Value
+                                ctx.font = makeFont(fontFamily, styleV);
+                                ctx.fillStyle = colorFor(item, styleV.color);
+                                ctx.textAlign = "right";
+                                var lovValueX = leftPad + lovLabelW + lovValueW;
+                                ctx.fillText(formatNumber(lovValue, item.format), lovValueX, y + rowHeight / 2);
+
+                                // Ratio – integer only
+                                if (showRatio) {
+                                    ctx.font = makeFont(fontFamily, styleR);
+                                    ctx.fillStyle = colorFor(item, styleR.color);
+                                    ctx.textAlign = "right";
+                                    ctx.fillText(Math.round(ratioNum) + "%", cssWidth - rightPad, y + rowHeight / 2);
+                                }
+
+                                rowHitMap.push({ y1: y, y2: y + rowHeight, item: item, index: index });
+                                y += rowHeight;
+                            }
+
+                            // ---- TOTAL ----
+                            else if (type === "total") {
+                                // Solid line above
+                                ctx.beginPath();
+                                ctx.strokeStyle = themeColors.lineColor;
+                                ctx.lineWidth = 1;
+                                ctx.moveTo(leftPad, y + 3);
+                                ctx.lineTo(cssWidth - rightPad, y + 3);
+                                ctx.stroke();
+                                y += 6;
+
+                                var totalFormat = item.format || lastFormat;
+
+                                // Total row: NOT bold by default (override via style.bold)
+                                var styleTot = resolveStyle(item.style, { bold: false, fontSize: 13 }, themeColors);
+
+                                // Label
+                                ctx.font = makeFont(fontFamily, styleTot);
+                                ctx.fillStyle = colorFor(item, styleTot.color);
+                                ctx.textAlign = "left";
+                                ctx.textBaseline = "middle";
+                                ctx.fillText(Util.getLangText(item.label || ""), leftPad, y + rowHeight / 2);
+
+                                // Value (dispOp ignored on totals)
+                                ctx.fillStyle = colorFor(item, styleTot.color);
+                                ctx.textAlign = "right";
+                                var totalValX = leftPad + labelW + opW + valueW;
+                                ctx.fillText(formatNumber(Math.abs(runningTotal), totalFormat), totalValX, y + rowHeight / 2);
+
+                                rowHitMap.push({ y1: y, y2: y + rowHeight, item: item, index: index });
+                                y += rowHeight;
+
+                                firstInGroup = true;
+                                // runningTotal = 0;
+                            }
+
+                            // ---- NORMAL MATH ROW ----
+                            else {
+                                var op = item.op || "+";
+                                var val = parseFloat(item.value) || 0;
+
+                                // dispOp = display string (row only, falls back to op)
+                                var dispOp = (item.dispOp !== undefined) ? item.dispOp : op;
+                                var sign = /*firstInGroup ? "" :*/ dispOp;
+
+                                var styleRow = resolveStyle(item.style, { bold: false, fontSize: 13 }, themeColors);
+                                var styleOp = resolveStyle(item.styleOp, { bold: true, fontSize: 14, color: themeColors.labelColor }, themeColors);
+
+                                ctx.textBaseline = "middle";
+
+                                // Label
+                                ctx.font = makeFont(fontFamily, styleRow);
+                                ctx.fillStyle = colorFor(item, styleRow.color);
+                                ctx.textAlign = "left";
+                                ctx.fillText(Util.getLangText(item.label || ""), leftPad, y + rowHeight / 2);
+
+                                // Operator
+                                if (sign) {
+                                    ctx.font = makeFont(fontFamily, styleOp);
+                                    ctx.fillStyle = colorFor(item, styleOp.color);
+                                    ctx.textAlign = "right";
+                                    var opX = leftPad + labelW + opW;
+                                    ctx.fillText(sign, opX, y + rowHeight / 2);
+                                }
+
+                                // Value
+                                ctx.font = makeFont(fontFamily, styleRow);
+                                ctx.fillStyle = colorFor(item, styleRow.color);
+                                ctx.textAlign = "right";
+                                var valX = leftPad + labelW + opW + valueW;
+                                ctx.fillText(formatNumber(Math.abs(val), item.format), valX, y + rowHeight / 2);
+
+                                rowHitMap.push({ y1: y, y2: y + rowHeight, item: item, index: index });
+                                y += rowHeight;
+
+                                firstInGroup = false;
+                            }
+                        });
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Click / hover
+                    // ---------------------------------------------------------------
+                    function isClickableType(item) {
+                        var t = item.type || "row";
+                        return (t !== "header" && t !== "divider" && t !== "spacer" && t !== "text" && t !== "total");
+                    }
+
+                    function handleCanvasClick(event) {
+                        if (typeof rowClickHandler !== "function") return;
+                        var rect = canvasEl.getBoundingClientRect();
+                        var clickY = event.clientY - rect.top;
+                        for (var i = 0; i < rowHitMap.length; i++) {
+                            var hit = rowHitMap[i];
+                            if (clickY >= hit.y1 && clickY < hit.y2 && isClickableType(hit.item)) {
+                                rowClickHandler(hit.item, hit.item.hiddenData, event, hit.index);
+                                return;
+                            }
+                        }
+                    }
+
+                    function handleCanvasMouseMove(event) {
+                        if (typeof rowClickHandler !== "function") return;
+                        var rect = canvasEl.getBoundingClientRect();
+                        var mouseY = event.clientY - rect.top;
+                        var newHover = null;
+                        for (var i = 0; i < rowHitMap.length; i++) {
+                            var hit = rowHitMap[i];
+                            if (mouseY >= hit.y1 && mouseY < hit.y2 && isClickableType(hit.item)) {
+                                newHover = hit.item;
+                                break;
+                            }
+                        }
+                        if (newHover !== hoveredItem) {
+                            hoveredItem = newHover;
+                            canvasEl.style.cursor = hoveredItem ? "pointer" : "default";
+                            drawContent();
+                        }
+                    }
+
+                    function handleCanvasMouseLeave() {
+                        if (hoveredItem !== null) {
+                            hoveredItem = null;
+                            if (canvasEl) canvasEl.style.cursor = "default";
+                            drawContent();
+                        }
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Canvas control
+                    // ---------------------------------------------------------------
+                    function createCanvasControl() {
+                        return new sap.ui.core.HTML({
+                            content: '<canvas id="' + canvasId + '" ' +
+                                'style="display:block;width:' + cardWidth + ';pointer-events:auto;' +
+                                (rowClickHandler ? 'cursor:pointer;' : 'cursor:default;') + '"></canvas>'
+                        });
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Render canvas
+                    // ---------------------------------------------------------------
+                    function renderCanvas() {
+                        canvasEl = document.getElementById(canvasId);
+                        if (!canvasEl) return;
+                        currentItemsCache = currentItems;
+                        drawContent();
+
+                        if (canvasEl._canvasClick) canvasEl.removeEventListener("click", canvasEl._canvasClick);
+                        if (typeof rowClickHandler === "function") {
+                            canvasEl._canvasClick = handleCanvasClick;
+                            canvasEl.addEventListener("click", handleCanvasClick);
+
+                            canvasEl._canvasMove = handleCanvasMouseMove;
+                            canvasEl.addEventListener("mousemove", handleCanvasMouseMove);
+
+                            canvasEl._canvasLeave = handleCanvasMouseLeave;
+                            canvasEl.addEventListener("mouseleave", handleCanvasMouseLeave);
+                        }
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Header
+                    // ---------------------------------------------------------------
+                    function buildHeader() {
+                        var oHeader = new sap.m.HBox({
+                            width: "100%",
+                            alignItems: "Center",
+                            justifyContent: "SpaceBetween",
+                            items: [
+                                new sap.m.Text({
+                                    text: Util.getLangText(title),
+                                    wrapping: false
+                                }).addStyleClass("cardTitle"),
+                                showSettings ? new sap.m.Button({
+                                    icon: "sap-icon://settings",
+                                    tooltip: "Change parameters",
+                                    press: function () {
+                                        if (typeof onSettings === "function") onSettings(oCard, currentItems, sett);
+                                        else sap.m.MessageToast.show("No settings handler defined.");
+                                    }
+                                }).addStyleClass("sapUiTinyMarginBegin") : null
+                            ].filter(function (i) { return i !== null; })
+                        }).addStyleClass("cardHeaderBar");
+                        oHeader.setLayoutData(new sap.m.FlexItemData({ growFactor: 0, shrinkFactor: 0 }));
+                        return oHeader;
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Build card
+                    // ---------------------------------------------------------------
+                    function buildCard() {
+                        var oHeader = buildHeader();
+                        oCanvas = createCanvasControl();
+                        oCanvas.setLayoutData(new sap.m.FlexItemData({
+                            growFactor: 1, /*shrinkFactor: 1, minHeight: "0"*/
+                        }));
+
+                        var card = new sap.m.VBox({
+                            width: cardWidth,
+                            alignItems: "Stretch",
+                            items: [oHeader, oCanvas]
+                        }).addStyleClass("gaugeCard customCard canvasCustomCard");
+
+                        card._canvas = oCanvas;
+                        card._header = oHeader;
+
+                        card.addEventDelegate({
+                            onAfterRendering: function () {
+                                renderCanvas();
+                                var domRef = card.getDomRef();
+                                if (domRef && sap.ui.core.ResizeHandler) {
+                                    if (resizeHandlerId) sap.ui.core.ResizeHandler.deregister(resizeHandlerId);
+                                    resizeHandlerId = sap.ui.core.ResizeHandler.register(domRef, function () {
+                                        drawContent();
+                                    });
+                                }
+                            },
+                            onExit: function () {
+                                if (resizeHandlerId) {
+                                    sap.ui.core.ResizeHandler.deregister(resizeHandlerId);
+                                    resizeHandlerId = null;
+                                }
+                                if (spinnerTimer) {
+                                    clearInterval(spinnerTimer);
+                                    spinnerTimer = null;
+                                }
+                                if (canvasEl) {
+                                    if (canvasEl._canvasClick) canvasEl.removeEventListener("click", canvasEl._canvasClick);
+                                    if (canvasEl._canvasMove) canvasEl.removeEventListener("mousemove", canvasEl._canvasMove);
+                                    if (canvasEl._canvasLeave) canvasEl.removeEventListener("mouseleave", canvasEl._canvasLeave);
+                                }
+                            }
+                        });
+
+                        return card;
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Initial build (lazy loading)
+                    // ---------------------------------------------------------------
+                    if (typeof loadData === "function") {
+                        isLoading = true;
+                        currentItems = [];
+                        currentItemsCache = [];
+                        oCard = buildCard();
+
+                        loadData().then(function (data) {
+                            isLoading = false;
+                            if (spinnerTimer) { clearInterval(spinnerTimer); spinnerTimer = null; }
+                            currentItems = data.slice();
+                            currentItemsCache = currentItems;
+                            renderCanvas();
+                        }).catch(function (err) {
+                            isLoading = false;
+                            if (spinnerTimer) { clearInterval(spinnerTimer); spinnerTimer = null; }
+                            sap.m.MessageToast.show("Error: " + err.message);
+                            currentItems = [
+                                {
+                                    type: "text", text: "Error loading data",
+                                    style: { color: "#c0392b" }
+                                }
+                            ];
+                            currentItemsCache = currentItems;
+                            renderCanvas();
+                        });
+                    } else {
+                        currentItemsCache = currentItems;
+                        oCard = buildCard();
+                    }
+
+                    // ---------------------------------------------------------------
+                    // Update methods
+                    // ---------------------------------------------------------------
+                    oCard.updateData = function (newItems) {
+                        if (!newItems) return;
+                        isLoading = false;
+                        if (spinnerTimer) { clearInterval(spinnerTimer); spinnerTimer = null; }
+                        currentItems = newItems.slice();
+                        currentItemsCache = currentItems;
+                        hoveredItem = null;
+                        renderCanvas();
+                    };
+
+                    oCard.updateSettings = function (newSettings) {
+                        if (!newSettings) return;
+                        for (var key in newSettings) {
+                            if (newSettings.hasOwnProperty(key)) sett[key] = newSettings[key];
+                        }
+                        if (sett.width) { cardWidth = sett.width; oCard.setWidth(cardWidth); }
+                        if (sett.minHeight !== undefined) minHeight = sett.minHeight;
+                        if (sett.rowHeight) rowHeight = sett.rowHeight;
+                        if (sett.headerHeight) headerHeight = sett.headerHeight;
+                        if (sett.padding) padding = sett.padding;
+
+                        if (newSettings.showSettings !== undefined) {
+                            showSettings = newSettings.showSettings;
+                            var oldHeader = oCard.getItems()[0];
+                            var newHeader = buildHeader();
+                            oCard.removeItem(oldHeader);
+                            oCard.insertItem(newHeader, 0);
+                            oldHeader.destroy();
+                            oCard._header = newHeader;
+                        }
+                        setTimeout(drawContent, 50);
+                    };
+
+                    oCard.getData = function () { return currentItems; };
+                    oCard.getSettings = function () { return sett; };
+                    oCard.isLoading = function () { return isLoading; };
+                    oCard.redraw = renderCanvas;
 
                     return oCard;
                 },

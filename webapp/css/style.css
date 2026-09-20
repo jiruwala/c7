@@ -264,7 +264,35 @@ iframe {
     font-weight: bold;
     color: darkblue;
 }
+.customCard.gaugeCard.canvasCustomCard {
+    background: var(--sapTile_Background, #ffffff);
+    border: 1px solid var(--sapTile_BorderColor, #e5e5e5);
+    border-radius: 0.5rem;
+    box-shadow: var(--sapTile_BoxShadow, 0 1px 4px rgba(0,0,0,0.08));
+    overflow: hidden;
+    padding: 0 !important;
+}
 
+.customCard.canvasCustomCard .cardHeaderBar {
+    background: var(--sapObjectHeader_Background, lightblue);
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--sapObjectHeader_BorderColor, #cccccc);
+    border-radius: 0.5rem 0.5rem 0 0;
+    width: 100%;
+    min-height: 2rem;
+    box-sizing: border-box;
+}
+
+.customCard.canvasCustomCard .cardHeaderBar .cardTitle {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--sapTile_TitleTextColor, #333);
+}
+
+.customCard.canvasCustomCard canvas {
+    display: block;
+    width: 100%;
+}
 .highlight-row {
     background-color: cyan !important;
     /* Light Yellow */
