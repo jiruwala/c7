@@ -1361,7 +1361,8 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                 sumAmt += Util.extractNumber(ld.getFieldValue(i, "PAY_AMT"))
                 sump += Util.extractNumber(ld.getFieldValue(i, "PAY_P"));
             }
-
+            sump=sump.toFixed(2);
+            sumAmt=sumAmt.toFixed(3);
             // thatForm.frm.setFieldValue('totamt', df.format(sumAmt));
             that2.view.byId("txtRM" + that2.timeInLong).setText(sump + "%,  Amount : " + df.format(sumAmt));
             if (reAmt)
@@ -1434,9 +1435,9 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
                 Util.setColProperties(qv, "PAY_P", {
                     "mColClass": "sap.m.Input",
-                    "mTitle": "payAmt",
+                    "mTitle": "PAY %",
                     "display_width": 120,
-                    "display_format": "QTY_FORMAT",
+                    // "display_format": "QTY_FORMAT",
                 });
 
                 Util.setColProperties(qv, "PAY_AMT", {
@@ -1505,9 +1506,10 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
                         var ca = that2.frm.getFieldValue("qry1.cont_amt");
                         var pp = 0;
                         if (ca > 0)
-                            pp = ((info.newValue / ca) * 100).toFixed(2);
+                            pp = (( Util.extractNumber(info.newValue) / ca) * 100).toFixed(6);
                         pp = Util.extractNumber(String(pp));
                         info.oModel.setProperty(info.currentRowoIndexContext.sPath + '/PAY_P', pp);
+                        
                     }
                     eventCalc(qv, undefined, 0, true);
                 };
@@ -1589,7 +1591,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
 
         var tit = Util.getLangText("titRawItems");
         if (cc != "")
-            tit = Util.getLangText("titRawItems") + " - " + that2.frm.getFieldValue("qry1.descr") + " / " + that2.frm.getFieldValue("qry1.reference");
+            tit = Util.getLangText("titRawItems") + " - " + that2.frm.getFieldValue("qry1.cust_name") + " / " + that2.frm.getFieldValue("qry1.cont_trans_amt");
 
         var dlg = new sap.m.Dialog({
             title: tit,
@@ -1666,7 +1668,7 @@ sap.ui.jsfragment("bin.forms.alum.cont1", {
             // .replaceAll(":", ld.getFieldValue(i, ""))
             sqls += sq + ";";
         }
-
+        sumP=sumP.toFixed(2);
         if (sumP != 100) { FormView.err("Must 100% PAY in steps !"); thatForm.showSteps(); }
         // if (sumAmt != ) { FormView.err("Invalid Pay Amount in steps !"); thatForm.showSteps(); }
 
