@@ -88,17 +88,19 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                     ]
                 },
                 customDisplay: function (vbHeader) {
-                    Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
-                    Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
-                    var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText");
-                    var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "0.000" }));
-                    var hb = new sap.m.Toolbar({
-                        content: [txt, new sap.m.ToolbarSpacer(), txtMsg]
+                    // Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
+                    // Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
+                    // var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText");
+                    // var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "0.000" }));
+                    var hb = new sap.m.Toolbar(thatForm.view.createId("stepsCmds" + thatForm.timeInLong), {
+                        content: [
+                            // txt, new sap.m.ToolbarSpacer(), txtMsg
+                        ]
                     });
-                    txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
+                    // txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
-                    var hb2 = new sap.m.HBox(thatForm.view.createId("stepsCmds" + thatForm.timeInLong));
-                    vbHeader.addItem(hb2);
+                    // var hb2 = new sap.m.HBox(thatForm.view.createId("stepsCmds" + thatForm.timeInLong));
+                    // vbHeader.addItem(hb2);
                 },
                 print_templates: [],
                 events: thatForm.helperFunc.getEvents(),
@@ -247,8 +249,8 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         that.frm.setFieldValue("qry1.keyfld", kf, kf, true);
                         that.frm.setFieldValue("qry1._status", that.statusDescr["REQUEST"], that.statusDescr["REQUEST"], true);
 
-                        that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
-                        that.view.byId("numtxt" + thatForm.timeInLong).setText("");
+                        // that.view.byId("txtMsg" + thatForm.timeInLong).setText("");
+                        // that.view.byId("numtxt" + thatForm.timeInLong).setText("");
                         thatForm.helperFunc.showStepsCommands();
                     }
                 },
@@ -696,42 +698,199 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
         },
         getEmpStatus: function (ec, showErrOnNotFlag) {
             var thatForm = this.thatForm;
-            var flg = Util.getSQLValue("select flag from emp_cd where emp_cd='" + ec + "'");
+            var flg = Util.getSQLValue("select flag from c7hr_emp where emp_cd='" + ec + "'");
             if (showErrOnNotFlag && flg != showErrOnNotFlag)
                 FormView.err("Err ! , Employee status is not present !");
             return flg;
 
         },
         queryStepsCommands: function () {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
 
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW) {
+                return;
+            }
+            var rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-right");
+            var acceptIcon = "sap-icon://accept";
+            function cmdProps(enabled, icon, ...cmds) {
+                for (var c in cmds) {
+                    if (enabled) cmds[c].setEnabled(enabled);
+                    if (icon) cmds[c].setIcon(icon);
+                }
+            };
+            var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+            var cmdStepApprove = thatForm.view.byId("cmdStepApprove" + thatForm.timeInLong);
+            var cmdStepActive = thatForm.view.byId("cmdStepActive" + thatForm.timeInLong);
+            var cmdStepLeaveEnded = thatForm.view.byId("cmdStepLeaveEnded" + thatForm.timeInLong);
+
+            cmdProps(false, rectangleIcon, cmdStepApprove, cmdStepActive, cmdStepLeaveEnded);
+
+            var dtx = Util.execSQLWithData("select status,flag from c7hr_req_leave where keyfld=" + kf);
+            var flg = Util.extractNumber(dtx[0].FLAG);
+            var status = dtx[0].STATUS;
+            if (flg != 2)
+                switch (status) {
+                    case "REQUEST":
+                        cmdStepApprove.setEnabled(thatForm.helperFunc.canLeaveApprove());
+                        break;
+                    case "APPROVED":
+
+                        cmdStepApprove.setIcon(acceptIcon);
+                        cmdStepApprove.setEnabled(false);
+                        cmdProps(true, undefined, cmdStepActive, cmdStepLeaveEnded);
+                        break;
+                    case "ACTIVE":
+                        cmdStepLeaveEnded.setEnabled(true);
+                        cmdProps(false, acceptIcon, cmdStepApprove, cmdStepActive);
+                        break;
+                    case "ENDLEAVE":
+                        cmdProps(false, acceptIcon, cmdStepApprove, cmdStepActive, cmdStepLeaveEnded);
+                        break;
+                    default:
+                        break;
+                } else cmdProps(false, acceptIcon, cmdStepApprove, cmdStepActive, cmdStepLeaveEnded);
         },
         showStepsCommands: function () {
             var thatForm = this.thatForm;
             var sett = sap.ui.getCore().getModel("settings").getData();
-
+            var dtfmt = new simpleDateFormat(sett["ENGLISH_DATE_FORMAT"]);
             var hb = thatForm.view.byId("stepsCmds" + thatForm.timeInLong);
             var rectangleIcon = "sap-icon://" + Util.getLangDescrAR("arrow-right", "arrow-right");
             var acceptIcon = "sap-icon://accept";
-            hb.destroyItems();
-            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW)
+            hb.destroyContent();
+            Util.destroyID("numtxt" + thatForm.timeInLong, thatForm.view);
+            Util.destroyID("txtMsg" + thatForm.timeInLong, thatForm.view);
+            var txtMsg = new sap.m.Text(thatForm.view.createId("txtMsg" + thatForm.timeInLong)).addStyleClass("redMiniText");
+            // var txt = new sap.m.Text(thatForm.view.createId("numtxt" + thatForm.timeInLong, { text: "0.000" }));
+
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW) {
+                hb.addContent(new sap.m.ToolbarSpacer());
+                hb.addContent(txtMsg);
                 return;
+            }
+
             var kf = thatForm.frm.getFieldValue("qry1.keyfld");
+            var empcode = thatForm.frm.getFieldValue("qry1.emp_code");
+
+            var doApprove = function () {
+                if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW) return;
+
+                Util.simpleConfirmDialog(Util.getLangText("msgApproveReqLeave"), function (oAction) {
+                    thatForm.helperFunc.getEmpStatus(empcode, 1);
+                    var sqCnt = Util.getSQLValue(`select max(keyfld) from c7hr_req_leave 
+                        where keyfld!='`+ kf + `' and (flag=1 and status in ('REQUEST','APPROVED','ACTIVE'))
+                         and emp_code='`+ empcode + `'`);
+                    if (sqCnt) FormView.err("Request or Active leave existed ! keyid # " + sqcnt);
+                    var sql = (`begin 
+                            update c7hr_req_leave set status='APPROVED', APPROVED_BY=':USER' ,
+                                APPROVED_TIME=SYSDATE WHERE KEYFLD=:KEYFLD ; 
+                        END;`).replaceAll(":USER", sett["LOGON_USER"])
+                        .replaceAll(":KEYFLD", kf);
+                    var dt = Util.execSQL(sql);
+                    if (dt.ret == "SUCCESS") {
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        FormView.msgSuccess(Util.getLangText("msgSaved"));
+                    }
+                });
+            }
+            var doActiveLeave = function () {
+                if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW) return;
+                Util.simpleConfirmDialog(Util.getLangText("msgActiveLeave"), function (oAction) {
+                    thatForm.helperFunc.getEmpStatus(empcode, 1);
+                    var sqCnt = Util.getSQLValue(`select max(keyfld) from c7hr_req_leave 
+                        where keyfld!='`+ kf + `' and (flag=1 and status in ('REQUEST','APPROVED','ACTIVE'))
+                         and emp_code='`+ empcode + `'`);
+                    if (sqCnt) FormView.err("Request or Active leave existed ! keyid # " + sqcnt);
+
+                    var last_dt = Util.getSQLValue(("select c7hr_get_last_date_trans(':emp_code') " +
+                        "from dual ").replaceAll(":emp_code", thatForm.frm.getFieldValue("qry1.emp_code")));
+                    if (!last_dt) FormView.err("Err ! , no last day of attend or Join date found for this employee !")
+                    last_dt = new Date(last_dt.replaceAll(".", ":"));
+
+                    var sd = thatForm.frm.getFieldValue("qry1.start_date");
+                    if (!sd) FormView.err("Start Date must have value !");
+                    last_dt.setHours(0, 0, 0, 0);
+                    sd.setHours(0, 0, 0, 0)
+                    if (sd.getTime() != (last_dt.getTime() + 86400000))
+                        FormView.err("Last day is " + dtfmt.format(last_dt) + " and start date is # " + dtfmt.format(sd));
+                    var sql = (`begin 
+                        update c7hr_req_leave set status='ACTIVE', ACTIVATE_BY=':USER' ,
+                            ACTIVATE_TIME=SYSDATE WHERE KEYFLD=:KEYFLD ; 
+                        UPDATE C7HR_EMP SET FLAG=2 WHERE EMP_CD=':EMP';                   
+                        c7hr_lv_insert(:KEYFLD);
+                     END;`).replaceAll(":EMP", empcode)
+                        .replaceAll(":USER", sett["LOGON_USER"])
+                        .replaceAll(":KEYFLD", kf);
+                    var dt = Util.execSQL(sql);
+                    if (dt.ret == "SUCCESS") {
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        FormView.msgSuccess(Util.getLangText("msgSaved"));
+                    }
+
+                });
+
+            };
+
             var stepPress = function (e) {
                 var cmd = e.getSource();
                 var stp = cmd.getCustomData()[0].getKey();
-                if (stp == "cmdApprove") {
-                    thatForm.helperFunc.getEmpStatus()
+                switch (stp) {
+                    case "cmdStepApprove":
+                        doApprove();
+                        break;
+                    case "cmdStepActive":
+                        doActiveLeave();
+                        break;
+                    case "cmdStepLeaveEnded":
+                        doActiveLeave();
+                        break;
+
+
+                    default:
+                        break;
                 }
+
+
+
             };
-            hb.addIem(new sap.m.Button(thatForm.view.createId("cmdStepApprove" + thatForm.timeInLong,
+            hb.addContent(new sap.m.Button(thatForm.view.createId("cmdStepApprove" + thatForm.timeInLong),
                 {
-                    icon: (dt[di].FLAG == 2 ? acceptIcon : rectangleIcon),
+                    icon: rectangleIcon,
                     text: Util.getLangText("poApprove"),
                     press: stepPress,
-                    // enabled: (dt[di].FLAG == 2 ? false : true),
-                    customData: { key: "cmdApprove" },
-                })
+                    enabled: false,
+                    customData: { key: "cmdStepApprove" },
+                }
             ));
+
+            hb.addContent(new sap.m.Button(thatForm.view.createId("cmdStepActive" + thatForm.timeInLong),
+                {
+                    icon: rectangleIcon,
+                    text: Util.getLangText("leaveStepActive"),
+                    press: stepPress,
+                    enabled: false,
+                    customData: { key: "cmdStepActive" },
+                }
+            ));
+            hb.addContent(new sap.m.Button(thatForm.view.createId("cmdStepLeaveEnded" + thatForm.timeInLong),
+                {
+                    icon: rectangleIcon,
+                    text: Util.getLangText("stepLeaveEnded"),
+                    press: stepPress,
+                    enabled: false,
+                    customData: { key: "cmdStepLeaveEnded" },
+                }
+            ));
+            hb.addContent(new sap.m.ToolbarSpacer());
+
+            hb.addContent(txtMsg);
+            thatForm.helperFunc.queryStepsCommands();
+        },
+        canLeaveApprove: function () {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            return (Util.nvl(sett["HR_APPROVE_LEAVE"], "FALSE") == "TRUE");
         }
     }
 

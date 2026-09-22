@@ -154,7 +154,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                         insert_exclude_fields: ['AMOUNT', 'NET_PRICE', 'NET_AMT'],
                         insert_default_values: {
                             "PERIODCODE": Util.quoted(sett["CURRENT_PERIOD"]),
-                            "LOCATION_CODE": ":qry1.location_code",
+                            "LOCATION_CODE": Util.quoted(":qry1.location_code"),
                             "ORD_NO": ":qry1.ord_no",
                             "ORD_CODE": thatForm.vars.vou_code,
                             "ORD_REFNM": Util.quoted(":qry1.ord_refnm"),

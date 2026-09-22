@@ -265,7 +265,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             "to_char(last_att_rec,'dd/mm/rrrr') last_att_rec, " +
             "to_char(dt_join,'dd/mm/rrrr') dt_join, to_char(term_dt,'dd/mm/rrrr') term_dt " +
             " from c7hr_emp e " +
-            "where e.flag=1 " +
+            "where e.flag in (1,2) " +
             " order by e.emp_cd"
         );
         if (dtEmp.ret == "SUCCESS") {
@@ -361,7 +361,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var sq = "select at.*,to_number(to_char(att_date,'DD')) day_of_month,e.brn_id " +
             " from c7hr_attend at,c7hr_emp e " +
             " where at.emp_code=e.emp_cd " +
-            " and e.flag=1 " +
+            " and e.flag in (1 ,2) " +
             " and to_char(att_date,'rrrr/mm') = '" + sYear + "/" + sMon + "'" +
             " order by e.emp_cd,att_date";
 
