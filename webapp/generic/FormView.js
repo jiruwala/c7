@@ -353,8 +353,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                         fd.display_style = Util.nvl(met[f].display_style, "");
                         fd.display_format = Util.nvl(met[f].display_format, undefined);
                         fd.other_settings = Util.nvl(met[f].other_settings, {});
-                        fd.edit_allowed = Util.nvl(met[f].edit_allowed, true);
-                        fd.insert_allowed = Util.nvl(met[f].insert_allowed, true);
+                        fd.edit_allowed = Util.nvl(met[f].edit_allowed, false);
+                        fd.insert_allowed = Util.nvl(met[f].insert_allowed, false);
                         fd.showValueHelp = Util.nvl(met[f].showValueHelp, "");
                         qr.summary[met[f].colname] = fd;
                         this.objs[fd.name] = fd;
@@ -1384,7 +1384,16 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     var flds = { ...Util.nvl(qryObj.fields, []), ...Util.nvl(qryObj.summary, {}) };
                     for (var i in flds) {
                         var fld = flds[i].obj;
-                        this._setQryEditableObj(fld, false);
+                        if (fld != undefined && qryObj.status == FormView.RecordStatus.EDIT &&
+                            Util.nvl(flds[i].edit_allowed, true))
+                            this._setQryEditableObj(fld, true);
+                        else
+                            this._setQryEditableObj(fld, false);
+                        if (fld != undefined && qryObj.status == FormView.RecordStatus.NEW &&
+                            Util.nvl(flds[i].insert_allowed, true))
+                            this._setQryEditableObj(fld, true);
+                        else
+                            this._setQryEditableObj(fld, false);
                     }
                     if (qryObj.status != FormView.RecordStatus.VIEW && Util.nvl(qryObj.addRowOnEmpty, false) && qryObj.obj.mLctb.rows.length == 0)
                         qryObj.obj.addRow();
