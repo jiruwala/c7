@@ -120,7 +120,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                     templateShareable: true
                 },
                 width: "20%",
-                value: "15",
+                value: "-1",
                 selectionChange: function (e) {
                     that.loadData();
                     var cnt = this;
@@ -160,7 +160,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
             width: "10%",
             press: function () {
                 txtName.setValue('');
-                UtilGen.setControlValue(cb, '15', '15', false);
+                UtilGen.setControlValue(cb, '-1', '-1', false);
                 txtCust.setValue('');
                 that.loadData();
             }
@@ -363,7 +363,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
                 "margin-top: 2px;"
             ]
         }, "sapUiSizeCompact", "");
-        UtilGen.setControlValue(cb, 15, 15, false);
+        UtilGen.setControlValue(cb, -1, -1, false);
         UtilGen.setControlValue(kind, 21, 21, false);
         setTimeout(function () {
             kind.$().find("input").attr("readonly", true);
@@ -448,7 +448,7 @@ sap.ui.jsfragment("bin.forms.jo.db", {
         var stepDye = this.view.byId("cmdStepDye" + this.timeInLong).getPressed();
         var stepStk = this.view.byId("cmdStepStk" + this.timeInLong).getPressed();
         var stepProd = this.view.byId("cmdStepProd" + this.timeInLong).getPressed();
-        var dys = Util.nvl(UtilGen.getControlValue(cb), 15);
+        var dys = Util.nvl(UtilGen.getControlValue(cb), -1);
         // var knd = Util.nvl(UtilGen.getControlValue(kind), 21);
         var cst = txtCust.getValue();
         var stps = [];

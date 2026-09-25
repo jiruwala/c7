@@ -173,6 +173,7 @@ sap.ui.jsfragment("bin.forms.sl.db", {
         var cmdCloseSo = new sap.m.Button({
             icon: "sap-icon://decline",
             text: Util.getLangText("closeSO"),
+            enabled:false,
             press: function () {
                 that.closeSO();
             }

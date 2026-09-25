@@ -215,7 +215,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "jo",
+                    default_value: "prod",
                     other_settings: {
                         width: "35%",
                         items: {
@@ -223,7 +223,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                             template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
                             templateShareable: true
                         },
-                        selectedKey: "jo",
+                        selectedKey: "prod",
                     },
                     list: "@jo/Period from JO Date,prod/Period from Production start date",
                     edit_allowed: true,
@@ -241,7 +241,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",
-                    default_value: "$FIRSTDATEOFYEAR",
+                    default_value: "$FIRSTDATEOFMONTH",
                     other_settings: { width: "35%" },
                     list: undefined,
                     edit_allowed: true,
@@ -504,11 +504,19 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
 
                 sq = (`SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,ord_allqty QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
                         STEP_START,STEP_END,
-                        case when (to_number(replace(dlvp,'%',''))>=100 and to_number(replace(purp,'%',''))<100) or (JO_PROD_USER is not null) then 'Ready' 
-                             when to_number(replace(purp,'%',''))=100 then 'Invoiced'
-                             when to_number(replace(dlvp,'%',''))<100 and to_number(replace(purp,'%',''))<100 then 'Process'
-                        end rec_stat,
-                        PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
+                                    CASE 
+                                        WHEN NVL(TO_NUMBER(REPLACE(TRIM(purp),'%','')),0) >= 100 
+                                            THEN 'Invoiced'
+
+                                        WHEN NVL(TO_NUMBER(REPLACE(TRIM(dlvp),'%','')),0) >= 100 
+                                            AND NVL(TO_NUMBER(REPLACE(TRIM(purp),'%','')),0) < 100
+                                            THEN 'Delivered'
+
+                                        WHEN JO_PROD_USER IS NOT NULL 
+                                            THEN 'Ready'
+
+                                        ELSE 'Process'
+                                    END AS rec_stat ,     PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
                             FROM C7_JO_PRODS where ord_flag!=3  :pJoNO  :repType :stepClause :exclSold
                              and trunc(:ord_date)>=:parameter.fromdate and trunc(:ord_date)<=:parameter.todate 
                                 ORDER BY STEP_CODE,ORD_NO`)
