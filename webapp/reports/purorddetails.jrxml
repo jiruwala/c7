@@ -76,7 +76,7 @@ ORDER BY c_order1.ord_pos]]>
 		<band height="29">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<frame>
-				<reportElement style="frameSummary" mode="Opaque" x="5" y="0" width="585" height="28" backcolor="#FFFFFF" uuid="858ecde3-44d3-4aca-814b-eed29ea19dfd">
+				<reportElement style="frameSummary" mode="Opaque" x="5" y="0" width="539" height="28" backcolor="#FFFFFF" uuid="858ecde3-44d3-4aca-814b-eed29ea19dfd">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -99,12 +99,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA["الرقم"+"\n Sr"]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00#;(#,##0.00#-)">
-					<reportElement style="strHeader" x="37" y="0" width="80" height="28" uuid="5476eb3d-573b-4b08-b0a5-373858800281">
+					<reportElement style="strHeader" x="37" y="0" width="63" height="28" uuid="5476eb3d-573b-4b08-b0a5-373858800281">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					</reportElement>
@@ -116,12 +116,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA["كود صناف"+"\nItem Code"]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="StretchHeight" pattern="">
-					<reportElement style="strHeader" x="116" y="0" width="233" height="28" uuid="4b114973-2535-478e-ac5c-ac3879d2971b">
+					<reportElement style="strHeader" x="102" y="0" width="194" height="28" uuid="4b114973-2535-478e-ac5c-ac3879d2971b">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
@@ -133,12 +133,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="14" isBold="true"/>
+						<font fontName="Arial2" size="14" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA["الوصف"+"\nDescr"]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00#;(#,##0.00#-)">
-					<reportElement style="strHeader" x="402" y="0" width="39" height="28" uuid="678e11f8-dcd2-4ed8-b730-b60e823ff6cd">
+					<reportElement style="strHeader" x="356" y="0" width="39" height="28" uuid="678e11f8-dcd2-4ed8-b730-b60e823ff6cd">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -149,12 +149,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA["الشد"+"\nPack"]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00#;(#,##0.00#-)">
-					<reportElement style="strHeader" x="350" y="0" width="51" height="28" uuid="3e5eb9b6-b9a4-45ce-bd38-058af7e9b572">
+					<reportElement style="strHeader" x="302" y="0" width="51" height="28" uuid="3e5eb9b6-b9a4-45ce-bd38-058af7e9b572">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -165,12 +165,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA["وصف الشد" +"\nPack Descr"]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00#;(#,##0.00#-)">
-					<reportElement style="strHeader" x="441" y="1" width="69" height="28" uuid="797ddcf4-7c19-4bf3-a722-65e814582361">
+					<reportElement style="strHeader" x="395" y="1" width="69" height="28" uuid="797ddcf4-7c19-4bf3-a722-65e814582361">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -181,12 +181,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA["تكلفة الوحدة"+"\nPack Cost"]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00#;(#,##0.00#-)">
-					<reportElement style="strHeader" x="510" y="1" width="75" height="28" uuid="5fa94679-4db6-4706-8cc1-205d10346cec">
+					<reportElement style="strHeader" x="464" y="1" width="75" height="28" uuid="5fa94679-4db6-4706-8cc1-205d10346cec">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -197,7 +197,7 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA["التكلفة الإجمالية"+"\nTotal Cost"]]></textFieldExpression>
 				</textField>
@@ -208,7 +208,7 @@ ORDER BY c_order1.ord_pos]]>
 		<band height="22" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<frame>
-				<reportElement style="labelHeader" mode="Opaque" x="5" y="0" width="585" height="22" backcolor="#FFFFFF" uuid="98303e0b-4426-4d0b-b686-f6c4989589bc">
+				<reportElement style="labelHeader" mode="Opaque" x="5" y="0" width="539" height="22" backcolor="#FFFFFF" uuid="98303e0b-4426-4d0b-b686-f6c4989589bc">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -231,12 +231,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{ITEMPOS}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="ScaleFont">
-					<reportElement style="strHeader" x="37" y="0" width="80" height="21" uuid="500f7537-b565-47bf-ac8d-5a9551f122a9">
+					<reportElement style="strHeader" x="37" y="0" width="63" height="21" uuid="500f7537-b565-47bf-ac8d-5a9551f122a9">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -249,12 +249,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{REFER}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="ScaleFont" pattern="">
-					<reportElement style="strHeader" x="119" y="0" width="230" height="21" uuid="6e212046-73c6-497a-b079-f43842b48aea">
+					<reportElement style="strHeader" x="105" y="0" width="191" height="21" uuid="6e212046-73c6-497a-b079-f43842b48aea">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					</reportElement>
@@ -266,12 +266,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
 				</textField>
 				<textField textAdjust="ScaleFont" pattern="#,##0.00#;(#,##0.00#-)">
-					<reportElement style="strHeader" x="350" y="1" width="51" height="21" uuid="6dee87f9-c25d-4c77-944e-6b8f76260a78">
+					<reportElement style="strHeader" x="302" y="1" width="51" height="21" uuid="6dee87f9-c25d-4c77-944e-6b8f76260a78">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -282,12 +282,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PACKD}]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.#;(#,##0.#-)">
-					<reportElement style="strHeader" x="402" y="1" width="39" height="21" uuid="1c263516-fabe-4b3a-bf6d-46c8dd74e7b4">
+					<reportElement style="strHeader" x="356" y="1" width="39" height="21" uuid="1c263516-fabe-4b3a-bf6d-46c8dd74e7b4">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -298,12 +298,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PKX}]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00000;(#,##0.00000-)">
-					<reportElement style="strHeader" x="441" y="1" width="69" height="21" uuid="e9075c3d-8c4f-4adf-8d27-118d015740ea">
+					<reportElement style="strHeader" x="395" y="1" width="69" height="21" uuid="e9075c3d-8c4f-4adf-8d27-118d015740ea">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -314,12 +314,12 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{SALE_PRICE}]]></textFieldExpression>
 				</textField>
 				<textField>
-					<reportElement style="strHeader" x="510" y="0" width="75" height="21" uuid="4dc3790e-393e-4547-afc0-15e7a22b27e5">
+					<reportElement style="strHeader" x="464" y="0" width="75" height="21" uuid="4dc3790e-393e-4547-afc0-15e7a22b27e5">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 					<box leftPadding="1" rightPadding="1">
@@ -330,7 +330,7 @@ ORDER BY c_order1.ord_pos]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Arial2" size="12" isBold="true"/>
+						<font fontName="Arial2" size="12" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
 					<patternExpression><![CDATA[$P{CURRENCY_FORMAT}]]></patternExpression>

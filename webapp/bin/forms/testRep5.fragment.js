@@ -475,6 +475,30 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                             {
                                 title: "Customer SOA",
                                 reportFile: "soa001_2",
+                            },
+                            {
+                                title: "Confirmation docx",
+                                reportFile: "",
+                                beforeExec: function (idx, rptName) {
+                                    var repCode = "SOA001";
+                                    var paras = {};
+                                    var rptNo = idx;
+                                    // if (thatForm.frm.objs("SOA001@qryM2").obj.mLctb.rows.length <= 0) return;
+                                    var sq = "select distinct accno,nvl(rfr_name,acname)||' '||COST_CENT_NAME name,b30,b60,b90,b120,b150,to_char(acbal,'999G999G999G990D000') acbal,crd_limit2,sysdate todate,f_words_ar2(acbal) balwords from c6_gl1 " +
+                                        " where usernm=c6_session.get_user_session order by accno ";
+                                    var dt = {};
+                                    var tmp = Util.execSQLWithData(sq);
+                                    if (tmp.length > 0) {
+                                        var dtx = tmp[0];
+                                        var keys = Object.keys(dtx);
+                                        for (var d in keys)
+                                            dt['c76' + keys[d]] = dtx[keys[d]];
+
+                                        var docfile = "confirm_soa.docx";
+                                        UtilGen.PrintTempl.downloadFilledTemplate(docfile, dt);
+                                    }
+                                    return "";
+                                }
                             }
                         ],
                         canvas: [],

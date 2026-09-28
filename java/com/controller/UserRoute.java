@@ -3,6 +3,7 @@ package com.controller;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -175,7 +176,10 @@ public class UserRoute {
 				ret = changeFiscalData(params);
 				return ret;
 			}
-
+			if (params.get("command").equals("get-files-in-folder")) {
+				ret = getFilesInFolder(params);
+				return ret;
+			}
 			// ------------if-not-logon
 			if (!instanceInfo.isMlogonSuccessed())
 				throw new Exception("Access denied !");
@@ -706,6 +710,43 @@ public class UserRoute {
 
 	}
 
+	@RequestMapping(value = "/template", method = RequestMethod.GET, produces = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+	public ResponseEntity<InputStreamResource> getDocxTemplate(@RequestParam Map<String, String> params) {
+		try {
+			// 1. Locate the template file (adjust path as needed)
+			String filename = utils.nvl(params.get("filename"), "");
+			if (filename.equals(""))
+				throw new Exception("filename :  parameter not found !");
+			String filePath = servletContext.getRealPath("") + "reports/" + filename;
+			File file = new File(filePath);
+			if (!file.exists()) {
+				throw new FileNotFoundException("Template not found: " + filename);
+			}
+
+			// 2. Read file into byte array
+			byte[] docxBytes = Files.readAllBytes(file.toPath());
+
+			// 3. Set headers
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType
+					.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+			headers.add("Access-Control-Allow-Origin", "*");
+			headers.add("Access-Control-Allow-Methods", "GET, POST, PUT");
+			headers.add("Access-Control-Allow-Headers", "Content-Type");
+			headers.add("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+			headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+			headers.add("Pragma", "no-cache");
+			headers.add("Expires", "0");
+
+			ByteArrayInputStream bis = new ByteArrayInputStream(docxBytes);
+			return new ResponseEntity<>(new InputStreamResource(bis), headers, HttpStatus.OK);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
 	@RequestMapping(value = "/getAttachVou", method = RequestMethod.POST, produces = "application/pdf")
 	public ResponseEntity<InputStreamResource> getAttachVou(@RequestParam Map<String, String> params) {
 		String kf = params.get("kindof");
@@ -975,6 +1016,22 @@ public class UserRoute {
 		File dir = new File(path);
 		for (File file : dir.listFiles()) {
 			if (file.getName().endsWith((".ini")))
+				fn += (fn.length() > 0 ? "," : "") + "{ \"file\" :" + "\"" + file.getName() + "\" }";
+		}
+
+		ret = "[" + fn + "]";
+
+		return ret;
+	}
+
+	private String getFilesInFolder(Map<String, String> params) {
+		String ret = "";
+		String fn = "";
+		String subpath = utils.nvl(params.get("path"), "");
+		String endtxt = utils.nvl(params.get("filetype"), "");
+		File dir = new File(path + subpath);
+		for (File file : dir.listFiles()) {
+			if (file.getName().endsWith((endtxt)))
 				fn += (fn.length() > 0 ? "," : "") + "{ \"file\" :" + "\"" + file.getName() + "\" }";
 		}
 

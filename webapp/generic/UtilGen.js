@@ -7015,128 +7015,128 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                         if (Util.nvl(pDefaultStr, false)) form.setFieldValue(str, sett["DEFAULT_STORE"], sett["DEFAULT_STORE"], false);
                     } catch (e) { if (Util.nvl(throwErr, false)) throw e; else console.log(e); }
                 },
-                PrintTempl:{
-                    downloadFilledTemplate: function (docfile, data) {
-                        var that = this;
-                
-                        // If no data provided, use default (or fetch from form)
-                        var replacements = data || {
-                            empname: 'yusuf',
-                            date: '0101023',
-                            company: 'MetaSoft'
-                        };
-                
-                        // Show busy indicator
-                        Util.doSpin('Preparing document...');
-                
-                        // Load libraries, then fetch and process template
-                        this._loadDocxLibraries()
-                            .then(function () {
-                                // 1. Fetch the template from Spring Boot endpoint
-                                return new Promise(function (resolve, reject) {
-                                    var docpath = "docx%2F" + docfile;
-                                    var xhr = new XMLHttpRequest();
-                                    xhr.open('GET', 'template?filename=' + docpath, true);
-                                    xhr.responseType = 'arraybuffer';
-                                    xhr.onload = function () {
-                                        if (xhr.status === 200) {
-                                            resolve(xhr.response);
-                                        } else {
-                                            reject(new Error('HTTP ' + xhr.status));
-                                        }
-                                    };
-                                    xhr.onerror = function () { reject(new Error('Network error')); };
-                                    xhr.send();
-                                });
-                            })
-                            .then(function (arrayBuffer) {
-                                // 2. Create zip and docxtemplater instance
-                                var zip = new PizZip(arrayBuffer);
-                                var docXml = zip.file('word/document.xml').asText();
-                
-                                // Replace each placeholder (exact string) with its value
-                                for (var key in replacements) {
-                                    // Since the placeholder is just the key (no braces), we replace the key itself
-                                    var escapedKey = (key.replace(/[.*+?^${}()|[\]\\]/gi, '  \\$&'));
-                                    var vl = Util.nvl(replacements[key], " ");
-                                    vl = Util.canDate(vl, "yyyy/MM/dd");
-                                    // Match both {key} and key (with optional surrounding braces)
-                                    var regex = new RegExp(escapedKey, "gi");
-                                    docXml = docXml.replace(regex, vl);
-                                }
-                
-                                // Update the zip
-                                zip.file('word/document.xml', docXml);
-                
-                                // 4. Generate blob
-                                var outBlob = zip.generate({
-                                    type: 'blob',
-                                    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                                });
-                                var cnm = that.frm.getFieldValue("qry1.cust_name");
-                                var ct = that.frm.getFieldValue("qry1.cont_type");
-                
-                                // 5. Trigger download
-                                if (window.saveAs) {
-                                    window.saveAs(outBlob, ct + "_" + cnm + '.docx');
-                                } else {
-                                    // Manual fallback (works in modern browsers)
-                                    var link = document.createElement('a');
-                                    link.href = URL.createObjectURL(outBlob);
-                                    link.download = ct + "_" + cnm + '.docx';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    URL.revokeObjectURL(link.href);
-                                }
-                
-                                Util.stopSpin();
-                                sap.m.MessageToast.show('Document downloaded successfully.');
-                            })
-                            .catch(function (err) {
-                                Util.stopSpin();
-                                console.error(err);
-                                sap.m.MessageBox.error('Failed to generate document: ' + err.message);
-                            });
-                    },
-                    _loadDocxLibraries: function () {
-                        var that = this;
-                        return new Promise(function (resolve, reject) {
-                            // Already loaded?
-                            if (window.PizZip && window.docxtemplater && window.saveAs) {
-                                resolve();
-                                return;
-                            }
-                
-                            var loadScript = function (src) {
-                                return new Promise(function (res, rej) {
-                                    var script = document.createElement('script');
-                                    script.src = src;
-                                    script.onload = res;
-                                    script.onerror = function () { rej(new Error('Failed to load ' + src)); };
-                                    document.head.appendChild(script);
-                                });
-                            };
-                
-                            // Load in sequence: PizZip → docxtemplater → FileSaver
-                            loadScript('js/pizzip.min.js')
-                                .then(function () {
-                                    return loadScript('js/docxtemplater.min.js');
-                                })
-                                .then(function () {
-                                    return loadScript('js/FileSaver.min.js');
-                                })
-                                .then(function () {
-                                    resolve();
-                                })
-                                .catch(function (err) {
-                                    reject(err);
-                                });
-                        });
-                    },
-                }
 
             },
+            PrintTempl: {
+                downloadFilledTemplate: function (docfile, data) {
+                    var that = this;
+
+                    // If no data provided, use default (or fetch from form)
+                    var replacements = data || {
+                        empname: 'yusuf',
+                        date: '0101023',
+                        company: 'MetaSoft'
+                    };
+
+                    // Show busy indicator
+                    Util.doSpin('Preparing document...');
+
+                    // Load libraries, then fetch and process template
+                    this._loadDocxLibraries()
+                        .then(function () {
+                            // 1. Fetch the template from Spring Boot endpoint
+                            return new Promise(function (resolve, reject) {
+                                var docpath = "docx%2F" + docfile;
+                                var xhr = new XMLHttpRequest();
+                                xhr.open('GET', 'template?filename=' + docpath, true);
+                                xhr.responseType = 'arraybuffer';
+                                xhr.onload = function () {
+                                    if (xhr.status === 200) {
+                                        resolve(xhr.response);
+                                    } else {
+                                        reject(new Error('HTTP ' + xhr.status));
+                                    }
+                                };
+                                xhr.onerror = function () { reject(new Error('Network error')); };
+                                xhr.send();
+                            });
+                        })
+                        .then(function (arrayBuffer) {
+                            // 2. Create zip and docxtemplater instance
+                            var zip = new PizZip(arrayBuffer);
+                            var docXml = zip.file('word/document.xml').asText();
+
+                            // Replace each placeholder (exact string) with its value
+                            for (var key in replacements) {
+                                // Since the placeholder is just the key (no braces), we replace the key itself
+                                var escapedKey = (key.replace(/[.*+?^${}()|[\]\\]/gi, '  \\$&'));
+                                var vl = Util.nvl(replacements[key], " ");
+                                vl = Util.canDate(vl, "yyyy/MM/dd");
+                                // Match both {key} and key (with optional surrounding braces)
+                                var regex = new RegExp(escapedKey, "gi");
+                                docXml = docXml.replace(regex, vl);
+                            }
+
+                            // Update the zip
+                            zip.file('word/document.xml', docXml);
+
+                            // 4. Generate blob
+                            var outBlob = zip.generate({
+                                type: 'blob',
+                                mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                            });
+                            // var cnm = that.frm.getFieldValue("qry1.cust_name");
+                            // var ct = that.frm.getFieldValue("qry1.cont_type");
+
+                            // 5. Trigger download
+                            if (window.saveAs) {
+                                window.saveAs(outBlob, ct + "_" + cnm + '.docx');
+                            } else {
+                                // Manual fallback (works in modern browsers)
+                                var link = document.createElement('a');
+                                link.href = URL.createObjectURL(outBlob);
+                                link.download = "_save_" + '.docx';
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(link.href);
+                            }
+
+                            Util.stopSpin();
+                            sap.m.MessageToast.show('Document downloaded successfully.');
+                        })
+                        .catch(function (err) {
+                            Util.stopSpin();
+                            console.error(err);
+                            sap.m.MessageBox.error('Failed to generate document: ' + err.message);
+                        });
+                },
+                _loadDocxLibraries: function () {
+                    var that = this;
+                    return new Promise(function (resolve, reject) {
+                        // Already loaded?
+                        if (window.PizZip && window.docxtemplater && window.saveAs) {
+                            resolve();
+                            return;
+                        }
+
+                        var loadScript = function (src) {
+                            return new Promise(function (res, rej) {
+                                var script = document.createElement('script');
+                                script.src = src;
+                                script.onload = res;
+                                script.onerror = function () { rej(new Error('Failed to load ' + src)); };
+                                document.head.appendChild(script);
+                            });
+                        };
+
+                        // Load in sequence: PizZip → docxtemplater → FileSaver
+                        loadScript('js/pizzip.min.js')
+                            .then(function () {
+                                return loadScript('js/docxtemplater.min.js');
+                            })
+                            .then(function () {
+                                return loadScript('js/FileSaver.min.js');
+                            })
+                            .then(function () {
+                                resolve();
+                            })
+                            .catch(function (err) {
+                                reject(err);
+                            });
+                    });
+                },
+            }
 
         };
 
