@@ -495,7 +495,7 @@ sap.ui.jsfragment("bin.forms.testRep5", {
                                             dt['c76' + keys[d]] = dtx[keys[d]];
 
                                         var docfile = "confirm_soa.docx";
-                                        UtilGen.PrintTempl.downloadFilledTemplate(docfile, dt);
+                                        UtilGen.PrintTempl.downloadFilledTemplate(docfile, dt, dtx["NAME"] + "");
                                     }
                                     return "";
                                 }

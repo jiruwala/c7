@@ -115,7 +115,7 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     if (file.size > MAX_SIZE) {
                         FormView.err("File size should not exceed 2 MB.");
                         return; // block upload
-                    }          
+                    }
                     formData.append("data", file);
                     formData.append("refer", kf);
                     formData.append("kind_of", kindof);
@@ -2152,6 +2152,51 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                 var sett = sap.ui.getCore().getModel("settings").getData();
                 var sdf = new simpleDateFormat(Util.nvl(formatDate, sett["ENGLISH_DATE_FORMAT"]));
                 var vl = pVl;
+                function isStrictDateString(s) {
+                    if (typeof s !== 'string') return false;
+                    s = s.trim();
+                    if (s === '') return false;
+                
+                    // --- 1. Date + time with AM/PM, allowing . or : as time separator ---
+                    //    Matches: "09/29/2026 01.45.53 PM"  |  "09/29/2026 01:45:53 PM"
+                    //             "9/29/2026 1:45 PM"        |  "09/29/2026 01:45:53 AM"
+                    if (/^\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}[.:]\d{2}(?:[.:]\d{2})?\s*(?:AM|PM)$/i.test(s)) {
+                        return true;
+                    }
+                
+                    // --- 2. ISO date / datetime: 2023-12-31, 2023-12-31T10:20:30(.sss)?(Z|±hh:mm)? ---
+                    if (/^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.test(s)) {
+                        return true;
+                    }
+                
+                    // --- 3. Dotted date: 31.12.2023 | 2023.12.31 ---
+                    if (/^\d{1,4}\.\d{1,2}\.\d{1,4}$/.test(s)) {
+                        return true;
+                    }
+                
+                    // --- 4. Slashed date: 12/31/2023 | 2023/12/31 ---
+                    if (/^\d{1,4}\/\d{1,2}\/\d{1,4}$/.test(s)) {
+                        return true;
+                    }
+                
+                    // --- 5. Month-name formats: "Jan 1, 2023", "1 Jan 2023", "January 1 2023" ---
+                    const MONTHS = /^(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i;
+                
+                    // "1 Jan 2023"  /  "01 January 2023"
+                    if (/^\d{1,2}\s+[A-Za-z]{3,9}\.?,?\s+\d{2,4}$/.test(s)) {
+                        const monthToken = s.match(/[A-Za-z]{3,9}/)[0];
+                        if (MONTHS.test(monthToken)) return true;
+                    }
+                
+                    // "Jan 1, 2023"  /  "January 01 2023"
+                    if (/^[A-Za-z]{3,9}\.?\s+\d{1,2},?\s+\d{2,4}$/.test(s)) {
+                        const monthToken = s.match(/[A-Za-z]{3,9}/)[0];
+                        if (MONTHS.test(monthToken)) return true;
+                    }
+                
+                    // --- 6. Nothing matched → not a strict date ---
+                    return false;
+                }
                 try {
                     // 1. Check if the value is a number OR a numeric string (e.g., 42, "1", "3.14")
                     const isNumericValue =
@@ -2163,7 +2208,8 @@ sap.ui.define("sap/ui/ce/generic/Util", [],
                     // 2. Only proceed if it is NOT numeric
                     if (!isNumericValue && isValidInput) {
                         const rawVal = typeof vl === 'string' ? vl.replaceAll('.', ':') : vl;
-                        const dval = rawVal instanceof Date ? rawVal : new Date(rawVal);
+                        const dval = rawVal instanceof Date ? rawVal :
+                            isStrictDateString(rawVal) ? new Date(rawVal) : rawVal;
 
                         // 3. Verify it's a valid date before formatting
                         if (!isNaN(dval.getTime())) {

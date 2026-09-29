@@ -7018,82 +7018,54 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
             },
             PrintTempl: {
-                downloadFilledTemplate: function (docfile, data) {
+                downloadFilledTemplate: function (docfile, data, pfilename) {
                     var that = this;
 
-                    // If no data provided, use default (or fetch from form)
                     var replacements = data || {
                         empname: 'yusuf',
                         date: '0101023',
                         company: 'MetaSoft'
                     };
-
-                    // Show busy indicator
+                    this.filename = Util.nvl(pfilename, docfile);
                     Util.doSpin('Preparing document...');
 
-                    // Load libraries, then fetch and process template
                     this._loadDocxLibraries()
                         .then(function () {
-                            // 1. Fetch the template from Spring Boot endpoint
                             return new Promise(function (resolve, reject) {
                                 var docpath = "docx%2F" + docfile;
                                 var xhr = new XMLHttpRequest();
                                 xhr.open('GET', 'template?filename=' + docpath, true);
                                 xhr.responseType = 'arraybuffer';
                                 xhr.onload = function () {
-                                    if (xhr.status === 200) {
-                                        resolve(xhr.response);
-                                    } else {
-                                        reject(new Error('HTTP ' + xhr.status));
-                                    }
+                                    if (xhr.status === 200) { resolve(xhr.response); }
+                                    else { reject(new Error('HTTP ' + xhr.status)); }
                                 };
                                 xhr.onerror = function () { reject(new Error('Network error')); };
                                 xhr.send();
                             });
                         })
                         .then(function (arrayBuffer) {
-                            // 2. Create zip and docxtemplater instance
                             var zip = new PizZip(arrayBuffer);
                             var docXml = zip.file('word/document.xml').asText();
 
-                            // Replace each placeholder (exact string) with its value
                             for (var key in replacements) {
-                                // Since the placeholder is just the key (no braces), we replace the key itself
-                                var escapedKey = (key.replace(/[.*+?^${}()|[\]\\]/gi, '  \\$&'));
+                                var escapedKey = key.replace(/[.*+?^${}()|[\]\\]/gi, '\\$&');
                                 var vl = Util.nvl(replacements[key], " ");
                                 vl = Util.canDate(vl, "yyyy/MM/dd");
-                                // Match both {key} and key (with optional surrounding braces)
                                 var regex = new RegExp(escapedKey, "gi");
+                                if (typeof vl == "string") vl = Util.nvl(vl.trim(), " ");
                                 docXml = docXml.replace(regex, vl);
                             }
 
-                            // Update the zip
                             zip.file('word/document.xml', docXml);
 
-                            // 4. Generate blob
                             var outBlob = zip.generate({
                                 type: 'blob',
                                 mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                             });
-                            // var cnm = that.frm.getFieldValue("qry1.cust_name");
-                            // var ct = that.frm.getFieldValue("qry1.cont_type");
-
-                            // 5. Trigger download
-                            if (window.saveAs) {
-                                window.saveAs(outBlob, ct + "_" + cnm + '.docx');
-                            } else {
-                                // Manual fallback (works in modern browsers)
-                                var link = document.createElement('a');
-                                link.href = URL.createObjectURL(outBlob);
-                                link.download = "_save_" + '.docx';
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                URL.revokeObjectURL(link.href);
-                            }
 
                             Util.stopSpin();
-                            sap.m.MessageToast.show('Document downloaded successfully.');
+                            that._showDocxPreview(outBlob, that.filename);
                         })
                         .catch(function (err) {
                             Util.stopSpin();
@@ -7101,43 +7073,201 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             sap.m.MessageBox.error('Failed to generate document: ' + err.message);
                         });
                 },
+
                 _loadDocxLibraries: function () {
-                    var that = this;
                     return new Promise(function (resolve, reject) {
-                        // Already loaded?
-                        if (window.PizZip && window.docxtemplater && window.saveAs) {
+                        if (window.PizZip && window.docxtemplater && window.saveAs &&
+                            window.JSZip && window.docx) {
                             resolve();
                             return;
                         }
 
-                        var loadScript = function (src) {
+                        var loadScript = function (src, noAmd) {
                             return new Promise(function (res, rej) {
                                 var script = document.createElement('script');
                                 script.src = src;
-                                script.onload = res;
-                                script.onerror = function () { rej(new Error('Failed to load ' + src)); };
+
+                                var savedDefine = null;
+                                if (noAmd && window.define) {
+                                    savedDefine = window.define;
+                                    window.define = undefined;
+                                }
+
+                                script.onload = function () {
+                                    if (savedDefine) { window.define = savedDefine; }
+                                    res();
+                                };
+                                script.onerror = function () {
+                                    if (savedDefine) { window.define = savedDefine; }
+                                    rej(new Error('Failed to load ' + src));
+                                };
+
                                 document.head.appendChild(script);
                             });
                         };
 
-                        // Load in sequence: PizZip → docxtemplater → FileSaver
                         loadScript('js/pizzip.min.js')
-                            .then(function () {
-                                return loadScript('js/docxtemplater.min.js');
-                            })
-                            .then(function () {
-                                return loadScript('js/FileSaver.min.js');
-                            })
-                            .then(function () {
-                                resolve();
-                            })
-                            .catch(function (err) {
-                                reject(err);
-                            });
+                            .then(function () { return loadScript('js/docxtemplater.min.js'); })
+                            .then(function () { return loadScript('js/FileSaver.min.js'); })
+                            .then(function () { return loadScript('js/jszip.min.js', true); })
+                            .then(function () { return loadScript('js/docx-preview.min.js', true); })
+                            .then(function () { resolve(); })
+                            .catch(function (err) { reject(err); });
                     });
                 },
-            }
 
+                _showDocxPreview: function (blob, fileName) {
+                    var that = this;
+
+                    var oPreviewHtml = new sap.ui.core.HTML({
+                        content: "<div id='docxPreviewContainer'></div>"
+                    });
+
+                    var oScroll = new sap.m.ScrollContainer({
+                        width: "100%",
+                        height: "100%",
+                        vertical: true,
+                        horizontal: false,
+                        content: [oPreviewHtml]
+                    });
+
+                    var oDialog = new sap.m.Dialog({
+                        title: "Preview — " + fileName,
+                        contentWidth: "90%",
+                        contentHeight: "85%",
+                        resizable: true,
+                        draggable: true,
+                        content: [oScroll],
+
+                        // All footer buttons via the `buttons` aggregation
+                        buttons: [
+                            new sap.m.Button({
+                                text: "Download",
+                                icon: "sap-icon://download",
+                                press: function () {
+                                    if (window.saveAs) {
+                                        window.saveAs(blob, fileName);
+                                    } else {
+                                        var link = document.createElement('a');
+                                        link.href = URL.createObjectURL(blob);
+                                        link.download = fileName;
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                        URL.revokeObjectURL(link.href);
+                                    }
+                                    sap.m.MessageToast.show('Document downloaded successfully.');
+                                }
+                            }),
+
+                            new sap.m.Button({
+                                text: "Print",
+                                icon: "sap-icon://print",
+                                press: function () {
+                                    that._printDocxPreview();
+                                }
+                            }),
+
+                            new sap.m.Button({
+                                text: "Close",
+                                press: function () {
+                                    oDialog.close();
+                                }
+                            })
+                        ],
+
+                        afterClose: function () {
+                            oDialog.destroy();
+                        }
+                    });
+
+                    oDialog.open();
+
+                    setTimeout(function () {
+                        var container = document.getElementById('docxPreviewContainer');
+                        if (!container) { return; }
+
+                        docx.renderAsync(blob, container, null, {
+                            className: 'docx',
+                            inWrapper: true,
+                            breakPages: true,
+                            renderHeaders: true,
+                            renderFooters: true
+                        }).catch(function (err) {
+                            console.error('docx-preview error:', err);
+                            container.innerHTML =
+                                '<p style="color:red; padding:20px;">Failed to render document.</p>';
+                        });
+                    }, 100);
+                },
+                _printDocxPreview: function () {
+                    var container = document.getElementById('docxPreviewContainer');
+                    if (!container) {
+                        sap.m.MessageToast.show('Nothing to print.');
+                        return;
+                    }
+
+                    // 1. Copy docx-preview's own <style> tags (this is what makes it look like Word)
+                    var docxStyles = '';
+                    document.querySelectorAll('style').forEach(function (s) {
+                        docxStyles += s.outerHTML;
+                    });
+
+                    // 2. Grab only the .docx page sections — skips the wrapper padding that
+                    //    produced blank pages.
+                    var pageNodes = container.querySelectorAll('.docx');
+                    var contentHtml = '';
+                    if (pageNodes.length > 0) {
+                        pageNodes.forEach(function (p) { contentHtml += p.outerHTML; });
+                    } else {
+                        contentHtml = container.innerHTML;
+                    }
+
+                    // 3. Build the full document string
+                    var docHtml =
+                        '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+                        docxStyles +
+                        '</head><body>' + contentHtml + '</body></html>';
+
+                    // 4. Create a hidden iframe
+                    var iframe = document.createElement('iframe');
+                    iframe.style.cssText =
+                        'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+                    document.body.appendChild(iframe);
+
+                    var idoc = iframe.contentWindow.document;
+                    idoc.open();
+                    idoc.write(docHtml);
+                    idoc.close();
+
+                    // 5. Print from inside the iframe, then remove it
+                    var doPrint = function () {
+                        try {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                        } catch (e) {
+                            console.error('Print failed:', e);
+                        }
+                        // Cleanup after the print dialog closes
+                        setTimeout(function () {
+                            if (iframe.parentNode) { iframe.parentNode.removeChild(iframe); }
+                        }, 1000);
+                    };
+
+                    // Wait for the iframe to finish loading before printing
+                    if (iframe.contentWindow.document.readyState === 'complete') {
+                        doPrint();
+                    } else {
+                        iframe.onload = doPrint;
+                        // Fallback in case onload already fired
+                        setTimeout(function () {
+                            if (document.body.contains(iframe) && iframe.contentWindow.document.readyState === 'complete') {
+                                doPrint();
+                            }
+                        }, 300);
+                    }
+                }
+            }
         };
 
         return UtilGen;
