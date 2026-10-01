@@ -397,7 +397,8 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                     // frm.loadData(undefined, FormView.RecordStatus.NEW);
                 },
                 beforeSaveQry: function (qry, sqlRow, rowno) {
-                    thatForm.helperFunc.beforeSaveValidateQry(qry);
+                    if (qry.name == "qry1")
+                        thatForm.helperFunc.beforeSaveValidateQry(qry);
                     if (qry.name == "qry2") {
                         var kf = thatForm.frm.getFieldValue("qry1.keyfld");
                         var ld = qry.obj.mLctb;
@@ -1818,11 +1819,12 @@ sap.ui.jsfragment("bin.forms.br.forms.pdlv", {
                 qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
 
                 var on = qry.formview.getFieldValue("qry1.ord_no");
+                var loc = qry.formview.getFieldValue("qry1.location_code");
                 var findno = 0;
                 if (Util.nvl(on, "") != "")
-                    findno = Util.getSQLValue("select nvl(max(ord_no),'') from order1 where ord_no=" + on + " and ord_code=" + thatForm.vars.vou_code);
+                    findno = Util.getSQLValue("select nvl(max(ord_no),'') from order1 where location_code='" + loc + "' and ord_no=" + on + " and ord_code=" + thatForm.vars.vou_code);
                 if (Util.nvl(findno, '') != '') {
-                    var no = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 where ord_code=" + thatForm.vars.vou_code);
+                    var no = Util.getSQLValue("select nvl(max(ord_no),0)+1 from order1 where location_code='" + loc + "' and ord_code=" + thatForm.vars.vou_code);
                     qry.formview.setFieldValue("qry1.ord_no", no, no, true);
                 }
             }
