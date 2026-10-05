@@ -561,7 +561,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                 .replaceAll(":ord_date", periodFromWhere);
             if (showDetails == 'Y') {
 
-                sq = (`SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,ord_allqty QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE||'-'||STEP_EMP STEP,EMP_NAME,
+                sq = (`SELECT ORD_NO,ORD_DATE,ord_shpdt,ORD_REF,ORD_REFNM,ITEM_DESCR,ord_allqty QTY,MATERIAL,PAYTERM,DLVP,PURP,STEP_CODE STEP,EMP_NAME,
                         STEP_START,STEP_END,STEP_EMP_NAME,step_emp,
                                     CASE 
                                         WHEN NVL(TO_NUMBER(REPLACE(TRIM(purp),'%','')),0) >= 100 
@@ -575,7 +575,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                                             THEN 'Ready'
 
                                         ELSE 'Process'
-                                    END AS rec_stat ,     PROD_STATUS STAT,STEP_CODE||'-'||STEP_EMP||'__STAT' STEP_STAT ,KEYFLD
+                                    END AS rec_stat ,     PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
                             FROM C7_JO_PRODS where ord_flag!=3  :pJoNO  :repType :stepClause :exclSold :empClause
                              and trunc(:ord_date)>=:parameter.fromdate and trunc(:ord_date)<=:parameter.todate 
                                 ORDER BY STEP_CODE,ORD_NO`)
@@ -725,7 +725,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     for (var li = 0; li < ld2.cols.length; li++)
                         if (ld2.cols[li].mColName.endsWith("__STAT")) {
                             var cn = (ld2.cols[li].mColName).replaceAll("__STAT", "");
-                            cn = cn.substr(0, cn.indexOf("-"));
+                            // cn = cn.substr(0, cn.indexOf("-"));
                             ld2.cols[li].mTitle = itms[cn];
                             ld2.cols[li].mUIHelper.display_width = showDetails == 'Y' ? 140 : "75";
                             ld2.cols[li].mUIHelper.display_align = "ALIGN_CENTER";
@@ -886,11 +886,16 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                                         vl = String(Util.nvl(stepsdetails[jostep], ""));
                                         doneSteps[jostep] = vl;
                                         var vls = vl.split(",");
-                                        var std = "", etd = "";
+                                        var std = "", etd = "", hrs = 0;
                                         if (Util.nvl(vls[0], "") != "")
                                             std = sdf.format(new Date(vls[0].replaceAll(".", ":")));
-                                        if (Util.nvl(vls[1], "") != "" && Util.nvl(vls[0], "") != "")
+                                        if (Util.nvl(vls[1], "") != "" && Util.nvl(vls[0], "") != "") {
                                             etd = sdf2.format(new Date(vls[1].replaceAll(".", ":")));
+                                            hrs = Math.abs(new Date(vls[1].replaceAll(".", ":")) -
+                                                                                       new Date(vls[0].replaceAll(".", ":"))) / (1000 * 60 * 60);
+                                            hrs=Math.round(hrs * 10) / 10;
+                                            etd=etd+", "+hrs;
+                                        }
                                         else if (Util.nvl(vls[0], "") != "") etd = stats[2] + ")";
                                         vl = (std + (Util.nvl(std, "") == "" ? "" : "-") + etd).trim();
                                     } else vl = "";
