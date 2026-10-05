@@ -890,10 +890,9 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                                         if (Util.nvl(vls[0], "") != "")
                                             std = sdf.format(new Date(vls[0].replaceAll(".", ":")));
                                         if (Util.nvl(vls[1], "") != "" && Util.nvl(vls[0], "") != "") {
-                                            etd = sdf2.format(new Date(vls[1].replaceAll(".", ":")));
-                                            hrs = Math.abs(new Date(vls[1].replaceAll(".", ":")) -
-                                                                                       new Date(vls[0].replaceAll(".", ":"))) / (1000 * 60 * 60);
-                                            hrs=Math.round(hrs * 10) / 10;
+                                            etd = sdf2.format(new Date(vls[1].replaceAll(".", ":")) );
+                                            hrs = Math.round((new Date(vls[1].replaceAll(".", ":")).getTime()) -
+                                            (new Date(vls[0].replaceAll(".", ":"))).getTime()) / (60000);
                                             etd=etd+", "+hrs;
                                         }
                                         else if (Util.nvl(vls[0], "") != "") etd = stats[2] + ")";
