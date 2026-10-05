@@ -426,7 +426,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                 pEmp: {
                     colname: "pEmp",
                     data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    class_name: FormView.ClassTypes.MULTICOMBOBOX,
                     title: '{\"text\":\"Emp\",\"width\":\"15%\","textAlign":"End"}',
                     title2: "",
                     display_width: colSpan,
@@ -435,47 +435,22 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                     display_format: "",
                     default_value: "",
                     other_settings: {
-                        showValueHelp: true,
-                        change: function (e) {
-                            var vl = e.oSource.getValue();
-                            thatForm.frm.setFieldValue(repCode + "@parameter.pEmp", vl, vl, false);
-                            var vlnm = Util.getSQLValue("select name from salesp where no =" + Util.quoted(vl));
-                            thatForm.frm.setFieldValue(repCode + "@parameter.empname", vlnm, vlnm, false);
+                        width: "35%",
+                        items: {
+                            path: "/",
+                            template: new sap.ui.core.ListItem({ text: "{NAME}", key: "{CODE}" }),
+                            templateShareable: true
+                        },
+                        showSelectAll: true,
+                        selectedKeys: Util.getSQLColArray("select no code from salesp  order by no"),
 
-                        },
-                        valueHelpRequest: function (event) {
-                            var sq = "select no code,name from salesp  order by no";
-                            Util.show_list(sq, ["CODE", "NAME"], "", function (data) {
-                                thatForm.frm.setFieldValue(repCode + "@parameter.pEmp", data.CODE, data.CODE, true);
-                                thatForm.frm.setFieldValue(repCode + "@parameter.empname", data.NAME, data.NAME, true);
-                                return true;
-                            }, "100%", "100%", undefined, false, undefined, undefined, undefined, undefined, undefined, undefined);
-                        },
-                        width: "35%"
                     },
-                    list: undefined,
+                    list: "select no code,name from salesp  order by no",
                     edit_allowed: true,
                     insert_allowed: true,
-                    require: false,
+                    require: true,
                     dispInPara: true,
-                },
-                empname: {
-                    colname: "empname",
-                    data_type: FormView.DataType.String,
-                    class_name: FormView.ClassTypes.TEXTFIELD,
-                    title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
-                    title2: "",
-                    display_width: colSpan,
-                    display_align: "ALIGN_RIGHT",
-                    display_style: "",
-                    display_format: "",
-                    default_value: "",
-                    other_settings: { width: "49%", editable: false },
-                    list: undefined,
-                    edit_allowed: false,
-                    insert_allowed: false,
-                    require: false,
-                    dispInPara: true,
+                    showInPreview: false,
                 },
                 showDetails: {
                     colname: "showDetails",
@@ -528,7 +503,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             var pStepType = thatForm.frm.objs["JOPROD1@parameter.pStepType"].obj;
             var reptype = thatForm.frm.getFieldValue("parameter.reptype");
             var pJoNO = thatForm.frm.getFieldValue("parameter.pJoNo");
-            var pEmp = thatForm.frm.getFieldValue("parameter.pEmp");
+            var pEmp = thatForm.frm.objs["JOPROD1@parameter.pEmp"].obj
             var sett = sap.ui.getCore().getModel("settings").getData();
             var periodFromWhere = periodFrom == "prod" ? "STEP_START" : "ORD_DATE";
             // "@all/Open JOs,pending/Only Pending Production,started_steps/Started Prods",
@@ -540,17 +515,20 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
             }
             var empClause = "";
             var stepsclause = "", repTypeClause = "", pJoNOClause = "";
-            if (Util.nvl(pJoNO, "") != "")
+            if (Util.nvl(pJoNO, "") != "") {
                 pJoNOClause = " and ORD_NO=" + pJoNO + " ";
-            if (Util.nvl(pEmp, "") != "")
-                empClause = " and STEP_EMP=" + pEmp + " ";
-
+            }
             else {
                 repTypeClause = Util.nvl(repCond[reptype], " ");//"and JO_PROD_USER is null ");
                 var kys = pStepType.getSelectedKeys();
                 for (k in kys)
                     stepsclause += (stepsclause.length > 0 ? "," : "") + kys[k];
                 if (stepsclause.length > 0) stepsclause = " and step_code in (" + stepsclause + ")";
+                var kys = pEmp.getSelectedKeys();
+                for (k in kys)
+                    empClause += (empClause.length > 0 ? "," : "") + kys[k];
+                if (empClause.length > 0) empClause = " and step_emp in (" + empClause + ")";
+
             }
 
             var sq = (`SELECT ORD_REF,ORD_REFNM,ORD_NO,ORD_DATE,STEP_CODE STEP,
@@ -727,7 +705,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                             var cn = (ld2.cols[li].mColName).replaceAll("__STAT", "");
                             // cn = cn.substr(0, cn.indexOf("-"));
                             ld2.cols[li].mTitle = itms[cn];
-                            ld2.cols[li].mUIHelper.display_width = showDetails == 'Y' ? 140 : "75";
+                            ld2.cols[li].mUIHelper.display_width = showDetails == 'Y' ? 150 : "75";
                             ld2.cols[li].mUIHelper.display_align = "ALIGN_CENTER";
                             ld2.cols[li].mSummary = "COUNT";
                             fltcols.push(ld2.cols[li].mColName);
@@ -770,7 +748,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                         ld2.cols[ld2.getColPos("EMP_NAME")].mUIHelper.display_width = "60";
                         ld2.cols[ld2.getColPos("STEP_EMP_NAME")].mUIHelper.display_width = "60";
                         ld2.cols[ld2.getColPos("STEP_EMP")].mUIHelper.display_width = "0";
-                        ld2.cols[ld2.getColPos("EMP_NAME")].mTitle = Util.getLangText("Emp");
+                        ld2.cols[ld2.getColPos("EMP_NAME")].mTitle = Util.getLangText("txtSalesPerson");
                         ld2.cols[ld2.getColPos("STEP_EMP_NAME")].mTitle = Util.getLangText("Emp");
                         ld2.cols[ld2.getColPos("STEP_EMP")].mTitle = Util.getLangText("txtNo");
                         ld2.cols[ld2.getColPos("REC_STAT")].mTitle = Util.getLangText("Status");
@@ -890,10 +868,10 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                                         if (Util.nvl(vls[0], "") != "")
                                             std = sdf.format(new Date(vls[0].replaceAll(".", ":")));
                                         if (Util.nvl(vls[1], "") != "" && Util.nvl(vls[0], "") != "") {
-                                            etd = sdf2.format(new Date(vls[1].replaceAll(".", ":")) );
+                                            etd = sdf2.format(new Date(vls[1].replaceAll(".", ":")));
                                             hrs = Math.round((new Date(vls[1].replaceAll(".", ":")).getTime()) -
-                                            (new Date(vls[0].replaceAll(".", ":"))).getTime()) / (60000);
-                                            etd=etd+", "+hrs;
+                                                (new Date(vls[0].replaceAll(".", ":"))).getTime()) / (60000);
+                                            etd = etd + ", " + hrs;
                                         }
                                         else if (Util.nvl(vls[0], "") != "") etd = stats[2] + ")";
                                         vl = (std + (Util.nvl(std, "") == "" ? "" : "-") + etd).trim();
