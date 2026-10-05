@@ -1848,8 +1848,6 @@ sap.ui.jsfragment("bin.forms.testRep5", {
         paras += "DEL_OLD_DATA boolean := true;";
         paras += "ses_id varchar2(200) :='" + sett["SESSION_ID"] + "';";
         paras += "logon_user varchar2(200) :='" + sett["LOGON_USER"] + "';";
-
-
         sqls = "declare " + paras + " CURSOR XX(ACN VARCHAR2,CC VARCHAR2) IS " + sqls + " ORDER BY vou_date; ";
         var str = Util.getSQLValue("select custom_obj from c7_secs_tiles where tile_id=99992.1");
         sqls = sqls + str;

@@ -700,7 +700,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
             var thatForm = this.thatForm;
             var flg = Util.getSQLValue("select flag from c7hr_emp where emp_cd='" + ec + "'");
             if (showErrOnNotFlag && flg != showErrOnNotFlag)
-                FormView.err("Err ! , Employee status is not present !");
+                FormView.err("Err ! , Employee status is invalid !");
             return flg;
 
         },
@@ -831,6 +831,80 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                 });
 
             };
+            var doLeaveEnd = function () {
+                if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW) return;
+                thatForm.helperFunc.getEmpStatus(empcode, 2);
+                var do_save = function () {
+                    thatForm.helperFunc.getEmpStatus(empcode, 2);
+                    var sq = (`begin 
+                               update c7hr_req_leave set status='ENDLEAVE' where keyfld=:keyfld ; 
+                              update c7hr_emp set flag=1 where emp_cd=':empcode';
+                              end;
+                              `)
+                        .replaceAll(":keyfld", kf)
+                        .replaceAll(":empcode", empcode);
+
+                    var dt = Util.execSQL(sq);
+                    if (dt.ret == "SUCCESS") {
+                        thatForm.frm.setQueryStatus(undefined, FormView.RecordStatus.VIEW);
+                        FormView.msgSuccess(Util.getLangText("msgSaved"));
+                        dlg.close();
+                    }
+                };
+                var dtReturn = new sap.m.Datepicker({
+                    valueFormat: sett["ENGLISH_DATE_FORMAT"],
+                    displayFormat: sett["ENGLISH_DATE_FORMAT"],
+                    editable: false,
+                    width: "70%"
+                });
+                var dtRemarks = new sap.m.Input({
+                    width: "70%"
+                });
+                var dt = Util.getSQLValue("select to_char(end_date,'mm/dd/rrrr') from c7hr_req_leave where keyfld=" + kf);
+                dtReturn.setDateValue(new Date(dt));
+                var fe = [
+                    Util.getLabelTxt("Enter Return", "100%", "#", "redText", "Begin"),
+                    Util.getLabelTxt("Return Date", "30%", ""), dtReturn,
+                    Util.getLabelTxt("Remarks", "30%", ""), dtRemarks,
+                ];
+                var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                    width: "300px",
+                    cssText: [
+                        "padding-left:5px ;" +
+                        "padding-top:3px;" +
+                        "border-style: groosve;" +
+                        "margin-left: 1%;" +
+                        "margin-right: 1%;" +
+                        "border-radius:20px;" +
+                        "margin-top: 3px;"
+                    ]
+                }, "sapUiSizeCompact", "");
+
+                var dlg = new sap.m.Dialog({
+                    title: Util.getLangText("Leave End"),
+                    contentWidth: "350px",
+                    contentHeight: "250px",
+                    content: cnt,
+                    buttons: [
+                        new sap.m.Button({
+                            text: Util.getLangText("saveTxt"),
+                            press: function () {
+                                do_save();
+
+                            }
+                        }),
+                        new sap.m.Button({
+                            text: Util.getLangText("closeTxt"),
+                            press: function () {
+                                dlg.close();
+                            }
+                        })
+
+                    ]
+                });
+                dlg.open();
+
+            }
 
             var stepPress = function (e) {
                 var cmd = e.getSource();
@@ -843,7 +917,7 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         doActiveLeave();
                         break;
                     case "cmdStepLeaveEnded":
-                        doActiveLeave();
+                        doLeaveEnd();
                         break;
 
 

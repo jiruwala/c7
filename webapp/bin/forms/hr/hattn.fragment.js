@@ -174,7 +174,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             text: Util.getLangText("editRec"),
             press: function (e) {
                 // that.editMode = this.getSelected();
-                that.loadData();
+                that.loadData(false);
             }
         });
 
@@ -233,9 +233,12 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
     },
 
     /* ── loadData ─────────────────────────────────────────────── */
-    loadData: function () {
+    loadData: function (releaseEdit) {
         var that = this;
         var qv = this._qr;
+        if (Util.nvl(releaseEdit, true))
+            that.view.byId("cmdEdit" + that.timeInLong).setPressed(false);
+
         if (!qv) return;
 
         var iMonth = parseInt(that._getMonthYearFromInput().month);
@@ -248,6 +251,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         this._iDays = iDays;
         this._dirty = {};
         var colsStr = "";
+
         var cmdLink = function (obj, rowno, colno, lctb, frm) {
             var tbl = obj.getParent().getParent();
             var rowIdx = tbl.getRows().indexOf(obj.getParent());
@@ -430,6 +434,11 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             );
             return;
         }
+        var cntLv = Util.getSQLValue("select nvl(count(*),0) from c7hr_attend where emp_code='" + oRec.EMP_CD +
+            "' and att_date=" + Util.toOraDateString(clickedDate) +
+            " and day_type in ('CL','SL','AL')");
+        if (cntLv > 0)
+            FormView.err("This employee may have LEAVE , modification can be done from leave form !");
 
         // Determine if we are in bulk mode (clicked after last_att_rec)
         var bulkMode = false;
@@ -463,7 +472,7 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
             var enbl = true;
             var objEd = that.view.byId("cmdEdit" + that.timeInLong);
             if (!objEd.getPressed() &&
-                (it.key == '-' || it.key == 'P' || it.key == "A" || it.key == "WO" || it.key == "PH" || it.key == "HD"))
+                (it.key == '-' || it.key == 'P' || it.key == "A" || it.key == "WO" || it.key == "PH" || it.key == "HD" || it.key=='OT'))
                 enbl = false;
             oMenu.addItem(new sap.m.MenuItem({
                 text: it.icon + " " + it.text,
@@ -623,7 +632,11 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
         var aData = oModel.getData();
         var oRec = aData[ctx.absRow];
 
-
+        if (sStatus == "CL" || sStatus == "SL" || sStatus == "AL") {
+            UtilGen.execCmd("bin.forms.hr.lv formTitle=DELIVERY formType=dialog formSize=720px,520px formTitle=EmpMaster", UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () {
+            });
+            return;
+        }
         // final validation to stop user clear after lastAttRec or startdate, 
         var val = that.empValidation[ctx.empCode];
         var lastAttRec = (val.lastCloseRec > val.lastAttRec ? val.lastCloseRec : val.lastAttRec);
@@ -639,6 +652,20 @@ sap.ui.jsfragment("bin.forms.hr.hattn", {
 
         if (sStatus == "-") {
             // if (clickedDate <= lastAttRec && clickedDate > startDate)
+            const nxtMonthDate = new Date(clickedDate.getFullYear(), clickedDate.getMonth() + 1, 0);
+            var cnt = Util.getSQLValue("select nvl(count(*),0) from c7hr_attend where emp_code='" + oRec.EMP_CD +
+                "' and att_date>=" + Util.toOraDateString(nxtMonthDate) +
+                " ");
+            if (cnt > 0)
+                FormView.err("This employee may have attendance date next month, first clear next month ");
+
+            var cntLv = Util.getSQLValue("select nvl(count(*),0) from c7hr_attend where emp_code='" + oRec.EMP_CD +
+                "' and att_date>=" + Util.toOraDateString(clickedDate) +
+                " and day_type in ('CL','SL','AL')");
+            if (cntLv > 0)
+                FormView.err("This employee may have LEAVE , modification can be done from leave form !");
+
+
             var start = new Date(clickedDate);
             var end = new Date(lastAttRec);
             var current = new Date(start);
