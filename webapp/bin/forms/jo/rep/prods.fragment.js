@@ -522,7 +522,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                 repTypeClause = Util.nvl(repCond[reptype], " ");//"and JO_PROD_USER is null ");
                 var kys = pStepType.getSelectedKeys();
                 for (k in kys)
-                    stepsclause += (stepsclause.length > 0 ? "," : "") + kys[k];
+                    stepsclause += (stepsclause.length > 0 ? "," : "") + "'"+kys[k]+"'";
                 if (stepsclause.length > 0) stepsclause = " and step_code in (" + stepsclause + ")";
                 var kys = pEmp.getSelectedKeys();
                 for (k in kys)
@@ -556,7 +556,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                                     END AS rec_stat ,     PROD_STATUS STAT,STEP_CODE||'__STAT' STEP_STAT ,KEYFLD
                             FROM C7_JO_PRODS where ord_flag!=3  :pJoNO  :repType :stepClause :exclSold :empClause
                              and trunc(:ord_date)>=:parameter.fromdate and trunc(:ord_date)<=:parameter.todate 
-                                ORDER BY STEP_CODE,ORD_NO`)
+                                ORDER BY STEP_NAME,ORD_NO`)
                     .replaceAll(":ord_date", periodFromWhere);
                 //prod_status -> 2=step started but step_end is null,  3 is finished, 
             }
@@ -707,6 +707,7 @@ sap.ui.jsfragment("bin.forms.jo.rep.prods", {
                             ld2.cols[li].mTitle = itms[cn];
                             ld2.cols[li].mUIHelper.display_width = showDetails == 'Y' ? 150 : "75";
                             ld2.cols[li].mUIHelper.display_align = "ALIGN_CENTER";
+                            ld2.cols[li].mUIHelper.display_style = "background-color:#ffffe0;";
                             ld2.cols[li].mSummary = "COUNT";
                             fltcols.push(ld2.cols[li].mColName);
                             colsStat.push(ld2.cols[li].mColName);
