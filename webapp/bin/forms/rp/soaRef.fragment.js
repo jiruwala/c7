@@ -70,6 +70,8 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                 reportFile: "soaRef1",
                                 beforeExec: function (idx, rptName) {
                                     var repCode = "SOAREF1";
+                                    var sett = sap.ui.getCore().getModel("settings").getData();
+                                    var limitdys = Util.nvl(sett["SOA_PERIOD_LIMIT"], 732);
                                     var paras = {};
                                     var rptNo = idx;
                                     paras["pcust"] = thatForm.frm.objs[repCode + "@parameter.pcust"].obj.mainObj;
@@ -79,6 +81,10 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                     paras["inclUnpost"] = thatForm.frm.objs[repCode + "@parameter.inclUnpost"].obj.mainObj;
                                     paras["inclUnpostDlv"] = thatForm.frm.objs[repCode + "@parameter.inclUnpostDlv"].obj.mainObj;
                                     // paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
+                                    var diff = paras["todate"].getDateValue() - paras["fromdate"].getDateValue();
+                                    var dys = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                    if (limitdys != 0 && (dys < 0 || dys > limitdys)) FormView.err("Invlaid from date ,todate or Limit period between # " + limitdys);
+
                                     for (var fld in paras) {
                                         var vl = UtilGen.getControlValue(paras[fld]);
                                         var parent = thatForm.view.byId("rep" + rptNo + "_parameter" + fld + thatForm.frm.timeInLong);
@@ -103,6 +109,8 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
 
                                 beforeExec: function (idx, rptName) {
                                     var repCode = "SOAREF1";
+                                    var sett = sap.ui.getCore().getModel("settings").getData();
+                                    var limitdys = Util.nvl(sett["SOA_PERIOD_LIMIT"], 732);
                                     var paras = {};
                                     var rptNo = idx;
                                     var sdf = new simpleDateFormat("MM/dd/yyyy");
@@ -112,6 +120,10 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                     var todt = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
                                     var unpost = thatForm.frm.objs[repCode + "@parameter.inclUnpost"].obj.mainObj;
                                     // paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
+                                    var diff = todt.getDateValue() - fromdt.getDateValue();
+                                    var dys = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                    if (limitdys != 0 && (dys < 0 || dys > limitdys)) 
+                                        FormView.err("Invlaid from date ,todate or Limit period between # " + limitdys + " days , "+(limitdys / 365).toFixed(1) + " years .");
 
                                     UtilGen.execCmd("testRep5 formType=dialog repno=0 para_PARAFORM=false para_EXEC_REP=true " +
                                         "pref=" + pcust.getValue() +
@@ -408,14 +420,14 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                 "and (v.branch_no=pbrno or pbrno is null ) " +
                 " :KEYFLD_CONDITION ";
             //cursor acx1 is  --- GETPATHDEBIT 
-            var sqxAx1 = "select SUM(DEBIT) DRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
+            var sqxAx1 = "select SUM(DEBIT) DRBAL FROM :ACVOUCHER2 V,:ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
                 " A.ACCNO=V.ACCNO AND V.VOU_DATE>=FROMDATE AND " +
                 " V.VOU_DATE<=TODATE :KEYFLD_CONDITION";
             //cursor acx2 is  --- GETPATHCREDIT
-            var sqxAx2 = "select SUM(DEBIT) CRBAL FROM :ACVOUCHER2 V,ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
+            var sqxAx2 = "select SUM(DEBIT) CRBAL FROM :ACVOUCHER2 V,:ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +
                 " A.ACCNO=V.ACCNO AND  " +
                 " V.VOU_DATE<=TODATE :KEYFLD_CONDITION ";
-            var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO, " + qtySql + " FROM :ACVOUCHER2 V, ACACCOUNT A " +
+            var sqx = "SELECT sum(CREDIT) crD,sum(DEBIT) deb,NO,vou_code,DESCR2,DESCR,V.COSTCENT,V.type,vou_date,POS,V.KEYFLD,A.PATH,A.ACCNO ,SUM(FCDEBIT) FCDEBIT,FCRATE,SUM(FCCREDIT) FCCREDIT,FCCODE,cust_code,v.BRANCH_NO, " + qtySql + " FROM :ACVOUCHER2 V, :ACACCOUNT A " +
                 " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT " +
                 " AND V.ACCNO=A.ACCNO AND (V.COSTCENT=CC or cc is null) " + vflg +
                 " and (branch_no=pbrno or pbrno is null ) " +
@@ -425,23 +437,26 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
             //     " WHERE PATH LIKE ACN AND VOU_DATE>=FROMDT AND VOU_DATE<=TODT" +
             //     " AND V.ACCNO=A.ACCNO :KEYFLD_CONDITION " +
             //     " group by no,vou_code,V.type,descr2,VOU_DATE,DESCR,POS,V.KEYFLD,V.COSTCENT,A.PATH,A.ACCNO,FCRATE,FCCODE,cust_code "
-            var sqs = [sqx.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":PUR2", "PUR2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+            var sqs = [sqx.replaceAll(":ACACCOUNT", "ACACCOUNT").replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":PUR2", "PUR2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
             var sqs1 = [sqxAB.replaceAll(":V_STATMENT_1", "V_STATMENT_1").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
-            var sqs2 = [sqxAx1.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
-            var sqs3 = [sqxAx2.replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+            var sqs2 = [sqxAx1.replaceAll(":ACACCOUNT", "ACACCOUNT").replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
+            var sqs3 = [sqxAx2.replaceAll(":ACACCOUNT", "ACACCOUNT").replaceAll(":ACVOUCHER2", "ACVOUCHER2").replaceAll(":KEYFLD_CONDITION", (bk.length > 0 ? " and v.keyfld>0 " : ""))];
 
             for (var bi in bk) {
                 sqs.push(sqx.
+                    replaceAll(":ACACCOUNT", bk[bi].fiscal_schema + ".ACACCOUNT").
                     replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
-                    replaceAll(":PUR2", bk[bi].fiscal_schema).
+                    replaceAll(":PUR2", bk[bi].fiscal_schema + ".PUR2").
                     replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
                 sqs1.push(sqxAB.
                     replaceAll(":V_STATMENT_1", bk[bi].fiscal_schema + ".V_STATMENT_1").
                     replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
                 sqs2.push(sqxAx1.
+                    replaceAll(":ACACCOUNT", bk[bi].fiscal_schema + ".ACACCOUNT").
                     replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
                     replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
                 sqs3.push(sqxAx2.
+                    replaceAll(":ACACCOUNT", bk[bi].fiscal_schema + ".ACACCOUNT").
                     replaceAll(":ACVOUCHER2", bk[bi].fiscal_schema + ".ACVOUCHER2").
                     replaceAll(":KEYFLD_CONDITION", (bi == bk.length - 1 ? "" : " and v.keyfld>0 ")));
 
