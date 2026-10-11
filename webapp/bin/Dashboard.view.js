@@ -288,6 +288,12 @@ sap.ui.jsview('bin.Dashboard', {
     },
     listFiscals: function () {
         var that = this;
+        var sett = sap.ui.getCore().getModel("settings").getData();
+        if (!(sett["PROFILENO"] == 0 ||
+            Util.nvl(sett["ALLOW_FISCAL_CHANGE"], "FALSE") == "TRUE")
+        )
+            FormView.err("Either not allowed year change or user is not admin");
+
         var cf = sap.ui.getCore().getModel("fiscalData").getData().fiscal_code;
         var sq = "select code,title from c7_fiscals order by code"
         var obs = [];
@@ -947,117 +953,127 @@ sap.ui.jsview('bin.Dashboard', {
 
         this.app.toDetail(this.pg);
 
+        var loadWidgets = function () {
+            var sq = "select v_secs.*  " +
+                " from v_secs where menu_group='" + that.current_profile + "' and menu_id=1 order by ms_id,ss_id,tile_id";
+            var dt = Util.execSQL(sq);
 
-        var sq = "select v_secs.*  from v_secs where menu_group='" + that.current_profile + "' and menu_id=1 order by ms_id,ss_id,tile_id";
-        var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+                var dtxM = JSON.parse("{" + dt.data + "}").data;
 
-        if (dt.ret == "SUCCESS" && dt.data.length > 0) {
-            var dtxM = JSON.parse("{" + dt.data + "}").data;
+                Util.destroyID("ObjectPageLayout");
+                var oObjectPage = new sap.uxap.ObjectPageLayout("ObjectPageLayout", {
+                    subSectionLayout: sap.uxap.ObjectPageSubSectionLayout.TitleOnTop,
+                    // showHeaderContent: false,
+                    height: "80%"
+                });
+                // var sc = new sap.m.ScrollContainer({content: [oObjectPage], height: "100%", vertical: true});
+                that.pg.addContent(oObjectPage);
 
-            Util.destroyID("ObjectPageLayout");
-            var oObjectPage = new sap.uxap.ObjectPageLayout("ObjectPageLayout", {
-                subSectionLayout: sap.uxap.ObjectPageSubSectionLayout.TitleOnTop,
-                // showHeaderContent: false,
-                height: "80%"
-            });
-            // var sc = new sap.m.ScrollContainer({content: [oObjectPage], height: "100%", vertical: true});
-            this.pg.addContent(oObjectPage);
-
-            var oHeaderTitle = new sap.uxap.ObjectPageHeader();
-            // oHeaderTitle.setObjectTitle(cmp);
-            // oObjectPage.setHeaderTitle(new sap.m.Toolbar());
-            oObjectPage.setShowAnchorBar(true);
-            // setTimeout(function () {
-            //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "color:blue!important;font-size:12px!important;");
-            //     $(".sapUxAPObjectPageHeaderTitleText").addClass("redMiniText");
-            //     $(".sapUxAPObjectPageHeaderTitleText").addClass("blinking");
-            //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "");
-            // }, 1200);
-            this.txt.setText(cmp);
-            that.sp.setTitle(cmp);
-            for (var i in dtxM) {
-                if (!secs.hasOwnProperty(dtxM[i].MS_ID)) {
-                    secs[dtxM[i].MS_ID] = {
-                        "title": dtxM[i].MS_TITLE_1, ss: {}, msObj: new sap.uxap.ObjectPageSection({
-                            title: dtxM[i].MS_TITLE_1, showTitle: false, titleUppercase: false
-                        })
-                    };
-                    oObjectPage.addSection(secs[dtxM[i].MS_ID].msObj);
-                }
-                if (!secs[dtxM[i].MS_ID].ss.hasOwnProperty(dtxM[i].SS_ID)) {
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID] = {
-                        "title": dtxM[i].SS_TITLE_1,
-                        tiles: {},
-                        ssObj: new sap.uxap.ObjectPageSubSection({
-                            title: (dtxM[i].SS_TITLE_1 == "ALL" ? "" : dtxM[i].SS_TITLE_1),
-                            titleUppercase: false,
-                            showTitle: true,
-                        }),
-                        // hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
-                        hbox: new sap.m.HBox({ wrap: sap.m.FlexWrap.Wrap }).addStyleClass("paddingTinyBot")
-                        // hbox: new sap.ui.layout.Grid({
-                        //     vSpacing: 1,
-                        //     hSpacing: 1,
-                        //     width: "100%",
-                        //     defaultSpan: "XL2 L3 M3 S12"
-                        // })
+                var oHeaderTitle = new sap.uxap.ObjectPageHeader();
+                // oHeaderTitle.setObjectTitle(cmp);
+                // oObjectPage.setHeaderTitle(new sap.m.Toolbar());
+                oObjectPage.setShowAnchorBar(true);
+                // setTimeout(function () {
+                //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "color:blue!important;font-size:12px!important;");
+                //     $(".sapUxAPObjectPageHeaderTitleText").addClass("redMiniText");
+                //     $(".sapUxAPObjectPageHeaderTitleText").addClass("blinking");
+                //     // $(".sapUxAPObjectPageHeaderTitleText").css("cssText", "");
+                // }, 1200);
+                that.txt.setText(cmp);
+                that.sp.setTitle(cmp);
+                for (var i in dtxM) {
+                    if (!secs.hasOwnProperty(dtxM[i].MS_ID)) {
+                        secs[dtxM[i].MS_ID] = {
+                            "title": dtxM[i].MS_TITLE_1, ss: {}, msObj: new sap.uxap.ObjectPageSection({
+                                title: dtxM[i].MS_TITLE_1, showTitle: false, titleUppercase: false
+                            })
+                        };
+                        oObjectPage.addSection(secs[dtxM[i].MS_ID].msObj);
                     }
-                        ;
-                    secs[dtxM[i].MS_ID].msObj.addSubSection(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj);
-                }
-
-                if (!secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles.hasOwnProperty(dtxM[dtxM[i].TILE_ID])) {
-                    var fv = "";
-                    var tileC = new sap.m.TileContent({});
-                    if (Util.nvl(dtxM[i].FOOTER_SQL, "").length > 0)
-                        fv = Util.getSQLValue(dtxM[i].FOOTER_SQL);
-
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID] = {
-                        "title": dtxM[i].TILE_TITLE_1,
-                        "FORM_NAME": dtxM[i].EXEC_LINE,
-                        "EXEC_TYPE": dtxM[i].EXEC_TYPE,
-                        "tileObj": Util.nvl(dtxM[i].CUSTOM_OBJ, "") != "" ?
-                            dtxM[i].CUSTOM_OBJ.startsWith("#") ? eval(Util.getSQLValue("select custom_obj from c7_secs_tiles " +
-                                " where tile_id=" + dtxM[i].CUSTOM_OBJ.substring(1)))
-                                : eval(dtxM[i].CUSTOM_OBJ) :
-                            new sap.m.GenericTile({
-                                frameType: Util.nvl(dtxM[i].TILE_SIZE, "OneByHalf"),
-                                header: dtxM[i].TILE_TITLE_1,
-                                tileContent: tileC,
-                                press: function (ev) {
-                                    that.tileExe(this);
-                                }
-                            }).addStyleClass("sapUiTinyMarginBegin sapUiTinyMarginTop")
-                    };
-
-                    if (Util.nvl(dtxM[i].CONTENT_JS, "").length > 0)
-                        try {
-                            eval(dtxM[i].CONTENT_JS);
-                        } catch (ex) {
-                            console.log(ex);
+                    if (!secs[dtxM[i].MS_ID].ss.hasOwnProperty(dtxM[i].SS_ID)) {
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID] = {
+                            "title": dtxM[i].SS_TITLE_1,
+                            tiles: {},
+                            ssObj: new sap.uxap.ObjectPageSubSection({
+                                title: (dtxM[i].SS_TITLE_1 == "ALL" ? "" : dtxM[i].SS_TITLE_1),
+                                titleUppercase: false,
+                                showTitle: true,
+                            }),
+                            // hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
+                            hbox: new sap.m.HBox({
+                                wrap: sap.m.FlexWrap.Wrap,
+                                width: "100%",
+                                justifyContent: sap.m.FlexJustifyContent.SpaceAround,
+                                alignItems: sap.ui.core.TextAlign.Center
+                            }).addStyleClass("paddingTinyBot")
+                            // hbox: new sap.m.ScrollContainer().addStyleClass("paddingTinyBot")
+                            // hbox: new sap.ui.layout.Grid({
+                            //     vSpacing: 1,
+                            //     hSpacing: 1,
+                            //     width: "100%",
+                            //     defaultSpan: "XL2 L3 M3 S12"
+                            // })
                         }
-                    ;
+                            ;
+                        secs[dtxM[i].MS_ID].msObj.addSubSection(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj);
+                    }
 
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj["dtx"] = dtxM[i];
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj.addStyleClass("mytilex");
-                    if (secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.getItems().length == 0)
-                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj.addBlock(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox);
+                    if (!secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles.hasOwnProperty(dtxM[dtxM[i].TILE_ID])) {
+                        var fv = "";
+                        var tileC = new sap.m.TileContent({});
+                        if (Util.nvl(dtxM[i].FOOTER_SQL, "").length > 0)
+                            fv = Util.getSQLValue(dtxM[i].FOOTER_SQL);
 
-                    secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.addItem(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj);
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID] = {
+                            "title": dtxM[i].TILE_TITLE_1,
+                            "FORM_NAME": dtxM[i].EXEC_LINE,
+                            "EXEC_TYPE": dtxM[i].EXEC_TYPE,
+                            "tileObj": Util.nvl(dtxM[i].CUSTOM_OBJ, "") != "" ?
+                                dtxM[i].CUSTOM_OBJ.startsWith("#") ? eval(Util.getSQLValue("select custom_obj from c7_secs_tiles " +
+                                    " where tile_id=" + dtxM[i].CUSTOM_OBJ.substring(1)))
+                                    : eval(dtxM[i].CUSTOM_OBJ) :
+                                new sap.m.GenericTile({
+                                    frameType: Util.nvl(dtxM[i].TILE_SIZE, "OneByHalf"),
+                                    header: dtxM[i].TILE_TITLE_1,
+                                    tileContent: tileC,
+                                    press: function (ev) {
+                                        that.tileExe(that);
+                                    }
+                                })
+                        };
+
+                        if (Util.nvl(dtxM[i].CONTENT_JS, "").length > 0)
+                            try {
+                                eval(dtxM[i].CONTENT_JS);
+                            } catch (ex) {
+                                console.log(ex);
+                            }
+                        ;
+
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj["dtx"] = dtxM[i];
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj.addStyleClass("dbTileMargin");
+                        if (secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.getItems().length == 0)
+                            secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].ssObj.addBlock(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox);
+
+                        secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].hbox.addItem(secs[dtxM[i].MS_ID].ss[dtxM[i].SS_ID].tiles[dtxM[i].TILE_ID].tileObj);
+                    }
+
                 }
-
             }
         }
+        setTimeout(() => {
+            loadWidgets();
+            console.log(secs);
+            that.cmdData = undefined;
+            var sq = "select KEYFLD, COMMAND, DESCR, PROFILES, FLAG, EXEC_LINE from c7_commands order by keyfld";
+            var dt = Util.execSQL(sq);
+            if (dt.ret == "SUCCESS" && dt.data.length > 0) {
+                that.cmdData = JSON.parse("{" + dt.data + "}").data;
+            }
+        }, 500);
 
-        console.log(secs);
-        // loading all c7_commands table data
-        this.cmdData = undefined;
-        var sq = "select KEYFLD, COMMAND, DESCR, PROFILES, FLAG, EXEC_LINE from c7_commands order by keyfld";
-        var dt = Util.execSQL(sq);
-        if (dt.ret == "SUCCESS" && dt.data.length > 0) {
-            this.cmdData = JSON.parse("{" + dt.data + "}").data;
-        }
-
+         // loading all c7_commands table data
     }
     ,
     tileExe: function (tile) {

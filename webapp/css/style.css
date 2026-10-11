@@ -26,7 +26,212 @@ iframe {
     background-color: lightyellow;
 }
 
-.guagePanel {
+
+.dbTileMargin {
+    margin: 0rem 0.5rem 1rem 0.5rem ;
+}
+/* Card */
+.gaugeCard {
+    background: var(--sapTile_Background, #ffffff);
+    border-radius: 0.5rem;
+    padding: 0;
+    box-shadow: var(--sapTile_BoxShadow, 0 1px 4px rgba(0,0,0,0.08));
+    border: 1px solid var(--sapTile_BorderColor, #e5e5e5);
+    box-sizing: border-box;
+    align-items: center;
+    vertical-align: top;
+    height: auto !important;  /* force auto height */
+}
+
+/* Title */
+.gaugeTitle {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #00827f;
+    /* color: var(--sapTile_TitleTextColor, #333); */
+}
+
+/* Target */
+.gaugeTarget {
+    font-size: 0.85rem;
+    color: var(--sapContent_LabelColor, #666);
+    margin-top: 0.25rem;
+}
+
+/* Gauge canvas wrapper */
+.gaugeCanvasWrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 150px;
+    margin: 0.25rem auto;
+}
+
+.gaugeCanvasWrapper canvas {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1/1;
+}
+
+/* Main value */
+.gaugeMainValue {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #4169e1;
+    margin: 0.25rem 0;
+}
+
+/* Last Month */
+.gaugeLastMonth {
+    font-size: 0.9rem;
+    color: var(--sapContent_LabelColor, #666);
+    margin-top: 0.25rem;
+}
+
+/* Difference */
+.gaugeDifference {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.gaugePositive {
+    color: var(--sapPositiveColor, #2e7d32);
+}
+
+.gaugeNegative {
+    color: var(--sapNegativeColor, #c62828);
+}
+.gaugeClickable {
+    cursor: pointer !important;
+}
+
+
+.cardHeaderBar {
+    background: var(--sapObjectHeader_Background, lightblue);
+    padding: 0.25rem 0.75rem;
+    border-bottom: 1px solid var(--sapObjectHeader_BorderColor, #cccccc);
+    border-radius: 0.5rem 0.5rem 0 0;
+    width: 100%;
+    min-height: 2.5rem;
+}
+
+.cardTitle {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--sapTile_TitleTextColor, #333);
+}
+
+/* Rest of styles remain the same */
+.columnItem {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    margin: 2px;
+    background: var(--sapTile_Background, #ffffff);
+    box-sizing: border-box;
+}
+
+.comparisonLabel {
+    font-size: 0.9rem;
+    color: var(--sapContent_LabelColor, #666);
+}
+.comparisonValue {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--sapTextColor, #000);
+}
+
+.rowTitle {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--sapTile_TextColor, #333);
+    margin: 0.5rem 0 0.25rem 0;
+}
+
+.summarySeparator {
+    margin: 0.5rem 0;
+    border-top: 1px solid #e0e0e0;
+    width: 100%;
+}
+
+.summaryFooter {
+    background: #f9f9f9;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    margin-top: 0.25rem;
+    border-top: 1px solid #e0e0e0;
+    width: 100%;
+}
+
+.summaryLabel {
+    font-size: 0.9rem;
+    color: var(--sapContent_LabelColor, #666);
+}
+.summaryValue {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--sapTextColor, #000);
+}
+
+/* Clickable columns */
+.clickableColumn {
+    cursor: pointer;
+}
+
+.chartCard {
+    min-height: 100px; /* adjust as needed */
+}
+.chartWrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 250px; /* ensures chart has room */
+}
+.heightStrict {
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+}
+.tableCard {
+    /* Inherits .gaugeCard styles */
+    overflow: hidden;
+}
+.tableCard .sapUiHTML {
+    overflow: auto;
+    height: 100%;
+}
+.tableCard table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9rem;
+    border: none;
+}
+.tableCard table th,
+.tableCard table td {
+    border: none;
+    padding: 4px 8px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0; /* allows ellipsis */
+}
+.tableCard table th {
+    background-color: #0a6ed1;
+    color:lightyellow;
+    border-bottom: 1px solid #ddd;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.tableCard table tbody tr:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+.tableCard table tbody tr td {
+    border-bottom: 1px solid #f0f0f0;
+}.guagePanel {
     border-radius: 5px;
     text-align: center;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
@@ -59,7 +264,35 @@ iframe {
     font-weight: bold;
     color: darkblue;
 }
+.customCard.gaugeCard.canvasCustomCard {
+    background: var(--sapTile_Background, #ffffff);
+    border: 1px solid var(--sapTile_BorderColor, #e5e5e5);
+    border-radius: 0.5rem;
+    box-shadow: var(--sapTile_BoxShadow, 0 1px 4px rgba(0,0,0,0.08));
+    overflow: hidden;
+    padding: 0 !important;
+}
 
+.customCard.canvasCustomCard .cardHeaderBar {
+    background: var(--sapObjectHeader_Background, lightblue);
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--sapObjectHeader_BorderColor, #cccccc);
+    border-radius: 0.5rem 0.5rem 0 0;
+    width: 100%;
+    min-height: 2rem;
+    box-sizing: border-box;
+}
+
+.customCard.canvasCustomCard .cardHeaderBar .cardTitle {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--sapTile_TitleTextColor, #333);
+}
+
+.customCard.canvasCustomCard canvas {
+    display: block;
+    width: 100%;
+}
 .highlight-row {
     background-color: cyan !important;
     /* Light Yellow */
@@ -149,7 +382,19 @@ area:-webkit-any-link {
     padding-bottom: 2px;
     min-height: 26px;
 }
-
+.rpForm {
+    display: block;
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    border-style: groove;
+    border-radius: 15px;
+    margin: 10px;
+    border-color: darkblue;
+    border-width: thin;
+    background-color: #dcdcdc;
+}
 .poForm {
     display: block;
     padding-left: 5px;
@@ -929,7 +1174,17 @@ th {
 .violetText {
     color: darkviolet !important;
 }
+.redInp .sapMInputBaseInner {
+    background-color: red;
 
+    color: white;
+}
+
+.greenInp .sapMInputBaseInner {
+    background-color: lightgreen;
+
+    color: black
+}
 
 .boldText {
     font-weight: bold;
@@ -966,7 +1221,11 @@ th {
     font-size: 24px;
     font-weight: bold;
 }
-
+.totInput .sapMInputBaseInner {
+    color: maroon !important;
+    background-color: yellow;
+    font-weight: bold;
+}
 .smallFont {
     font-size: x-small;
 }
@@ -1004,6 +1263,10 @@ th {
 
 .redTextBtn .sapMBtnInner {
     color: red;
+}
+.yellowButton .sapMBtnInner {
+    background: yellow;
+    color: black;
 }
 
 .blueButton .sapMBtnInner {
