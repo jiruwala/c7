@@ -110,25 +110,49 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                     return;
 
                                 },
+                                eventCalc: function (qv, cx, rowno, reAmt) {
+                                    var iq = thatForm.frm.getFieldValue("parameter.showTruck");
+                                    if (rowno >= 0) return;
+                                    var ld = qv.mLctb;
+                                    for (var i = 0; i < ld.rows.length; i++) {
+                                        var cn = Util.extractNumber(ld.getFieldValue(i, "COUNTS"));
+                                        var pumps = Util.extractNumber(ld.getFieldValue(i, "PUMPS"));
+                                        var crains = Util.extractNumber(ld.getFieldValue(i, "CRAINS"));
+                                        ld.setFieldValue(i, "OTHERS", (cn - (pumps + crains)));
+                                    }
+
+                                },
                                 bat7CustomAddQry: function (qryObj, ps) {
                                 },
                                 beforeLoadQry: function (sql) {
                                     var oy = thatForm.frm.getFieldValue("RPDRIVER1@parameter.showTruck");
+                                    var ed = thatForm.frm.getFieldValue("RPDRIVER1@parameter.exclDriver");
+                                    var token_pump = "", token_crain = "";
+                                    var sqExp = `max((select nvl(count(*),0) from c_order1 where ord_code=9 and 
+                                                     ord_date>=:parameter.fromdate and ord_date<=:parameter.todate 
+                                                    and payterm like ':token' and ord_empno=JOINED_CORDER.ord_empno
+                                                    )) `;
+                                    if (oy == "summaryExp") {
+                                        token_crain = Util.getSQLValue("select para_value from c7_rep_paras where repcode='RPDRIVER1' and para_name='CRAIN'");
+                                        token_pump = Util.getSQLValue("select para_value from c7_rep_paras where repcode='RPDRIVER1' and para_name='PUMPS'");
+                                    }
                                     var cold = {
                                         "details": ", vehicleno, haddr ,JOINED_CORDER.location_name, JOINED_CORDER.BRANCH_NAME BRANCH_NAME ",
                                         "detailsGrp": ",vehicleno, haddr,JOINED_CORDER.location_name , JOINED_CORDER.BRANCH_NAME",
+                                        "summaryExp": ", " + (sqExp.replaceAll(":token", token_pump)) + " pumps, " + (sqExp.replaceAll(":token", token_crain)) + " crains ",
                                         "summarysite": ", JOINED_CORDER.BRANCH_NAME ",
                                         "summarysiteGrp": ", JOINED_CORDER.BRANCH_NAME ",
                                         "summaryPumps": ", JOINED_CORDER.payterm ",
                                         "summaryPumpsGrp": ", JOINED_CORDER.payterm ",
-
                                     }
                                     var tr = Util.nvl(cold[oy], "");
                                     var tr1 = Util.nvl(cold[oy + "Grp"], "");
 
                                     var sq = "SELECT " +
                                         " SUM(ORD_PKQTY) TOTALQTY,SUM(((price_x)/pack_x)*(qty_x*pack_x)) AMOUNT , " +
-                                        " count(*) counts,ord_empno,driver_name " + tr +
+                                        " count(*) counts," +
+                                        (ed == "Y" ? "0 " : " ord_empno, driver_name ") +
+                                        tr +
                                         " FROM " +
                                         " JOINED_CORDER,PUR1 INVOICE1 " +
                                         " WHERE ( ORD_CODE=9 " +
@@ -139,21 +163,32 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                                         " AND (ORD_REF=':parameter.pcust' OR RTRIM(':parameter.pcust') IS NULL)" +
                                         " and (':parameter.ploc' like '%\"'||JOINED_CORDER.location_code||'\"%' ) " +
                                         " AND (ord_type=':parameter.ptype' OR RTRIM(':parameter.ptype') IS NULL)" +
-                                        " GROUP BY ord_empno," +
-                                        " DRIVER_NAME" + tr1 +
-                                        " ORDER BY ord_empno ";
+                                        " GROUP BY " +
+                                        (ed == "Y" ? "0" : " ord_empno, DRIVER_NAME ") +
+                                        tr1 +
+                                        " ORDER BY 1 ";
                                     return thatForm.frm.parseString(sq);
                                 },
                                 afterApplyCols: function (qryObj) {
                                     if (qryObj.name == "qry2") {
                                         var iq = thatForm.frm.getFieldValue("parameter.showTruck");
+                                        var ed = thatForm.frm.getFieldValue("parameter.exclDriver");
+
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mGrouped = iq == "details";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_EMPNO")].mGrouped = iq == "details";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("VEHICLENO")].mHideCol = iq != "details";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("PAYTERM")].mHideCol = (iq != "details" && iq != "summaryPumps");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("HADDR")].mHideCol = iq != "details";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("CRAINS")].mHideCol = iq != "summaryExp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("PUMPS")].mHideCol = iq != "summaryExp";
+                                        qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("OTHERS")].mHideCol = iq != "summaryExp";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("LOCATION_NAME")].mHideCol = iq != "details";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("BRANCH_NAME")].mHideCol = (iq != "details" && iq != "summarysite");
+                                        if (ed == 'Y') {
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("ORD_EMPNO")].mHideCol = true;
+                                            qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("DRIVER_NAME")].mHideCol = true;
+                                        }
+
                                     }
                                 },
                                 fields: thatForm.helperFunc.getFields("RPDRIVER1")
@@ -266,7 +301,6 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                             thatForm.frm.setFieldValue(repCode + "@parameter.pcust", vl, vl, false);
                             var vlnm = Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl));
                             thatForm.frm.setFieldValue(repCode + "@parameter.pcustname", vlnm, vlnm, false);
-
                         },
                         valueHelpRequest: function (event) {
                             var sq = "select code,name from c_ycust where iscust='Y' and childcount=0 order by path";
@@ -344,7 +378,25 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     insert_allowed: true,
                     require: false,
                     dispInPara: true,
-                    list: "@summary/txtSummary,details/txtDriverWithTruckSite,summarysite/txtSummarySite,summaryPumps/pumpTxt",
+                    list: "@summary/txtSummary,summaryExp/Summary crains pumps,details/txtDriverWithTruckSite,summarysite/txtSummarySite,summaryPumps/pumpTxt",
+                },
+                exclDriver: {
+                    colname: "exclDriver",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"Exclude Driver\",\"width\":\"90%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_vlaue: "N",
+                    other_settings: { selected: false, width: "5%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
                 },
             };
             return para;
@@ -482,7 +534,57 @@ sap.ui.jsfragment("bin.forms.br.rep.rpDrivers", {
                     other_settings: {},
 
                 },
-
+                others: {
+                    colname: "others",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "otherTrips",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    summary: "SUM",
+                    other_settings: {},
+                },
+                pumps: {
+                    colname: "pumps",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "pumpTxt",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    summary: "SUM",
+                    other_settings: {},
+                },
+                crains: {
+                    colname: "crains",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "crainsTxt",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    summary: "SUM",
+                    other_settings: {},
+                },
                 counts: {
                     colname: "counts",
                     data_type: FormView.DataType.Number,

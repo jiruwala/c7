@@ -385,7 +385,8 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 name: "default_canvas",
                 obj: undefined,
                 objType: FormView.ObjTypes.CANVAS,
-                classType: this.form.mainCanvas
+                classType: this.form.mainCanvas,
+                addEmptyBox: "100px"
             }]);
 
             for (var i in cnvs) {
@@ -398,6 +399,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 cnv.container = Util.nvl(cnvs[i].container, undefined);
                 cnv.classType = Util.nvl(cnvs[i].classType, sap.m.ScrollContainer);
                 cnv.after_add_canvas = Util.nvl(cnvs[i].after_add_canvas, undefined);
+                cnv.addEmptyBox = Util.nvl(cnvs[i].addEmptyBox, "100px");
                 this.form.canvases.push(cnv);
 
                 this.objs[cnvs[i].name] = cnv;
@@ -636,6 +638,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 thatForm.objs[cvnm].obj = UtilGen.formCreate2("", true, thatForm.dispCanvases[cvnm], undefined, thatForm.objs[cvnm].classType,
                     Util.nvl(thatForm.objs[cvnm].formSetting, thatForm.form.formSetting), undefined, "10px");
                 thatForm.objs[cvnm].obj.addStyleClass("sapUiSizeCondensed");
+
                 //add into container either page or defined container.
                 if (thatForm.objs[cvnm].container == undefined)
                     thatForm.sc.addContent(thatForm.objs[cvnm].obj);
@@ -647,6 +650,11 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
 
                 if (thatForm.objs[cvnm].hasOwnProperty("after_add_canvas") && thatForm.objs[cvnm].after_add_canvas != undefined)
                     thatForm.objs[cvnm].after_add_canvas(thatForm.objs[cvnm].obj);
+
+                if (typeof thatForm.objs[cvnm].container == "function" && thatForm.objs[cvnm].container(cvnm).addItem != undefined)   
+                    thatForm.objs[cvnm].container(cvnm).addItem(new sap.m.VBox({ height: Util.nvl(thatForm.objs[cvnm].addEmptyBox, "100px") }))
+                if (typeof thatForm.objs[cvnm].container == "function" && thatForm.objs[cvnm].container(cvnm).addContent != undefined)
+                    thatForm.objs[cvnm].container(cvnm).addContent(new sap.m.VBox({ height: Util.nvl(thatForm.objs[cvnm].addEmptyBox, "100px") }))
 
             }
 
@@ -677,9 +685,9 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 if (thatForm.objs["default_canvas"].container("default_canvas").addContent != undefined)
                     thatForm.objs["default_canvas"].container("default_canvas").addContent(new sap.m.VBox({ height: "100px" }))
                 else if (thatForm.objs["default_canvas"].container("default_canvas").addItem != undefined)
-                    thatForm.objs["default_canvas"].container("default_canvas").addItem(new sap.m.VBox({ height: "100px" }))
+                    thatForm.objs["default_canvas"].container("default_canvas").addItem(new sap.m.VBox({ height: Util.nvl(thatForm.objs["default_canvas"].addEmptyBox, "100px") }))
                 else
-                    thatForm.sc.addContent(new sap.m.VBox({ height: "100px" }));
+                    thatForm.sc.addContent(new sap.m.VBox({ height: Util.nvl(thatForm.objs["default_canvas"].addEmptyBox, "100px") }));
 
             if (thatForm.firstObj != undefined) {
                 thatForm.toolbarPg.addEventDelegate({

@@ -97,10 +97,41 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                             // txt, new sap.m.ToolbarSpacer(), txtMsg
                         ]
                     });
+                    Util.destroyID("layoutInfo" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("default_canvas" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("balancePanel" + thatForm.timeInLong, thatForm.view);
+                    Util.destroyID("bottomPanel" + thatForm.timeInLong, thatForm.view);
+
+                    var oMainLayout = new sap.m.VBox(thatForm.view.createId("layoutInfo" + thatForm.timeInLong), {
+                        width: "100%",
+                        items: [
+                        ]
+                    }).addStyleClass("fixedBox");
+
+                    thatForm.tabs = {
+                        "default_canvas": new sap.m.VBox(thatForm.view.createId("default_canvas" + thatForm.timeInLong), { vertical: true }),
+                        "balancePanel": new sap.m.VBox(
+                            thatForm.view.createId("balancePanel" + thatForm.timeInLong), {
+                            vertical: true
+                        }),
+                        "bottomPanel": new sap.m.VBox(thatForm.view.createId("bottomPanel" + thatForm.timeInLong), { vertical: true }),
+                    };
+
                     // txt.addStyleClass("totalVoucherTxt titleFontWithoutPad");
                     vbHeader.addItem(hb);
-                    // var hb2 = new sap.m.HBox(thatForm.view.createId("stepsCmds" + thatForm.timeInLong));
-                    // vbHeader.addItem(hb2);
+                    vbHeader.addItem(oMainLayout);
+
+                    setTimeout(() => {
+                        var oPage = that.mainPage;
+                        var pageDom = oPage.$("cont")[0];   // page content area
+                        var pageRect = pageDom.getBoundingClientRect();
+                        var lyout = thatForm.view.byId("layoutInfo" + thatForm.timeInLong);
+                        var lyoutRect = (lyout.$()[0]).getBoundingClientRect();
+                        var h = Math.round(pageRect.height - lyoutRect.height) - 100;
+                        lyout.addItem(thatForm.tabs["default_canvas"]);
+                        lyout.addItem(thatForm.tabs["balancePanel"]);
+                        lyout.addItem(thatForm.tabs["bottomPanel"]);
+                    });
                 },
                 print_templates: [],
                 events: thatForm.helperFunc.getEvents(),
@@ -136,7 +167,46 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                         fields: thatForm.helperFunc.getFields1()
                     }
                 ],
-                canvas: [],
+                canvas: [
+                    {
+                        name: "default_canvas",
+                        objType: FormView.ObjTypes.CANVAS,
+                        classType: sap.m.VBox,
+                        addEmptyBox: "0px",
+                        formSetting: {
+                            width: "660px",
+                        },
+                        container: function (dp) {
+                            return thatForm.tabs["default_canvas"];
+                        }
+                    },
+                    {
+                        name: "balancePanel",
+                        objType: FormView.ObjTypes.CANVAS,
+                        classType: sap.m.VBox,
+                        addEmptyBox: "0px",
+                        formSetting: {
+                            class: "infoBox",
+                            width: "660px",
+                        },
+                        container: function (dp) {
+                            return thatForm.tabs["balancePanel"];
+                        }
+                    },
+                    {
+                        name: "bottomPanel",
+                        objType: FormView.ObjTypes.CANVAS,
+                        classType: sap.m.Vbox,
+                        addEmptyBox: "0px",
+                        formSetting: {
+                            class: "infoBoxFooter2",
+                            width: "660px",
+                        },
+                        container: function (dp) {
+                            return thatForm.tabs["bottomPanel"];
+                        }
+                    },
+                ],
                 commands: thatForm.helperFunc.getCommands(),
                 lists: thatForm.helperFunc.getLists(),
             }
@@ -507,20 +577,58 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                     trueValues: ["Y", "N"],
                     change: function () {
                     }
-                })
-                ,
+                }),
+
+                _balTitle: FormView.getFactoryFields.getGeneralField(
+                    "_balTitle", "", "balTitle", "100%", "qrGroup boldText blueText", "0px",
+                    { class_name: FormView.ClassTypes.LABEL, canvas: "balancePanel" }, {}, "Center"
+                ),
+                _balOpen: FormView.getFactoryFields.getNumberField(
+                    "_balOpen", "", "Opening Balance", "25%", "", "25%",
+                    { edit_allowed: false, insert_allowed: false, display_format: "#,##0.00", canvas: "balancePanel" }, {}
+                ),
+                _balAvailable: FormView.getFactoryFields.getNumberField(
+                    "_balAvailable", "@", "Available Balance", "25%", "boldText blueText", "25%",
+                    { edit_allowed: false, insert_allowed: false, display_format: "#,##0.00", canvas: "balancePanel" }, {}
+                ),
+                _balAccrued: FormView.getFactoryFields.getNumberField(
+                    "_balAccrued", "", "Accrued This Period", "25%", "", "25%",
+                    { edit_allowed: false, insert_allowed: false, display_format: "#,##0.00", canvas: "balancePanel" }, {}
+                ),
+                _thisRequest: FormView.getFactoryFields.getNumberField(
+                    "_thisRequest", "@", "This Request", "25%", "", "25%",
+                    { edit_allowed: false, insert_allowed: false, display_format: "#,##0.00", canvas: "balancePanel" }, {}
+                ),
+                _balTaken: FormView.getFactoryFields.getNumberField(
+                    "_balTaken", "", "Leave Already Taken", "25%", "", "25%",
+                    { edit_allowed: false, insert_allowed: false, display_format: "#,##0.00", canvas: "balancePanel" }, {}
+                ),
+                _projBalance: FormView.getFactoryFields.getNumberField(
+                    "_projBalance", "", "Projected Balance", "25%", "boldText", "25%",
+                    { edit_allowed: false, insert_allowed: false, display_format: "#,##0.00", canvas: "balancePanel" }, {}
+                ),
+                _balOther: FormView.getFactoryFields.getNumberField(
+                    "_balOther", "", "Other Approved Requests", "25%", "", "25%",
+                    { edit_allowed: false, insert_allowed: false, display_format: "#,##0.00", canvas: "balancePanel" }, {}
+                ),
+                _balMsg: FormView.getFactoryFields.getGeneralField(
+                    "_balMsg", "@", "", "100%", "redText", "0px",
+                    { class_name: FormView.ClassTypes.LABEL, canvas: "balancePanel", edit_allowed: false }, {}, "End"
+                ),
+                // ,
                 //8
-                _lbldays: FormView.getFactoryFields.getTextField("_lbldays", "", "Days", "100%", "qrGroup", {}, {})
-                ,
+                // _lbldays: FormView.getFactoryFields.getTextField("_lbldays", "", "Days", "100%", "qrGroup", {}, {})
+
                 //9
                 _req_days: FormView.getFactoryFields.getNumberField(
-                    "_req_days", "", "lvRequestDays", "65%", "", "35%",
+                    "_req_days", "@", "lvRequestDays", "12%", "", "12%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
                         display_style: "",
-                        display_format: "#,##0"
+                        display_format: "#,##0",
+                        canvas: "bottomPanel"
                     }, {
                     change: function () {
 
@@ -529,13 +637,14 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                 ,
                 //10
                 tot_ph: FormView.getFactoryFields.getNumberField(
-                    "_tot_ph", "", "lvTotPH", "65%", "", "35%",
+                    "_tot_ph", "@", "lvTotPH", "12%", "", "12%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
                         display_style: "",
-                        display_format: "#,##0"
+                        display_format: "#,##0",
+                        canvas: "bottomPanel"
                     }, {
                     change: function () {
 
@@ -544,12 +653,13 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                 ,
                 //11
                 tot_wo: FormView.getFactoryFields.getNumberField(
-                    "tot_wo", "", "lvTotWO", "65%", "", "35%",
+                    "tot_wo", "@", "lvTotWO", "12%", "", "12%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
                         display_style: "",
+                        canvas: "bottomPanel",
                         display_format: "#,##0"
                     }, {
                     change: function () {
@@ -559,12 +669,13 @@ sap.ui.jsfragment("bin.forms.hr.lv", {
                 ,
                 //13
                 lv_days: FormView.getFactoryFields.getNumberField(
-                    "lv_days", "", "lvNetDaysReq", "65%", "", "35%",
+                    "lv_days", "@", "lvNetDaysReq", "12%", "", "12%",
                     {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: false,
                         display_style: "",
+                        canvas: "bottomPanel",
                         display_format: "#,##0"
                     }, {
                     change: function () {

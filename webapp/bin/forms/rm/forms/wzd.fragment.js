@@ -1097,7 +1097,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         this.infoPage.removeAllHeaderContent();
         this.infoPage.addHeaderContent(new sap.m.Title({ text: Util.getLangText("titSalWzd") + " / " + refName + " / " + bName }).addStyleClass("redText boldText"));
 
-        var loc = UtilGen.getControlValue(that.txtLocations);
+        var loc = sett["DEFAILT_LOCATION"];//UtilGen.getControlValue(that.txtLocations);
 
         UtilGen.setControlValue(that.txtInfoLocations, "-", "-", true);
         UtilGen.setControlValue(that.txtInfoLocations, loc, loc, true);

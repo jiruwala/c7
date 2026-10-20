@@ -469,6 +469,39 @@ area:-webkit-any-link {
     border-width: thin;
     background-color: #ebf5fe;
 }
+.infoBox {
+    /* Spacing */
+    padding: 0.75rem 1rem;
+    margin: 0.5rem;
+
+    /* Rounded corners */
+    border-radius: 0.75rem;
+
+    /* Grey border */
+    border: 1px solid var(--sapList_BorderColor, #d9d9d9);
+
+    /* Light background */
+    background-color: var(--sapList_Background, #ffffe0);
+
+    /* Optional: subtle shadow for depth */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+    /* Prevent content overflow on rounded edges */
+    overflow: hidden;
+
+    /* Smooth transition when theme changes */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.infoBoxFooter2 {
+    background-color: var(--sapList_Background, #d9d9d9);
+
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+    /* Prevent content overflow on rounded edges */
+    overflow: hidden;
+
+}
 
 .jvForm2 {
     padding-bottom: 10px;

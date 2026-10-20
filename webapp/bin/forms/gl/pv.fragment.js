@@ -93,6 +93,11 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                         title: "Print Voucher",
                         reportFile: "vouchers/pv_rng1",
                     },
+                    {
+                        title: "Print Bank Voucher",
+                        reportFile: "vouchers/pv_rng1_1",
+                    },
+
                     // {
                     //     title: "Cheque - Gulf",
                     //     reportFile: "vouchers/chqgulf",

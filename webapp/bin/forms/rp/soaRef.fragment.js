@@ -80,6 +80,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                     paras["todate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
                                     paras["inclUnpost"] = thatForm.frm.objs[repCode + "@parameter.inclUnpost"].obj.mainObj;
                                     paras["inclUnpostDlv"] = thatForm.frm.objs[repCode + "@parameter.inclUnpostDlv"].obj.mainObj;
+                                    paras["inclBranchBF"] = thatForm.frm.objs[repCode + "@parameter.inclBranchBF"].obj.mainObj;
                                     // paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
                                     var diff = paras["todate"].getDateValue() - paras["fromdate"].getDateValue();
                                     var dys = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -122,8 +123,8 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                                     // paras["ptodate"] = thatForm.frm.objs[repCode + "@parameter.todate"].obj.mainObj;
                                     var diff = todt.getDateValue() - fromdt.getDateValue();
                                     var dys = Math.floor(diff / (1000 * 60 * 60 * 24));
-                                    if (limitdys != 0 && (dys < 0 || dys > limitdys)) 
-                                        FormView.err("Invlaid from date ,todate or Limit period between # " + limitdys + " days , "+(limitdys / 365).toFixed(1) + " years .");
+                                    if (limitdys != 0 && (dys < 0 || dys > limitdys))
+                                        FormView.err("Invlaid from date ,todate or Limit period between # " + limitdys + " days , " + (limitdys / 365).toFixed(1) + " years .");
 
                                     UtilGen.execCmd("testRep5 formType=dialog repno=0 para_PARAFORM=false para_EXEC_REP=true " +
                                         "pref=" + pcust.getValue() +
@@ -394,6 +395,24 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                     dispInPara: true,
                     trueValues: ["Y", "N"]
                 },
+                inclBranchBF: {
+                    colname: "inclBranchBF",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.CHECKBOX,
+                    title: '{\"text\":\"Include Branch BF\",\"width\":\"40%\","textAlign":"End","styleClass":""}',
+                    title2: "",
+                    display_width: colSpan,
+                    display_align: "ALIGN_LEFT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "N",
+                    other_settings: { selected: false, width: "10%", trueValues: ["Y", "N"] },
+                    edit_allowed: true,
+                    insert_allowed: true,
+                    require: false,
+                    dispInPara: true,
+                    trueValues: ["Y", "N"]
+                },
             };
             return para;
         },
@@ -408,8 +427,11 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
             var bk = UtilGen.getBackYears(thatForm.frm.getFieldValue("parameter.fromdate"), thatForm.frm.getFieldValue("parameter.todate"));
             var incUnpost = thatForm.frm.getFieldValue("parameter.inclUnpost");
             var incUnpostDlv = thatForm.frm.getFieldValue("parameter.inclUnpostDlv");
+            var inclBranchBF = thatForm.frm.getFieldValue("parameter.inclBranchBF");
+
             var qtySql = " max((select NVL(sum(allqty),0) from :PUR2 where keyfld=v.REFERKEYFLD)) tqty  ";
             var vflg = (incUnpost == "Y" ? "" : " and v.flag=2 ");
+
             // if (bk.length > 0) {
             var plsql = "declare ";
             //cursor su is ----in getaccbal function to replace
@@ -417,7 +439,7 @@ sap.ui.jsfragment("bin.forms.rp.soaRef", {
                 " WHERE (v.PATH LIKE ACNo||'%' or acno is null)  AND VOU_DATE<DT AND " +
                 " (cost_PATH  LIKE CC||'%' or cc is null) " +
                 " and (cust_path like cd||'%' or cd is null) " +
-                "and (v.branch_no=pbrno or pbrno is null ) " +
+                (inclBranchBF == "Y" ? " and (v.branch_no=pbrno or pbrno is null ) " : "") +
                 " :KEYFLD_CONDITION ";
             //cursor acx1 is  --- GETPATHDEBIT 
             var sqxAx1 = "select SUM(DEBIT) DRBAL FROM :ACVOUCHER2 V,:ACACCOUNT  A WHERE PATH LIKE ACC||'%' AND " +

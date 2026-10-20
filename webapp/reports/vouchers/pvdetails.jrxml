@@ -4,6 +4,8 @@
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="kh7"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<template><![CDATA["voucherStyle.jrtx"]]></template>
 	<parameter name="KEYFLD" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
@@ -11,51 +13,191 @@
 	<parameter name="TOTAL_IN_WORDS" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="CURRENCY_FORMAT" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
-		<![CDATA[select *from acvoucher2 where KEYFLD=$P{KEYFLD}  order by pos]]>
+		<![CDATA[select acvoucher2.*, 
+acvoucher2.descr2||' '||
+   nvl((select nvl(max(b_name),' ') from cbranch where cbranch.code=acvoucher2.cust_code and brno=branch_no),' ') brnm
+  from acvoucher2 where KEYFLD=$P{KEYFLD}  order by pos]]>
 	</queryString>
-	<field name="PERIODCODE" class="java.lang.String"/>
-	<field name="KEYFLD" class="java.math.BigDecimal"/>
-	<field name="NO" class="java.math.BigDecimal"/>
-	<field name="VOU_CODE" class="java.math.BigDecimal"/>
-	<field name="VOU_DATE" class="java.sql.Timestamp"/>
-	<field name="POS" class="java.math.BigDecimal"/>
-	<field name="ACCNO" class="java.lang.String"/>
-	<field name="DEBIT" class="java.math.BigDecimal"/>
-	<field name="CREDIT" class="java.math.BigDecimal"/>
-	<field name="DESCR" class="java.lang.String"/>
-	<field name="DESCR2" class="java.lang.String"/>
-	<field name="FLAG" class="java.math.BigDecimal"/>
-	<field name="USERNM" class="java.lang.String"/>
-	<field name="CREATDT" class="java.sql.Timestamp"/>
-	<field name="YEAR" class="java.lang.String"/>
-	<field name="TYPE" class="java.math.BigDecimal"/>
-	<field name="ISCHANGE" class="java.lang.String"/>
-	<field name="ISNEW" class="java.lang.String"/>
-	<field name="INVOICE_CODE" class="java.math.BigDecimal"/>
-	<field name="INVOICE_TYPE" class="java.math.BigDecimal"/>
-	<field name="INVKEYFLD" class="java.lang.Double"/>
-	<field name="GRPNO" class="java.math.BigDecimal"/>
-	<field name="REFERNO" class="java.math.BigDecimal"/>
-	<field name="REFERCODE" class="java.math.BigDecimal"/>
-	<field name="REFERTYPE" class="java.math.BigDecimal"/>
-	<field name="COSTCENT" class="java.lang.String"/>
-	<field name="REFERKEYFLD" class="java.math.BigDecimal"/>
-	<field name="FCCODE" class="java.lang.String"/>
-	<field name="FCRATE" class="java.math.BigDecimal"/>
-	<field name="FCDEBAMT" class="java.math.BigDecimal"/>
-	<field name="FCCRDAMT" class="java.math.BigDecimal"/>
-	<field name="FCCODEAMT" class="java.math.BigDecimal"/>
-	<field name="UNIT_NUMBER" class="java.math.BigDecimal"/>
-	<field name="PAIDYEAR" class="java.lang.String"/>
-	<field name="FCDEBIT" class="java.math.BigDecimal"/>
-	<field name="FCCREDIT" class="java.math.BigDecimal"/>
-	<field name="FC_MAIN" class="java.lang.String"/>
-	<field name="FC_MAIN_RATE" class="java.lang.Double"/>
-	<field name="CUST_CODE" class="java.lang.String"/>
-	<field name="BRANCH_NO" class="java.math.BigDecimal"/>
-	<field name="CHEQUE_NO" class="java.lang.String"/>
-	<field name="DUE_DATE" class="java.sql.Timestamp"/>
-	<field name="BKNO" class="java.lang.String"/>
+	<field name="PERIODCODE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="PERIODCODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="PERIODCODE"/>
+	</field>
+	<field name="KEYFLD" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="KEYFLD"/>
+		<property name="com.jaspersoft.studio.field.label" value="KEYFLD"/>
+	</field>
+	<field name="NO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="NO"/>
+	</field>
+	<field name="VOU_CODE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="VOU_CODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="VOU_CODE"/>
+	</field>
+	<field name="VOU_DATE" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="VOU_DATE"/>
+		<property name="com.jaspersoft.studio.field.label" value="VOU_DATE"/>
+	</field>
+	<field name="POS" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="POS"/>
+		<property name="com.jaspersoft.studio.field.label" value="POS"/>
+	</field>
+	<field name="ACCNO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ACCNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="ACCNO"/>
+	</field>
+	<field name="DEBIT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="DEBIT"/>
+		<property name="com.jaspersoft.studio.field.label" value="DEBIT"/>
+	</field>
+	<field name="CREDIT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="CREDIT"/>
+		<property name="com.jaspersoft.studio.field.label" value="CREDIT"/>
+	</field>
+	<field name="DESCR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="DESCR"/>
+		<property name="com.jaspersoft.studio.field.label" value="DESCR"/>
+	</field>
+	<field name="DESCR2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="DESCR2"/>
+		<property name="com.jaspersoft.studio.field.label" value="DESCR2"/>
+	</field>
+	<field name="FLAG" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="FLAG"/>
+		<property name="com.jaspersoft.studio.field.label" value="FLAG"/>
+	</field>
+	<field name="USERNM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="USERNM"/>
+		<property name="com.jaspersoft.studio.field.label" value="USERNM"/>
+	</field>
+	<field name="CREATDT" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="CREATDT"/>
+		<property name="com.jaspersoft.studio.field.label" value="CREATDT"/>
+	</field>
+	<field name="YEAR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="YEAR"/>
+		<property name="com.jaspersoft.studio.field.label" value="YEAR"/>
+	</field>
+	<field name="TYPE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="TYPE"/>
+		<property name="com.jaspersoft.studio.field.label" value="TYPE"/>
+	</field>
+	<field name="ISCHANGE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ISCHANGE"/>
+		<property name="com.jaspersoft.studio.field.label" value="ISCHANGE"/>
+	</field>
+	<field name="ISNEW" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ISNEW"/>
+		<property name="com.jaspersoft.studio.field.label" value="ISNEW"/>
+	</field>
+	<field name="INVOICE_CODE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="INVOICE_CODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="INVOICE_CODE"/>
+	</field>
+	<field name="INVOICE_TYPE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="INVOICE_TYPE"/>
+		<property name="com.jaspersoft.studio.field.label" value="INVOICE_TYPE"/>
+	</field>
+	<field name="INVKEYFLD" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="INVKEYFLD"/>
+		<property name="com.jaspersoft.studio.field.label" value="INVKEYFLD"/>
+	</field>
+	<field name="GRPNO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="GRPNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="GRPNO"/>
+	</field>
+	<field name="REFERNO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="REFERNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="REFERNO"/>
+	</field>
+	<field name="REFERCODE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="REFERCODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="REFERCODE"/>
+	</field>
+	<field name="REFERTYPE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="REFERTYPE"/>
+		<property name="com.jaspersoft.studio.field.label" value="REFERTYPE"/>
+	</field>
+	<field name="COSTCENT" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="COSTCENT"/>
+		<property name="com.jaspersoft.studio.field.label" value="COSTCENT"/>
+	</field>
+	<field name="REFERKEYFLD" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="REFERKEYFLD"/>
+		<property name="com.jaspersoft.studio.field.label" value="REFERKEYFLD"/>
+	</field>
+	<field name="FCCODE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="FCCODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="FCCODE"/>
+	</field>
+	<field name="FCRATE" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="FCRATE"/>
+		<property name="com.jaspersoft.studio.field.label" value="FCRATE"/>
+	</field>
+	<field name="FCDEBAMT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="FCDEBAMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="FCDEBAMT"/>
+	</field>
+	<field name="FCCRDAMT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="FCCRDAMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="FCCRDAMT"/>
+	</field>
+	<field name="FCCODEAMT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="FCCODEAMT"/>
+		<property name="com.jaspersoft.studio.field.label" value="FCCODEAMT"/>
+	</field>
+	<field name="UNIT_NUMBER" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="UNIT_NUMBER"/>
+		<property name="com.jaspersoft.studio.field.label" value="UNIT_NUMBER"/>
+	</field>
+	<field name="PAIDYEAR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="PAIDYEAR"/>
+		<property name="com.jaspersoft.studio.field.label" value="PAIDYEAR"/>
+	</field>
+	<field name="FCDEBIT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="FCDEBIT"/>
+		<property name="com.jaspersoft.studio.field.label" value="FCDEBIT"/>
+	</field>
+	<field name="FCCREDIT" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="FCCREDIT"/>
+		<property name="com.jaspersoft.studio.field.label" value="FCCREDIT"/>
+	</field>
+	<field name="FC_MAIN" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="FC_MAIN"/>
+		<property name="com.jaspersoft.studio.field.label" value="FC_MAIN"/>
+	</field>
+	<field name="FC_MAIN_RATE" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="FC_MAIN_RATE"/>
+		<property name="com.jaspersoft.studio.field.label" value="FC_MAIN_RATE"/>
+	</field>
+	<field name="CUST_CODE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="CUST_CODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="CUST_CODE"/>
+	</field>
+	<field name="BRANCH_NO" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="BRANCH_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="BRANCH_NO"/>
+	</field>
+	<field name="CHEQUE_NO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="CHEQUE_NO"/>
+		<property name="com.jaspersoft.studio.field.label" value="CHEQUE_NO"/>
+	</field>
+	<field name="DUE_DATE" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="DUE_DATE"/>
+		<property name="com.jaspersoft.studio.field.label" value="DUE_DATE"/>
+	</field>
+	<field name="BKNO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="BKNO"/>
+		<property name="com.jaspersoft.studio.field.label" value="BKNO"/>
+	</field>
+	<field name="FA_CODE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="FA_CODE"/>
+		<property name="com.jaspersoft.studio.field.label" value="FA_CODE"/>
+	</field>
+	<field name="BRNM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="BRNM"/>
+		<property name="com.jaspersoft.studio.field.label" value="BRNM"/>
+	</field>
 	<variable name="SUMAMT" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{CREDIT}]]></variableExpression>
 	</variable>
@@ -235,7 +377,7 @@
 				<textElement>
 					<font fontName="Arial2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{DESCR2}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{BRNM}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement style="strDetails" stretchType="RelativeToTallestObject" x="483" y="0" width="71" height="21" uuid="974b27a5-d937-433f-8e98-9600c9b6c4cd"/>
