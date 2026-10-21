@@ -751,6 +751,11 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                             mTitle: Util.getLangText("txtRemark"),
                             display_width: 200,
                         },
+                        {
+                            colname: "JONO",
+                            mTitle: "JO No",
+                            display_width: 75,
+                        },
 
                         {
                             colname: 'KEYFLD',
@@ -763,12 +768,13 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                     sql: "select * from (" +
                         "select " + Util.getLangDescrAR("short_name", "short_name_a") + " typedescr , " +
                         " p2.invoice_no,p2.invoice_date,p2.stra,s1.name straname, " +
-                        " memo, p2.keyfld " +
+                        " memo, jono, p2.keyfld " +
                         " from invoice1 p2,store s1,invoice_codes ic where invoice_code =" + that2.vars.vou_code +
                         " and ic.code=p2.type and ic.natur=-1  " +
                         " and s1.no=p2.stra " +
                         " and (p2.type=':qry1.type' or ':qry1.type' is null ) " +
                         " and (':qry1.stra'=p2.stra or ':qry1.stra' is null) " +
+                        " and (':qry1.jono'=p2.jono or ':qry1.jono' is null) " +
                         " order by p2.invoice_date desc,p2.invoice_no desc ) " +
                         " where (rownum <=^^list_key or ^^list_key=-1) ",
                     afterSelect: function (data) {
