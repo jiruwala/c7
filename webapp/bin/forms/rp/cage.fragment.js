@@ -36,33 +36,40 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         var colSpan = "XL2 L2 M2 S12";
         var sumSpan = "XL2 L2 M2 S12";
         var cmdLink = function (obj, rowno, colno, lctb, frm) {
-            // var mdl = frm.objs["CAGE1@qry2"].obj.getControl().getModel();
-            // var rr = frm.objs["CAGE1@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
-            // var cont = frm.objs["CAGE1@qry2"].obj.getControl().getContextByIndex(rr);
-            // var rowid = mdl.getProperty("_rowid", cont);
+            var mdl = frm.objs["CAGE1@qry2"].obj.getControl().getModel();
+            var rr = frm.objs["CAGE1@qry2"].obj.getControl().getRows().indexOf(obj.getParent());
+            var cont = frm.objs["CAGE1@qry2"].obj.getControl().getContextByIndex(rr);
+            var rowid = mdl.getProperty("_rowid", cont);
             // var ac = Util.nvl(lctb.getFieldValue(rowid, "ACCNO"), "");
-            // var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
+            var ac = frm.objs["CAGE1@qry2"].obj.getControl().getRows()[rr].getCells()[0].getText();
 
-            // var mnu = new sap.m.Menu();
-            // mnu.removeAllItems();
+            var mnu = new sap.m.Menu();
+            mnu.removeAllItems();
 
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "SOA A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=1 para_PARAFORM=false para_EXEC_REP=true fromacc=" + accno + " toacc=" + accno + " fromdate=@01/01/2020", UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.addItem(new sap.m.MenuItem({
-            //     text: "View A/c -" + ac,
-            //     customData: { key: ac },
-            //     press: function () {
-            //         var accno = this.getCustomData()[0].getKey();
-            //         UtilGen.execCmd("bin.forms.gl.masterAc formType=dialog formSize=650px,300px status=view accno=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
-            //     }
-            // }));
-            // mnu.openBy(obj);
+            mnu.addItem(new sap.m.MenuItem({
+                text: "SOA A/c -" + ac,
+                customData: { key: ac },
+                press: function () {
+                    var accno = this.getCustomData()[0].getKey();
+                    // var pac = thatForm.frm.getFieldValue("PAGE1@parameter.accno");
+                    var pac = (pac != "") ? " paccno=" + pac : "";
+                    var sdf = new simpleDateFormat("MM/dd/yyyy");
+                    var td=thatForm.frm.objs["CAGE1@parameter.todate"].obj.getDateValue();
+                    var todt = sdf.format(td);
+                    var fromdt = sdf.format(new Date(td.getFullYear(), td.getMonth(), 1));
+                    var dt = " fromdate=@" + fromdt + " todate=@" + todt;
+                    UtilGen.execCmd("testRep5 formType=dialog formSize=100%,80% repno=0 inclUnpostDlv=Y inclUnpost=Y para_PARAFORM=false para_EXEC_REP=true pref=" + accno+dt, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                }
+            }));
+            mnu.addItem(new sap.m.MenuItem({
+                text: "View A/c -" + ac,
+                customData: { key: ac },
+                press: function () {
+                    var accno = this.getCustomData()[0].getKey();
+                    UtilGen.execCmd("bin.forms.gl.rp formType=dialog readonly=true formSize=80%,80% status=view code=" + accno, UtilGen.DBView, obj, UtilGen.DBView.newPage);
+                }
+            }));
+            mnu.openBy(obj);
 
         }
         // UtilGen.clearPage(this.mainPage);
@@ -301,6 +308,25 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                 dispInPara: true,
                                 trueValues: ["Y", "N"]
                             },
+                            unposted: {
+                                colname: "unposted",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.CHECKBOX,
+                                title: '{\"text\":\"unAudited\",\"width\":\"15%\","textAlign":"End","styleClass":""}',
+                                title2: "",
+                                showInPreview: false,
+                                display_width: colSpan,
+                                display_align: "ALIGN_LEFT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "T",
+                                other_settings: { selected: true, width: "20%", trueValues: ["T", "F"] },
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                                trueValues: ["T", "F"]
+                            },
 
                         },
                         print_templates: [
@@ -435,7 +461,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
                                         var so = thatForm.frm.getFieldValue("parameter.showOverDue");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("duedays")].mHideCol = (so != "Y");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("dueamt")].mHideCol = (so != "Y");
-                                        
+
                                         var iq = thatForm.frm.getFieldValue("parameter.grpby");
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SALESP")].mGrouped = iq == "salesp";
                                         qryObj.obj.mLctb.cols[qryObj.obj.mLctb.getColPos("SLSNAME")].mGrouped = iq == "salesp";
@@ -789,7 +815,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         paras += " parent_cust varchar2(255) := ':parameter.pcust'; ";
         paras += " pstatus varchar2(255) := ':parameter.pstatus'; ";
         paras += " showoverdue varchar2(255) := ':parameter.showOverDue'; ";
-        paras += " get_unpostbal varchar2(100) := 'FALSE'; ";
+        paras += " get_unpostbal varchar2(100) := ':parameter.unposted'; ";
         paras += " slp number ; ";
         paras += " hide_zero varchar2(100) := 'FALSE'; ";
         paras += " hide_negative varchar2(100) := 'FALSE'; ";

@@ -1088,7 +1088,8 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             selBrName = that.qvRef.mLctb.getFieldValue(rn, "BNAME");
             selProd = that.qvRef.mLctb.getFieldValue(rn, "ORD_SHIP");
             selStrb = that.qvRef.mLctb.getFieldValue(rn, "STRB");
-            // selDate = that.qvRef.mLctb.getFieldValue(rn, "ORD_DATE");
+            selDate = that.qvRef.mLctb.getFieldValue(rn, "ORD_DATE");
+            if (typeof selDate == "string") selDate = new Date(selDate.replaceAll(".", ":"));
         }
 
         var refName = selCustName + " - " + selCust;
@@ -1099,7 +1100,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
 
         var loc = sett["DEFAILT_LOCATION"];//UtilGen.getControlValue(that.txtLocations);
 
-        UtilGen.setControlValue(that.txtInfoLocations, "-", "-", true);
+        // UtilGen.setControlValue(that.txtInfoLocations, "-", "-", true);
         UtilGen.setControlValue(that.txtInfoLocations, loc, loc, true);
         UtilGen.setControlValue(that.txtInfoStra, selStrb, selStrb, true);
         that.txtInfoLocations.fireSelectionChange();

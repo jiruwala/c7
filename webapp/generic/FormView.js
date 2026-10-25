@@ -2169,7 +2169,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
             getSettingsOrdRef2: function (pSet) {
                 var thatForm = pSet.thatForm;
                 var ordref = Util.nvl(pSet.ord_ref, "qry1.ord_ref");
-                var ordrefnm = Util.nvl(pSet.ord_ref, "qry1.ord_refnm");
+                var ordrefnm = Util.nvl(pSet.ord_refnm, "qry1.ord_refnm");
                 return this.getSettingsGeneral({
                     thatForm: pSet, thatForm,
                     fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),

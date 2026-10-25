@@ -93,23 +93,23 @@ sap.ui.jsfragment("bin.forms.gl.pv", {
                         title: "Print Voucher",
                         reportFile: "vouchers/pv_rng1",
                     },
-                    {
-                        title: "Print Bank Voucher",
-                        reportFile: "vouchers/pv_rng1_1",
-                    },
+                    // {
+                    //     title: "Print Bank Voucher",
+                    //     reportFile: "vouchers/pv_rng1_1",
+                    // },
 
-                    // {
-                    //     title: "Cheque - Gulf",
-                    //     reportFile: "vouchers/chqgulf",
-                    // },
-                    // {
-                    //     title: "Cheque - KFH",
-                    //     reportFile: "vouchers/chqkfh",
-                    // },
-                    // {
-                    //     title: "Cheque - NBK",
-                    //     reportFile: "vouchers/chqnbk",
-                    // }
+                    {
+                        title: "Cheque - Gulf",
+                        reportFile: "vouchers/chqgulf",
+                    },
+                    {
+                        title: "Cheque - KFH",
+                        reportFile: "vouchers/chqkfh",
+                    },
+                    {
+                        title: "Cheque - NBK",
+                        reportFile: "vouchers/chqnbk",
+                    }
 
 
                 ],
