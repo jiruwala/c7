@@ -283,7 +283,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             "               TRIM (o.ord_refnm) ORD_REFNM," +
             "               o.ord_date," +
             "               COUNT (o.ord_no) counting," +
-            "                 sum(tqty) tqty , " +
+            "                 sum(tqty/pack) tqty , " +
             "               GETAVGPRICEDLV_BUY(o.keyfld,'" + recheckprice + "') AVG_PRICE ," +
             "               sum((sale_price/pack)*tqty) AMOUNT," +
             "               NVL (SUM (OP_NO * TQTY), 0) ADD_AMT," +
@@ -726,7 +726,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
                 FormView.err("No rows selected !");
             //var sq = "select nvl(sum((o.sale_price/o.ord_pack)*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
             if (that.recheckPrice.getSelected())
-            var sq = "select nvl(sum(GET_ITEM_PRICE2_BUY(o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date)*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
+            var sq = "select nvl(sum(GET_ITEM_PRICE2_BUY(o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date)*(o.tqty/o.ord_pack)),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
             sq = sq.replaceAll(":txtKflds", kfldStr);
             var sum = Util.getSQLValue(sq);
             that.txtInfoGross.setValue(df.format(sum));
@@ -751,7 +751,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
         var sqp = "";
         sqp = "pr:=";
         sqp = (that.recheckPrice.getSelected() ?
-            "pr:=GET_ITEM_PRICE2_BUY(x.ord_ship,x.ord_ref,x.ord_discamt,x.ord_date);" : "pr:= x.sale_price/x.pack;;");
+            "pr:=GET_ITEM_PRICE2_BUY(x.ord_ship,x.ord_ref,x.ord_discamt,x.ord_date);" : "pr:= x.sale_price/x.pack;");
 
         that.calcInfoAmt(true);
         var sq = "declare " +
@@ -798,7 +798,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             "                 RECIEVED_KEYFLD, FREE_ALLQTY,costcent,size_of_descr,gr_pos)" +
             "                 values (" +
             "                 pcode, ploc, pinvno," +
-            "                 11, ptype, posx, x.ord_ship, x.stra , pr*x.pack,  pr ," +
+            "                 11, ptype, posx, x.ord_ship, x.stra , pr,  pr/x.pack ," +
             "                 0, x.pack, x.packd, x.unitd, pdate," +
             "                 0, x.tqty/x.pack, 0, 0," +
             "                 x.tqty, x.prd_date, x.exp_date, '2003', 2, x.keyfld ," +
@@ -806,7 +806,7 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             "                 null, 0,'',x.PAYTERM,x.ord_pos) ;" +
             "     totamt:=totamt+(x.TQTY*pr);                " +
             " " +
-            "   update C_ORDER1 set sale_price=pr*x.pack,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=11 and keyfld=x.keyfld and ord_pos=x.ord_pos;" +
+            "   update C_ORDER1 set sale_price=pr,SALEINV=kfld,ORD_POS=X.ORD_POS,ord_flag=2 where ord_code=11 and keyfld=x.keyfld and ord_pos=x.ord_pos;" +
             "   update ORDER1 set SALEINV=kfld,ord_flag=2,ord_amt=totamt where ord_code=11 and keyfld=x.keyfld; " +
             " end loop;" +
             " select name into refnm from c_ycust where code=pref and childcount=0 and flag=1 ;" +

@@ -115,7 +115,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpPdlvs", {
                                     var eq = thatForm.frm.getFieldValue("RPPDLV1@parameter.grpby");
                                     var sq = "SELECT joined_corder.location_code,joined_corder.LOCATION_NAME,ORD_REF, ORD_REFNM," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv,ord_reference," +
-                                        " SUM(TQTY) TOTALQTY,SUM(SALE_PRICE*TQTY) AMOUNT," +
+                                        " SUM(TQTY/ord_pack) TOTALQTY,SUM(SALE_PRICE*(TQTY/ord_pack)) AMOUNT," +
                                         " MAX(SALE_PRICE) PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts,driver_name,TRUCKNO,TEL, " +
                                         " JOINED_CORDER.ORD_NO," +
                                         " ORD_POS " +

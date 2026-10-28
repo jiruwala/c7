@@ -662,7 +662,7 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                     c_cus_no: FormView.getFactoryFields.getGeneralField(
                         "c_cus_no", "", "Ref#", "15%", "violetText", "12%",
                         {
-                            require: true,
+                            require: false,
                             edit_allowed: false,
                             insert_allowed: true
                         }, FormView.getFactoryFields.getSettingsOrdRef2({
@@ -681,21 +681,21 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                     _cusname: FormView.getFactoryFields.getGeneralField(
                         "_cusname", "@", "", "0px", "", "23%",
                         {
-                            require: true,
+                            require: false,
                             edit_allowed: true,
                             insert_allowed: true,
                         }, {}),
                     inv_ref: FormView.getFactoryFields.getGeneralField(
                         "inv_ref", "@", "A/c", "15%", "", "12%",
                         {
-                            require: true,
+                            require: false,
                             edit_allowed: false,
                             insert_allowed: true
                         }, getSettingAc("qry1.inv_ref", "qry1.inv_refnm")),
                     inv_refnm: FormView.getFactoryFields.getGeneralField(
                         "inv_refnm", "@", "", "0px", "", "23%",
                         {
-                            require: true,
+                            require: false,
                             edit_allowed: true,
                             insert_allowed: true,
                         }, {}),                    
