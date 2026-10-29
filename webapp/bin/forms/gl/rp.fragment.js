@@ -1158,7 +1158,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 return;
             }
 
-            var dt = Util.execSQL("select brno,b_name,area,block,jedda,street,qasima from cbranch where code=" + Util.quoted(cc) + " order by brno");
+            var dt = Util.execSQL("select brno,b_name,area,block,jedda,street,qasima,tel from cbranch where code=" + Util.quoted(cc) + " order by brno");
             if (dt.ret == "SUCCESS") {
                 qv.setJsonStrMetaData("{" + dt.data + "}");
                 qv.mLctb.cols[qv.mLctb.getColPos("BRNO")].getMUIHelper().display_width = 50;
@@ -1170,6 +1170,7 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 qv.mLctb.cols[qv.mLctb.getColPos("JEDDA")].mColClass = "sap.m.Input";
                 qv.mLctb.cols[qv.mLctb.getColPos("STREET")].mColClass = "sap.m.Input";
                 qv.mLctb.cols[qv.mLctb.getColPos("QASIMA")].mColClass = "sap.m.Input";
+                qv.mLctb.cols[qv.mLctb.getColPos("TEL")].mColClass = "sap.m.Input";
 
                 qv.mLctb.parse("{" + dt.data + "}", true);
                 qv.loadData();
@@ -1259,9 +1260,9 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
             return "";
         var ld = that2.qb.mLctb;
         var sqls = "";
-        var sq2 = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME,AREA,BLOCK,JEDDA,QASIMA,STREET) " +
+        var sq2 = "insert into cbranch(BRNO, CODE, ACCNO, B_NAME,AREA,BLOCK,JEDDA,QASIMA,STREET,TEL) " +
             " VALUES (':BRNO',':qry1.code',':qr1.ac_no',':B_NAME'," +
-            " ':AREA' ,':BLOCK' ,':JEDDA' ,':QASIMA',':STREET' );";
+            " ':AREA' ,':BLOCK' ,':JEDDA' ,':QASIMA',':STREET' ,':TELEPHONE');";
         var checkDuplicate = {};
         for (var i = 0; i < ld.rows.length; i++) {
             if (Util.nvl(ld.getFieldValue(i, "B_NAME"), "") == "") {
@@ -1279,7 +1280,8 @@ sap.ui.jsfragment("bin.forms.gl.rp", {
                 .replaceAll(":BLOCK", ld.getFieldValue(i, "BLOCK"))
                 .replaceAll(":JEDDA", ld.getFieldValue(i, "JEDDA"))
                 .replaceAll(":QASIMA", ld.getFieldValue(i, "QASIMA"))
-                .replaceAll(":STREET", ld.getFieldValue(i, "STREET"));
+                .replaceAll(":STREET", ld.getFieldValue(i, "STREET"))
+                .replaceAll(":TELEPHONE", ld.getFieldValue(i, "TEL"));
             sqls += sq;
         }
         var brs = "";
