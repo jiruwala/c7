@@ -4856,7 +4856,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
             JOFunc: {
                 checkJOStatus: function (poKf, pRaiseErr) {
                     var raiseErr = Util.nvl(pRaiseErr, true);
-                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,nvl(max(ordacc),'') ordacc from pord1 where keyfld=" + poKf, "No data found !");
+                    var podt = Util.execSQLWithData("select nvl(max(ord_flag),-1) ord_flag,nvl(max(ord_no),-1) ord_no,nvl(max(ordacc),'') ordacc, max(to_char(JO_ACTIVE_FROM,'mm/dd/rrrr')) JO_ACTIVE_FROM from pord1 where keyfld=" + poKf, "No data found !");
                     if (!raiseErr) return podt[0];
 
                     if (podt[0].ORD_FLAG < 0)

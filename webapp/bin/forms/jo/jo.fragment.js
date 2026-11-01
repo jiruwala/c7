@@ -2225,6 +2225,10 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
                         // thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("" + rcvdp + " % ");                        
                         thatForm.view.byId("numtxt" + thatForm.timeInLong).setText("D/S: " + rcvdp + (soldp == rcvdp ? "" : " / " + soldp) + " %");
+                        setTimeout(() => {
+                            var ns = Util.getSQLValue("select nvl(count(*),0) from invoice1 where invoice_code=25 and jono='" + qry.formview.getFieldValue("ord_no")+"'");
+                            thatForm.frm.objs["qry2._cmdIssueVou"].obj.setText("Show Issues ( " + ns + " )");
+                        }, 1);
                     }
                     if (qry.name == "qry2" && qry.obj.mLctb.cols.length > 0)
                         qry.obj.mLctb.getColByName("DESCR").beforeSearchEvent = function (sq, ctx, model) {
@@ -2258,6 +2262,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                 afterNewRow: function (qry, idx, ld) {
                     thatForm.fileUpload = undefined;
                     if (qry.name == "qry1") {
+                        thatForm.frm.objs["qry1._cmdIssueVou"].obj.setText("Show Issues (0)");
                         thatForm.dlvqty = 0;
                         thatForm.fetchCustItems = false;
                         thatForm.fetchCustExp = false;
@@ -2504,6 +2509,28 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                     edit_allowed: false,
                     insert_allowed: false,
                     require: true
+                },
+                _cmdIssueVou: {
+                    colname: "_cmdIssueVou",
+                    data_type: FormView.DataType.Number,
+                    class_name: FormView.ClassTypes.BUTTON,
+                    title: '@{\"text\":\" \",\"width\":\"1%\","textAlign":"End","styleClass":"redText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: sett["FORMAT_MONEY_1"],
+                    other_settings: {
+
+                        editable: true, width: "25%",
+                        text: "Show Isssued",
+                        press: function () {
+                            thatForm.helperFunc.showIssuedVou();
+                        }
+                    },
+                    edit_allowed: false,
+                    insert_allowed: false,
+                    require: false
                 },
                 otherexp: {
                     colname: "otherexp",
@@ -2934,6 +2961,7 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
         },
         getCommands: function () {
             var that2 = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
             return [
                 {
                     name: "cmdSave",
@@ -3013,7 +3041,20 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
                                     items: bts
                                 }));
                             }
+                            if (that2.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                                var kf = that2.frm.getFieldValue("keyfld");
+                                var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
+                                if (Util.nvl(sett["JO_CANCEL_APPROVE"], "FALSE") == "TRUE" &&
+                                    Util.nvl(podt.JO_ACTIVE_FROM, "") == "" && podt.ORD_FLAG != 1)
+                                    mnus.push(new sap.m.MenuItem({
+                                        icon: "sap-icon://decline",
+                                        text: "Cancel Approval",
+                                        press: function () {
+                                            that2.helperFunc.doCancelApprove();
+                                        }
+                                    }))
 
+                            }
 
                             var mnu = new sap.m.Menu({
                                 items: mnus
@@ -3146,6 +3187,199 @@ sap.ui.jsfragment("bin.forms.jo.jo", {
 
             });
         },
+        showIssuedVou: function () {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var kf = thatForm.frm.getFieldValue("keyfld");
+            var ordno = thatForm.frm.getFieldValue("ord_no");
+
+
+            if (thatForm.frm.objs["qry1"].status != FormView.RecordStatus.VIEW)
+                FormView.err("Must Save first to view this !");
+            var sq = "SELECT INVOICE_NO,DAT,REFER,DESCR,ALLQTY/PACK PKQTY ,PKCOST*PACK PKCOST,PKCOST*ALLQTY AMOUNT,keyfld " +
+                " FROM JOINED_INVOICE where invoice_code=25 and jono='" + ordno + "' order by refer "
+            UtilGen.Search.do_quick_search_simple(sq,
+                ["INVOICE_NO", "DESCR", "DAT", "REFER"], function (data) {
+                    var bn = data.KEYFLD;
+                    UtilGen.execCmd('bin.forms.in.siv status=view readonly=true formType=dialog keyfld=' + bn + ' formTitle=ISSUE', UtilGen.DBView, UtilGen.DBView, UtilGen.DBView.newPage, function () { });
+                }, { pWidth: "70%" }, undefined, undefined, "Issue vouchers ... ", [
+                {
+                    KEYFLD: {
+                        colname: 'KEYFLD',
+                        hide: true
+                    }
+                },
+                {
+                    INVOICE_NO: {
+                        colname: 'INVOICE_NO',
+                        display_width: 50,
+                        mTitle: Util.getLangText("txtNo"),
+                    }
+                },
+                {
+                    DAT: {
+                        colname: 'DAT',
+                        display_format: "SHORT_DATE_FORMAT",
+                        display_width: 85,
+                        mTitle: Util.getLangText("dateTxt"),
+                    }
+                },
+                {
+                    REFER: {
+                        colname: 'REFER',
+                        display_width: 100,
+                        mTitle: Util.getLangText("txtCode"),
+                    }
+                },
+                {
+                    DESCR: {
+                        colname: 'DESCR',
+                        display_width: 220,
+                        mTitle: Util.getLangText("descrTxt"),
+                    }
+                },
+                {
+                    PKQTY: {
+                        colname: 'PKQTY',
+                        display_width: 100,
+                        mTitle: Util.getLangText("totalQty"),
+                    }
+                },
+                {
+                    PKCOST: {
+                        colname: 'PKCOST',
+                        display_width: 100,
+                        display_format: "#,##0.00000",
+                        mTitle: Util.getLangText("itemPackCost"),
+                    }
+                },
+                {
+                    AMOUNT: {
+                        colname: 'AMOUNT',
+                        display_width: 120,
+                        display_format: "MONEY_FORMAT",
+                        mTitle: Util.getLangText("itemCostAmt"),
+                        mSummary: "SUM"
+                    }
+                },
+            ]);
+
+        },
+        doCancelApprove: function () {
+            var thatForm = this.thatForm;
+            var sett = sap.ui.getCore().getModel("settings").getData();
+            var kf = thatForm.frm.getFieldValue("keyfld");
+            var ordno = thatForm.frm.getFieldValue("ord_no");
+
+            var txtTit = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Center, width: "100%", editable: false, value: "Cancel Approval" }).addStyleClass("yellowInput");
+            var txtCancelTime = new sap.m.DateTimePicker({
+                textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: false
+            });
+
+            txtCancelTime.setDateValue(new Date(Date.now()));
+            var txtRemarks = new sap.m.Input({ textAlign: sap.ui.core.TextAlign.Begin, width: "50%", editable: true });
+
+
+            function doSave() {
+                var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
+                if (podt.ORD_FLAG == 1) FormView.err("JO already not approved !");
+                var dt = thatForm.frm.getFieldValue("qry1.ord_date");
+                dt.setHours(0, 0, 0, 0);
+                var nosIss = Util.getSQLValue("select nvl(count(*),0) from invoice1 where invoice_code=25 and jono='" + ordno + "'");
+                if (nosIss > 0)
+                    FormView.err("Stock issues have been created for this JO# , delete first all stock issues");
+
+
+                if (Util.nvl(txtCancelTime.getDateValue(), null) == null)
+                    FormView.err("Cancel time must have value !");
+                if (Util.nvl(txtCancelTime.getDateValue(), null) != null &&
+                    dt.getTime() > txtCancelTime.getDateValue().getTime())
+                    FormView.err("Err ! cancel should not less than JO date !");
+                if (Util.nvl(txtRemarks.getValue(), "") == "")
+                    FormView.err("Must have value of remarks");
+                var sq = "update pord1 set JO_XAPPROVE_USER=':LOGONUSER', " +
+                    "JO_XAPPROVE_TIME=:CANCELTIME , ord_flag=1 , " +
+                    "JO_XAPPROVE_REMARKS=':remarks' where keyfld=" + kf;
+                sq = sq.replaceAll(":LOGONUSER", sett["LOGON_USER"])
+                    .replaceAll(":CANCELTIME", Util.toOraDateTimeString(txtCancelTime.getDateValue()))
+                    .replaceAll(":remarks", txtRemarks.getValue());
+                var dt = Util.execSQL(sq);
+                if (dt.ret == "SUCCESS")
+                    FormView.msgSuccess("Cancellation of Approval done  !");
+
+            }
+
+            function showCancelDlg() {
+                var vb = new sap.m.VBox();
+                var fe = [
+                    Util.getLabelTxt("", "0px", "", ""), txtTit,
+                    Util.getLabelTxt("Cancel Time", "30%", ""), txtCancelTime,
+                    Util.getLabelTxt("Remarks", "30%", ""), txtRemarks,
+                ];
+
+                var cnt = UtilGen.formCreate2("", true, fe, undefined, sap.m.ScrollContainer, {
+                    width: { "S": 280, "M": 380, "L": 480, "XL": 480 },
+                    cssText: [
+                        "padding-left:5px ;" +
+                        "padding-top:3px;" +
+                        "border-style: groosve;" +
+                        "margin-left: 1%;" +
+                        "margin-right: 1%;" +
+                        "border-radius:20px;" +
+                        "margin-top: 3px;"
+                    ]
+                }, "sapUiSizeCompact", "");
+                cnt.addContent(new sap.m.VBox({ height: "20px" }));
+                vb.addItem(cnt);
+                Util.navEnter(fe);
+                var dlg = new sap.m.Dialog({
+                    title: "Cancel Approval",
+                    contentWidth: UtilGen.dispWidthByDevice({ "S": 300, "M": 400, "L": 500, "XL": 500 }) + "px",
+                    contentHeight: "125px",
+                    content: [vb],
+                    modal: true,
+                    buttons: [
+                        new sap.m.Button({
+                            text: Util.getLangText("cmdDone"),
+                            icon: "sap-icon://accept",
+                            pressed: false,
+                            enabled: true,
+                            press: function () {
+                                doSave();
+                                dlg.close();
+                                thatForm.queryCommands();
+                            }
+
+                        }),
+                        new sap.m.Button({
+                            text: Util.getLangText("cmdClose"),
+                            icon: "sap-icon://decline",
+                            press: function () {
+                                dlg.close();
+                                thatForm.queryCommands();
+                            }
+                        })
+
+                    ]
+                }).addStyleClass("sapUiSizeCompact");;
+                dlg.open();
+                var fetchdata = function () {
+                }
+
+            }
+
+            if (thatForm.frm.objs["qry1"].status == FormView.RecordStatus.VIEW) {
+                var podt = UtilGen.JOFunc.checkJOStatus(kf, false);
+                if (Util.nvl(sett["JO_CANCEL_APPROVE"], "FALSE") == "TRUE" &&
+                    Util.nvl(podt.JO_ACTIVE_FROM, "") == "" && podt.ORD_FLAG != 1) {
+                    showCancelDlg();
+                } else {
+                    FormView.err("This JO is under approval or unauthorized to cancel approval !");
+                }
+            }
+
+
+        }
     }
     ,
     loadData: function () {
