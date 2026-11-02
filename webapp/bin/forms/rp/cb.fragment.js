@@ -356,7 +356,7 @@ sap.ui.jsfragment("bin.forms.rp.cb", {
                                 beforeLoadQry: function (sql) {
                                     var iq = thatForm.frm.getFieldValue("parameter.cust_code");
                                     var replc = "iscust='Y'";
-                                    if (iq != "") replc = '1=1';
+                                    // if (iq != "") replc = '1=1';
                                     return ("SELECT   c_ycust.code,c_ycust.name,C_YCUST.SALESP,sl.name slsname ,c_ycust.salesp," +
                                         " C_YCUST.AREA,C_YCUST.CRD_LIMIT2,C_YCUST.TEL," +
                                         " C_YCUST.ADDR,C_YCUST.EMAIL,SUM (debit - credit) balance, 0 allbalance,0 overcredit," +

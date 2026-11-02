@@ -100,7 +100,12 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                     {
                         title: "Print",
                         reportFile: "siv",
+                    },
+                    {
+                        title: "Print for Emp tools",
+                        reportFile: "siv2",
                     }
+
                 ],
                 events: thatForm.helperFunc.getEvents(),
                 parameters: [

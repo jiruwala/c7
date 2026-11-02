@@ -135,6 +135,7 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                     showValueHelp: true,
                                     change: function (e) {
                                         var vl = e.oSource.getValue();
+                                        // thatForm.frm.setFieldValue("DS001@parameter.accno", '', '', false);
                                         thatForm.frm.setFieldValue("DS001@parameter.cust_code", vl, vl, false);
                                         var vlnm = Util.getSQLValue("select name from c_ycust where code =" + Util.quoted(vl));
                                         thatForm.frm.setFieldValue("DS001@parameter.custname", vlnm, vlnm, false);
@@ -160,6 +161,72 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                             },
                             custname: {
                                 colname: "custname",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: { width: "49%", editable: false },
+                                list: undefined,
+                                edit_allowed: false,
+                                insert_allowed: false,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            accno: {
+                                colname: "accno",
+                                data_type: FormView.DataType.String,
+                                class_name: FormView.ClassTypes.TEXTFIELD,
+                                title: '{\"text\":\"accNo\",\"width\":\"15%\","textAlign":"End"}',
+                                title2: "",
+                                display_width: colSpan,
+                                display_align: "ALIGN_RIGHT",
+                                display_style: "",
+                                display_format: "",
+                                default_value: "",
+                                other_settings: {
+                                    showValueHelp: true,
+                                    change: function (e) {
+                                        var repCode = "DS001";
+                                        var vl = e.oSource.getValue();
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.accno", vl, vl, false);
+                                        var vlnm = Util.getSQLValue("select name from acaccount where actype=0 and accno =" + Util.quoted(vl));
+                                        thatForm.frm.setFieldValue(repCode + "@parameter.acname", vlnm, vlnm, false);
+
+                                    },
+                                    valueHelpRequest: function (event) {
+                                        var repCode = "DS001";
+                                        var sq = thatForm.frm.parseString("SELECT   a.accno, a.name, a.namea" +
+                                            " FROM   acaccount a, (SELECT   DISTINCT accno" +
+                                            "                       FROM   acvoucher2,C_YCUST CC" +
+                                            "                      WHERE   CUST_CODE=CC.CODE AND PATH LIKE (SELECT NVL(" +
+                                            "  MAX(PATH),'')||'%' " +
+                                            "  FROM C_YCUST " +
+                                            "  WHERE CODE=':parameter.cust_code') ) vx " +
+                                            "  WHERE   vx.accno = a.accno" +
+                                            "     ORDER BY   a.PATH");
+                                        // var sq = "select accno,name,namea from acaccount where  actype=0 order by path";
+                                        Util.show_list(sq, ["ACCNO", "NAME", "NAMEA"], "", function (data) {
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.accno", data.ACCNO, data.ACCNO, true);
+                                            thatForm.frm.setFieldValue(repCode + "@parameter.acname", data.NAME, data.NAME, true);
+                                            return true;
+                                        }, undefined, undefined, undefined, false, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+                                    },
+                                    width: "35%"
+                                },
+                                list: undefined,
+                                edit_allowed: true,
+                                insert_allowed: true,
+                                require: false,
+                                dispInPara: true,
+                            },
+                            acname: {
+                                colname: "acname",
                                 data_type: FormView.DataType.String,
                                 class_name: FormView.ClassTypes.TEXTFIELD,
                                 title: '@{\"text\":\"\",\"width\":\"1%\","textAlign":"End"}',
@@ -330,6 +397,7 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                             LEFT JOIN acvoucher2 v 
                                                     ON v.cust_code = c_ycust.code
                                                     AND v.vou_date <= :parameter.todate
+                                                    AND (v.accno=':parameter.accno' or ':parameter.accno' is null )                                                    
                                             LEFT JOIN (select ord_ref,sum(sale_price*tqty) unposted_balance from c_order1 where saleinv is null
                                                         and ord_code=9 and ord_date <= :parameter.todate
                                                         group by ord_ref) ubal 
@@ -345,7 +413,7 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                                         WHERE rn = 1) last_pay 
                                                     ON last_pay.cust_code = c_ycust.code
                                             WHERE (':parameter.pstatus'='ALL' or c_ycust.mov_type = ':parameter.pstatus')   -- your original condition simplified
-                                            AND c_ycust.path LIKE (SELECT NVL(MAX(c.path), '') || '%'
+                                                    AND c_ycust.path LIKE (SELECT NVL(MAX(c.path), '') || '%'
                                                                         FROM c_ycust c
                                                                     WHERE c.code = ':parameter.cust_code')
                                             GROUP BY c_ycust.code,
@@ -441,6 +509,7 @@ sap.ui.jsfragment("bin.forms.rp.cb2", {
                                     var ld = qv.mLctb;
                                     for (var i = 0; i < ld.rows.length; i++) {
                                         var bl = ld.getFieldValue(i, "BALANCE");
+                                        var up = ld.getFieldValue(i, "UNPOSTED_BALANCE");
                                         if (bl > 0)
                                             ld.setFieldValue(i, "DRBAL", bl);
                                         else
