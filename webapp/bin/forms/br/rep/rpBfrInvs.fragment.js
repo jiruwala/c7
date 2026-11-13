@@ -113,7 +113,7 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                                 },
                                 beforeLoadQry: function (sql) {
                                     var eq = thatForm.frm.getFieldValue("RPBINV1@parameter.grpby");
-                                    var sq = "SELECT ORD_REF, ORD_REFNM," +
+                                    var sq = "SELECT ORD_REF, ORD_REFNM, to_char(min(tmplantleave),'hh24.mi') ord_tm," +
                                         " ORD_DATE, ORD_SHIP,  ORD_DISCAMT,saleinv," +
                                         " SUM(qty_x) TOTALQTY,SUM(((price_x))*(qty_x)) AMOUNT," +
                                         " SUM(((price_x))*(qty_x))/ SUM(qty_x)  PRICEX,ITEM_DESCR, BRANCH_NAME,count(*) counts , " +
@@ -487,6 +487,23 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     other_settings: {},
 
                 },
+                ord_tm: {
+                    colname: "ord_tm",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "Time",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "60",
+                    display_align: "ALIGN_CENTER",
+                    grouped: false,
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+
+                },
                 counts: {
                     colname: "counts",
                     data_type: FormView.DataType.Number,
@@ -684,6 +701,22 @@ sap.ui.jsfragment("bin.forms.br.rep.rpBfrInvs", {
                     parentTitle: "",
                     parentSpan: 1,
                     display_width: "50",
+                    display_align: "ALIGN_RIGHT",
+                    display_style: "",
+                    display_format: "",
+                    default_value: "",
+                    other_settings: {},
+                    commandLinkClick: cmdLink
+                },
+                _remarks: {
+                    colname: "_remarks",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.LABEL,
+                    title: "txtRemark",
+                    title2: "",
+                    parentTitle: "",
+                    parentSpan: 1,
+                    display_width: "100",
                     display_align: "ALIGN_RIGHT",
                     display_style: "",
                     display_format: "",

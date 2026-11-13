@@ -2517,39 +2517,59 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
 
                 },
                 copyDataFromVou: function (data, qrj, vars) {
+                    var frm = qrj.frag.frm;
                     if (data == null || data == undefined || data.length <= 0)
                         return false;
                     if (qrj.getControl().view.objs["qry1"].status != FormView.RecordStatus.NEW && qrj.getControl().view.objs["qry1"].status != FormView.RecordStatus.EDIT) {
                         sap.m.MessageToast.show("Not in new / edit mode !");
                         return;
                     }
-                    for (var d in data) {
-                        var dat = Util.execSQL("select V.ACCNO,V.FCDEBIT,V.FCCREDIT,V.DEBIT,V.CREDIT,A.NAME ACNAME,DESCR from ACVOUCHER2 V,ACACCOUNT A where A.ACCNO=V.ACCNO AND  V.keyfld=" + data[d].KEYFLD + " order by pos");
-                        if (dat.ret == "SUCCESS" && dat.data.length > 0) {
-                            var dtx = JSON.parse("{" + dat.data + "}").data;
-                            for (var i in dtx) {
-                                if (vars.vou_code == 2 && dtx[i].DEBIT > 0)
-                                    continue;
-                                if (vars.vou_code == 3 && dtx[i].CREDIT > 0)
-                                    continue;
-                                var r = qrj.mLctb.rows.length - 1;
-                                if (Util.nvl(qrj.mLctb.getFieldValue(qrj.mLctb.rows.length - 1, "ACCNO"), "") != "")
-                                    r = qrj.mLctb.addRow();
-                                qrj.mLctb.setFieldValue(r, "POS", r + 1);
-                                qrj.mLctb.setFieldValue(r, "ACCNO", dtx[i].ACCNO);
-                                qrj.mLctb.setFieldValue(r, "FCDEBIT", dtx[i].FCDEBIT);
-                                qrj.mLctb.setFieldValue(r, "FCCREDIT", dtx[i].FCCREDIT);
-                                qrj.mLctb.setFieldValue(r, "DEBIT", dtx[i].DEBIT);
-                                qrj.mLctb.setFieldValue(r, "CREDIT", dtx[i].CREDIT);
-                                qrj.mLctb.setFieldValue(r, "DESCR2", dtx[i].ACNAME);
-                                qrj.mLctb.setFieldValue(r, "ACNAME", dtx[i].ACNAME);
-                                qrj.mLctb.setFieldValue(r, "DESCR", qrj.getControl().view.objs["qry1.descr"].obj.getValue());
+                    function copydetails() {
+                        for (var d in data) {
+                            var dat = Util.execSQL("select V.ACCNO,V.FCDEBIT,V.FCCREDIT,V.DEBIT,V.CREDIT,A.NAME ACNAME,DESCR from ACVOUCHER2 V,ACACCOUNT A where A.ACCNO=V.ACCNO AND  V.keyfld=" + data[d].KEYFLD + " order by pos");
+                            if (dat.ret == "SUCCESS" && dat.data.length > 0) {
+                                var dtx = JSON.parse("{" + dat.data + "}").data;
+                                for (var i in dtx) {
+                                    if (vars.vou_code == 2 && dtx[i].DEBIT > 0)
+                                        continue;
+                                    if (vars.vou_code == 3 && dtx[i].CREDIT > 0)
+                                        continue;
+                                    var r = qrj.mLctb.rows.length - 1;
+                                    if (Util.nvl(qrj.mLctb.getFieldValue(qrj.mLctb.rows.length - 1, "ACCNO"), "") != "")
+                                        r = qrj.mLctb.addRow();
+                                    qrj.mLctb.setFieldValue(r, "POS", r + 1);
+                                    qrj.mLctb.setFieldValue(r, "ACCNO", dtx[i].ACCNO);
+                                    qrj.mLctb.setFieldValue(r, "FCDEBIT", dtx[i].FCDEBIT);
+                                    qrj.mLctb.setFieldValue(r, "FCCREDIT", dtx[i].FCCREDIT);
+                                    qrj.mLctb.setFieldValue(r, "DEBIT", dtx[i].DEBIT);
+                                    qrj.mLctb.setFieldValue(r, "CREDIT", dtx[i].CREDIT);
+                                    qrj.mLctb.setFieldValue(r, "DESCR2", dtx[i].ACNAME);
+                                    qrj.mLctb.setFieldValue(r, "ACNAME", dtx[i].ACNAME);
+                                    qrj.mLctb.setFieldValue(r, "DESCR", qrj.getControl().view.objs["qry1.descr"].obj.getValue());
 
+                                }
                             }
                         }
+                        qrj.updateDataToControl();
+                        qrj.eventCalc(qrj, undefined, -1, false);
                     }
-                    qrj.updateDataToControl();
-                    qrj.eventCalc(qrj, undefined, -1, false);
+
+                    if (frm.objs["qry1"].status == FormView.RecordStatus.NEW && data.length > 0)
+                        Util.simpleConfirmDialog("Copy headers of first Voucher selected ? ", function (oAction) {
+                            var kfsel = data[0].KEYFLD;
+                            frm.setFieldValue("qry1.descr", data[0].DESCR, data[0].DESCR, true);
+                            if (vars.vou_code == 2 || vars.vou_code == 3) {
+                                frm.setFieldValue("qry1.rcvfrom", data[0].RCVFROM, data[0].RCVFROM, true);
+                                frm.setFieldValue("qry1.code", data[0].CODE, data[0].CODE, true);
+                                frm.setFieldValue("qry1.slsmn", data[0].SLSMN, data[0].SLSMN, true);
+                                copydetails();
+                            } else copydetails();
+
+                        }, function () {
+                            copydetails();
+                        }, undefined, "OK")
+                    else copydetails();
+
                 },
                 before_add_table: function (scrollObjs, qrj, vars) {
                     var that = this;
@@ -2721,7 +2741,7 @@ sap.ui.define("sap/ui/ce/generic/UtilGen", [],
                             var vc = data.VOU_CODE;
                             var vt = data.TYPE;
                             setTimeout(() => {
-                                var sq2 = "select no,TO_CHAR(vou_date,'DD/MM/RRRR') VOU_DATE ,descr,keyfld ,DEBAMT DEBAMT" +
+                                var sq2 = "select no,TO_CHAR(vou_date,'DD/MM/RRRR') VOU_DATE ,descr,keyfld ,DEBAMT DEBAMT,chequeno,rcvfrom,to_char(duedate,'dd/mm/rrrr') duedate, slsmn " +
                                     " from acvoucher1 where vou_code=" + vc +
                                     " and type=" + vt + " order by acvoucher1.vou_date desc,no desc";
                                 Util.show_list(sq2, ["NO", "VOU_DATE", "DESCR", "DEBAMT"], "", function (data) {

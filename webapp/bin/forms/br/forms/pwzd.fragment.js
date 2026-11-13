@@ -724,9 +724,9 @@ sap.ui.jsfragment("bin.forms.br.forms.pwzd", {
             }
             if (kfldStr.length <= 0)
                 FormView.err("No rows selected !");
-            //var sq = "select nvl(sum((o.sale_price/o.ord_pack)*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
+            var sq = "select nvl(sum((o.sale_price/o.ord_pack)*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
             if (that.recheckPrice.getSelected())
-            var sq = "select nvl(sum(GET_ITEM_PRICE2_BUY(o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date)*(o.tqty/o.ord_pack)),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
+                var sq = "select nvl(sum(GET_ITEM_PRICE2_BUY(o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date)*(o.tqty/o.ord_pack)),0) from C_ORDER1 o,items it where o.ord_code=11 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
             sq = sq.replaceAll(":txtKflds", kfldStr);
             var sum = Util.getSQLValue(sq);
             that.txtInfoGross.setValue(df.format(sum));

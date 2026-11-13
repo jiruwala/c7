@@ -748,7 +748,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
         var sqx3 = "SELECT code, PATH, SUM (DEBIT) TOTDEB," +
             "SUM (CREDIT) TOTCRD FROM  :ACVOUCHER2, c_ycust WHERE VOU_DATE <= TODATE " +
             " and c_ycust.path like parent_path " +
-            " and (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus)  " +
+            " and (nvl(pstatus,'ALL')='ALL' or c_ycust.mov_type=pstatus)  " +
             " and issupp = 'Y' AND ACVOUCHER2.cust_code = code AND(code >= fromcust  and code <= tocust) " +
             " :KEYFLD_CONDITION GROUP BY   code, PATH ";
         // :_CURSOR_PA3  order by VOU_DATE,PATH;
@@ -756,7 +756,7 @@ sap.ui.jsfragment("bin.forms.rp.cage", {
             " SUM (CREDIT) TOTCRD, VOU_DATE FROM  :ACVOUCHER2, c_ycust" +
             " WHERE VOU_DATE <= TODATE AND ACVOUCHER2.cust_code = c_ycust.code " +
             " and c_ycust.path like parent_path " +
-            " and (nvl(pstatus,'') is null or c_ycust.mov_type=pstatus)  " +
+            " and (nvl(pstatus,'ALL')='ALL' or c_ycust.mov_type=pstatus)  " +
             " and issupp='Y' AND (code>= fromcust and code<=tocust) :KEYFLD_CONDITION " +
             " GROUP BY   code, PATH, VOU_DATE ";
         // :_SQL_CODE_FOUND
