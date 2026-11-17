@@ -657,6 +657,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 afterLoadQry: function (qry) {
                     qry.formview.setFieldValue("pac", qry.formview.getFieldValue("keyfld"));
                     if (qry.name == "qry1") {
+                        thatForm.helperFunc.getCustTelData();
                         thatForm.view.byId("txtMsg" + thatForm.timeInLong).setText("");
                         UtilGen.Search.getLOVSearchField("select name from salesp where no = :CODE ", qry.formview.objs["qry1.ord_empno"].obj, undefined, that.frm.objs["qry1.txt_empname"].obj);
                         var saleinv = Util.getSQLValue("select saleinv from pord1 where keyfld=" + qry.formview.getFieldValue("keyfld"));
@@ -774,6 +775,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 },
                 afterNewRow: function (qry, idx, ld) {
                     if (qry.name == "qry1") {
+                        thatForm.helperFunc.getCustTelData();
                         that.view.byId("rcvdTxt" + thatForm.timeInLong).setText("");
                         var objOn = thatForm.frm.objs["qry1.location_code"].obj;
                         var objSt = thatForm.frm.objs["qry1.stra"].obj;
@@ -1184,6 +1186,33 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                     edit_allowed: false,
                     insert_allowed: false,
                     require: true
+                },
+                add_tel: {
+                    colname: "add_tel",
+                    data_type: FormView.DataType.String,
+                    class_name: FormView.ClassTypes.TEXTFIELD,
+                    title: '@{\"text\":\"txtCustTel\",\"width\":\"40%\","textAlign":"End","styleClass":"redText boldText"}',
+                    title2: "",
+                    canvas: "default_canvas",
+                    display_width: codSpan,
+                    display_align: "ALIGN_CENTER",
+                    display_style: "",
+                    display_format: "",
+                    other_settings: {
+                        editable: true,
+                        width: "20%",
+                        showValueHelp: true,
+                        change: function (e) {
+                            thatForm.helperFunc.getCustTelData();
+                        },
+                        valueHelpRequest: function (e) {
+
+                        }
+                    },
+                    edit_allowed: false,
+                    insert_allowed: true,
+                    require: false,
+                    keyboardFocus: true,
                 },
                 reserved_stock: {
                     colname: "reserved_stock",
@@ -2032,7 +2061,7 @@ sap.ui.jsfragment("bin.forms.sl.so", {
                 // if (can_issue < allqty)
                 //     errRow(i, "Save Denied : Can issue only " + (can_issue / pk) + " " + pkd);
             }
-            
+
             //TODO 100.use  timeInLong  variable to store and delete temporary table to avoid lock from other user 
             var sqlCountHead = "Declare " +
                 "rowno number:=-1; " +
