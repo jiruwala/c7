@@ -1174,21 +1174,23 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             var kfldStr = "";
             var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
             var slicesof = that.qv.getControl().getBinding("rows").aIndices;
+            var kfldsAr = [];
             for (var i = 0; i < slices.length; i++) {
                 var kfld = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
+                kfldsAr.push(kfld);
                 kfldStr = kfldStr + (kfldStr.length > 0 ? "," : "") + kfld;
             }
             if (kfldStr.length <= 0)
                 FormView.err("No rows selected !");
             var sq = "select nvl(sum(o.sale_price*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
             if (that.recheckPrice.getSelected())
-                sq = "select nvl(sum(get_item_price2(o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date)*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
-            sq = sq.replaceAll(":txtKflds", kfldStr);
+                sq = "select nvl(sum(get_item_price2(o.ord_ship,o.ord_ref,o.ord_discamt,o.ord_date)*o.tqty),0) from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds)";
+            sq = sq.replaceAll(":txtKflds", that.getInsKfs("o.keyfld", kfldsAr));
             var sum = Util.getSQLValue(sq);
             that.txtInfoGross.setValue(df.format(sum));
             if (rfreshAdd) {
                 // var sq = "select nvl(sum(op_no*tqty),0) from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds)";
-                // sq = sq.replaceAll(":txtKflds", kfldStr);
+                // sq = sq.replaceAll(":txtKflds", that.getInsKfs("o.keyfld", kfldsAr));
                 // var sumadd = Util.getSQLValue(sq);
                 // that.txtInfoAdd.setValue(df.format(0));
             }
@@ -1233,7 +1235,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             " totaag number:=0;" +
             " totamt number:=0;" +
             " " +
-            " cursor ds is select o.*,it.packd, it.pack,it.unitd,get_item_cost(it.reference,o.ord_date) pkaver,it.prd_dt prd_date,it.exp_dt exp_date from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and o.keyfld in (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;" +
+            " cursor ds is select o.*,it.packd, it.pack,it.unitd,get_item_cost(it.reference,o.ord_date) pkaver,it.prd_dt prd_date,it.exp_dt exp_date from C_ORDER1 o,items it where o.ord_code=9 and o.ord_ship=it.reference and (:txtKflds) and o.saleinv is null order by o.keyfld , o.ORD_POS ;" +
             " cursor pu(kfx number) is select *from pur2 where keyfld=kfx order by itempos;" +
             " " +
             " begin" +
@@ -1295,9 +1297,11 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
         var kfldStr = "";
         var slices = that.qv.getControl().getSelectedIndices(); //that.qv.getControl().getBinding("rows").aIndices;
         var slicesof = that.qv.getControl().getBinding("rows").aIndices;
+        var kfldsAr = [];
         for (var i = 0; i < slices.length; i++) {
             var kfld = Util.nvl(Util.getCellColValue(that.qv.getControl(), slicesof[slices[i]], "KEYFLD"), "");
             kfldStr = kfldStr + (kfldStr.length > 0 ? "," : "") + kfld;
+            kfldsAr.push(kfld);
         }
         if (kfldStr.length <= 0)
             FormView.err("No rows selected !");
@@ -1307,7 +1311,7 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             .replaceAll(":txtType", UtilGen.getControlValue(that.txtInfoInvType))
             .replaceAll(":txtStr", "1")
             .replaceAll(":txtRef", Util.quoted(that.txtInfoRef.getValue()))
-            .replaceAll(":txtKflds", kfldStr)
+            .replaceAll(":txtKflds", that.getInsKfs("o.keyfld", kfldsAr))
             .replaceAll(":addamt", Util.extractNumber(that.txtInfoAdd.getValue()))
             .replaceAll(":discamt", Util.extractNumber(that.txtInfoDisc.getValue()))
             .replaceAll(":addescr", that.txtInfoAddRemarks.getValue())
@@ -1324,6 +1328,25 @@ sap.ui.jsfragment("bin.forms.rm.forms.wzd", {
             sap.m.MessageToast.show("Sales generated successfully !");
         }
 
+    },
+    getInsKfs: function (kfldStr, kfs) {
+        var thatForm = this;
+        var chunkSize = 1000;
+        if (kfs.length == 0)
+            return kfldStr + " in () ";
+        var getKfStr = function (kx) {
+            var kkstr = "";
+            for (var i = 0; i < kx.length; i++)
+                kkstr += (kkstr.length > 0 ? "," : "") + kx[i];
+            return kkstr;
+        };
+        var ks = [];
+        for (var i = 0; i < kfs.length; i += chunkSize)
+            ks.push(kfs.slice(i, i + chunkSize));
+        var kstr = "";
+        for (var j = 0; j < ks.length; j++)
+            kstr += (kstr.length > 0 ? " or " : "") + kfldStr + " in (" + getKfStr(ks[j]) + ")";
+        return kstr;
     },
     printInv: function (kfld) {
         var that = this;
