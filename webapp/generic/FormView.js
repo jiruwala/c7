@@ -651,7 +651,7 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                 if (thatForm.objs[cvnm].hasOwnProperty("after_add_canvas") && thatForm.objs[cvnm].after_add_canvas != undefined)
                     thatForm.objs[cvnm].after_add_canvas(thatForm.objs[cvnm].obj);
 
-                if (typeof thatForm.objs[cvnm].container == "function" && thatForm.objs[cvnm].container(cvnm).addItem != undefined)   
+                if (typeof thatForm.objs[cvnm].container == "function" && thatForm.objs[cvnm].container(cvnm).addItem != undefined)
                     thatForm.objs[cvnm].container(cvnm).addItem(new sap.m.VBox({ height: Util.nvl(thatForm.objs[cvnm].addEmptyBox, "100px") }))
                 if (typeof thatForm.objs[cvnm].container == "function" && thatForm.objs[cvnm].container(cvnm).addContent != undefined)
                     thatForm.objs[cvnm].container(cvnm).addContent(new sap.m.VBox({ height: Util.nvl(thatForm.objs[cvnm].addEmptyBox, "100px") }))
@@ -2184,6 +2184,27 @@ sap.ui.define("sap/ui/ce/generic/FormView", ["./QueryView"],
                     },
                     sqlChange: "select name from c_ycust where  code = ':CODE'",
                     sqlList: "select code,name title from c_ycust where flag=1 and iscust='Y' and (mov_type='^^list_key' or    '^^list_key'='ALL')   order by path ",
+                    sqlListChange: "select code,name title from c_ycust where code=:CODE",
+                });
+            },
+            getSettingsOrdRef3: function (pSet) {
+                var thatForm = pSet.thatForm;
+                var ordref = Util.nvl(pSet.ord_ref, "qry1.ord_ref");
+                var ordrefnm = Util.nvl(pSet.ord_refnm, "qry1.ord_refnm");
+                return this.getSettingsGeneral({
+                    thatForm: pSet, thatForm,
+                    fnBeforeChange: Util.nvl(pSet.fnBeforeChange, undefined),
+                    fnAfteUpdate: Util.nvl(pSet.fnAfteUpdate, undefined),
+                    fnBeforeValHelp: Util.nvl(pSet.fnBeforeValHelp, undefined),
+                    fnAfterValHelp: Util.nvl(pSet.fnAfterValHelp, undefined),
+                    code: ordref,
+                    name: ordrefnm,
+                    pListPara: {
+                        selectStr: "@ALL/txtAll,ACTIVE/txtCustActive,STOPPED/txtCustStopped,LEGAL/txtCustUnderLegal",
+                        defaultKey: "ACTIVE",
+                    },
+                    sqlChange: "select name from c_ycust where  code = ':CODE'",
+                    sqlList: "select code,name title from c_ycust where flag=1 and (mov_type='^^list_key' or    '^^list_key'='ALL')   order by path ",
                     sqlListChange: "select code,name title from c_ycust where code=:CODE",
                 });
             },

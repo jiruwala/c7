@@ -664,46 +664,54 @@ sap.ui.jsfragment("bin.forms.in.srv", {
                         keyboardFocus: false,
 
                     }, {}),
-                    c_cus_no: FormView.getFactoryFields.getGeneralField(
-                        "c_cus_no", "", "Ref#", "15%", "violetText", "12%",
-                        {
-                            require: false,
-                            edit_allowed: false,
-                            insert_allowed: true
-                        }, FormView.getFactoryFields.getSettingsOrdRef2({
-                            thatForm: thatForm,
-                            ord_ref: "qry1.c_cus_no",
-                            ord_refnm: "qry1._cusname",
-                            fnAfteUpdate: function () {
+                c_cus_no: FormView.getFactoryFields.getGeneralField(
+                    "c_cus_no", "", "Ref#", "15%", "violetText", "12%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: true
+                    }, FormView.getFactoryFields.getSettingsOrdRef3({
+                        thatForm: thatForm,
+                        ord_ref: "qry1.c_cus_no",
+                        ord_refnm: "qry1._cusname",
+                        fnAfteUpdate: function () {
+                            var varAcc = Util.nvl(sett["VARIOUS_SRV_INV_REF"], "");
+                            var ty = thatForm.frm.getFieldValue("qry1.type");
+                            if (ty == -1 || ty == "-1") {
+                                UtilGen.setControlValue(thatForm.frm.objs["qry1.inv_ref"].obj, varAcc, varAcc, true);
+                            }
+                            if (thatForm.frm.getFieldValue("qry1.type"))
                                 var locval = thatForm.frm.objs["qry1.inv_ref"].obj.getValue();
-                                var custcode = thatForm.frm.objs["qry1.c_cus_no"].obj.getValue();
-                                if (locval == "") {
-                                    var s = Util.getSQLValue("select ac_no from c_ycust where code='" + custcode + "'");
-                                    thatForm.frm.setFieldValue("qry1.inv_ref", s, s, true);
-                                }
-                            },
-                        })),
-                    _cusname: FormView.getFactoryFields.getGeneralField(
-                        "_cusname", "@", "", "0px", "", "23%",
-                        {
-                            require: false,
-                            edit_allowed: true,
-                            insert_allowed: true,
-                        }, {}),
-                    inv_ref: FormView.getFactoryFields.getGeneralField(
-                        "inv_ref", "@", "A/c", "15%", "", "12%",
-                        {
-                            require: false,
-                            edit_allowed: false,
-                            insert_allowed: true
-                        }, getSettingAc("qry1.inv_ref", "qry1.inv_refnm")),
-                    inv_refnm: FormView.getFactoryFields.getGeneralField(
-                        "inv_refnm", "@", "", "0px", "", "23%",
-                        {
-                            require: false,
-                            edit_allowed: true,
-                            insert_allowed: true,
-                        }, {}),                    
+                            var custcode = thatForm.frm.objs["qry1.c_cus_no"].obj.getValue();
+                            if (locval == "") {
+                                var s = Util.getSQLValue("select ac_no from c_ycust where code='" + custcode + "'");
+                                thatForm.frm.setFieldValue("qry1.inv_ref", s, s, true);
+                            }
+
+
+                        },
+                    })),
+                _cusname: FormView.getFactoryFields.getGeneralField(
+                    "_cusname", "@", "", "0px", "", "23%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {}),
+                inv_ref: FormView.getFactoryFields.getGeneralField(
+                    "inv_ref", "@", "A/c", "15%", "", "12%",
+                    {
+                        require: false,
+                        edit_allowed: false,
+                        insert_allowed: true
+                    }, getSettingAc("qry1.inv_ref", "qry1.inv_refnm")),
+                inv_refnm: FormView.getFactoryFields.getGeneralField(
+                    "inv_refnm", "@", "", "0px", "", "23%",
+                    {
+                        require: false,
+                        edit_allowed: true,
+                        insert_allowed: true,
+                    }, {}),
                 memo: FormView.getFactoryFields.getGeneralField(
                     "memo", "", "txtRemark", "15%", "", "85%",
                     {

@@ -685,11 +685,15 @@ sap.ui.jsfragment("bin.forms.in.siv", {
                         require: false,
                         edit_allowed: false,
                         insert_allowed: true
-                    }, FormView.getFactoryFields.getSettingsOrdRef2({
+                    }, FormView.getFactoryFields.getSettingsOrdRef3({
                         thatForm: thatForm,
                         ord_ref: "qry1.c_cus_no",
                         ord_refnm: "qry1._cusname",
                         fnAfteUpdate: function () {
+                            var varAcc = Util.nvl(sett["VARIOUS_SIV_INV_REF"], "");
+                            var ty = thatForm.frm.getFieldValue("qry1.type");
+                            if (ty != "" && (ty == 0 || ty == "0"))
+                                UtilGen.setControlValue(thatForm.frm.objs["qry1.inv_ref"].obj, varAcc, varAcc, true);
                             var locval = thatForm.frm.objs["qry1.inv_ref"].obj.getValue();
                             var custcode = thatForm.frm.objs["qry1.c_cus_no"].obj.getValue();
                             if (locval == "") {
